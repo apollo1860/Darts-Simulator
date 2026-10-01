@@ -126,7 +126,7 @@ function donePanel(s, inst) {
     ${card ? `<p>Du spielst ab sofort mit Tourcard (gültig bis Ende ${s.player.cardUntil}).</p>` : ''}
     <div class="kpi-grid" style="text-align:left">
       <div class="kpi"><div class="label">Preisgeld</div><div class="v gold num">${fmtEUR(inst.prize)}</div></div>
-      <div class="kpi"><div class="label">XP</div><div class="v cyan num">+${inst.xp} XP</div></div>
+      <div class="kpi"><div class="label">XP${inst.xpBoost ? ` · <b class="gold">Boost ×${fmtNum(inst.xpBoost, 2)}</b>` : ''}</div><div class="v cyan num">+${inst.xp} XP</div></div>
       ${winnerKpi}
       <div class="kpi"><div class="label">Kontostand</div><div class="v num">${fmtEUR(s.finance.balance)}</div></div>
     </div>

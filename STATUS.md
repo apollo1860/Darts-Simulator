@@ -88,6 +88,7 @@
 - Erholung kaufen (Nutzerwunsch): Saunabesuch (−10 % Ermüdung) und Massage (−15 %) im Wochenplan, je 50–100 €, je 1× pro Woche, zusätzlich zur Wochenaktivität.
 - Checkout-Entscheidung zeigt nur noch die Wege, keine Wahrscheinlichkeiten mehr („★ Empfohlen“ ab Rechnen 75 bleibt).
 - **WDF-Opens** (Nutzerliste): 20 Turniere für Spieler ohne Tourcard, Sieg 1.000–2.500 € je nach Kategorie, Finale 500/HF 250/VF 100 €, Reise Europa 400 €/Übersee 1.000 €.
+- WDF: zufälliger XP-Boost ×1,2–1,6 je Turnier (Anzeige am Turnierende); pro Woche nur noch ein WDF-Open (Tallinn, Canadian und Belgium Open gestrichen → 17 Events).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -95,7 +96,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
-- WDF: KW nach den Terminen 2026 (gilt jedes Jahr gleich). Orte für Dänemark/England/Finnland/Kanada/NZ/Australien/Wales/Tschechien/Italien geschätzt; Italian/Finnish Open (ohne Kategorie) als Bronze. Estonian + Tallinn Open in derselben KW → nur eins spielbar. Keine Startgebühr. Feld = zufällige Spieler ohne Karte + DDV-Pool (keine echten Übersee-Amateure).
+- WDF: KW nach den Terminen 2026 (gilt jedes Jahr gleich). Orte für Dänemark/England/Finnland/Kanada/NZ/Australien/Wales/Tschechien/Italien geschätzt; Italian/Finnish Open (ohne Kategorie) als Bronze. Bei zwei WDF-Opens in einer KW bleibt das mit höherer Kategorie (bei Gleichstand das erste): Estonian Open, The Steel Masters, Philippines Open. Keine Startgebühr. Feld = zufällige Spieler ohne Karte + DDV-Pool (keine echten Übersee-Amateure).
 - XP gesenkt: Basis Match 10/Sieg 15/Runde 6/Titel 40/Teilnahme 45, lokal ×0,55. Bot (spielt aus Geldmangel fast nur lokal) erreicht nach 8 Saisons Level ~47 / OVR ~92, noch ohne Tourcard – wer CT/DDV spielt, steigt schneller. Level-Up-Fenster im laufenden Turnier erst nach Turnierende.
 - Manager-Provision 10/15/20 % (übliche Spanne im Sport); Freischaltung nach Tourcard/Top 64/Top 16. Exhibition-Einladungen kommen zusätzlich zum Wochenplan (Ermüdung +15). Trainerpreise 1.500/6.000/18.000 €.
 - Bühnen-Effekt symmetrisch um Erfahrung +3 (typischer Tour-Profi): Neuling (−4) auf großer Bühne ≈ −5 Punkte, Veteran (+10) ≈ +5. Momentum lokal nur ¼, damit Kneipenturniere keinen Dauer-Lauf erzeugen (Bot: meist „Normal“, Phasen mit Selbstvertrauen).

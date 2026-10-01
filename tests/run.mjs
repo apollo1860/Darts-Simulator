@@ -583,6 +583,8 @@ test('WDF-Opens: nur ohne Karte, Reise 400/1.000 €, Preisgeld, kompletter Abla
   const b0 = s.finance.balance;
   enterEvent(s, dutch.id);
   assert.equal(s.activeEvent.fieldSize, 128);
+  const boost = s.activeEvent.xpBoost;
+  assert.ok(boost >= 1.2 && boost <= 1.6, 'Boost ' + boost);
   simulateRest(s);
   const inst = s.activeEvent, pr = { W: dutch.prizeWin, F: 500, SF: 250, QF: 100 }[inst.place] ?? 0;
   assert.equal(inst.prize, pr);
@@ -592,7 +594,11 @@ test('WDF-Opens: nur ohne Karte, Reise 400/1.000 €, Preisgeld, kompletter Abla
   assert.equal(eventStatus(s, eventsInWeek(s, 2027, 10).find(e => e.id === 'wdf-iom')).playable, false);   // mit Karte gesperrt
   s.player.tour = 'none'; s.week = { played: true }; s.date.week = 16;
   nextWeek(s);                                                                                    // KI-WDF im Hintergrund
-  assert.ok(s.champions[2027].some(c => c.eventId === 'wdf-estonia') && s.champions[2027].some(c => c.eventId === 'wdf-tallinn'));
+  assert.ok(s.champions[2027].some(c => c.eventId === 'wdf-estonia'));
+  for (let w = 1; w <= 52; w++) assert.ok(eventsInWeek(s, 2027, w).filter(e => e.cat === 'wdf').length <= 1, 'KW ' + w);   // max. 1 WDF pro Woche
+  const boosts = new Set();
+  for (let i = 0; i < 12; i++) { const t = newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 60 + i }); t.date.week = 6; enterEvent(t, 'wdf-dutch'); boosts.add(t.activeEvent.xpBoost); }
+  assert.ok(boosts.size >= 3);                                                                      // Boost zufällig
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

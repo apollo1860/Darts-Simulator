@@ -20,7 +20,7 @@ Karrieremodus für Darts im FIFA-Stil: vom Kneipenturnier im eigenen Bundesland 
 
 ## Inhalte
 - 128 Tourcard-Holder 2026 (Top 64, zweites Kartenjahr, Q-School 2026, CT/Dev 2025) sowie Challenge-, Development-, DDV- und Lokal-Spieler (`data/players.js`, leicht editierbar)
-- Realistischer Jahreskalender mit 20 WDF-Opens, Q-School, 24 Challenge- und 24 Development-Turnieren, 30 Players Championships, 14 European-Tour-Events, allen Majors, World Series, World Cup und Premier League
+- Realistischer Jahreskalender mit 17 WDF-Opens, Q-School, 24 Challenge- und 24 Development-Turnieren, 30 Players Championships, 14 European-Tour-Events, allen Majors, World Series, World Cup und Premier League
 - Ranglisten: PDC Order of Merit (2 Jahre), Pro Tour, Challenge Tour, Development Tour, Premier-League-Tabelle
 - Die Spielwelt lebt: Auf- und Abstieg, Kartenverlust, Entwicklung nach Alter, Ruhestand, neue Talente
 - Tour-Seite: alle Tourcard-Holder (gültig bis, Herkunft) und Titelträger aller Majors mit Siegerliste je Saison

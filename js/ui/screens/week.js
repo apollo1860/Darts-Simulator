@@ -11,7 +11,7 @@ function costLine(ev, st) {
   const parts = [];
   if (ev.cat === 'local') parts.push('<span>Kostenlos</span>', `<span>Siegprämie <b class="gold">${fmtEUR(ev.prizeWin)}</b></span>`);
   else {
-    if (ev.cat === 'wdf') parts.push(`<span>Siegprämie <b class="gold">${fmtEUR(ev.prizeWin)}</b></span>`);
+    if (ev.cat === 'wdf') parts.push(`<span>Siegprämie <b class="gold">${fmtEUR(ev.prizeWin)}</b></span>`, '<span>XP-Boost <b class="cyan">×1,2–1,6</b></span>');
     if (c.fee) parts.push(`<span>Gebühr <b>${fmtEUR(c.fee)}</b></span>`);
     parts.push(`<span>Reise <b>${fmtEUR(c.travel)}</b></span>`, `<span>Gesamt <b>${fmtEUR(c.total)}</b></span>`);
   }

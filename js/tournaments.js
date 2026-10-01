@@ -167,6 +167,7 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     isQualifier: !!ev.qualifier && sub === 0, cards: !!fmt.cards,
     prizes: prizeTable(ev, sub), stopAt: fmt.stopAt ?? 1, fieldSize: field.length,
     big: withPlayer ? orderOfMerit(state, 'pdc').slice(0, 16).map(x => x.p.id).filter(id => id !== 'P') : [],
+    ...(ev.cat === 'wdf' && withPlayer ? { xpBoost: Math.round(rng.float(1.2, 1.6) * 20) / 20 } : {}),
     rounds,
     current: 0, playerAlive: withPlayer, withPlayer, done: false, place: null, prize: 0, xp: 0,
     lastMatch: null, live: null, cardWon: false, hasNext: false, survivors: null,
@@ -269,6 +270,9 @@ export function liveAiVisit(state) {
   return ev;
 }
 
+// XP-/Clutch-Faktor des Turniers; WDF: zufälliger Boost ×1,2–1,6 je Turnier (inst.xpBoost)
+const xpFactor = inst => inst.xpBoost ?? XP_FACTOR[inst.cat] ?? 1;
+
 // Ein einzelner Dart im Live-Match (für die Scheiben-Anzeige bei Gegner-Matchdarts)
 export function liveDartStep(state) {
   const inst = state.activeEvent, pm = playerMatch(inst), live = inst.live, lm = live.m;
@@ -345,7 +349,7 @@ function recordPlayerMatch(state, inst, m, res) {
   }
   const c = state.stats.career;
   state.player.avgReal = c.darts ? Math.round(c.points / c.darts * 300) / 100 : null;
-  const f = XP_FACTOR[inst.cat] ?? 1;
+  const f = xpFactor(inst);
   const xp = Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * Math.min(inst.current, 6)) * f);
   inst.xp += xp;
   grantXp(state, xp);
@@ -471,7 +475,7 @@ function finishEvent(state, inst) {
   inst.hasNext = inst.isQualifier ? inst.place === 'QUAL' : inst.sub < inst.count - 1 && inst.place !== 'CARD';
   if (!inst.withPlayer) return;
   const place = inst.place, prize = inst.prize;
-  const f = XP_FACTOR[inst.cat] ?? 1;
+  const f = xpFactor(inst);
   // Teilnahme-Bonus: nach jedem Turnier kann trainiert werden
   const evXp = Math.round(XP_BASE.event * f);
   inst.xp += evXp;
