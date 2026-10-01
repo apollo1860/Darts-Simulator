@@ -7,6 +7,10 @@ import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent
 import { eventCost } from '../js/finance.js';
 import { RNG } from '../js/rng.js';
 import { simulateMatch } from '../js/matchEngine.js';
+import { scoreAt, targetPoint, checkoutRoute, labelValue } from '../js/board.js';
+import { createMatch, throwDart } from '../js/matchState.js';
+import { startManualMatch, liveAiDart, simulateLiveRest } from '../js/tournaments.js';
+import { wave } from '../js/throwModel.js';
 
 let n = 0;
 const test = (name, fn) => { fn(); n++; console.log('✓', name); };
@@ -69,6 +73,71 @@ test('Lokales Turnier komplett + Saison', () => {
   assert.ok(s.player.avgReal > 30 && s.player.avgReal < 110, 'Avg ' + s.player.avgReal);
   console.log(`   Titel: ${titles}, Preisgeld: ${prize} €, Punkte verdient: ${s.player.pointsEarned}, Bilanz: ${s.stats.career.wins}-${s.stats.career.matches - s.stats.career.wins}`);
   JSON.parse(JSON.stringify(s));
+});
+
+const H = l => ({ label: l, score: labelValue(l), double: l === 'BULL' || l[0] === 'D' });
+
+test('Scheibe: Felder & Zielpunkte', () => {
+  for (const l of ['T20', 'T19', 'D16', 'D1', 'S5', 'BULL', '25']) { const p = targetPoint(l); assert.equal(scoreAt(p.x, p.y).label, l); }
+  assert.equal(scoreAt(0, -175).label, 'OUT');
+  assert.equal(scoreAt(0, -103).score, 60);
+});
+
+test('Checkout-Wege gültig', () => {
+  for (let r = 2; r <= 170; r++) {
+    const route = checkoutRoute(r);
+    if ([169, 168, 166, 165, 163, 162, 159].includes(r)) { assert.equal(route, null, 'Bogey ' + r); continue; }
+    assert.ok(route, 'Weg fehlt ' + r);
+    assert.equal(route.reduce((a, l) => a + labelValue(l), 0), r);
+    const last = route[route.length - 1];
+    assert.ok(last === 'BULL' || last[0] === 'D');
+  }
+  assert.deepEqual(checkoutRoute(170), ['T20', 'T20', 'BULL']);
+});
+
+test('Regeln: Bust, Double-Out, Legwechsel', () => {
+  const m = createMatch({ legs: 2 }, 0);
+  for (let i = 0; i < 3; i++) throwDart(m, H('T20'));      // 501 → 321
+  assert.equal(m.rem[0], 321); assert.equal(m.turn, 1); assert.equal(m.stats[0].s180, 1);
+  m.rem[1] = 40; m.visit.start = 40;
+  let ev = throwDart(m, H('S20'));                           // 20 Rest
+  ev = throwDart(m, H('S20'));                               // 0 ohne Doppel → Bust
+  assert.ok(ev.bust); assert.equal(m.rem[1], 40); assert.equal(m.turn, 0);
+  m.rem[0] = 3; m.visit.start = 3;
+  ev = throwDart(m, H('S2'));                                // Rest 1 → Bust
+  assert.ok(ev.bust); assert.equal(m.rem[0], 3);
+  m.visit.start = 40;
+  ev = throwDart(m, H('D20'));                               // Check
+  assert.ok(ev.checkout && ev.legEnd); assert.equal(m.legs[1], 1);
+  assert.equal(m.rem[0], 501); assert.equal(m.turn, 1);     // Anwurf wechselt
+});
+
+test('Sätze', () => {
+  const m = createMatch({ sets: 2, legs: 1 }, 0);
+  for (let k = 0; k < 2; k++) {
+    while (m.turn !== 0) throwDart(m, H('S1'));            // Gegner wirft Einsen
+    m.rem[0] = 40; m.visit.start = 40; throwDart(m, H('D20'));
+    if (k === 0) { assert.equal(m.sets[0], 1); assert.equal(m.turn, 1); } // Satz-Anwurf wechselt
+  }
+  assert.ok(m.done); assert.equal(m.winner, 0);
+});
+
+test('Welle in [-1, 1], stetig', () => {
+  for (let p = 0; p < 3; p += 0.01) { const v = wave(p); assert.ok(v >= -1.0001 && v <= 1.0001); assert.ok(Math.abs(wave(p + 0.001) - v) < 0.01); }
+});
+
+test('Manuelles Match: Live → Rest simulieren', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 5 });
+  const local = eventsInWeek(s, s.date.year, s.date.week).find(e => e.cat === 'local');
+  enterEvent(s, local.id);
+  const live = startManualMatch(s);
+  for (let i = 0; i < 4; i++) throwDart(live.m, liveAiDart(s, live.m.turn).hit);
+  JSON.parse(JSON.stringify(s));                              // speicherbar
+  const res = simulateLiveRest(s);
+  assert.ok(res && s.activeEvent.live === null);
+  assert.ok(s.activeEvent.rounds[0].matches.every(m => m.winner));
+  assert.equal(s.stats.career.matches, 1);
+  assert.ok(s.player.avgReal > 0);
 });
 
 console.log(`\n${n} Tests ok`);

@@ -15,8 +15,9 @@ import * as rankings from './ui/screens/rankings.js';
 import * as sponsors from './ui/screens/sponsors.js';
 import * as settings from './ui/screens/settings.js';
 import * as careerEnd from './ui/screens/careerEnd.js';
+import * as match from './matchUI.js';
 
-const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, sponsors, settings, careerEnd };
+const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, sponsors, settings, careerEnd, match };
 const root = document.getElementById('app');
 
 const app = {
@@ -27,6 +28,7 @@ const app = {
     const scr = SCREENS[name];
     if (!scr) return console.error('Unbekannter Screen', name);
     if (!app.state && !['menu', 'create'].includes(name)) name = 'menu';
+    SCREENS[app.screen]?.unmount?.();
     app.screen = name; app.params = params;
     root.innerHTML = `<div class="screen">${SCREENS[name].render(app, params)}</div>`;
     SCREENS[name].mount?.(root, app, params);
@@ -34,6 +36,7 @@ const app = {
   },
   refresh() { // gleichen Screen neu zeichnen, Scrollposition behalten
     const y = window.scrollY;
+    SCREENS[app.screen]?.unmount?.();
     root.innerHTML = `<div class="screen" style="animation:none">${SCREENS[app.screen].render(app, app.params)}</div>`;
     SCREENS[app.screen].mount?.(root, app, app.params);
     window.scrollTo({ top: y });

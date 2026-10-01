@@ -24,8 +24,11 @@ js/player.js          Attribute, Gesamtwertung, Average/Checkout-Ableitung, XP/A
 js/world.js           KI-Welt erzeugen (Spieler aus data/players.js), Lookups
 js/calendar.js        Wochenkalender, Events pro Woche, Woche vorrücken, Jahreswechsel
 js/tournaments.js     Berechtigung, Meldung, Auslosung, Runden, Platzierung, Preisgeld
-js/matchEngine.js     Schnelle Simulation (Aufnahme-basiert), auch für KI-Matches
-js/matchUI.js         (Phase 2) Manuelles Spiel mit Scheibe + Zielkreuz
+js/matchEngine.js     Schnelle Simulation (Aufnahme-basiert), für Sim-Modus + alle KI-Hintergrundmatches
+js/board.js           Scheibengeometrie (mm), scoreAt(), targetPoint(), Checkout-Wege, suggestTarget()
+js/matchState.js      Dartgenauer Match-Zustand (Bust, Double-Out, Legs/Sets, Stats) – serialisierbar
+js/throwModel.js      KI-Dart (Gauß um Ziel, σ aus Attributen), Parameter fürs manuelle Zielen, wave()
+js/matchUI.js         Screen 'match': SVG-Scheibe, Zielkreuz, Linien (rAF), Scoreboard, Rest simulieren
 js/rankings.js        Order of Merits (ab Phase 3/4 befüllt)
 js/finance.js         Kontostand, Buchungen, Kosten pro Event
 js/sponsors.js        (Phase 6) Sponsoren
@@ -37,7 +40,8 @@ data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten (Tour 128, Challenge 50, Dev 50, Lokal 50) – leicht editierbar
 data/tournaments.js   Jahreskalender (KW-basiert), Kategorien, Formate
 data/prizemoney.js    Preisgeldtabellen in €
-tests/run.mjs         Node-Tests (Engine-Kalibrierung, Turnierablauf, Speichern)
+tests/run.mjs         Node-Tests (Regeln, Checkouts, Turnierablauf, Live-Match)
+tests/*.mjs           Kalibrierung: calib (Sim), fitSigma/calibDarts (KI-Darts), humanSim (manuell), season
 ```
 Start lokal: `python3 -m http.server` im Projektordner → http://localhost:8000 (ES-Module laufen nicht über file://).
 
@@ -49,7 +53,7 @@ player: {id:'P', name, nation, hand, age, attrs:{sco,fin,con,ner,sta}, xp, xpTot
 world:  {players:{id:{id,name,nation,age,tier,attrs}}}   tier: top|tour|challenge|dev|local
 finance:{balance, tx:[{year,week,text,amount,cat}]}
 week:   {played:bool, eventId}         aktuelle Woche
-activeEvent: Turnier-Instanz oder null (rounds[{name,format,matches[{a,b,winner,score}]}])
+activeEvent: Turnier-Instanz oder null (rounds[{name,format,matches[{a,b,winner,score}]}], live:{m,me}|null = laufendes manuelles Match)
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
 sponsors:{active:[], offers:[]}, ended:bool
@@ -62,7 +66,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Gesamt = 0,35·sco + 0,30·fin + 0,15·con + 0,10·ner + 0,10·sta
   - Interne Engine-Leistung = 30 + 0,77·sco (nur Simulation, nicht als Spielerwert angezeigt) ; Checkout-Basis = 0,12 + 0,0033·fin
   - Konstanz → Streuung der Aufnahmen und der Tagesform; Nervenstärke → Checkout bei Entscheidungsleg/Match-Darts; Ausdauer → Leistungsabfall in langen Matches.
-- **XP**: aus Matches/Turnieren (Faktor nach Kategorie). Punkt-Schwelle = 100 + 10·(bisher verdiente Punkte). Attribut erhöhen kostet 1 Punkt (<60), 2 (60–79), 3 (≥80). Kein Alterungsverlust. Alter +1 zum Jahreswechsel.
+- **XP**: aus Matches/Turnieren (Faktor nach Kategorie). Punkt-Schwelle = 60 + 8·(bisher verdiente Punkte). Attribut erhöhen kostet 1 Punkt (<60), 2 (60–79), 3 (≥80). Kein Alterungsverlust. Alter +1 zum Jahreswechsel.
 - **Kalender**: ISO-KW 1–52 (KW 53 wird übersprungen). Pro Woche max. ein Event. „Weiter“ → nächste Woche.
 - **Kosten**: Anmeldegebühr 25 € (Q-School, Challenge, Dev). Reise: England/UK 600 €, Deutschland 250 €, sonst 400 €. Lokal: kostenlos, keine Reise. Melden nur bei genug Budget.
 - **Lokale Turniere**: jede Woche außer KW 52, 32 Spieler (fiktiv), Siegprämie zufällig 50–200 €, Finalist 40 %, Halbfinale 20 %.
@@ -74,7 +78,11 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - Format: `{legs:n}` = first to n Legs; `{sets:s, legs:l}` = first to s Sets, je first to l Legs. 501, Double Out.
 - Simulation aufnahmebasiert: Scoring-Aufnahme ~ Normal(avg·Form, sd(con)), 180er-Chance aus avg; Finish-Bereich (≤170, keine Bogey-Zahlen) mit Wahrscheinlichkeit aus Checkout-Basis × Restpunkt-Faktor; ≤50 dartgenau auf Doppel.
 - Stats: Average (Punkte/Darts·3), 180er, 140+, 100+, Checkout-% (Treffer/Doppelversuche), höchstes Finish.
-- Phase 2: manueller Modus (SVG-Scheibe, Linien per requestAnimationFrame + Delta-Time), „Rest simulieren“.
+- **Manueller Modus** (`matchUI.js`): Ziel wählen (Tippen auf Scheibe / Chips, Standard = `suggestTarget`: T20 bzw. Checkout-Weg) → „Werfen“ → vertikale Linie (x) stoppen → horizontale Linie (y) stoppen → Treffer = Schnittpunkt + Gauß-Reststreuung. Bedienung: Tippen, Button oder Leertaste.
+  - Linienposition = Ziel + amp·wave(Startphase + t·freq), t aus `performance.now()` → frameunabhängig. amp = 66 − 0,48·sco (mm), freq = 0,75 + 0,6·(1 − sco/99) Hz (y-Linie ×1,13), Reststreuung = 12 − 0,085·con mm.
+  - Doppel/Bull als Ziel: amp & Streuung × (1,3 − fin/200). Druck (Entscheidungsleg, Doppel-Finish, Match-Dart) × (1 + Last·(1 − ner/99)·1,6). Ausdauer: ab Leg 9 leicht steigend.
+- **Gegner-KI** (live): dartgenau, Ziel = `suggestTarget`, Streuung σ je Achse aus Average-Tabelle (`SIGMA_TABLE`, kalibriert mit `tests/fitSigma.mjs`), Doppel-σ aus Checkout-Basis (analytisch). Gleiche Druck-/Ausdauerfaktoren.
+- **Rest simulieren**: Live-Match wird dartgenau mit KI-Modell für beide Seiten beendet (`simulateLiveRest`). Live-Match wird nach jeder Aufnahme gespeichert und kann fortgesetzt werden.
 
 ## Designsystem (FIFA-Look)
 - Tokens in `css/base.css` (`--bg`, `--panel`, `--cyan`, `--green`, `--gold`, `--red`, …). Dunkler Blau/Schwarz-Verlauf, Neon-Akzente.

@@ -3,6 +3,8 @@ import { CATEGORIES, FORMATS } from '../data/tournaments.js';
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
+import { createMatch, throwDart, matchResult } from './matchState.js';
+import { aiDart, aiSigma } from './throwModel.js';
 import { eventCost, canAfford, book } from './finance.js';
 import { getPlayer, playersOfTier } from './world.js';
 import { addXp, XP_FACTOR, XP_BASE } from './player.js';
@@ -105,6 +107,46 @@ export function simulatePlayerMatch(state) {
   const res = simulateMatch(attrsOf(state, m.a), attrsOf(state, m.b), fmt, rng);
   applyResult(m, res);
   recordPlayerMatch(state, inst, m, res);
+  return res;
+}
+
+// ---- Manuelles Match (Phase 2) ----
+// Live-Zustand liegt in inst.live (serialisierbar, wird mitgespeichert)
+export function startManualMatch(state) {
+  const inst = state.activeEvent, m = playerMatch(inst);
+  if (!m || m.winner) return null;
+  if (!inst.live) {
+    const rng = new RNG(state.rng);
+    inst.live = { m: createMatch(inst.rounds[inst.current].format, rng.chance(0.5) ? 0 : 1), me: m.a === 'P' ? 0 : 1 };
+  }
+  return inst.live;
+}
+
+// Ein KI-Dart im Live-Match (für den Gegner oder beim Simulieren)
+export function liveAiDart(state, side) {
+  const inst = state.activeEvent, m = playerMatch(inst);
+  const id = side === 0 ? m.a : m.b;
+  return aiDart(inst.live.m, side, attrsOf(state, id), new RNG(state.rng));
+}
+
+// Rest des Live-Matches simulieren (dartgenau, beide Seiten mit KI-Modell)
+export function simulateLiveRest(state) {
+  const inst = state.activeEvent, pm = playerMatch(inst), lm = inst.live.m;
+  const rng = new RNG(state.rng);
+  const at = [attrsOf(state, pm.a), attrsOf(state, pm.b)], sig = at.map(a => aiSigma(a));
+  while (!lm.done) throwDart(lm, aiDart(lm, lm.turn, at[lm.turn], rng, sig[lm.turn]).hit);
+  return finishManualMatch(state);
+}
+
+// Abgeschlossenes Live-Match werten (+ restliche KI-Matches der Runde)
+export function finishManualMatch(state) {
+  const inst = state.activeEvent, m = playerMatch(inst);
+  if (!inst.live?.m.done) return null;
+  const res = matchResult(inst.live.m);
+  applyResult(m, res);
+  recordPlayerMatch(state, inst, m, res);
+  inst.live = null;
+  simulateRoundAI(state);
   return res;
 }
 

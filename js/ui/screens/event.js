@@ -33,10 +33,11 @@ function matchPanel(s, inst) {
       <span class="tag tag-pc">${formatLabel(round.format)}</span></div>
     <div class="versus">${futCard(s.player, { small: true, me: true })}<div class="vs">VS</div><div data-pl="${oppId}" style="cursor:pointer">${futCard(opp, { small: true })}</div></div>
     <div class="row" style="justify-content:center">
-      <button class="btn btn-ghost" disabled title="Kommt in Phase 2">Selbst spielen 🔒</button>
-      <button class="btn btn-primary btn-continue" id="btn-sim">Simulieren ▸</button>
+      ${inst.live ? `<button class="btn btn-gold btn-continue" data-go="match">Match fortsetzen ▸</button>`
+        : `<button class="btn btn-gold" data-go="match" ${MANUAL_AVAILABLE ? '' : 'disabled'}>🎯 Selbst spielen</button>
+      <button class="btn btn-primary btn-continue" id="btn-sim">Simulieren ▸</button>`}
     </div>
-    ${MANUAL_AVAILABLE ? '' : '<p class="muted center" style="font-size:.78rem;margin:0">Manuelles Spiel mit Dartscheibe folgt in Phase 2.</p>'}
+    ${inst.live ? `<p class="muted center" style="font-size:.82rem;margin:0">Laufendes Match: ${inst.live.m.format.sets ? `Sätze ${inst.live.m.sets.join(':')} · ` : ''}Legs ${inst.live.m.legs.join(':')}</p>` : ''}
   </div>`;
 }
 
@@ -104,8 +105,12 @@ function resultModal(s, res, onClose) {
   });
 }
 
-export function mount(root, app) {
+export function mount(root, app, params = {}) {
   const s = app.state;
+  if (params.showResult && s.activeEvent?.lastMatch) {
+    params.showResult = false;
+    resultModal(s, null, () => app.refresh());
+  }
   root.querySelectorAll('[data-pl]').forEach(el => el.onclick = () => {
     const id = el.dataset.pl;
     playerModal(getPlayer(s, id), id === 'P');
