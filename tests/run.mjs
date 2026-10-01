@@ -14,7 +14,7 @@ import * as IV from '../js/interviews.js';
 import * as RV from '../js/rival.js';
 import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
-import { playersOfTier, nonCardPros } from '../js/world.js';
+import { playersOfTier, nonCardPros, getPlayer } from '../js/world.js';
 import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub, simulateRoundAI } from '../js/tournaments.js';
 import { eventCost } from '../js/finance.js';
 import { RNG } from '../js/rng.js';
@@ -640,6 +640,38 @@ test('Rivale: gleich alt, ähnliche Stärke, Duelle, Bilanz, hält mit, Migratio
   assert.ok(r.avg > before + 4, `${before} → ${r.avg}`);
   const old = JSON.parse(JSON.stringify(s)); delete old.rival; delete old.world.players.R1; old.version = 9;
   migrate(old); assert.ok(old.rival && RV.rivalOf(old));
+});
+
+test('Auswahl Turnieranzahl (CT) + Host-Nation-Qualifier → ET-Hauptfeld', () => {
+  const s = newCareer({ name: 'H', nation: 'DE', hand: 'R', seed: 91 });
+  s.player.qschoolYear = 2027; s.date.week = 11;
+  const b0 = s.finance.balance;
+  enterEvent(s, 'ct-1', { count: 2 });
+  assert.equal(b0 - s.finance.balance, 50 + 600);                  // 2 × 25 € + Reise ENG
+  let played = 1;
+  for (;;) { simulateRest(s); if (!s.activeEvent.hasNext) break; nextSub(s); played++; }
+  assert.equal(played, 2);
+  closeEvent(s);                                                    // Turniere 3–5 laufen im Hintergrund
+  assert.ok(orderOfMerit(s, 'challenge').filter(x => x.money > 0).length > 60);
+  // HNQ: nur Gastgebernation ohne Karte
+  s.week = { played: false }; s.date.week = 8;
+  const hnq = eventsInWeek(s, 2027, 8).find(e => e.id === 'hnq-2');
+  assert.ok(hnq && hnq.etId === 'et-2' && eventStatus(s, hnq).playable);
+  s.player.nation = 'NL'; assert.equal(eventStatus(s, hnq).playable, false); s.player.nation = 'DE';
+  enterEvent(s, 'hnq-2', { count: 4 });
+  assert.ok(s.activeEvent.rounds[0].matches.every(m => [m.a, m.b].filter(Boolean).every(id => id === 'P' || getPlayer(s, id).nation === 'DE')));
+  for (;;) { simulateRest(s); if (!s.activeEvent.hasNext) break; nextSub(s); }
+  const won = s.activeEvent.place === 'W';
+  closeEvent(s);
+  // ET-Hauptfeld über HNQ (erzwingen, falls nicht gewonnen)
+  if (!won) s.hnq = { etId: 'et-2', year: 2027 };
+  s.week = { played: false }; s.date.week = 9;
+  const et = eventsInWeek(s, 2027, 9).find(e => e.id === 'et-2');
+  assert.ok(eventStatus(s, et).playable);
+  enterEvent(s, 'et-2');
+  assert.equal(s.activeEvent.sub, 1);                               // direkt Hauptfeld
+  assert.ok(s.activeEvent.rounds[0].matches.some(m => m.a === 'P' || m.b === 'P'));
+  assert.equal(s.activeEvent.fieldSize, 48);
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

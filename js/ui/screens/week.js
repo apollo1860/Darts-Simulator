@@ -12,8 +12,11 @@ function costLine(ev, st) {
   if (ev.cat === 'local') parts.push('<span>Kostenlos</span>', `<span>Siegprämie <b class="gold">${fmtEUR(ev.prizeWin)}</b></span>`);
   else {
     if (ev.cat === 'wdf') parts.push(`<span>Siegprämie <b class="gold">${fmtEUR(ev.prizeWin)}</b></span>`, '<span>XP-Boost <b class="cyan">×1,2–1,6</b></span>');
-    if (c.fee) parts.push(`<span>Gebühr <b>${fmtEUR(c.fee)}</b></span>`);
-    parts.push(`<span>Reise <b>${fmtEUR(c.travel)}</b></span>`, `<span>Gesamt <b>${fmtEUR(c.total)}</b></span>`);
+    if (ev.pick) parts.push(`<span>Gebühr <b>${fmtEUR(c.fee)}</b> je Turnier</span>`, `<span>Reise <b>${fmtEUR(c.travel)}</b></span>`);
+    else {
+      if (c.fee) parts.push(`<span>Gebühr <b>${fmtEUR(c.fee)}</b></span>`);
+      parts.push(`<span>Reise <b>${fmtEUR(c.travel)}</b></span>`, `<span>Gesamt <b>${fmtEUR(c.total)}</b></span>`);
+    }
   }
   return `<div class="cost-list">${parts.join('')}</div>`;
 }
@@ -27,7 +30,7 @@ export function render(app) {
   ${evs.length ? evs.map(ev => {
     const st = eventStatus(s, ev);
     return `<div class="panel event-card ${st.playable ? '' : 'disabled'}">
-      <div class="ev-head">${catTag(ev.cat)} <span class="muted" style="font-size:.8rem">${esc(CATEGORIES[ev.cat].label)}${ev.count > 1 ? ` · ${ev.count} Turniere` : ''}</span></div>
+      <div class="ev-head">${catTag(ev.cat)} <span class="muted" style="font-size:.8rem">${esc(CATEGORIES[ev.cat].label)}${ev.count > 1 ? ` · ${ev.pick ? 'bis zu ' : ''}${ev.count} Turniere` : ''}</span></div>
       <div class="ev-name">${esc(ev.name)}</div>
       <div class="muted" style="font-size:.86rem">${flag(ev.country)} ${esc(ev.city)}${ev.region ? `, ${esc(ev.region)}` : ev.city !== 'diverse' ? `, ${esc(nationName(ev.country))}` : ''}${ev.note ? ` · ${esc(ev.note)}` : ''}</div>
       ${costLine(ev, st)}
@@ -40,10 +43,31 @@ export function render(app) {
   </div>`;
 }
 
+// Blöcke mit Auswahl (CT/Dev/HNQ): wie viele Turniere spielst du selbst? (25 € je Turnier)
+function pickCount(app, ev) {
+  const s = app.state;
+  const opts = Array.from({ length: ev.count }, (_, i) => i + 1).map(n => ({ n, st: eventStatus(s, ev, n) }));
+  modal({
+    title: 'Wie viele Turniere?',
+    body: `<p><b>${esc(ev.name)}</b> in ${esc(ev.city)}</p>
+      <p class="muted" style="font-size:.84rem">Du spielst die ersten gewählten Turniere des Wochenendes, der Rest läuft ohne dich.${ev.cat === 'hnq' ? ' Sobald du eins gewinnst, bist du im Hauptfeld – nicht gespielte Turniere werden erstattet.' : ''}</p>
+      <div class="stack">${opts.map(o => `<button class="panel choice" data-n="${o.n}" ${o.st.playable ? '' : 'disabled'}>
+        <div class="row-between"><b>${o.n} Turnier${o.n > 1 ? 'e' : ''}</b><span>${fmtEUR(o.st.cost.total)}</span></div>
+        ${o.st.playable ? '' : `<div class="muted" style="font-size:.78rem">${esc(o.st.reason)}</div>`}</button>`).join('')}</div>`,
+    actions: [{ label: 'Abbrechen', cls: 'btn-ghost' }],
+    onMount: bd => bd.querySelectorAll('[data-n]').forEach(b => b.onclick = () => {
+      bd.remove();
+      try { enterEvent(s, ev.id, { count: +b.dataset.n }); app.save(); app.go('event'); }
+      catch (e) { toast(e.message, 'error'); }
+    }),
+  });
+}
+
 export function mount(root, app) {
   root.querySelectorAll('[data-enter]').forEach(b => b.onclick = () => {
     const s = app.state;
     const ev = eventsInWeek(s, s.date.year, s.date.week).find(e => e.id === b.dataset.enter);
+    if (ev.pick) return pickCount(app, ev);
     const st = eventStatus(s, ev);
     modal({
       title: 'Meldung bestätigen',

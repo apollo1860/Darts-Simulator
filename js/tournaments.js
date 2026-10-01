@@ -7,7 +7,7 @@ import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch } from './matchState.js';
 import { BOGEY } from './board.js';
 import { aiDart, aiSigma } from './throwModel.js';
-import { eventCost, canAfford, book } from './finance.js';
+import { eventCost, canAfford, book, ENTRY_FEE } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, POINTS_PER_LEVEL } from './player.js';
 import { addNews } from './news.js';
@@ -36,6 +36,9 @@ export function eligibility(state, ev) {
   switch (ev.cat) {
     case 'local': return { ok: true };
     case 'ddv': case 'wdf': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
+    case 'hnq':
+      if (card) return { ok: false, reason: 'Nur ohne Tourcard' };
+      return p.nation === ev.country ? { ok: true } : { ok: false, reason: `Nur Spieler aus ${ev.country}` };
     case 'qschool': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
     case 'challenge':
       if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
@@ -45,14 +48,14 @@ export function eligibility(state, ev) {
       if (card) return devHolders(state, y).includes(p) ? { ok: true } : { ok: false, reason: 'Holder nur außerhalb der PDC-Top-64' };
       return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
-    case 'et': return card ? { ok: true } : { ok: false, reason: 'Tourcard + Qualifikation nötig' };
+    case 'et': return card || hnqQualified(state, ev) ? { ok: true } : { ok: false, reason: 'Tourcard oder Host-Nation-Qualifier nötig' };
     default: return MAJOR_CATS.includes(ev.cat) ? majorEligibility(state, ev) : { ok: false, reason: 'Qualifikation nötig' };
   }
 }
 
 // Gesamtstatus für die UI
-export function eventStatus(state, ev) {
-  const cost = eventCost(ev);
+export function eventStatus(state, ev, n = null) {
+  const cost = eventCost(ev, ev.pick ? n ?? 1 : null);
   const phase = CATEGORIES[ev.cat]?.phase ?? 9;
   const elig = eligibility(state, ev);
   let playable = true, reason = '';
@@ -131,6 +134,11 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(withPlayer ? ['P', ...pool] : pool);
   }
   let ids;
+  if (ev.cat === 'hnq') {                    // Gastgebernation: Spieler ohne Karte, DDV/lokal – keine Setzliste
+    const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local')].filter(p => p.nation === ev.country).map(p => p.id));
+    ids = pool.slice(0, FORMATS.hnq.field - (withPlayer ? 1 : 0));
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
+  }
   if (ev.cat === 'wdf') {                    // offene Auslosung: Spieler ohne Karte + DDV-Pool, keine Setzliste
     const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'ddv')].map(p => p.id));
     ids = pool.slice(0, (ev.field ?? FORMATS.wdf.field) - (withPlayer ? 1 : 0));
@@ -179,10 +187,15 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
 }
 
 // Melden: Kosten buchen, Feld auslosen, Instanz anlegen
-export function enterEvent(state, eventId) {
+// Über den Host-Nation-Qualifier fürs ET-Hauptfeld qualifiziert?
+export const hnqQualified = (state, ev) => state.hnq?.etId === ev.id && state.hnq.year === state.date.year;
+
+// opts.count: bei Blöcken mit Auswahl (CT/Dev/HNQ) Anzahl der selbst gespielten Turniere (Rest läuft im Hintergrund)
+export function enterEvent(state, eventId, opts = {}) {
   const ev = findEvent(state, eventId);
   if (!ev) throw new Error('Event nicht gefunden');
-  const st = eventStatus(state, ev);
+  const n = ev.pick ? Math.max(1, Math.min(ev.count, opts.count ?? ev.count)) : null;
+  const st = eventStatus(state, ev, n);
   if (!st.playable) throw new Error(st.reason);
   const rng = new RNG(state.rng);
   if (st.cost.fee) book(state, -st.cost.fee, `Anmeldegebühr ${ev.name}`, 'fee');
@@ -192,8 +205,12 @@ export function enterEvent(state, eventId) {
     addNews(state, 'info', `Gemeldet: ${ev.name}`, `4 Turniertage – wer an einem Tag das Halbfinale erreicht, gewinnt eine Tourcard. Mit der Teilnahme bist du ${state.date.year} für die Challenge Tour${state.player.age <= DEV_MAX_AGE ? ' und die Development Tour' : ''} berechtigt.`);
   }
   if (ev.extra) (state.week.extras ??= []).push(ev.id);
-  else state.week = { ...state.week, played: true, eventId: ev.id, extras: state.week.extras ?? [] };   // Trainingsflag bleibt
-  if (ev.qualifier && etSeeds(state, true).includes('P')) {
+  else state.week = { ...state.week, played: true, eventId: ev.id, extras: state.week.extras ?? [], playCount: n };   // Trainingsflag bleibt
+  if (ev.qualifier && hnqQualified(state, ev) && !etSeeds(state, true).includes('P')) {
+    // Host-Nation-Qualifier gewonnen: ET-Qualifikation läuft ohne den Spieler, er ersetzt einen der 32 Qualifikanten
+    const q = runAITournament(state, ev, 0);
+    state.activeEvent = newInstance(state, ev, 1, true, rng, { qualifiers: [...q.survivors.slice(0, -1), 'P'] });
+  } else if (ev.qualifier && etSeeds(state, true).includes('P')) {
     // Gesetzt: Qualifikation läuft ohne den Spieler, direkt ins Hauptfeld
     const q = runAITournament(state, ev, 0, { playerIn: true });
     state.activeEvent = newInstance(state, ev, 1, true, rng, { qualifiers: q.survivors });
@@ -485,7 +502,16 @@ function finishEvent(state, inst) {
   inst.done = true;
   settle(state, inst);
   inst.winner = inst.stopAt === 1 ? inst.survivors[0] : null;
-  inst.hasNext = inst.isQualifier ? inst.place === 'QUAL' : inst.sub < inst.count - 1 && inst.place !== 'CARD';
+  const plays = inst.withPlayer ? state.week.playCount ?? inst.count : inst.count;
+  inst.hasNext = inst.isQualifier ? inst.place === 'QUAL' : inst.sub < plays - 1 && inst.place !== 'CARD';
+  if (inst.cat === 'hnq' && inst.withPlayer && inst.place === 'W') {          // Host-Nation-Qualifier gewonnen
+    const ev = findEvent(state, inst.eventId, inst.year, inst.week), left = plays - 1 - inst.sub;
+    state.hnq = { etId: ev.etId, year: inst.year };
+    inst.hasNext = false;
+    if (left > 0) book(state, ENTRY_FEE * left, `Rückerstattung ${left} Turnier${left > 1 ? 'e' : ''} (${inst.baseName})`, 'fee');
+    const et = findEvent(state, ev.etId, inst.year, ev.week + 1) ?? { name: 'das ET-Event' };
+    addNews(state, 'result', `🎟️ Qualifiziert für ${et.name}!`, 'Über den Host-Nation-Qualifier stehst du nächste Woche im Hauptfeld – melde dich in der Wochenansicht.');
+  }
   if (!inst.withPlayer) return;
   const place = inst.place, prize = inst.prize;
   const f = xpFactor(inst);
@@ -522,7 +548,7 @@ export function closeEvent(state) {
   if (!inst?.done) return;
   const ev = findEvent(state, inst.eventId, inst.year, inst.week);
   let prev = inst;
-  if (ev) for (let s = inst.sub + 1; s < inst.count; s++) prev = runAITournament(state, ev, s, { qualifiers: prev.survivors });
+  if (ev && ev.cat !== 'hnq') for (let s = inst.sub + 1; s < inst.count; s++) prev = runAITournament(state, ev, s, { qualifiers: prev.survivors });
   state.activeEvent = null;
 }
 

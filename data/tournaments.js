@@ -6,6 +6,7 @@ export const CATEGORIES = {
   local:     { label: 'Lokal',             short: 'LOKAL', phase: 1 },
   ddv:       { label: 'DDV-Ranglistenturnier', short: 'DDV', phase: 1 },
   wdf:       { label: 'WDF Open', short: 'WDF', phase: 1 },
+  hnq:       { label: 'Host-Nation-Qualifier', short: 'HNQ', phase: 1 },
   qschool:   { label: 'Q-School',          short: 'Q-SCHOOL', phase: 3 },
   challenge: { label: 'Challenge Tour',    short: 'CT', phase: 3 },
   dev:       { label: 'Development Tour',  short: 'DEV', phase: 3 },
@@ -99,17 +100,23 @@ export const CALENDAR = [
     id: `pc-${i + 1}`, cat: 'pc', name: `Players Championship ${i * 2 + 1} & ${i * 2 + 2}`,
     week: w, city: pcCities[i], country: cityCountry(pcCities[i]), count: 2,
   })),
+  // Host-Nation-Qualifier: Woche vor jedem ET-Event, nur Spieler der Gastgebernation ohne Tourcard, bis zu 4 Turniere
+  // (Anzahl wählbar, 25 € je Turnier); wer eins gewinnt, steht im Hauptfeld des ET-Events
+  ...ET.map(([w, name, city, country], i) => ({
+    id: `hnq-${i + 1}`, cat: 'hnq', name: `Host-Nation-Qualifier ${name}`, week: w - 1, city, country, count: 4, pick: true,
+    etId: `et-${i + 1}`, note: `nur ohne Tourcard aus ${country} · Turniersieg = Platz im Hauptfeld`,
+  })),
   ...ET.map(([w, name, city, country], i) => ({
     id: `et-${i + 1}`, cat: 'et', name, week: w, city, country, count: 2, qualifier: true,
     subs: ['Qualifikation', 'Hauptfeld'], subFmts: ['etq', 'et'], note: 'Top 16 PDC gesetzt · Rest: Qualifikation (32 Plätze)',
   })),
   ...ctWeeks.map((w, i) => ({
     id: `ct-${i + 1}`, cat: 'challenge', name: `Challenge Tour ${i * 5 + 1}–${i * 5 + 5}`,
-    week: w, city: tourCities[i % 4], country: cityCountry(tourCities[i % 4]), count: TOUR_WEEKEND_EVENTS,
+    week: w, city: tourCities[i % 4], country: cityCountry(tourCities[i % 4]), count: TOUR_WEEKEND_EVENTS, pick: true,
   })),
   ...devWeeks.map((w, i) => ({
     id: `dev-${i + 1}`, cat: 'dev', name: `Development Tour ${i * 5 + 1}–${i * 5 + 5}`,
-    week: w, city: tourCities[(i + 2) % 4], country: cityCountry(tourCities[(i + 2) % 4]), count: TOUR_WEEKEND_EVENTS,
+    week: w, city: tourCities[(i + 2) % 4], country: cityCountry(tourCities[(i + 2) % 4]), count: TOUR_WEEKEND_EVENTS, pick: true,
   })),
 ];
 
@@ -130,6 +137,7 @@ export const LOCAL_CITIES = {
 export const FORMATS = {
   local: { field: 16, default: { legs: 3 } },          // immer best of 5 (first to 3), auch im Finale
   ddv: { field: 64, default: { legs: 4 }, byRemaining: { 4: { legs: 5 }, 2: { legs: 6 } } },
+  hnq: { field: 64, default: { legs: 4 }, byRemaining: { 2: { legs: 5 } } },
   wdf: { field: 64, default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 6 } } },
   qschool: { default: { legs: 5 }, stopAt: 4, cards: true },
   pc: { field: 128, default: { legs: 6 } },

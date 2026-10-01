@@ -3,7 +3,7 @@ import { UK } from '../data/nations.js';
 
 export const START_BUDGET = 5000;
 export const ENTRY_FEE = 25;
-const FEE_CATS = new Set(['qschool', 'challenge', 'dev', 'ddv']);
+const FEE_CATS = new Set(['qschool', 'challenge', 'dev', 'ddv', 'hnq']);
 
 export function travelCost(country) {
   if (UK.has(country)) return 600;
@@ -12,10 +12,11 @@ export function travelCost(country) {
 }
 
 // Gebühr gilt je Turnier im Block (z. B. CT-Wochenende = 5 × 25 €, Q-School 4 Tage = 4 × 25 €)
-export function eventCost(ev) {
+// n = Anzahl gewählter Turniere bei Blöcken mit Auswahl (CT/Dev/HNQ), sonst alle
+export function eventCost(ev, n = null) {
   if (ev.cat === 'local') return { fee: 0, travel: 0, total: 0 };
   if (ev.cat === 'wdf') { const travel = ev.europe ? 400 : 1000; return { fee: 0, travel, total: travel }; }   // WDF: Europa 400 €, Übersee 1.000 €
-  const fee = FEE_CATS.has(ev.cat) ? ENTRY_FEE * (ev.count ?? 1) : 0;
+  const fee = FEE_CATS.has(ev.cat) ? ENTRY_FEE * (n ?? ev.count ?? 1) : 0;
   const travel = travelCost(ev.country);
   return { fee, travel, total: fee + travel };
 }

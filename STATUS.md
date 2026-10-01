@@ -95,6 +95,7 @@
 - Hub: Button „✓ Alle gelesen“ in der Neuigkeiten-Kachel (setzt alle Meldungen auf gelesen, ohne den Feed zu öffnen).
 - Checkout-Entscheidung (Nutzerwunsch): immer 3 Wege mit festem Ausgang – einer checkt, einer spielt sauber auf ein Doppel runter, einer wird eine sehr schlechte Aufnahme. Für 115 von 130 Resten (41–170) gibt es 3 Wege; sonst keine Entscheidung.
 - Preisgelder CT/Dev (Sieg 3.000 … L64 100 €) und DDV (Sieg 350, Finale 100 €) nach Vorgabe; lokale Turniere immer best of 5; Dev Tour 4 Ø schwächer als CT; 90 schwache fiktive Spieler im CT/Dev-Pool (Migration v11).
+- Turnieranzahl bei CT/Dev wählbar (1–5, je 25 €); **Host-Nation-Qualifier** für ET-Events im eigenen Land (bis zu 4 Turniere, Sieg = ET-Hauptfeld).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -102,6 +103,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- HNQ: Woche vor dem ET-Event; „bis zu 4 je Wochenende“ = bis zu 4 Qualifier-Turniere, jedes Turniersieg qualifiziert (danach endet der Block, Gebühren für nicht gespielte werden erstattet). Kein Preisgeld. Bei Auswahl spielt man immer die ersten n Turniere des Blocks.
 - Checkout-Entscheidung: Welcher Weg checkt, bestimmt die eigene Trefferchance (bester Weg = Check). Ausgang ist bewusst fest (kein Zufall), damit die Wahl zählt; Rechnen ≥ 75 verrät per ★ den Check-Weg.
 - CT/Dev: 5 Wochenenden je Tour (Gesamtzahl wie real ~24–25 Turniere); Termine KW 11/19/29/37/42 (CT) und 14/22/32/39/43 (Dev), möglichst ohne DDV-Überschneidung.
 - Rivale: gleiche Nation, Stärke folgt dir (50 %/Jahr), damit die Rivalität spannend bleibt; Häufigkeit über gezielte Feldplätze lokal/DDV/WDF (sonst nur Zufall in CT/Dev/Q-School/Tour).
