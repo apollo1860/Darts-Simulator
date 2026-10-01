@@ -1,0 +1,40 @@
+// Nationen: Code → Name + Flagge. 'travel' steuert die Reisekosten (ENG = UK-Tarif).
+export const NATIONS = {
+  DE: { name: 'Deutschland', flag: '🇩🇪' },
+  AT: { name: 'Österreich', flag: '🇦🇹' },
+  CH: { name: 'Schweiz', flag: '🇨🇭' },
+  NL: { name: 'Niederlande', flag: '🇳🇱' },
+  BE: { name: 'Belgien', flag: '🇧🇪' },
+  ENG: { name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  SCO: { name: 'Schottland', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
+  WAL: { name: 'Wales', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+  NIR: { name: 'Nordirland', flag: '🇬🇧' },
+  IRL: { name: 'Irland', flag: '🇮🇪' },
+  PL: { name: 'Polen', flag: '🇵🇱' },
+  CZ: { name: 'Tschechien', flag: '🇨🇿' },
+  HU: { name: 'Ungarn', flag: '🇭🇺' },
+  LV: { name: 'Lettland', flag: '🇱🇻' },
+  LT: { name: 'Litauen', flag: '🇱🇹' },
+  DK: { name: 'Dänemark', flag: '🇩🇰' },
+  SE: { name: 'Schweden', flag: '🇸🇪' },
+  NO: { name: 'Norwegen', flag: '🇳🇴' },
+  FI: { name: 'Finnland', flag: '🇫🇮' },
+  FR: { name: 'Frankreich', flag: '🇫🇷' },
+  ES: { name: 'Spanien', flag: '🇪🇸' },
+  PT: { name: 'Portugal', flag: '🇵🇹' },
+  IT: { name: 'Italien', flag: '🇮🇹' },
+  GR: { name: 'Griechenland', flag: '🇬🇷' },
+  HR: { name: 'Kroatien', flag: '🇭🇷' },
+  US: { name: 'USA', flag: '🇺🇸' },
+  CA: { name: 'Kanada', flag: '🇨🇦' },
+  AU: { name: 'Australien', flag: '🇦🇺' },
+  NZ: { name: 'Neuseeland', flag: '🇳🇿' },
+  JP: { name: 'Japan', flag: '🇯🇵' },
+  PH: { name: 'Philippinen', flag: '🇵🇭' },
+  ZA: { name: 'Südafrika', flag: '🇿🇦' },
+  BH: { name: 'Bahrain', flag: '🇧🇭' },
+};
+export const nationName = c => NATIONS[c]?.name ?? c;
+export const flag = c => NATIONS[c]?.flag ?? '🏳️';
+// UK-Teile zählen für Reisekosten wie England
+export const UK = new Set(['ENG', 'SCO', 'WAL', 'NIR']);
