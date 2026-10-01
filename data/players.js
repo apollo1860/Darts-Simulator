@@ -4,8 +4,7 @@
 // Nur private Nutzung (echte Namen ohne Lizenz).
 
 // --- Tourcard-Holder 2026 (128) ---
-// a) Top 64 der PDC Order of Merit (Reihenfolge laut Nutzerliste) → Karte wird Ende 2026 verlängert
-//    (Platz 46 war in der Liste doppelt „Madars Razma“ → nur einmal übernommen, daher 63 Einträge)
+// a) Top 64 der PDC Order of Merit (Reihenfolge laut Nutzerliste) → Karte Ende 2026 um 1 Jahr verlängert (bis 2027)
 export const TOUR_TOP64 = [
   ['Luke Littler', 'ENG', 20, 102.5], ['Luke Humphries', 'ENG', 32, 100], ['Gian van Veen', 'NL', 25, 99],
   ['Michael van Gerwen', 'NL', 37, 98], ['Jonny Clayton', 'WAL', 52, 96], ['Gary Anderson', 'SCO', 56, 96],
@@ -22,7 +21,7 @@ export const TOUR_TOP64 = [
   ['Martin Lukeman', 'ENG', 41, 92], ['Kevin Doets', 'NL', 28, 92], ['Callan Rydz', 'ENG', 28, 94],
   ['Ricky Evans', 'ENG', 36, 90], ['Brendan Dolan', 'NIR', 53, 91], ['Niels Zonneveld', 'NL', 28, 91],
   ['William O\'Connor', 'IRL', 40, 91], ['Scott Williams', 'ENG', 36, 92], ['Madars Razma', 'LV', 38, 92],
-  ['Gabriel Clemens', 'DE', 43, 92], ['James Hurrell', 'ENG', 29, 91], ['Connor Scutt', 'ENG', 31, 90],
+  ['Michael Mansell', 'NIR', 33, 90],  ['Gabriel Clemens', 'DE', 43, 92], ['James Hurrell', 'ENG', 29, 91], ['Connor Scutt', 'ENG', 31, 90],
   ['Justin Hood', 'ENG', 33, 91], ['Jeffrey de Graaf', 'SE', 36, 91], ['Ian White', 'ENG', 56, 90],
   ['Alan Soutar', 'SCO', 48, 89], ['Niko Springer', 'DE', 26, 92], ['Mensur Suljović', 'AT', 54, 90],
   ['Ryan Meikle', 'ENG', 30, 91], ['Richard Veenstra', 'NL', 45, 89], ['Keane Barry', 'IRL', 24, 92],
@@ -30,7 +29,7 @@ export const TOUR_TOP64 = [
   ['Lukas Wenig', 'DE', 30, 89], ['Robert Owen', 'WAL', 43, 89], ['Mario Vandenbogaerde', 'BE', 34, 89],
 ];
 
-// b) Plätze 65–95: Karte läuft Ende 2026 aus (nur Top 64 der OOM behalten sie) → starten in der Q-School
+// b) Zweites Kartenjahr 2026 (Karte 2025/2026), nicht in den Top 64 → Karte läuft aus → starten in der Q-School
 export const TOUR_EXPIRING = [
   ['Karel Sedláček', 'CZ', 47, 90], ['Bradley Brooks', 'ENG', 23, 89], ['Cam Crabtree', 'ENG', 22, 88],
   ['Wesley Plaisier', 'NL', 36, 90], ['Sebastian Białecki', 'PL', 22, 90], ['Max Hopp', 'DE', 30, 89],
@@ -45,7 +44,7 @@ export const TOUR_EXPIRING = [
   ['Kai Gotthardt', 'DE', 24, 89],
 ];
 
-// c) Plätze 96–128: neu 2026 (Q-School 2026, Challenge-/Dev-Tour 2025) → Karte gültig bis Ende 2027
+// c) Neu 2026 (Q-School 2026: 13 UK + 16 EU, Challenge-/Dev-Tour 2025: Bellmont, Labanauskas, Greaves, Bates) → Karte 2026/2027
 export const TOUR_NEW_2026 = [
   ['Stefan Bellmont', 'CH', 30, 89], ['Darius Labanauskas', 'LT', 50, 88], ['Beau Greaves', 'ENG', 22, 92],
   ['Owen Bates', 'ENG', 23, 89], ['Arno Merk', 'DE', 35, 87], ['Filip Bereza', 'PL', 25, 88],

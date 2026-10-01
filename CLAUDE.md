@@ -44,7 +44,7 @@ js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
                       stats, news, rankings, sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
-data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=127), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
+data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
 data/regions.js       16 Bundesländer mit Städten (lokale Turniere)
 data/distractions.js  Störmoment-Situationen mit je 2 Optionen
@@ -100,11 +100,12 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - **Lokale Turniere**: jede Woche außer KW 52, nur im eigenen Bundesland (Städte aus `data/regions.js`), 16 Spieler (fiktiv), Siegprämie zufällig 50–200 €, Finalist 40 %, Halbfinale 20 %.
 - **DDV-Ranglistenturniere**: 4 pro Jahr (KW 9, 20, 33, 44), nur ohne Tourcard, 64 Spieler (DDV-Pool ~66–88 Ø), Gebühr 25 € + Reise DE 250 €, Preisgeld 1.000 € Sieg, XP-Faktor 1,4.
 - **Tour-Struktur (Phase 3 umgesetzt)**:
-  - Start 2027: 2026er Top 64 (Karte bis 2028) + 28 Neue 2026 (bis 2027) + je Top 2 CT/Dev 2026 (= Listenplatz 1–2: Hunt, Coulson / Drayton, Beeton; bis 2028) = 96 Karten; 36 weitere 2026er Holder verlieren die Karte → Q-School.
+  - Tourcard gilt 2 Jahre. Am Saisonende: PDC-OOM Top 64 → `cardUntil = max(cardUntil, Jahr+1)` (+1 Jahr); auslaufend und außerhalb Top 64 → Verlust.
+  - Start 2027: 2026er Top 64 (bis 2027) + 33 Neue 2026 (Q-School 2026 + CT/Dev 2025, bis 2027) + je Top 2 CT/Dev 2026 (= Listenplatz 1–2: Hunt, Coulson / Drayton, Beeton; bis 2028) = 101 Karten; 31 Holder im zweiten Kartenjahr verlieren die Karte → Q-School.
   - Q-School KW 2: UK (Milton Keynes, Nationen UK/IRL/AUS/USA…) und EU (Kalkar, Rest). Je 4 Tage, jeder Tag K.-o. ohne Setzliste, first to 5; wer das Halbfinale erreicht (letzte 4) → Tourcard bis Ende Folgejahr. Kartengewinner fehlen an späteren Tagen. Teilnahme → CT-Berechtigung (+ Dev bis 23) für das Jahr.
   - Challenge Tour: 12 Wochenenden × 2 Turniere, Feld = alle ohne Karte (Challenge+Dev) + Spieler, Setzliste nach CT-OOM, Freilose. Dev Tour analog nur ≤ 23. Youth-WM (KW 45) zählt nicht zur OOM.
   - KI-Events laufen im Hintergrund (season.nextWeek → simulateWeekAI), Preisgeld → OOM.
-  - Jahresende: CT-OOM Top 2 + Dev-OOM Top 2 (ohne Karte, Preisgeld > 0) → Karte bis Jahr+2. Auslaufende Karten: PDC-OOM-Rang ≤ 64 → verlängert bis Jahr+2, sonst Verlust → Challenge. Danach developWorld: Stärke nach Alter (jung +, alt −), Ruhestand ab 45 (tier 'retired', bleibt für Historie), Pool ohne Karte wird mit Talenten (16–18 J.) auf 100 aufgefüllt. Neujahr: Alter +1, Dev ab 24 → Challenge.
+  - Jahresende: CT-OOM Top 2 + Dev-OOM Top 2 (ohne Karte, Preisgeld > 0) → Karte bis Jahr+2. PDC-OOM-Rang ≤ 64 → Karte +1 Jahr, auslaufend außerhalb → Verlust → Challenge. Danach developWorld: Stärke nach Alter (jung +, alt −), Ruhestand ab 45 (tier 'retired', bleibt für Historie), Pool ohne Karte wird mit Talenten (16–18 J.) auf 100 aufgefüllt. Neujahr: Alter +1, Dev ab 24 → Challenge.
   - Tourcard-Holder nicht auf Challenge; Dev Tour nur Holder ≤ 23 außerhalb der PDC-Top-64 (`devHolders`, auch du – ohne Q-School-Pflicht). Dev-OOM-Karten gehen nur an Spieler ohne Karte.
 - **Pro Tour (Phase 4 umgesetzt)**, nur mit Tourcard:
   - Players Championships: 15 Doppel-Blöcke (30 Turniere), Feld = bis 128 Tour-Holder nach PDC-OOM, freie Auslosung, first to 6. Preisgeld 17.500 € Sieg … 1.150 € Letzte 64.

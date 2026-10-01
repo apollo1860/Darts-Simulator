@@ -14,12 +14,12 @@ Karrieremodus für Darts im FIFA-Stil: vom Kneipenturnier im eigenen Bundesland 
 2. **Wochenkalender:** Pro Woche ein Event (die Premier League kommt zusätzlich), dann „Weiter“. Gespeichert wird automatisch nach jeder Woche.
 3. **Turniere:** Jedes Match wird simuliert, entweder als **📺 DartConnect** (Aufnahme für Aufnahme, mit Störmomenten und Entscheidungen) oder als **⚡ Schnellsimulation**.
 4. **Training:** Nach jedem Turnier verteilst du Punkte auf Scoring, Finishing, Mental, Fokus und Rechnen. Dazu kommt einmal pro Woche eine Trainingseinheit. Wer länger nicht trainiert, verliert an Form.
-5. **Aufstieg:** Lokal und DDV, dann Q-School (Tourcard) oder Challenge/Development Tour (Top 2), dann Pro Tour und Majors. Die Tourcard gilt 2 Jahre, danach behalten sie nur die Top 64 der PDC-Rangliste.
+5. **Aufstieg:** Lokal und DDV, dann Q-School (Tourcard) oder Challenge/Development Tour (Top 2), dann Pro Tour und Majors. Die Tourcard gilt 2 Jahre. Wer am Saisonende in den Top 64 der PDC-Rangliste steht, bekommt jeweils 1 Jahr dazu.
 6. **Sponsoren:** Ab der ersten Tourcard, höchstens 4 gleichzeitig (eine pro Kategorie), Laufzeit 1–3 Jahre, jederzeit kündbar.
 7. **Karriereende:** Jederzeit über „Speichern & Menü“, mit Abschlussbilanz.
 
 ## Inhalte
-- 128 Tourcard-Holder 2026 sowie Challenge-, Development-, DDV- und Lokal-Spieler (`data/players.js`, leicht editierbar)
+- 128 Tourcard-Holder 2026 (Top 64, zweites Kartenjahr, Q-School 2026, CT/Dev 2025) sowie Challenge-, Development-, DDV- und Lokal-Spieler (`data/players.js`, leicht editierbar)
 - Realistischer Jahreskalender mit Q-School, 24 Challenge- und 24 Development-Turnieren, 30 Players Championships, 14 European-Tour-Events, allen Majors, World Series, World Cup und Premier League
 - Ranglisten: PDC Order of Merit (2 Jahre), Pro Tour, Challenge Tour, Development Tour, Premier-League-Tabelle
 - Die Spielwelt lebt: Auf- und Abstieg, Kartenverlust, Entwicklung nach Alter, Ruhestand, neue Talente

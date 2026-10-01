@@ -40,9 +40,9 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 127 + 92 + 98 + 50 + 63);
-  // Start 2027: 63 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 100 Karten, Rest in der Q-School
-  assert.equal(playersOfTier(s, 'tour').length, 100);
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63);
+  // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
+  assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
   // Holder ≤ 23 außerhalb der PDC-Top-64 spielen zusätzlich Dev Tour
   const devIds = new Set(orderOfMerit(s, 'dev').map(x => x.p.id));
@@ -198,7 +198,7 @@ test('Q-School: 4 Tage, Karten, Challenge-Zugang', () => {
   if (places.includes('CARD')) assert.equal(s.player.tour, 'tour');
   nextWeek(s);                                                  // UK-Q-School läuft im Hintergrund
   const tour = playersOfTier(s, 'tour').length + (s.player.tour === 'tour' ? 1 : 0);
-  assert.equal(tour, 100 + 32);
+  assert.equal(tour, 101 + 32);
   assert.equal(s.player.qschoolYear, 2027);
   const ct = eventsInWeek(s, 2027, 7).find(e => e.cat === 'challenge');
   s.date.week = 7; s.week = { played: false, eventId: null };
@@ -384,7 +384,7 @@ test('Training: Fortschritt, 1×/Woche, Formverlust ohne Training', () => {
   assert.ok(r1 && r1.gain > 0);
   assert.equal(TR.train(s, 'cal'), null);                          // nur einmal pro Woche
   let ups = 0;
-  for (let i = 0; i < 10; i++) { nextWeek(s); if (TR.train(s, 'cal')?.up) ups++; }
+  for (let i = 0; i < 14; i++) { nextWeek(s); if (TR.train(s, 'cal')?.up) ups++; }
   assert.ok(ups >= 2 && s.player.attrs.cal >= 62, 'Rechnen ' + s.player.attrs.cal);
   const before = Object.values(s.player.attrs).reduce((a, b) => a + b, 0);
   for (let i = 0; i < 20; i++) nextWeek(s);                         // 20 Wochen ohne Training

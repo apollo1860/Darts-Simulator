@@ -15,7 +15,7 @@ export function createWorld(rng, startYear = 2027) {
     const id = `${prefix}${i + 1}`;
     players[id] = { id, name, nation, age, avg, tier, cardUntil, attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
   });
-  add(TOUR_TOP64, 'T', 'tour', startYear + 1);          // Ende 2026 als Top 64 verlängert
+  add(TOUR_TOP64, 'T', 'tour', startYear);              // Ende 2026 in den Top 64 → +1 Jahr (bis 2027)
   add(TOUR_EXPIRING, 'X', 'challenge', null);           // Karte Ende 2026 verloren → Q-School
   add(TOUR_NEW_2026, 'N', 'tour', startYear);           // 2-Jahres-Karte 2026/2027
   add(CHALLENGE_PLAYERS, 'C', 'challenge', null);

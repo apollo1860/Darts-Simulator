@@ -9,7 +9,7 @@ import { plTable } from '../../majors.js';
 let tab = 'pdc';
 
 const NOTE = {
-  pdc: 'Preisgeld der letzten 2 Jahre (Players Championships, European Tour; Majors ab Phase 5). Am Saisonende behalten nur die Top 64 eine auslaufende Tourcard. Top 16 sind bei der European Tour gesetzt.',
+  pdc: 'Preisgeld der letzten 2 Jahre (Players Championships, European Tour; Majors ab Phase 5). Am Saisonende wird die Tourcard der Top 64 um 1 Jahr verlängert; wer außerhalb steht, verliert eine auslaufende Karte. Top 16 sind bei der European Tour gesetzt.',
   protour: 'Preisgeld der laufenden Saison aus Players Championships und European Tour.',
   challenge: 'Saisonwertung der Challenge Tour (alle Spieler ohne Tourcard). Platz 1 und 2 erhalten am Jahresende eine Tourcard für 2 Jahre.',
   dev: 'Saisonwertung der Development Tour (bis 23 Jahre). Platz 1 und 2 erhalten am Jahresende eine Tourcard für 2 Jahre.',

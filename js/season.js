@@ -56,7 +56,7 @@ function weekNews(state, evs, ai) {
   // OOM-Stand nach Challenge-/Dev-Wochenenden
   if (p.tour === 'tour' && evs.some(e => (e.cat === 'pc' || e.cat === 'et') && e.startsThisWeek)) {
     addNews(state, 'ranking', `PDC Order of Merit: Platz ${rankOf(state, 'pdc', 'P', y)}`,
-      `Pro Tour OOM: Platz ${rankOf(state, 'protour', 'P', y)}. Top 64 der PDC OOM behalten am Saisonende eine auslaufende Tourcard.`);
+      `Pro Tour OOM: Platz ${rankOf(state, 'protour', 'P', y)}. Top 64 der PDC OOM: Tourcard am Saisonende um 1 Jahr verlängert.`);
   }
   for (const type of ['challenge', 'dev']) {
     if (!evs.some(e => e.cat === type && !e.noOom && e.startsThisWeek)) continue;
@@ -82,12 +82,13 @@ export function yearEnd(state) {
       lines.push(`${x.p.name} (${OOM_TYPES[type].short}-OOM ${x.rank}.)`);
     }
   }
-  // 2) Auslaufende Karten: nur Top 64 der PDC Order of Merit behalten sie
+  // 2) Top 64 der PDC OOM: Karte gilt mindestens bis Ende Folgejahr (+1 Jahr); auslaufende Karten außerhalb → Verlust
   const lost = [];
   for (const x of orderOfMerit(state, 'pdc', y)) {
     const pl = x.p;
-    if (!pl.cardUntil || pl.cardUntil > y) continue;
-    if (x.rank <= 64) { pl.cardUntil = y + 2; continue; }
+    if (!pl.cardUntil) continue;
+    if (x.rank <= 64) { pl.cardUntil = Math.max(pl.cardUntil, y + 1); continue; }
+    if (pl.cardUntil > y) continue;
     lost.push(pl.name);
     if (pl.id === 'P') {
       p.tour = 'none'; p.cardUntil = null;
