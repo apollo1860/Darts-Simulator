@@ -62,25 +62,41 @@ export const TOUR_NEW_2026 = [
 
 export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
 
-// --- 50 Challenge-Tour-Spieler (ohne Tourcard, ~82–92) ---
+// --- Challenge Tour (nur ohne Tourcard): Nutzerliste CT-OOM, Plätze 1–75 ---
+// Stärke aus Platzierung: 91 Ø − 0,14 je Platz (75 → 80,6). Dev-Spieler auf der Liste stehen nur in DEV_PLAYERS
+// (spielen ohnehin CT mit; Average = max(Dev, CT)). Danach 30 fiktive Europäer (~66–72 Ø) als Kanonenfutter.
 export const CHALLENGE_PLAYERS = [
-  ['José de Sousa', 'PT', 53, 89], ['Matt Campbell', 'CA', 44, 88], ['Jim Williams', 'WAL', 43, 90],
-  ['Thijs Hoogland', 'NL', 34, 87], ['Jelle Klaasen', 'NL', 43, 87], ['Steve Lennon', 'IRL', 33, 88],
-  ['Andreas Harrysson', 'SE', 28, 88], ['Joe Hunt', 'ENG', 30, 88], ['Fallon Sherrock', 'ENG', 32, 85],
-  ['Steve Beaton', 'ENG', 63, 85], ['Jamie Hughes', 'ENG', 41, 86], ['Kevin Burness', 'NIR', 42, 86],
-  ['Ron Meulenkamp', 'NL', 38, 86], ['Boris Krčmar', 'HR', 47, 86], ['Berry van Peer', 'NL', 30, 86],
-  ['Geert Nentjes', 'NL', 37, 86], ['Danny van Trijp', 'NL', 30, 86], ['Ruud Jansen', 'NL', 38, 85],
-  ['Dragutin Horvat', 'DE', 49, 86], ['Steffen Siepmann', 'DE', 39, 85], ['Nico Kurz', 'DE', 29, 86],
-  ['Michael Unterbuchner', 'DE', 37, 86], ['Daniel Klose', 'DE', 40, 85], ['Kevin Münch', 'DE', 38, 86],
-  ['Scott Waites', 'ENG', 49, 85], ['Darren Webster', 'ENG', 58, 85], ['Steve West', 'ENG', 47, 85],
-  ['John Henderson', 'SCO', 52, 85], ['Kirk Shepherd', 'ENG', 40, 85], ['Jamie Clark', 'SCO', 33, 85],
-  ['Marcel Brandt', 'DE', 31, 85], ['Jarred Cole', 'ENG', 34, 86], ['Callum Loose', 'ENG', 28, 86],
-  ['Joe Davis', 'ENG', 33, 86], ['Brett Claydon', 'ENG', 37, 85], ['Harry Ward', 'ENG', 26, 85],
-  ['Shaun Wilkinson', 'ENG', 33, 85], ['Jack Main', 'ENG', 26, 86], ['Ronny Huybrechts', 'BE', 61, 84],
-  ['Kenny Neyens', 'BE', 31, 85], ['Robert Marijanović', 'DE', 40, 85], ['Martijn Kleermaker', 'NL', 36, 86],
-  ['Vincent van der Voort', 'NL', 51, 85], ['Ryan Hogarth', 'SCO', 30, 85], ['Patrick Geeraets', 'BE', 31, 84],
-  ['Jim McEwan', 'SCO', 40, 84], ['Gavin Carlin', 'IRL', 41, 85], ['Lisa Ashton', 'ENG', 56, 84],
-  ['Gordon Mathers', 'AU', 54, 84], ['Krzysztof Kciuk', 'PL', 36, 84],
+  ['Joe Hunt', 'ENG', 30, 91.0], ['Derek Coulson', 'ENG', 33, 90.9], ['Tommy Morris', 'ENG', 25, 90.7],
+  ['Daniel Klose', 'DE', 40, 90.6], ['Tommy Lishman', 'ENG', 30, 90.3], ['Jack Aldridge', 'ENG', 28, 90.2],
+  ['Jack Tweddell', 'ENG', 27, 90.0], ['Daniel Ayres', 'ENG', 35, 89.9], ['Aden Kirk', 'ENG', 24, 89.7],
+  ['Harry Ward', 'ENG', 26, 89.6], ['Steve Lennon', 'IRL', 33, 89.5], ['Patrik Williams', 'ENG', 31, 89.2],
+  ['Martijn Dragt', 'NL', 30, 88.9], ['Christopher Wickenden', 'ENG', 35, 88.8], ['Ted Evetts', 'ENG', 29, 88.6],
+  ['Kevin Burness', 'NIR', 42, 88.5], ['Scott Waites', 'ENG', 49, 88.3], ['Michele Turetta', 'IT', 34, 88.2],
+  ['Lewis Pride', 'ENG', 30, 88.1], ['David Davies', 'WAL', 32, 87.9], ['Gilbert van der Meijden', 'NL', 35, 87.8],
+  ['Radek Szaganski', 'PL', 37, 87.5], ['Stef Kosters', 'NL', 30, 87.4], ['Levy Frauenfelder', 'CH', 28, 87.2],
+  ['Oliver Mitchell', 'ENG', 27, 86.9], ['Dan Hands', 'ENG', 30, 86.8], ['David Evans', 'WAL', 34, 86.5],
+  ['Ashley Coleman', 'ENG', 36, 86.4], ['Callum Francis', 'ENG', 28, 86.2], ['Danny Trueman', 'ENG', 30, 86.0],
+  ['Patrick Geeraets', 'BE', 31, 85.7], ['John Henderson', 'SCO', 52, 85.4], ['Alan Norris', 'ENG', 53, 85.3],
+  ['Callum Goffin', 'ENG', 30, 85.1], ['Robbie Martin', 'ENG', 33, 85.0], ['Jamie Kay', 'ENG', 30, 84.8],
+  ['James Howard Hughes', 'ENG', 31, 84.7], ['Jake Jones', 'ENG', 29, 84.4], ['Paul Rowley', 'ENG', 36, 84.3],
+  ['Andy Hamilton', 'ENG', 58, 84.1], ['Michael Unterbuchner', 'DE', 37, 84.0], ['Jack Main', 'ENG', 26, 83.9],
+  ['Andy Courtney', 'ENG', 35, 83.7], ['Scott Campbell', 'SCO', 30, 83.6], ['Steve Beaton', 'ENG', 63, 83.3],
+  ['Ricardo Ulrich', 'DE', 30, 83.2], ['Carl Wilson', 'ENG', 40, 83.0], ['Geoffrey Murray', 'SCO', 35, 82.7],
+  ['Jamie Hughes', 'ENG', 41, 82.6], ['Jake Eichen', 'DE', 28, 82.5], ['Graham Usher', 'ENG', 50, 82.3],
+  ['Nicolas Thuillier', 'FR', 33, 82.2], ['Patrick Tringler', 'AT', 32, 82.0], ['Jose Justicia', 'ES', 49, 81.9],
+  ['Danny Goddard', 'ENG', 30, 81.8], ['Michael Flynn', 'ENG', 36, 81.6], ['Arron Monk', 'ENG', 40, 81.5],
+  ['Simon Stevenson', 'ENG', 45, 81.2], ['Steve Hine', 'ENG', 40, 81.1], ['Keegan Brown', 'ENG', 34, 80.9],
+  ['Ashton Brown', 'ENG', 25, 80.8], ['Ron Meulenkamp', 'NL', 38, 80.6], ['Pierre Lavigne', 'FR', 41, 72.0],
+  ['Mathis Garnier', 'FR', 29, 71.8], ['Álvaro Ibáñez', 'ES', 36, 71.6], ['Sergio Domínguez', 'ES', 44, 71.4],
+  ['Luca Ferraro', 'IT', 38, 71.2], ['Davide Colombo', 'IT', 27, 71.0], ['Rui Carvalho', 'PT', 42, 70.8],
+  ['Tiago Mendes', 'PT', 31, 70.6], ['Piotr Wróbel', 'PL', 35, 70.4], ['Tomasz Zieliński', 'PL', 46, 70.2],
+  ['Ondřej Kučera', 'CZ', 33, 70.0], ['Lukáš Beneš', 'CZ', 28, 69.8], ['Gergő Varga', 'HU', 39, 69.6],
+  ['Dávid Kiss', 'HU', 30, 69.4], ['Mārtiņš Kalniņš', 'LV', 37, 69.2], ['Mindaugas Petrauskas', 'LT', 43, 69.0],
+  ['Rasmus Holm', 'DK', 34, 68.8], ['Magnus Eriksson', 'SE', 48, 68.6], ['Henrik Solberg', 'NO', 40, 68.4],
+  ['Jussi Lehtonen', 'FI', 45, 68.2], ['Nikos Papadakis', 'GR', 38, 68.0], ['Ivan Kovačević', 'HR', 32, 67.8],
+  ['Matej Novak', 'SI', 29, 67.6], ['Florian Steiner', 'AT', 44, 67.4], ['Reto Ammann', 'CH', 51, 67.2],
+  ['Dirk Vermeulen', 'BE', 47, 67.0], ['Kees Brouwer', 'NL', 52, 66.8], ['Uwe Hartmann', 'DE', 55, 66.6],
+  ['Sven Kowalski', 'DE', 33, 66.4], ['Gary Pickering', 'ENG', 49, 66.2],
 ];
 
 // --- Development Tour (bis 23 Jahre): Nutzerliste Dev-OOM 2025 ---
@@ -89,15 +105,15 @@ export const CHALLENGE_PLAYERS = [
 // Holder außerhalb der Top 64 zusätzlich die Dev Tour. Nationen und Alter geschätzt.
 export const DEV_PLAYERS = [
   ['Jack Drayton', 'ENG', 22, 89.8], ['James Beeton', 'ENG', 21, 89.2], ['Jamai van den Herik', 'NL', 19, 89.0],
-  ['Angelo Balsamo', 'ENG', 23, 88.2], ['Nathan Potter', 'ENG', 21, 88.1], ['Lenny Schlueter', 'DE', 20, 87.4],
-  ['Henry Coates', 'ENG', 18, 87.3], ['David Fidler', 'ENG', 23, 87.1], ['Sam Jackson', 'ENG', 21, 87.0],
-  ['Florian Preis', 'DE', 19, 86.8], ['Finn Behrens', 'DE', 22, 86.5], ['Ben Townley', 'ENG', 20, 86.3],
+  ['Angelo Balsamo', 'ENG', 23, 88.2], ['Nathan Potter', 'ENG', 21, 89.0], ['Lenny Schlueter', 'DE', 20, 87.4],
+  ['Henry Coates', 'ENG', 18, 89.3], ['David Fidler', 'ENG', 23, 87.1], ['Sam Jackson', 'ENG', 21, 87.0],
+  ['Florian Preis', 'DE', 19, 87.1], ['Finn Behrens', 'DE', 22, 86.5], ['Ben Townley', 'ENG', 20, 86.3],
   ['Mylo Michiels', 'BE', 23, 86.0], ['Kaya Baysal', 'DE', 21, 85.8], ['Lewis Cook', 'ENG', 19, 85.7],
   ['Ieuan Halsall', 'WAL', 17, 85.5], ['Keenan Thomas', 'WAL', 18, 85.0], ['Peter Kelemen', 'HU', 23, 84.9],
   ['Charlie Stocks', 'ENG', 21, 84.7], ['Jan Schmidt', 'DE', 19, 84.6], ['James Buckby', 'ENG', 17, 84.4],
   ['Connor Hopkins', 'ENG', 22, 84.2], ['Jenson Remory', 'ENG', 20, 84.1], ['Sean McKeon', 'IRL', 18, 83.9],
   ['Jarod Becker', 'DE', 23, 83.8], ['Jack Pollard', 'ENG', 21, 83.6], ['Nunjo Dewaele', 'BE', 19, 83.4],
-  ['Harrison Leigh', 'ENG', 17, 83.3], ['Ciaran Forde', 'IRL', 20, 83.0], ['Cole Davey', 'ENG', 18, 82.8],
+  ['Harrison Leigh', 'ENG', 17, 85.8], ['Ciaran Forde', 'IRL', 20, 83.0], ['Cole Davey', 'ENG', 18, 82.8],
   ['Ryan Branley', 'NIR', 23, 82.6], ['Kimi Seemann', 'DE', 21, 82.5], ['Kai Clark', 'ENG', 19, 82.3],
   ['Shane de Jong', 'NL', 17, 82.2], ['JJ Wright', 'ENG', 22, 82.0], ['Martin Homola', 'CZ', 18, 81.7],
   ['Dylan Quinn', 'IRL', 23, 81.5], ['Liam Maendl-Lawrance', 'ENG', 21, 81.4], ['Milan Biro', 'HU', 19, 81.2],
@@ -105,7 +121,7 @@ export const DEV_PLAYERS = [
   ['Bram van Dijk', 'NL', 18, 80.6], ['Oliver Pearce-Burgess', 'ENG', 23, 80.4], ['Nathan Care', 'ENG', 21, 80.2],
   ['Kilian Hohnstedt', 'DE', 17, 79.9], ['Joseph Brady', 'IRL', 22, 79.8], ['Lewis Mayes', 'ENG', 20, 79.6],
   ['Sebastian Caris', 'BE', 18, 79.4], ['Cody Crabtree', 'ENG', 23, 79.3], ['Mark Tabak', 'NL', 21, 79.1],
-  ['Daan Beernink', 'NL', 19, 79.0], ['Cayden Smith', 'ENG', 17, 78.8], ['Ansh Sood', 'ENG', 22, 78.6],
+  ['Daan Beernink', 'NL', 19, 79.0], ['Cayden Smith', 'ENG', 17, 81.3], ['Ansh Sood', 'ENG', 22, 78.6],
   ['Lleyton Molyneux', 'ENG', 20, 78.5], ['Luca Wolff', 'DE', 18, 78.3], ['Barry Watson', 'ENG', 23, 78.2],
   ['Liam Vanhove', 'BE', 21, 76.0], ['Josef Howlett', 'ENG', 19, 75.9], ['Nicolas Lauwereins', 'BE', 17, 75.9],
   ['Cori Wiltshire', 'ENG', 22, 75.9], ['Lee Bradshaw', 'ENG', 20, 75.5], ['Emile Hendryks', 'BE', 18, 75.5],
@@ -118,10 +134,9 @@ export const DEV_PLAYERS = [
   ['Alfie Cox', 'ENG', 22, 72.9], ['Harrison Kershaw', 'ENG', 20, 72.9], ['Toby Saunders', 'ENG', 18, 72.9],
   ['Ben Stanton', 'ENG', 23, 72.9], ['Philip Want', 'ENG', 21, 72.9], ['Finley Bennett', 'ENG', 19, 72.2],
   ['Alfie Busby', 'ENG', 17, 72.2], ['Oliver Clarke', 'ENG', 22, 72.2], ['Jory Scheldeman', 'BE', 20, 72.2],
-  ['Joshua Wyer Powell', 'ENG', 18, 72.2],
-  ['Dylan Slevin', 'IRL', 23, 87.8], ['Archie Self', 'ENG', 22, 87.6], ['Jenson Walker', 'ENG', 20, 86.6],
-  ['Thomas Banks', 'ENG', 21, 85.4], ['Owen Roelofs', 'NL', 20, 83.1], ['Lewy Williams', 'WAL', 22, 81.8],
-  ['Nathan Girvan', 'SCO', 19, 80.1],
+  ['Joshua Wyer Powell', 'ENG', 18, 72.2], ['Dylan Slevin', 'IRL', 23, 87.8], ['Archie Self', 'ENG', 22, 90.4],
+  ['Jenson Walker', 'ENG', 20, 86.6], ['Thomas Banks', 'ENG', 21, 85.4], ['Owen Roelofs', 'NL', 20, 83.1],
+  ['Lewy Williams', 'WAL', 22, 81.8], ['Nathan Girvan', 'SCO', 19, 80.1],
 ];
 
 // --- 50 fiktive Amateure für lokale Turniere (~60–80) ---

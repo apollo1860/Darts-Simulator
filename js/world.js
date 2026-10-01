@@ -23,10 +23,9 @@ export function createWorld(rng, startYear = 2027) {
   add(LOCAL_PLAYERS, 'L', 'local', null);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   addDdvPool(world, rng);
-  // Challenge-/Dev-Tour 2026: je Top 2 (hier: die Stärksten) erhalten eine Karte bis Ende 2028
-  for (const tier of ['challenge', 'dev']) {
-    Object.values(players).filter(p => p.tier === tier)
-      .sort((a, b) => b.avg - a.avg).slice(0, 2)
+  // Challenge-/Dev-Tour 2026: je Top 2 der Nutzerliste (Listenplatz 1–2) erhalten eine Karte bis Ende 2028
+  for (const prefix of ['C', 'D']) {
+    [1, 2].map(i => players[prefix + i])
       .forEach(p => { p.tier = 'tour'; p.cardUntil = startYear + 1; });
   }
   updateTiers({ world });

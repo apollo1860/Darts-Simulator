@@ -40,7 +40,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 127 + 50 + 98 + 50 + 63);
+  assert.equal(Object.keys(s.world.players).length, 127 + 92 + 98 + 50 + 63);
   // Start 2027: 63 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 100 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 100);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
