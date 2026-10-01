@@ -57,7 +57,13 @@ export const startAttrs = (bonus = {}) => {
 export const calcError = cal => clamp((100 - (cal ?? 70)) * 0.003, 0, 0.3);
 
 // Leistungsdaten für die Engines (Attribute + Erfahrung)
-export const perf = p => ({ ...p.attrs, exp: p.exp ?? 0 });
+export const perf = p => {
+  const a = { ...p.attrs, exp: p.exp ?? 0 };
+  // Ermüdung über 30 % kostet Leistung (bis −6 Scoring, −8 Fokus, −4 Finishing bei 100 %)
+  const f = Math.max(0, ((p.fatigue ?? 0) - 30) / 70);
+  if (f) { a.sco -= f * 6; a.foc -= f * 8; a.fin -= f * 4; }
+  return a;
+};
 
 // ---- XP → Attributpunkte ----
 export const xpForNextPoint = earned => Math.round(70 + 1.6 * earned);

@@ -17,6 +17,8 @@ import { MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlN
 import { addMoney, orderOfMerit, rankOf } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
+import { routeTarget } from './decisions.js';
+import { addEventFatigue } from './training.js';
 import { trackTitle } from './history.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -243,7 +245,12 @@ export function liveAiVisit(state) {
   const rng = new RNG(state.rng), side = lm.turn, a = attrsOf(state, side === 0 ? pm.a : pm.b);
   const sig = aiSigma(a), mult = modMult(inst.live, side);
   let ev = null;
-  while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) ev = throwDart(lm, aiDart(lm, side, a, rng, sig, mult).hit);
+  const live = inst.live, mine = side === live.me;
+  while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) {
+    const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
+    ev = throwDart(lm, aiDart(lm, side, a, rng, sig, mult, forced).hit);
+  }
+  if (mine) live.route = null;
   tickMods(inst.live, side);
   return ev;
 }
@@ -438,6 +445,7 @@ function finishEvent(state, inst) {
   if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
   sponsorEventPayout(state, inst);
   trackTitle(state, inst);
+  addEventFatigue(state, inst);
   if (inst.isQualifier) {
     addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, place === 'QUAL' ? 'Du stehst im Hauptfeld (Letzte 48).' : 'Kein Platz im Hauptfeld.');
     if (place === 'NQ') state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });
@@ -481,6 +489,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place)})`, 'prize');
     sponsorEventPayout(state, inst);
     trackTitle(state, inst);
+    addEventFatigue(state, inst);
     state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: inst.prize });
     addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, inst.prize ? `Preisgeld: ${fmtEUR(inst.prize)}.` : '');
   }

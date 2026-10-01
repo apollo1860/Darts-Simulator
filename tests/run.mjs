@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { newCareer } from '../js/state.js';
 import { overall } from '../js/player.js';
 import { eventsInWeek } from '../js/calendar.js';
-import { nextWeek } from '../js/season.js';
+import { nextWeek, jumpToNextEvent } from '../js/season.js';
+import { perf } from '../js/player.js';
 import { orderOfMerit } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
 import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub, simulateRoundAI } from '../js/tournaments.js';
@@ -17,6 +18,7 @@ import { legAverage } from '../js/matchState.js';
 import * as D from '../js/distractions.js';
 import * as SP from '../js/sponsors.js';
 import * as TR from '../js/training.js';
+import * as DC from '../js/decisions.js';
 import { wave } from '../js/throwModel.js';
 
 let n = 0;
@@ -392,6 +394,53 @@ test('Rechnen: schwache Rechner stehen öfter auf Bogey-Zahlen', () => {
   let ba = 0, bb = 0;
   for (let i = 0; i < 800; i++) { const r = simulateMatch({ ...A, cal: 40 }, { ...A, cal: 95 }, { legs: 4 }, rng); ba += r.stats[0].bogey; bb += r.stats[1].bogey; }
   assert.ok(ba > bb * 2, `${ba} vs ${bb}`);
+});
+
+test('Checkout-Entscheidung: Wege, Chancen, gewählter Weg wird gespielt', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 71, bonus: { cal: 25 } });
+  enterEvent(s, eventsInWeek(s, 2027, 1).find(e => e.cat === 'local').id);
+  const live = startManualMatch(s), lm = live.m;
+  lm.turn = live.me; lm.rem[live.me] = 100; lm.visit = { darts: [], start: 100 };
+  let co = null;
+  for (let k = 0; k < 40 && !co; k++) { lm.stats[live.me].darts = k * 3; co = DC.checkoutDecisionDue(s); }
+  assert.ok(co && co.opts.length >= 2);
+  assert.equal(co.recommended !== null, true);                       // Rechnen 85 → Empfehlung
+  assert.deepEqual(co.opts[0].route, ['T20', 'D20']);
+  DC.chooseRoute(s, 100, ['T19', 'S11', 'D16']);
+  assert.equal(DC.routeTarget(live, 100, 0), 'T19');
+  assert.equal(DC.routeTarget(live, 43, 1), 'S11');                  // nach T19 (57) → 43
+  assert.equal(DC.routeTarget(live, 80, 1), null);                   // Plan verlassen → Standardlogik
+  liveAiVisit(s);
+  assert.equal(live.route, null);
+  const hi = DC.routeChance({ sco: 95, fin: 95, men: 95, foc: 95, cal: 95, exp: 0 }, 40, ['D20'], new RNG(1));
+  const lo = DC.routeChance({ sco: 50, fin: 50, men: 50, foc: 50, cal: 50, exp: 0 }, 40, ['D20'], new RNG(1));
+  assert.ok(hi > lo);
+});
+
+test('Wochenplan: 1 Aktivität, Ruhetag, Sponsortermin, Exhibition, Ermüdung, Sprung', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 81 });
+  assert.equal(TR.canDo(s, 'sponsor').ok, false);                   // kein Sponsor
+  const r = TR.doActivity(s, 'exhibition');
+  assert.ok(r.ok && s.player.fatigue === 20 && s.finance.balance > 5000);
+  assert.equal(TR.train(s, 'sco'), null);                           // Woche schon verplant
+  assert.equal(TR.doActivity(s, 'rest').ok, false);
+  nextWeek(s);
+  assert.equal(s.player.fatigue, 10);                               // −10 Erholung pro Woche
+  s.player.fatigue = 100;
+  assert.ok(perf(s.player).sco < s.player.attrs.sco);               // Ermüdung kostet Leistung
+  assert.ok(TR.doActivity(s, 'rest').ok); assert.equal(s.player.fatigue, 70);
+  s.player.fatigue = 0;
+  enterEvent(s, eventsInWeek(s, 2027, 2).find(e => e.cat === 'local').id);
+  simulateRest(s); closeEvent(s);
+  assert.ok(s.player.fatigue > 0);                                  // Turnier ermüdet
+  // Sprung: mit Tourcard bis zum nächsten Pro-Tour-Event, dabei automatisch trainiert
+  s.player.tour = 'tour'; s.player.cardUntil = 2028;
+  nextWeek(s);
+  const weeks = jumpToNextEvent(s);
+  assert.ok(weeks >= 1);
+  assert.ok(eventsInWeek(s, s.date.year, s.date.week).some(e => e.cat !== 'local' && eventStatus(s, e).playable));
+  assert.equal(TR.trainingOf(s).idle, 0);
+  assert.equal(jumpToNextEvent(s), 0);                              // jetzt steht ein Event an → kein Sprung
 });
 
 console.log(`\n${n} Tests ok`);

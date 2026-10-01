@@ -21,7 +21,8 @@ js/rng.js             RNG (mulberry32) mit Zustand {s}
 js/util.js            Formatierung (€, Zahlen de-DE), Datum/KW, esc()
 js/state.js           Neue Karriere, Speicher-Slots (localStorage), Export/Import JSON
 js/player.js          Perzentil-Attribute (sco/fin/men/foc/cal), Erfahrung (exp −4…+10), Average-Kurve, XP, calcError()
-js/training.js        Wöchentliches Training (Fortschritt je Attribut) + Formverlust bei Trainingspause
+js/training.js        Wochenplan: Training/Ruhetag/Sponsortermin/Exhibition (1 pro Woche), Formverlust, Ermüdung
+js/decisions.js       Checkout-Entscheidungen im DartConnect (Wege, geschätzte Chancen, gewählter Weg)
 js/world.js           KI-Welt (Tiers, Tourcards), Ruhestand/Nachwuchs/Entwicklung (developWorld), updateTiers
 js/calendar.js        Wochenkalender, Events pro Woche, advanceWeek (Datum/Alter)
 js/season.js          nextWeek(): KI-Turniere der Woche, Jahresabschluss (Tourcards, Kartenverlust), News
@@ -73,7 +74,8 @@ activeEvent: Turnier-Instanz oder null: {eventId, cat, sub/count (Teil-Turnier),
          live:{m,me,mods:[{side,mult,visits}],dist:{id,atVisit,who,done}|null}|null}
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
-training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.trained = Attribut der Woche
+training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.activity = train|rest|sponsor|exhibition, week.trained = Attribut
+player.fatigue 0–100, state.lastTrained;  live.route = {start, darts} (gewählter Checkout-Weg), live.coDec = {left, asked}
 sponsors:{active:[{name,slot,type,amount,years,start,until,paid}], offers:[{…,expires}], total}, ended:bool
 archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pdc|challenge|dev:{rank,year,week}}}
 ```
@@ -90,6 +92,9 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - **Erfahrung** (exp, −4 … +10): Clutch-Faktor. Matchdarts: Sim-Checkout × (… + 0,025·exp); Dart-Modell σ × (1 − 0,025·exp); Entscheidungsleg-Scoring ±0,6 %/Stufe. +10 vs −4 bei gleichen Werten ≈ 60 % Siegchance. Wächst über Clutch-Punkte (Match 2, Entscheidungsleg +3, gewonnen +3, × Kategoriefaktor); Schwellen `EXP_STEPS`. KI: nach Ebene/Alter, jährlich +1 (Chance).
 - **XP/Training**: Match 14, Sieg +22, +8 je Runde (max 6), Titel/Karte +60, **Teilnahme +75**, × Faktor (lokal 0,8, DDV 1,4, CT/Dev/Q 1, PC/ET 1,5, Majors 2). Punkt-Schwelle = 70 + 1,6·n. Kosten je Stufe: 1 (<70), 2 (70–84), 3 (85–94), 4 (≥95). Training direkt nach jedem Turnier (Panel im Turnier-Screen) oder im Profil.
 - **Training** (`training.js`): 1 Einheit pro Woche (zusätzlich zum Event, kostenlos) auf ein Attribut; Fortschritt × Qualität (0,7/1/1,3); +1 nach 5 × Attributkosten Einheiten (60 → 5, 75 → 10, 90 → 15, 95+ → 20). Ohne Training: ab 3 Wochen Pause pro Woche Risiko 15 % (+5 %/Woche, max. 40 %) auf −1 bei einem Attribut (gewichtet nach Höhe², nicht unter 50). Bot-Balancing: mit Training Tourcard nach 5–6 Saisons/Top 20 nach 8; ohne Training Stagnation bei Gesamt ~67–70.
+- **Wochenplan**: genau EINE Aktivität pro Woche (zusätzlich zum Turnier): Training · Ruhetag (Ermüdung −30) · Sponsortermin (nur mit aktivem Vertrag; je Sponsor 4 % Jahresgehalt / 60 % Antrittsgeld / 30 % Bonus, mind. 150 €) · Exhibition (mit Karte 500 € + 2 % Marktwert, sonst 200 €, ±20 %; +60 XP, +3 Clutch, Ermüdung +20).
+- **Ermüdung** (player.fatigue 0–100): +4 je gespieltem Match +4 Reise (nicht lokal), −10 pro Woche. Über 30 %: Leistung sinkt linear bis 100 % (−6 Scoring, −8 Fokus, −4 Finishing; nur in `perf`).
+- **Sprung** „⏭ Nächstes Event“ (`jumpToNextEvent`): überspringt Wochen bis zu einem spielbaren Nicht-Lokal-Event (max. 20), trainiert dabei automatisch (zuletzt trainiertes bzw. schwächstes Attribut); 0 Wochen, wenn diese Woche schon eins ansteht.
 - **Kalender**: ISO-KW 1–52 (KW 53 wird übersprungen). Pro Woche max. ein Event. „Weiter“ → nächste Woche.
 - **Kosten**: Anmeldegebühr 25 € (Q-School, Challenge, Dev). Reise: England/UK 600 €, Deutschland 250 €, sonst 400 €. Lokal: kostenlos, keine Reise. Melden nur bei genug Budget.
 - **Lokale Turniere**: jede Woche außer KW 52, nur im eigenen Bundesland (Städte aus `data/regions.js`), 16 Spieler (fiktiv), Siegprämie zufällig 50–200 €, Finalist 40 %, Halbfinale 20 %.
@@ -124,6 +129,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - Simulation aufnahmebasiert: Scoring-Aufnahme ~ Normal(avg·Form, sd(con)), 180er-Chance aus avg; Finish-Bereich (≤170, keine Bogey-Zahlen) mit Wahrscheinlichkeit aus Checkout-Basis × Restpunkt-Faktor; ≤50 dartgenau auf Doppel.
 - Stats: Average (Punkte/Darts·3), 180er, 140+, 100+, Checkout-% (Treffer/Doppelversuche), höchstes Finish.
 - **Spielmodi im Turnier**: 📺 DartConnect (Screen 'watch', Zuschauen mit Störmomenten) und ⚡ Schnellsimulation (sofort). Manueller Modus vorerst deaktiviert.
+- **Checkout-Entscheidungen** (nur DartConnect, `decisions.js`): vor einer eigenen Aufnahme auf 41–170 (kein Bogey) mit 30 % Chance, max. 2 je Match. 2–3 Wege (`alternativeRoutes`: verschiedene erste Darts, gleiche Darts in anderer Reihenfolge zusammengefasst). Angezeigte Chance = Monte-Carlo mit eigenen Werten (400 Würfe) + Schätzfehler N(0, (100 − Rechnen)·0,15 %-Punkte); „★ Empfohlen“ ab Rechnen 75. Gewählter Weg wird ohne Rechenfehler gespielt (`routeTarget`), solange der Rest zum Plan passt.
 - **Störmomente** (nur DartConnect, vor einer eigenen Aufnahme): Wahrscheinlichkeit je Match lokal 50 %, DDV 35 %, sonst 25 %. Situationen je Ebene (Quatschen/Handy nur lokal; Zwischenruf/Zeitspiel DDV+Pro; Auspfeifen nur Pro). 2 Optionen: sicher (höhere Chance, kleiner Effekt) vs. riskant (niedrige Chance, großer Effekt). Chance = base + (Attribut−60)·0,6 % + Erfahrung·1,5 % (10–92 %). Effekt = Streuungs-Multiplikator für n Aufnahmen (eigene oder gegnerische Seite), Anzeige 😤/🔥 im Scoreboard.
 - **Manueller Modus** (`matchUI.js`, deaktiviert – Parameter noch auf alter Attribut-Skala): Ziel wählen (Tippen auf Scheibe / Chips, Standard = `suggestTarget`: T20 bzw. Checkout-Weg) → „Werfen“ → vertikale Linie (x) stoppen → horizontale Linie (y) stoppen → Treffer = Schnittpunkt + Gauß-Reststreuung. Bedienung: Tippen, Button oder Leertaste.
   - Linienposition = Ziel + amp·wave(Startphase + t·freq), t aus `performance.now()` → frameunabhängig. amp = 66 − 0,48·sco (mm), freq = 0,75 + 0,6·(1 − sco/99) Hz (y-Linie ×1,13), Reststreuung = 12 − 0,085·con mm.

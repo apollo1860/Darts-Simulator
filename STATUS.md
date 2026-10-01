@@ -75,12 +75,16 @@
 
 - Charaktererstellung: 25 Bonuspunkte frei auf die 5 Attribute verteilen (+/−, „Gleichmäßig“, „Zurücksetzen“, Live-Karte).
 
+- **Checkout-Entscheidungen** im DartConnect: gelegentlich Wegwahl bei 41–170 Rest mit geschätzten Chancen (Genauigkeit/Empfehlung über Rechnen).
+- **Wochenplan** statt reinem Training: Training, Ruhetag, Sponsortermin oder Exhibition – nur eins pro Woche. Neue **Ermüdung** durch Turniere (Leistungsabzug ab 30 %). **„⏭ Nächstes Event“** springt über leere Wochen (mit Auto-Training). 27 Node-Tests.
+
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
 - Echte Spielerdaten prüfen/ergänzen (siehe „Unsichere Angaben“), echte Dev-Tour-Namen statt fiktiver.
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- **Wochenplan**: Exhibition/Sponsortermin-Beträge und Ermüdungswerte sind Balancing-Werte (js/training.js). Auto-Training beim Sprung, damit Überspringen keinen Formverlust erzeugt.
 - **Rechnen/Training**: Formverlust widerspricht bewusst der ursprünglichen Regel „nie schlechter“ (Nutzerwunsch); Alterungsverlust gibt es weiterhin nicht. KI trainiert implizit (Entwicklung nach Alter), hat keinen Formverlust.
 - **Phase 6**: Sponsorennamen fiktiv. Jahresgehalt-Raten auch für das laufende Jahr ab Unterschrift (Antrittsrate = 1 Quartal). Premier-League-Spieltagssiege zählen nicht als Titel (nur Bestergebnis).
 - **Phase 5**: Qualifikationsregeln vereinfacht (siehe CLAUDE.md). World Grand Prix ohne Double-In. WM komplett im alten Jahr (KW 51–52), Preisgeld zählt fürs laufende Jahr. Premier-League-Spieltage brauchen keine Woche, kosten aber Reise; Bonus 12.000 € pro Tagessieg, Play-offs 300.000 € Sieg. PL-, WS- und World-Cup-Geld zählt nicht zur PDC OOM. WS-Qualifikanten = zugeloste Tour-Spieler (PDC 9–64). „International“-WM-Plätze = stärkste Spieler ohne Karte (inkl. DDV-Pool).

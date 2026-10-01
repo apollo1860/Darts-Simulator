@@ -97,3 +97,30 @@ export function suggestTarget(rem, dartsLeft = 3) {
 }
 
 export const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
+
+// Alternative Checkout-Wege (verschiedene erste Darts, wenige Darts bevorzugt) – für Entscheidungen im Match
+export function alternativeRoutes(rem, darts = 3, n = 3) {
+  if (rem > 170 || BOGEY.has(rem)) return [];
+  const all = [];
+  const sig = r => [...r].sort().join();                     // gleiche Darts in anderer Reihenfolge = gleicher Weg
+  const add = (route, pen) => {
+    const ex = all.find(o => sig(o.route) === sig(route));
+    if (!ex) all.push({ route, pen });
+    else if (pen < ex.pen) { ex.route = route; ex.pen = pen; }
+  };
+  if (best[1][rem]) add(best[1][rem].route, best[1][rem].pen);
+  for (let k = 2; k <= darts; k++) {
+    for (const s of SETUP) {
+      const rest = best[k - 1][rem - s.v];
+      if (rem - s.v >= 2 && rest) add([s.l, ...rest.route], s.p * (1 + 0.1 * k) + rest.pen + (k - 1) * 2);
+    }
+  }
+  all.sort((a, b) => a.pen - b.pen);
+  const res = [], firsts = new Set();
+  for (const o of all) {
+    if (res.length >= n) break;
+    if (firsts.has(o.route[0])) continue;
+    firsts.add(o.route[0]); res.push(o.route);
+  }
+  return res;
+}

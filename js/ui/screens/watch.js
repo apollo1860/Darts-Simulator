@@ -7,6 +7,8 @@ import { legAverage, liveAverage } from '../../matchState.js';
 import { playerMatch, startManualMatch, liveAiVisit, finishManualMatch, simulateLiveRest, nextRound } from '../../tournaments.js';
 import { confirmDialog, modal } from '../components.js';
 import { planDistraction, distractionDue, describe, resolveDistraction } from '../../distractions.js';
+import { checkoutDecisionDue, chooseRoute } from '../../decisions.js';
+import { fieldName } from '../../board.js';
 import { fmtPct } from '../../util.js';
 
 export const VISIT_MS = 1500;
@@ -65,6 +67,8 @@ function step() {
   if (m.done) return finish();
   ui.showLast = false;
   if (distractionDue(ui.s)) return askDistraction();
+  const co = checkoutDecisionDue(ui.s);
+  if (co) { ui.app.save(); return askCheckout(co); }
   const ev = liveAiVisit(ui.s);
   ui.app.save();
   if (ev?.legEnd) ui.showLast = true;   // abgeschlossenes Leg noch kurz zeigen
@@ -86,6 +90,28 @@ function askDistraction() {
         <div class="muted" style="font-size:.78rem">${o.attr === 'foc' ? 'Fokus' : 'Mental'} · ${o.base >= 0.55 ? 'sicher, kleiner Effekt' : 'riskant, großer Effekt'}</div></button>`).join('')}</div>`,
     actions: [],
     onMount: bd => bd.querySelectorAll('[data-choice]').forEach(btn => btn.onclick = () => { bd.remove(); answer(+btn.dataset.choice); }),
+  });
+}
+
+// Checkout-Entscheidung: Weg wählen (Chancen sind Schätzungen – Rechnen bestimmt die Genauigkeit)
+function askCheckout(co) {
+  ui.paused = true;
+  modal({
+    title: `🎯 ${co.rem} Rest – welcher Weg?`,
+    dismissable: false,
+    body: `<p class="muted" style="font-size:.84rem">Du stehst auf <b>${co.rem}</b>. Geschätzte Chance, ihn in dieser Aufnahme zu checken${co.cal < 60 ? ' (dein Rechnen ist schwach – die Schätzung kann daneben liegen)' : ''}:</p>
+      <div class="stack">${co.opts.map((o, i) => `<button class="panel choice" data-route="${i}">
+        <div class="row-between"><b style="font-size:1.1rem">${o.route.map(fieldName).join(' · ')}</b>
+          <span class="badge ${o.shown >= 35 ? 'badge-green' : ''}">≈ ${o.shown} %</span></div>
+        ${co.recommended === i ? '<div class="gold" style="font-size:.78rem;font-weight:700">★ Empfohlen</div>' : ''}
+      </button>`).join('')}</div>`,
+    actions: [],
+    onMount: bd => bd.querySelectorAll('[data-route]').forEach(btn => btn.onclick = () => {
+      bd.remove();
+      if (!ui) return;
+      chooseRoute(ui.s, co.rem, co.opts[+btn.dataset.route].route);
+      ui.paused = false; ui.app.save(); schedule(400);
+    }),
   });
 }
 

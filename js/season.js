@@ -9,7 +9,8 @@ import { WEEKS_PER_YEAR } from './util.js';
 import { plTable, plState } from './majors.js';
 import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
 import { recordHistory, trackPeak } from './history.js';
-import { trainingWeekEnd } from './training.js';
+import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
+import { eventStatus } from './tournaments.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -18,6 +19,7 @@ export function nextWeek(state) {
   const evs = eventsInWeek(state, year, week);
   const ai = simulateWeekAI(state);
   trainingWeekEnd(state);
+  weeklyRecovery(state);
   weekNews(state, evs, ai);
   if (week >= WEEKS_PER_YEAR) { recordHistory(state); sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);
@@ -101,4 +103,23 @@ function newSeasonNews(state) {
   const p = state.player, y = state.date.year;
   if (p.tour === 'tour') addNews(state, 'info', `Saison ${y}: Tourcard bis ${p.cardUntil}`, 'Q-School, Challenge und Development Tour sind für dich gesperrt.');
   else addNews(state, 'info', `Saison ${y}: Q-School in KW 2`, `Melde dich für die Q-School UK oder Europa an – sonst keine Challenge-/Dev-Tour-Berechtigung in ${y}.`);
+}
+
+// „Zum nächsten Event springen“: Wochen ohne spielbares Event (außer lokal) überspringen.
+// autoTrain: in übersprungenen Wochen wird automatisch trainiert (zuletzt trainiertes bzw. schwächstes Attribut).
+export function jumpToNextEvent(state, { autoTrain = true, max = 20 } = {}) {
+  let n = 0;
+  const important = () => eventsInWeek(state, state.date.year, state.date.week)
+    .some(e => e.cat !== 'local' && eventStatus(state, e).playable);
+  if (important()) return 0;                                  // diese Woche gibt es schon ein Event
+  do {
+    if (state.activeEvent && !state.activeEvent.done) break;
+    if (autoTrain && !weekActivity(state)) {
+      const a = state.player.attrs, last = state.lastTrained;
+      train(state, last ?? Object.keys(a).sort((x, y) => a[x] - a[y])[0]);
+    }
+    if (!nextWeek(state)) break;
+    n++;
+  } while (n < max && !important());
+  return n;
 }

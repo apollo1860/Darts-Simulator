@@ -3,8 +3,8 @@ import { esc, fmtEUR, weekLabel, fmtNum } from '../../util.js';
 import { flag } from '../../../data/nations.js';
 import { overall } from '../../player.js';
 import { eventsInWeek } from '../../calendar.js';
-import { nextWeek } from '../../season.js';
-import { trainingOf, trainedThisWeek, DECAY_AFTER } from '../../training.js';
+import { nextWeek, jumpToNextEvent } from '../../season.js';
+import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
 import { eventStatus } from '../../tournaments.js';
 import { unreadCount } from '../../news.js';
 import { sponsorsUnlocked } from '../../sponsors.js';
@@ -61,10 +61,10 @@ function oomLine(s) {
 }
 
 function trainingTile(s) {
-  const t = trainingOf(s), done = trainedThisWeek(s);
-  const sub = done ? '✔ Diese Woche erledigt' : t.idle >= DECAY_AFTER ? `⚠ ${t.idle} Wochen Pause – Formverlust droht` : t.idle ? `${t.idle} Woche(n) ohne Training` : '1 Einheit pro Woche';
-  const badge = done ? '' : `<span class="badge ${t.idle >= DECAY_AFTER ? '' : 'badge-green'}">!</span>`;
-  return tile('training', '🏋️', 'Training', sub, badge);
+  const t = trainingOf(s), act = weekActivity(s), f = s.player.fatigue ?? 0;
+  const sub = act ? `✔ ${ACTIVITIES[act].label}` : t.idle >= DECAY_AFTER ? `⚠ ${t.idle} Wochen ohne Training` : 'Training · Ruhetag · Sponsor · Exhibition';
+  const badge = act ? '' : `<span class="badge ${t.idle >= DECAY_AFTER ? '' : 'badge-green'}">!</span>`;
+  return tile('training', '📋', 'Wochenplan', `${sub}<br>Ermüdung ${f} %${f > 30 ? ' ⚠' : ''}`, badge);
 }
 
 export function render(app) {
@@ -94,11 +94,20 @@ export function render(app) {
   </div>
   <div class="bottom-bar"><div class="inner">
     <div class="hint">${s.activeEvent && !s.activeEvent.done ? 'Erst das laufende Turnier beenden.' : s.week.played ? '' : 'Ohne Meldung wird die Woche ausgelassen.'}</div>
+    <button class="btn btn-ghost" id="btn-jump" ${s.activeEvent && !s.activeEvent.done ? 'disabled' : ''} title="Leere Wochen überspringen (mit automatischem Training)">⏭ Nächstes Event</button>
     <button class="btn btn-primary btn-continue" id="btn-next" ${s.activeEvent && !s.activeEvent.done ? 'disabled' : ''}>Weiter ▸</button>
   </div></div>`;
 }
 
 export function mount(root, app) {
+  root.querySelector('#btn-jump').onclick = () => {
+    const s = app.state;
+    if (s.activeEvent?.done) { app.go('event'); return; }
+    const n = jumpToNextEvent(s);
+    app.save();
+    app.toast(n ? `${n} Woche${n > 1 ? 'n' : ''} übersprungen (automatisch trainiert)` : 'Diese Woche gibt es schon ein Event');
+    app.refresh();
+  };
   root.querySelector('#btn-next').onclick = () => {
     const s = app.state;
     if (s.activeEvent?.done) { app.go('event'); return; }
