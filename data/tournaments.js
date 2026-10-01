@@ -36,6 +36,16 @@ const ET = [
 // DDV (Deutscher Dartverband): 4 Ranglistenturniere pro Jahr, nur ohne Tourcard
 const DDV = [[9, 'Gelsenkirchen'], [20, 'Bad Nauheim'], [33, 'Hamburg'], [44, 'München']];
 
+const WS = [
+  [3, 'ws-bah', 'Bahrain Darts Masters', 'Manama', 'BH'], [4, 'ws-ned', 'Dutch Darts Masters', 'Leeuwarden', 'NL'],
+  [25, 'ws-nor', 'Nordic Darts Masters', 'Kopenhagen', 'DK'], [26, 'ws-us', 'US Darts Masters', 'New York', 'US'],
+  [30, 'ws-pol', 'Poland Darts Masters', 'Warschau', 'PL'], [33, 'ws-aus', 'Australian Darts Masters', 'Wollongong', 'AU'],
+  [34, 'ws-nz', 'New Zealand Darts Masters', 'Auckland', 'NZ'], [37, 'ws-final', 'World Series Finals', 'Amsterdam', 'NL'],
+];
+const PL_CITIES = ['Cardiff', 'Glasgow', 'Exeter', 'Dublin', 'Belfast', 'Nottingham', 'Brighton', 'Newcastle', 'Berlin', 'Manchester',
+  'Rotterdam', 'Liverpool', 'Birmingham', 'Leeds', 'Aberdeen', 'Sheffield'];
+const PL_COUNTRY = { 0: 'WAL', 1: 'SCO', 3: 'IRL', 4: 'NIR', 8: 'DE', 10: 'NL', 14: 'SCO' };
+
 export const CALENDAR = [
   ...DDV.map(([w, city], i) => ({
     id: `ddv-${i + 1}`, cat: 'ddv', name: `DDV-Ranglistenturnier ${i + 1}`, week: w, city, country: 'DE',
@@ -43,27 +53,25 @@ export const CALENDAR = [
   })),
   { id: 'qs-uk', cat: 'qschool', name: 'Q-School UK', week: 2, city: 'Milton Keynes', country: 'ENG', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
   { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
-  { id: 'ws-bah', cat: 'ws', name: 'Bahrain Darts Masters', week: 3, city: 'Manama', country: 'BH' },
-  { id: 'ws-ned', cat: 'ws', name: 'Dutch Darts Masters', week: 4, city: 'Leeuwarden', country: 'NL' },
-  { id: 'masters', cat: 'major', name: 'The Masters', week: 5, city: 'Milton Keynes', country: 'ENG' },
-  { id: 'pl', cat: 'pl', name: 'Premier League (Spieltage)', week: 6, weeks: 16, city: 'diverse', country: 'ENG', note: 'nur Einladung' },
-  { id: 'uk-open', cat: 'major', name: 'UK Open', week: 10, city: 'Minehead', country: 'ENG' },
-  { id: 'pl-final', cat: 'pl', name: 'Premier League Play-offs', week: 22, city: 'London', country: 'ENG' },
-  { id: 'wcod', cat: 'major', name: 'World Cup of Darts', week: 24, city: 'Frankfurt', country: 'DE' },
-  { id: 'ws-nor', cat: 'ws', name: 'Nordic Darts Masters', week: 25, city: 'Kopenhagen', country: 'DK' },
-  { id: 'ws-us', cat: 'ws', name: 'US Darts Masters', week: 26, city: 'New York', country: 'US' },
-  { id: 'matchplay', cat: 'major', name: 'World Matchplay', week: 29, weeks: 2, city: 'Blackpool', country: 'ENG' },
-  { id: 'ws-pol', cat: 'ws', name: 'Poland Darts Masters', week: 30, city: 'Warschau', country: 'PL' },
-  { id: 'ws-aus', cat: 'ws', name: 'Australian Darts Masters', week: 33, city: 'Wollongong', country: 'AU' },
-  { id: 'ws-nz', cat: 'ws', name: 'New Zealand Darts Masters', week: 34, city: 'Auckland', country: 'NZ' },
-  { id: 'ws-final', cat: 'ws', name: 'World Series Finals', week: 37, city: 'Amsterdam', country: 'NL' },
-  { id: 'wgp', cat: 'major', name: 'World Grand Prix', week: 40, city: 'Leicester', country: 'ENG' },
-  { id: 'ec', cat: 'major', name: 'European Championship', week: 42, city: 'Dortmund', country: 'DE' },
+  ...WS.map(([w, id, name, city, country]) => ({ id, cat: 'ws', fmt: id === 'ws-final' ? 'wsf' : 'ws', name, week: w, city, country, noOom: true,
+    note: id === 'ws-final' ? 'Top 24 der World-Series-Wertung' : 'Einladung: Top 8 PDC + 8 Qualifikanten' })),
+  { id: 'masters', cat: 'major', fmt: 'masters', name: 'The Masters', week: 5, city: 'Milton Keynes', country: 'ENG', note: 'Top 24 PDC OOM' },
+  ...Array.from({ length: 16 }, (_, i) => ({
+    id: `pl-${i + 1}`, cat: 'pl', fmt: 'pln', name: `Premier League · Spieltag ${i + 1}`, week: 6 + i,
+    city: PL_CITIES[i], country: PL_COUNTRY[i] ?? 'ENG', noOom: true, extra: true, plNight: i + 1,
+    note: 'Top 8 PDC (Einladung) · zählt zusätzlich zum Wochen-Event',
+  })),
+  { id: 'uk-open', cat: 'major', fmt: 'ukopen', name: 'UK Open', week: 10, city: 'Minehead', country: 'ENG', note: 'Alle Tourcard-Holder + 32 Amateure (CT-OOM)' },
+  { id: 'pl-final', cat: 'pl', fmt: 'plf', name: 'Premier League Play-offs', week: 22, city: 'London', country: 'ENG', noOom: true, extra: true, note: 'Top 4 der Tabelle' },
+  { id: 'wcod', cat: 'major', fmt: 'wcod', name: 'World Cup of Darts', week: 24, city: 'Frankfurt', country: 'DE', noOom: true, team: true, note: 'Zweierteams: die 2 Besten jeder Nation' },
+  { id: 'matchplay', cat: 'major', fmt: 'matchplay', name: 'World Matchplay', week: 29, weeks: 2, city: 'Blackpool', country: 'ENG', note: 'Top 16 PDC + Top 16 Pro Tour' },
+  { id: 'wgp', cat: 'major', fmt: 'wgp', name: 'World Grand Prix', week: 40, city: 'Leicester', country: 'ENG', note: 'Top 16 PDC + Top 16 Pro Tour · Sätze' },
+  { id: 'ec', cat: 'major', fmt: 'ec', name: 'European Championship', week: 42, city: 'Dortmund', country: 'DE', note: 'Top 32 der European-Tour-Wertung' },
   { id: 'youth-wm', cat: 'dev', fmt: 'youth', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24 · zählt nicht zur Dev-OOM', noOom: true },
-  { id: 'gsod', cat: 'major', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG' },
-  { id: 'pcf', cat: 'major', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG' },
-  { id: 'wm-quali', cat: 'major', name: 'WM-Qualifikation', week: 49, city: 'Milton Keynes', country: 'ENG' },
-  { id: 'wm', cat: 'major', name: 'Weltmeisterschaft', week: 51, weeks: 2, city: 'London', country: 'ENG' },
+  { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '32 Spieler · Gruppenphase + K.-o.' },
+  { id: 'pcf', cat: 'major', fmt: 'pcf', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG', note: 'Top 64 Pro Tour OOM' },
+  { id: 'wm-quali', cat: 'major', fmt: 'wmq', name: 'WM-Qualifikation', week: 49, city: 'Milton Keynes', country: 'ENG', noOom: true, note: 'Tourcard-Holder ohne WM-Platz · 16 Tickets' },
+  { id: 'wm', cat: 'major', fmt: 'wm', name: 'Weltmeisterschaft', week: 51, weeks: 2, city: 'London', country: 'ENG', note: '128 Spieler · Sätze' },
   ...pcWeeks.map((w, i) => ({
     id: `pc-${i + 1}`, cat: 'pc', name: `Players Championship ${i * 2 + 1} & ${i * 2 + 2}`,
     week: w, city: pcCities[i], country: cityCountry(pcCities[i]), count: 2,
@@ -106,6 +114,21 @@ export const FORMATS = {
   challenge: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
   dev: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
   youth: { default: { legs: 5 }, byRemaining: { 8: { legs: 6 }, 4: { legs: 6 }, 2: { legs: 7 } } },
+  // Majors & Events (Phase 5)
+  masters: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
+  ukopen: { default: { legs: 6 }, byRemaining: { 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
+  matchplay: { default: { legs: 10 }, byRemaining: { 16: { legs: 11 }, 8: { legs: 13 }, 4: { legs: 17 }, 2: { legs: 18 } } },
+  wgp: { default: { sets: 2, legs: 3 }, byRemaining: { 16: { sets: 3, legs: 3 }, 8: { sets: 3, legs: 3 }, 4: { sets: 4, legs: 3 }, 2: { sets: 5, legs: 3 } } },
+  ec: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
+  gsod: { group: { legs: 5 }, default: { legs: 10 }, byRemaining: { 8: { legs: 16 }, 4: { legs: 16 }, 2: { legs: 16 } } },
+  pcf: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
+  wmq: { default: { legs: 6 }, stopAt: 16 },
+  wm: { default: { sets: 3, legs: 3 }, byRemaining: { 32: { sets: 4, legs: 3 }, 16: { sets: 4, legs: 3 }, 8: { sets: 5, legs: 3 }, 4: { sets: 6, legs: 3 }, 2: { sets: 7, legs: 3 } } },
+  ws: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } } },
+  wsf: { default: { legs: 6 }, byRemaining: { 4: { legs: 10 }, 2: { legs: 11 } } },
+  wcod: { default: { legs: 4 }, byRemaining: { 8: { legs: 8 }, 4: { legs: 8 }, 2: { legs: 10 } } },
+  pln: { default: { legs: 6 } },
+  plf: { default: { legs: 10 }, byRemaining: { 2: { legs: 11 } } },
 };
 
 // Q-School: Zuordnung zum Standort nach Nation (Rest → Europa)

@@ -7,12 +7,18 @@ import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel
 import { MANUAL_AVAILABLE } from '../../matchUI.js';
 import { topbar, futCard, modal, catTag, playerModal, attrRows, bindRaise } from '../components.js';
 import { expLabel } from '../../player.js';
+import { groupTable, GROUP_NAMES } from '../../bracket.js';
 
-const nm = (s, id) => getPlayer(s, id).name;
+// Name (World Cup: Teamname; eigenes Team mit Hinweis)
+const nm = (s, id) => {
+  const t = s.activeEvent?.teams?.[id];
+  if (t) return id === 'P' ? `${t.name} (mit dir)` : t.name;
+  return getPlayer(s, id)?.name ?? '?';
+};
 
 // Baum ab den letzten 32 (große Felder werden gekürzt)
 function bracket(s, inst) {
-  let shown = inst.rounds.filter(r => r.remaining <= 32);
+  let shown = inst.rounds.filter(r => r.remaining <= 32 && !r.isGroup);
   if (!shown.length) shown = inst.rounds.slice(-1);            // z. B. ET-Qualifikation (endet bei 32)
   return `<div class="bracket-scroll"><div class="bracket">${shown.map(r => `
     <div class="bracket-col"><h4 class="h-display">${esc(r.name)}</h4>
@@ -71,6 +77,20 @@ function myPath(s, inst) {
   return rows.length ? `<div class="section-title"><span class="label">Dein Weg</span></div><div class="panel table-wrap"><table class="table">${rows.join('')}</table></div>` : '';
 }
 
+// Grand Slam: Gruppentabellen (eigene Gruppe zuerst)
+function groupTables(s, inst) {
+  if (!inst.groups) return '';
+  const order = inst.groups.map((g, gi) => gi).sort((a, b) => (inst.groups[b].includes('P') ? 1 : 0) - (inst.groups[a].includes('P') ? 1 : 0));
+  return `<div class="section-title"><span class="label">Gruppen</span></div><div class="group-grid">${order.map(gi => {
+    const rows = groupTable(inst.rounds, inst.groups[gi], gi);
+    return `<div class="panel" style="padding:10px 12px"><h4 class="cyan">Gruppe ${GROUP_NAMES[gi]}</h4><table class="table">
+      <tr><th>Spieler</th><th class="r">S-N</th><th class="r">Legs</th><th class="r">P</th></tr>
+      ${rows.map((r, i) => `<tr class="${r.id === 'P' ? 'me' : ''} ${i === 1 ? 'cut' : ''}"><td>${flag(getPlayer(s, r.id).nation)} ${esc(nm(s, r.id))}</td>
+        <td class="r num">${r.w}-${r.l}</td><td class="r num">${r.lf}:${r.la}</td><td class="r num"><b>${r.p}</b></td></tr>`).join('')}
+    </table></div>`;
+  }).join('')}</div>`;
+}
+
 // Training direkt nach dem Turnier: verdiente Punkte sofort verteilen
 function trainingPanel(s, inst) {
   const p = s.player;
@@ -112,7 +132,7 @@ export function render(app) {
   const body = inst.done ? donePanel(s, inst) : inst.playerAlive ? matchPanel(s, inst) : outPanel(inst);
   const prizeTxt = inst.cards ? `${inst.stopAt} Tourcards` : inst.stopAt > 1 ? `${inst.stopAt} Plätze im Hauptfeld` : `Sieger ${fmtEUR(inst.prizes.W ?? 0)}`;
   return `${topbar({ title: inst.name, sub: `${catTag(inst.cat)} ${esc(inst.city)} · ${inst.fieldSize} Spieler · ${prizeTxt}`, back: 'hub' })}
-    <div class="stack">${body}${myPath(s, inst)}
+    <div class="stack">${body}${myPath(s, inst)}${groupTables(s, inst)}
     <div class="section-title"><span class="label">Turnierbaum</span></div>
     <div class="panel">${bracket(s, inst)}</div></div>`;
 }

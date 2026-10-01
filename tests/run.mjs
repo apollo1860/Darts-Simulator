@@ -6,7 +6,7 @@ import { eventsInWeek } from '../js/calendar.js';
 import { nextWeek } from '../js/season.js';
 import { orderOfMerit } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
-import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub } from '../js/tournaments.js';
+import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub, simulateRoundAI } from '../js/tournaments.js';
 import { eventCost } from '../js/finance.js';
 import { RNG } from '../js/rng.js';
 import { simulateMatch } from '../js/matchEngine.js';
@@ -294,6 +294,53 @@ test('Störmoment: Chancen, Entscheidung, Modifikator', () => {
   assert.ok(live.dist.done && typeof r.ok === 'boolean');
   assert.ok((live.mods ?? []).length >= 1);
   liveAiVisit(s);
+});
+
+test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 41 });
+  for (let i = 0; i < 52; i++) nextWeek(s);
+  const q = s.qual[2027];
+  assert.equal(q.masters.length, 24); assert.equal(q.matchplay.length, 32); assert.equal(q.pcf.length, 64);
+  assert.equal(q.wm.length, 128); assert.equal(new Set(q.wm).size, 128);
+  assert.equal(q.wmqSurvivors.length, 16); assert.ok(q.wmqSurvivors.every(id => q.wm.includes(id)));
+  assert.equal(q.gsod.length, 32); assert.ok(Object.keys(q.wcTeams).length >= 8);
+  const pl = s.pl[2027]; assert.equal(pl.nights, 16);
+  assert.equal(Object.values(pl.points).reduce((a, b) => a + b, 0), 16 * (5 + 3 + 2 + 2));
+  // Majors fließen in die PDC OOM: Weltmeister hat ≥ 1,17 Mio. € im Jahr 2027
+  const wmWinner = s.news.find(x => x.title.includes('Weltmeisterschaft') && x.title.includes('gewinnt'));
+  assert.ok(wmWinner);
+  assert.ok(orderOfMerit(s, 'pdc', 2027)[0].money > 1000000);
+});
+
+test('Grand Slam mit Spieler: Gruppenphase → K.-o.', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 42 });
+  s.player.tour = 'tour'; s.player.cardUntil = 2028;
+  s.rankings.years[2026].pdc.P = 5000000;                          // PDC-Platz 1 → überall qualifiziert
+  s.date.week = 46;
+  enterEvent(s, 'gsod');
+  const inst = s.activeEvent;
+  assert.equal(inst.groups.length, 8); assert.ok(inst.rounds[0].isGroup);
+  let guard = 0;
+  while (!inst.done && guard++ < 20) {
+    if (inst.playerAlive && playerMatch(inst)) playRound(s); else simulateRoundAI(s);
+    nextRound(s);
+  }
+  assert.ok(inst.done);
+  assert.ok(['W', 'F', 'SF', 'QF', 'L16', 'G3', 'G4'].includes(inst.place), inst.place);
+  closeEvent(s);
+});
+
+test('World Cup: Team mit Spieler, Preisgeld geteilt', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 43 });
+  s.player.tour = 'tour'; s.player.cardUntil = 2028;
+  s.rankings.years[2026].pdc.P = 5000000;
+  s.date.week = 24;
+  enterEvent(s, 'wcod');
+  const inst = s.activeEvent;
+  assert.ok(inst.teams.P && inst.teams.P.members.includes('P') && inst.teams.P.nation === 'DE');
+  simulateRest(s);
+  if (inst.place === 'W') assert.equal(inst.prize, 47000);
+  closeEvent(s);
 });
 
 console.log(`\n${n} Tests ok`);

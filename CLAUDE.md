@@ -24,7 +24,8 @@ js/player.js          Perzentil-Attribute (sco/fin/men/foc), Erfahrung (exp −4
 js/world.js           KI-Welt (Tiers, Tourcards), Ruhestand/Nachwuchs/Entwicklung (developWorld), updateTiers
 js/calendar.js        Wochenkalender, Events pro Woche, advanceWeek (Datum/Alter)
 js/season.js          nextWeek(): KI-Turniere der Woche, Jahresabschluss (Tourcards, Kartenverlust), News
-js/bracket.js         K.-o.-Baum: Setzliste, Freilose, Rundennamen, Platzierungen
+js/bracket.js         K.-o.-Baum: Setzliste, Freilose, Rundennamen, Platzierungen; Gruppenphase (Grand Slam)
+js/majors.js          Majors/WS/PL: Qualifikation + Felder (state.qual), World-Cup-Teams, Premier-League-Tabelle
 js/tournaments.js     Berechtigung, Meldung, Feld/Setzliste, Mehrfach-Events (sub), Preisgeld/OOM, KI-Hintergrundturniere
 js/matchEngine.js     Schnelle Simulation (Aufnahme-basiert), für Sim-Modus + alle KI-Hintergrundmatches
 js/board.js           Scheibengeometrie (mm), scoreAt(), targetPoint(), Checkout-Wege, suggestTarget()
@@ -58,7 +59,10 @@ player: {id:'P', name, nation, region (Bundesland), hand, age, attrs:{sco,fin,me
          tour:'none'|'tour', cardUntil (letzte gültige Saison), qschoolYear (→ CT/Dev-Berechtigung), avgReal, everTourcard}
 world:  {version:3, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,attrs,exp}}}   tier: tour|challenge|dev|ddv|local
         IDs: T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, V=DDV-Pool (63), L=lokal, G=generierte Talente
-rankings:{seeded, years:{[year]:{challenge|dev|pdc|protour:{[id]:€}}}}   (2025/2026 = Startwerte PDC)
+rankings:{seeded, years:{[year]:{challenge|dev|pdc|protour|eto|ws:{[id]:€}}}}   (2025/2026 = Startwerte PDC; eto/ws versteckt)
+qual:   {[year]:{[eventId]:[Feld], wmAuto, wmqSurvivors, wcTeams}}   Felder ab Event-Woche fixiert
+pl:     {[year]:{players:[8], points, legs, nights}}
+week.extras: [eventIds]  Zusatz-Events der Woche (Premier League)
 finance:{balance, tx:[{year,week,text,amount,cat}]}
 week:   {played:bool, eventId}         aktuelle Woche
 activeEvent: Turnier-Instanz oder null: {eventId, cat, sub/count (Teil-Turnier), rounds[{name,remaining,format,matches[{a,b,winner,score,bye}]}],
@@ -88,14 +92,24 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Q-School KW 2: UK (Milton Keynes, Nationen UK/IRL/AUS/USA…) und EU (Kalkar, Rest). Je 4 Tage, jeder Tag K.-o. ohne Setzliste, first to 5; wer das Halbfinale erreicht (letzte 4) → Tourcard bis Ende Folgejahr. Kartengewinner fehlen an späteren Tagen. Teilnahme → CT-Berechtigung (+ Dev bis 23) für das Jahr.
   - Challenge Tour: 12 Wochenenden × 2 Turniere, Feld = alle ohne Karte (Challenge+Dev) + Spieler, Setzliste nach CT-OOM, Freilose. Dev Tour analog nur ≤ 23. Youth-WM (KW 45) zählt nicht zur OOM.
   - KI-Events laufen im Hintergrund (season.nextWeek → simulateWeekAI), Preisgeld → OOM.
-  - Jahresende: CT-OOM Top 2 + Dev-OOM Top 2 (ohne Karte, Preisgeld > 0) → Karte bis Jahr+2. Auslaufende Karten: PDC-OOM-Rang ≤ 64 → verlängert bis Jahr+2, sonst Verlust → Challenge. Danach developWorld: Stärke nach Alter (jung +, alt −), Ruhestand ab 45, Pool ohne Karte wird mit Talenten (16–18 J.) auf 100 aufgefüllt. Neujahr: Alter +1, Dev ab 24 → Challenge.
+  - Jahresende: CT-OOM Top 2 + Dev-OOM Top 2 (ohne Karte, Preisgeld > 0) → Karte bis Jahr+2. Auslaufende Karten: PDC-OOM-Rang ≤ 64 → verlängert bis Jahr+2, sonst Verlust → Challenge. Danach developWorld: Stärke nach Alter (jung +, alt −), Ruhestand ab 45 (tier 'retired', bleibt für Historie), Pool ohne Karte wird mit Talenten (16–18 J.) auf 100 aufgefüllt. Neujahr: Alter +1, Dev ab 24 → Challenge.
   - Tourcard-Holder nicht auf Challenge/Dev und umgekehrt.
 - **Pro Tour (Phase 4 umgesetzt)**, nur mit Tourcard:
   - Players Championships: 15 Doppel-Blöcke (30 Turniere), Feld = bis 128 Tour-Holder nach PDC-OOM, freie Auslosung, first to 6. Preisgeld 17.500 € Sieg … 1.150 € Letzte 64.
   - European Tour: 14 Events als 2-teiliger Block: Qualifikation (alle Holder außer PDC-Top-16, 128er-Baum bis 32 Überlebende, kein Preisgeld) → Hauptfeld 48 (Top 16 gesetzt mit Freilos, 32 Qualifikanten), first to 6, HF 7, F 8. Preisgeld 35.000 € … 1.500 € (Letzte 48). Spieler in den Top 16 → direkt Hauptfeld (Quali läuft im Hintergrund).
   - Preisgeld PC/ET → PDC OOM (2 Jahre) + Pro Tour OOM (1 Jahr). Startwerte: Saisons 2025/2026 vorbelegt (Top 64 ≈ 2,8 Mio. € · Rang^−0,8; übrige 2026er Holder 12–150 Tsd. €).
   - PC/ET laufen ohne Spieler im Hintergrund (AI_CATS) → Top-64-Entscheidung am Jahresende nach echtem Preisgeld.
-- **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM.
+- **Majors & Events (Phase 5 umgesetzt)** – Feld wird in der Event-Woche aus den Ranglisten berechnet (`majors.js`); wer qualifiziert ist und nicht meldet, wird durch einen Nachrücker ersetzt (PL/World Cup: automatisch mitgespielt).
+  - Masters (KW 5): Top 24 PDC, Top 8 Freilos. UK Open (KW 10): alle Holder + Top 32 CT-OOM (auch du ohne Karte), Setzliste nach PDC.
+  - World Matchplay (KW 29) & World Grand Prix (KW 40, Sätze; Double-In vereinfacht weggelassen): Top 16 PDC + Top 16 Pro Tour.
+  - European Championship (KW 42): Top 32 der ET-Wertung (Preisgeld ET-Hauptfelder). PC Finals (KW 48): Top 64 Pro Tour.
+  - Grand Slam (KW 46): Top 16 PDC + 8 Pro Tour + Top 2 CT + Top 2 Dev + 4 Pro Tour; 4 Töpfe → 8 Gruppen à 4 (first to 5), Top 2 → Achtelfinale (A1–B2 …). G3/G4 Preisgeld.
+  - WM-Quali (KW 49): Holder ohne direkten WM-Platz, 16 Tickets. WM (KW 51–52, Sätze): Top 40 PDC + 40 Pro Tour + 16 Quali + CT Top 4 + Dev Top 4 + 24 International (stärkste ohne Karte, auch du) = 128.
+  - World Cup (KW 24): je Nation die 2 Besten (Tour + Challenge), Team-Werte = Durchschnitt, Preisgeld je Team (dein Anteil 50 %), keine OOM.
+  - World Series (8 Events): Top 8 PDC + 8 Qualifikanten (PDC 9–64 zugelost); Finals: Top 24 WS-Wertung. Keine PDC-OOM.
+  - Premier League: Top 8 PDC zu Saisonbeginn, 16 Spieltage (KW 6–21) als **Zusatz-Event** (zählt nicht als Wochen-Event), K.-o. first to 6, Punkte 5/3/2/2; Play-offs KW 22 (Top 4). Keine OOM.
+  - Majors-Preisgeld → PDC OOM (nicht Pro Tour). Alle Majors laufen im Hintergrund (AI_CATS).
+- **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM, Premier-League-Tabelle.
 - **Sponsoren (Phase 6)**: erst nach erster Tourcard, max. 4, Laufzeit 1–3 Jahre, jederzeit kündbar.
 
 ## Match-Engine

@@ -47,8 +47,57 @@ export function pairWinners(round) {
 // Platzierung eines Spielers (null = noch im Turnier/Überlebender)
 export function placeOf(rounds, id) {
   for (const r of rounds) {
+    if (r.isGroup) continue;                         // Gruppenspiele → groupPlace()
     const m = r.matches.find(x => (x.a === id || x.b === id) && x.winner && !x.bye);
     if (m && m.winner !== id) return PLACE_BY_REMAINING[r.remaining];
   }
   return null;
+}
+
+// ---- Gruppenphase (Grand Slam): Gruppen à 4, jeder gegen jeden, Top 2 → K.-o. ----
+const GROUP_DAYS = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
+export const GROUP_NAMES = 'ABCDEFGH';
+
+export function buildGroupRounds(groups, fmt) {
+  const rounds = GROUP_DAYS.map((day, d) => ({
+    name: `Gruppenphase · Spieltag ${d + 1}`, remaining: groups.length * 4, isGroup: true, format: fmt.group,
+    matches: groups.flatMap((g, gi) => day.map(([x, y]) => ({ a: g[x], b: g[y], winner: null, score: null, group: gi }))),
+  }));
+  for (let rem = groups.length * 2; rem > 1; rem /= 2) {
+    rounds.push({ name: ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
+  }
+  return rounds;
+}
+
+// Tabelle einer Gruppe: Siege (2 Punkte), dann Leg-Differenz, dann Legs
+export function groupTable(rounds, group, gi) {
+  const t = Object.fromEntries(group.map(id => [id, { id, p: 0, w: 0, l: 0, lf: 0, la: 0 }]));
+  for (const r of rounds.filter(x => x.isGroup)) {
+    for (const m of r.matches.filter(x => x.group === gi && x.winner)) {
+      const a = t[m.a], b = t[m.b];
+      a.lf += m.score[0]; a.la += m.score[1]; b.lf += m.score[1]; b.la += m.score[0];
+      const w = m.winner === m.a ? a : b, lo = w === a ? b : a;
+      w.p += 2; w.w++; lo.l++;
+    }
+  }
+  return Object.values(t).sort((x, y) => y.p - x.p || (y.lf - y.la) - (x.lf - x.la) || y.lf - x.lf);
+}
+
+// Achtelfinale: Gruppensieger gegen Zweite der Nachbargruppe (A1–B2, B1–A2, C1–D2 …)
+export function groupKoMatches(rounds, groups) {
+  const tabs = groups.map((g, gi) => groupTable(rounds, g, gi));
+  const out = [];
+  for (let gi = 0; gi < groups.length; gi += 2) {
+    out.push({ a: tabs[gi][0].id, b: tabs[gi + 1][1].id, winner: null, score: null });
+    out.push({ a: tabs[gi + 1][0].id, b: tabs[gi][1].id, winner: null, score: null });
+  }
+  return out;
+}
+
+// Platzierung Gruppen-Aus (G3/G4)
+export function groupPlace(rounds, groups, id) {
+  const gi = groups.findIndex(g => g.includes(id));
+  if (gi < 0) return null;
+  const pos = groupTable(rounds, groups[gi], gi).findIndex(x => x.id === id);
+  return pos >= 2 ? `G${pos + 1}` : null;
 }

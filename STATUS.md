@@ -5,7 +5,7 @@
 - [x] **Phase 2 – Match-Engine** (manuelles Spiel mit Scheibe/Zielkreuz, Scoreboard, Gegner-KI, „Rest simulieren“, Balancing)
 - [x] **Phase 3 – Unterbau-Tour** (echte Spielerdaten, Q-School, Challenge/Dev Tour + OOM, Altersregel, Tourcards, Jahreswechsel/KI-Entwicklung)
 - [ ] Phase 4 – Pro Tour (Tourcard 2 Jahre/Top 64, Players Championships, European Tour, Rankings, Preisgeld)
-- [ ] Phase 5 – Majors & Events (WM, UK Open, Masters, Matchplay, Grand Prix, Grand Slam, PC Finals, World Cup, Premier League, World Series)
+- [x] **Phase 5 – Majors & Events** (WM, UK Open, Masters, Matchplay, Grand Prix, Grand Slam, PC Finals, World Cup, Premier League, World Series)
 - [ ] Phase 6 – Sponsoren & Politur (Sponsoren, Statistik-Archive, Animationen, Balancing, README final)
 
 ## Stand Phase 1
@@ -52,12 +52,19 @@
 - Balancing (tests/career.mjs): Bot holt Tourcard nach 4–6 Saisons und hält sich danach auf PDC-Platz ~30–60.
 - 17 Node-Tests; 3 Saisons inkl. Pro Tour ~0,6 s, Spielstand ~85 KB.
 
-## Nächste Schritte (Phase 5)
-- Majors & Events nach `data/tournaments.js` (cat 'major', 'ws', 'pl'): WM (Sets, 96/128er Feld), UK Open (offen für alle Holder + Amateure, Runden-Einstieg nach OOM), Masters (Top 24/32), World Matchplay (Top 16 PDC + Top 16 Pro Tour), World Grand Prix (Double-In! – vereinfachen?), Grand Slam (Gruppenphase + K.-o.), PC Finals (Top 64 Pro Tour), World Cup (Paare je Nation), European Championship (Top 32 ET-OOM), Premier League (Einladung Top 8, Ligaformat), World Series (Einladung).
-- Qualifikationslogik je Major (OOM-Stichtage), Majors-Preisgeld → PDC OOM. Gruppenphase in `bracket.js` ergänzen.
-- `IMPLEMENTED_PHASE = 5`.
+## Stand Phase 5
+- Alle Majors, World Series, World Cup und Premier League spielbar (DartConnect/Schnellsimulation) und im Hintergrund simuliert; Qualifikation aus PDC-/Pro-Tour-/ET-/CT-/Dev-/WS-Wertungen, Eignung im Wochen-Screen mit Grund („Top 24 der PDC OOM (du: Platz 87)“).
+- Grand Slam mit Gruppenphase + Tabellen, World Cup mit Zweierteams, Premier League als Zusatz-Event mit Tabelle (Ranglisten → Tab „Premier League“), WM mit 128 Spielern in Sätzen inkl. WM-Quali.
+- Check Saison 2027 (Hintergrund): Littler gewinnt WM, Masters, UK Open, Matchplay, EC, PL; van Veen WGP/PCF; Feldgrößen stimmen (24/160/32/32/32/32/64/48/128); ganze Saison ~0,35 s.
+- Ruheständler bleiben als 'retired' erhalten (Namen in alten Tabellen).
+- 22 Node-Tests.
+
+## Nächste Schritte (Phase 6)
+- Sponsoren (nach erster Tourcard, max. 4, 1–3 Jahre, kündbar, Angebote über News), Karriereende-Bilanz erweitern (Majors-Titel), Statistik-Archive, Animationen, Balancing (Littler-Dominanz, Erfahrung, XP), README final.
+- Optional: manuellen Modus auf Perzentil-Attribute neu kalibrieren und wieder freischalten.
 
 ## Annahmen
+- **Phase 5**: Qualifikationsregeln vereinfacht (siehe CLAUDE.md). World Grand Prix ohne Double-In. WM komplett im alten Jahr (KW 51–52), Preisgeld zählt fürs laufende Jahr. Premier-League-Spieltage brauchen keine Woche, kosten aber Reise; Bonus 12.000 € pro Tagessieg, Play-offs 300.000 € Sieg. PL-, WS- und World-Cup-Geld zählt nicht zur PDC OOM. WS-Qualifikanten = zugeloste Tour-Spieler (PDC 9–64). „International“-WM-Plätze = stärkste Spieler ohne Karte (inkl. DDV-Pool).
 - **Umbau**: Perzentil→Average-Kurve geschätzt (60 ≈ 65 Ø). Erfahrungsstufen-Schwellen, XP-Werte und Störmoment-Chancen/Effekte sind Balancing-Werte (data/distractions.js, js/player.js) – leicht anpassbar.
 - DDV-Turniere gibt es unabhängig von der Nation (auch für Nicht-Deutsche), Reise immer Deutschland-Tarif. Für Nicht-DE-Spieler gibt es kein Bundesland; lokale Turniere nutzen dann die Städteliste der Nation.
 - Störmomente nur, wenn der Spieler wirft, max. 1 pro Match; nicht in der Schnellsimulation.

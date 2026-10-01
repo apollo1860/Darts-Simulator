@@ -6,6 +6,7 @@ import { orderOfMerit, OOM_TYPES, rankOf } from './rankings.js';
 import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
 import { WEEKS_PER_YEAR } from './util.js';
+import { plTable, plState } from './majors.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -22,6 +23,22 @@ export function nextWeek(state) {
 
 function weekNews(state, evs, ai) {
   const p = state.player, y = state.date.year;
+  // Majors / World Series: Sieger
+  for (const i of ai.filter(x => (x.cat === 'major' || x.cat === 'ws' || x.fmt === 'plf') && x.stopAt === 1)) {
+    addNews(state, 'result', `🏆 ${i.name}: ${getPlayer(state, i.survivors[0])?.name ?? '?'} gewinnt`,
+      i.fieldSize ? `${i.fieldSize} ${i.teams ? 'Teams' : 'Spieler'}.` : '');
+  }
+  // Premier League: Teilnehmer (1. Spieltag) und Tabelle
+  if (evs.some(e => e.plNight && e.startsThisWeek)) {
+    const pl = plState(state), night = evs.find(e => e.plNight).plNight;
+    if (night === 1) {
+      const invited = pl.players.includes('P');
+      addNews(state, invited ? 'result' : 'info', invited ? '🎤 Einladung zur Premier League!' : `Premier League ${y}: Teilnehmer`,
+        pl.players.map(id => getPlayer(state, id).name).join(', '));
+    }
+    addNews(state, 'ranking', `Premier League nach Spieltag ${night}`,
+      plTable(state).slice(0, 4).map((x, i) => `${i + 1}. ${getPlayer(state, x.id).name} ${x.pts} P.`).join(' · '));
+  }
   // Pro-Tour-Sieger der Woche (ohne Qualifikationen)
   const pro = ai.filter(i => (i.cat === 'pc' || i.cat === 'et') && i.stopAt === 1);
   if (pro.length) {

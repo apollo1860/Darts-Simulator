@@ -8,6 +8,8 @@ export const OOM_TYPES = {
   protour: { label: 'Pro Tour OOM', short: 'Pro Tour', years: 1 },
   challenge: { label: 'Challenge Tour OOM', short: 'Challenge', years: 1, cards: 2 },
   dev: { label: 'Development Tour OOM', short: 'Dev', years: 1, cards: 2 },
+  eto: { label: 'European Tour OOM', short: 'ET', years: 1, hidden: true },
+  ws: { label: 'World Series', short: 'WS', years: 1, hidden: true },
 };
 
 export function addMoney(state, type, id, amount, year = state.date.year) {
@@ -20,7 +22,7 @@ export function addMoney(state, type, id, amount, year = state.date.year) {
 // Teilnehmerkreis je Rangliste
 function members(state, type, year) {
   const p = state.player;
-  if (type === 'pdc' || type === 'protour') {
+  if (type === 'pdc' || type === 'protour' || type === 'eto' || type === 'ws') {
     const list = playersOfTier(state, 'tour');
     if (p.tour === 'tour') list.push(p);
     return list;

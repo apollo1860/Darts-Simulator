@@ -542,3 +542,6 @@
 .choice:hover { border-color: var(--gold); }
 .choice:active { transform: scale(.98); }
 .modal-actions:empty { display: none; }
+.group-grid { display: grid; gap: 10px; }
+@media (min-width: 720px) { .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.group-grid h4 { margin-bottom: 4px; }
