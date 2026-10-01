@@ -4,60 +4,60 @@
 // Nur private Nutzung (echte Namen ohne Lizenz).
 
 // --- Tourcard-Holder 2026 (128) ---
-// a) Top 64 der PDC Order of Merit (Reihenfolge ≈ OOM Anfang 2026) → Karte wird Ende 2026 verlängert
+// a) Top 64 der PDC Order of Merit (Reihenfolge laut Nutzerliste) → Karte wird Ende 2026 verlängert
+//    (Platz 46 war in der Liste doppelt „Madars Razma“ → nur einmal übernommen, daher 63 Einträge)
 export const TOUR_TOP64 = [
   ['Luke Littler', 'ENG', 20, 102.5], ['Luke Humphries', 'ENG', 32, 100], ['Gian van Veen', 'NL', 25, 99],
   ['Michael van Gerwen', 'NL', 37, 98], ['Jonny Clayton', 'WAL', 52, 96], ['Gary Anderson', 'SCO', 56, 96],
-  ['Stephen Bunting', 'ENG', 41, 97], ['James Wade', 'ENG', 43, 94], ['Josh Rock', 'NIR', 25, 97],
-  ['Danny Noppert', 'NL', 36, 95], ['Ryan Searle', 'ENG', 39, 96], ['Gerwyn Price', 'WAL', 41, 97],
+  ['Stephen Bunting', 'ENG', 41, 97], ['Ryan Searle', 'ENG', 39, 96], ['Josh Rock', 'NIR', 25, 97],
+  ['Danny Noppert', 'NL', 36, 95], ['James Wade', 'ENG', 43, 94], ['Gerwyn Price', 'WAL', 41, 97],
   ['Chris Dobey', 'ENG', 36, 95], ['Nathan Aspinall', 'ENG', 35, 95], ['Martin Schindler', 'DE', 30, 95],
-  ['Ross Smith', 'ENG', 37, 94], ['Damon Heta', 'AU', 39, 95], ['Rob Cross', 'ENG', 36, 95],
-  ['Peter Wright', 'SCO', 56, 93], ['Dave Chisnall', 'ENG', 46, 94], ['Mike De Decker', 'BE', 31, 94],
-  ['Wessel Nijman', 'NL', 26, 96], ['Luke Woodhouse', 'ENG', 38, 94], ['Dimitri Van den Bergh', 'BE', 32, 93],
-  ['Joe Cullen', 'ENG', 37, 93], ['Ritchie Edhouse', 'ENG', 43, 92], ['Daryl Gurney', 'NIR', 40, 92],
-  ['Cameron Menzies', 'SCO', 37, 93], ['Dirk van Duijvenbode', 'NL', 34, 94], ['Andrew Gilding', 'ENG', 56, 91],
-  ['Krzysztof Ratajski', 'PL', 49, 93], ['Kevin Doets', 'NL', 28, 92], ['Ricardo Pietreczko', 'DE', 32, 93],
-  ['Callan Rydz', 'ENG', 28, 94], ['Jermaine Wattimena', 'NL', 38, 92], ['Ryan Joyce', 'ENG', 41, 92],
-  ['Gabriel Clemens', 'DE', 43, 92], ['Raymond van Barneveld', 'NL', 59, 92], ['Michael Smith', 'ENG', 36, 93],
-  ['Brendan Dolan', 'NIR', 53, 91], ['Madars Razma', 'LV', 38, 92], ['Martin Lukeman', 'ENG', 41, 92],
-  ['Mensur Suljović', 'AT', 54, 90], ['Scott Williams', 'ENG', 36, 92], ['Jeffrey de Graaf', 'SE', 36, 91],
-  ['Niels Zonneveld', 'NL', 28, 91], ['Ian White', 'ENG', 56, 91], ['Keane Barry', 'IRL', 24, 92],
-  ['Karel Sedláček', 'CZ', 47, 90], ['William O\'Connor', 'IRL', 40, 91], ['Mickey Mansell', 'NIR', 53, 89],
-  ['Ryan Meikle', 'ENG', 30, 91], ['Ricky Evans', 'ENG', 36, 90], ['Josh Payne', 'ENG', 36, 90],
-  ['Kim Huybrechts', 'BE', 41, 91], ['Danny Jansen', 'NL', 28, 91], ['Leonard Gates', 'US', 56, 89],
-  ['Mario Vandenbogaerde', 'BE', 34, 89], ['Florian Hempel', 'DE', 36, 90], ['Thibault Tricole', 'FR', 36, 90],
-  ['Dom Taylor', 'ENG', 29, 91], ['Rob Owen', 'WAL', 43, 89], ['Nick Kenny', 'WAL', 33, 90],
-  ['Connor Scutt', 'ENG', 31, 90],
+  ['Ross Smith', 'ENG', 37, 94], ['Damon Heta', 'AU', 39, 95], ['Jermaine Wattimena', 'NL', 38, 93],
+  ['Mike De Decker', 'BE', 31, 94], ['Rob Cross', 'ENG', 36, 95], ['Luke Woodhouse', 'ENG', 38, 94],
+  ['Dave Chisnall', 'ENG', 46, 94], ['Daryl Gurney', 'NIR', 40, 92], ['Ryan Joyce', 'ENG', 41, 92],
+  ['Dimitri Van den Bergh', 'BE', 32, 93], ['Cameron Menzies', 'SCO', 37, 93], ['Ritchie Edhouse', 'ENG', 43, 92],
+  ['Krzysztof Ratajski', 'PL', 49, 93], ['Wessel Nijman', 'NL', 26, 96], ['Dirk van Duijvenbode', 'NL', 34, 94],
+  ['Peter Wright', 'SCO', 56, 93], ['Michael Smith', 'ENG', 36, 93], ['Andrew Gilding', 'ENG', 56, 91],
+  ['Ricardo Pietreczko', 'DE', 32, 93], ['Joe Cullen', 'ENG', 37, 93], ['Raymond van Barneveld', 'NL', 59, 92],
+  ['Martin Lukeman', 'ENG', 41, 92], ['Kevin Doets', 'NL', 28, 92], ['Callan Rydz', 'ENG', 28, 94],
+  ['Ricky Evans', 'ENG', 36, 90], ['Brendan Dolan', 'NIR', 53, 91], ['Niels Zonneveld', 'NL', 28, 91],
+  ['William O\'Connor', 'IRL', 40, 91], ['Scott Williams', 'ENG', 36, 92], ['Madars Razma', 'LV', 38, 92],
+  ['Gabriel Clemens', 'DE', 43, 92], ['James Hurrell', 'ENG', 29, 91], ['Connor Scutt', 'ENG', 31, 90],
+  ['Justin Hood', 'ENG', 33, 91], ['Jeffrey de Graaf', 'SE', 36, 91], ['Ian White', 'ENG', 56, 90],
+  ['Alan Soutar', 'SCO', 48, 89], ['Niko Springer', 'DE', 26, 92], ['Mensur Suljović', 'AT', 54, 90],
+  ['Ryan Meikle', 'ENG', 30, 91], ['Richard Veenstra', 'NL', 45, 89], ['Keane Barry', 'IRL', 24, 92],
+  ['Nick Kenny', 'WAL', 33, 90], ['Kim Huybrechts', 'BE', 41, 91], ['Thibault Tricole', 'FR', 36, 90],
+  ['Lukas Wenig', 'DE', 30, 89], ['Robert Owen', 'WAL', 43, 89], ['Mario Vandenbogaerde', 'BE', 34, 89],
 ];
 
-// b) Weitere Holder, deren Karte Ende 2026 ausläuft (nur Top 64 der OOM behalten sie)
+// b) Plätze 65–95: Karte läuft Ende 2026 aus (nur Top 64 der OOM behalten sie) → starten in der Q-School
 export const TOUR_EXPIRING = [
-  ['Darius Labanauskas', 'LT', 50, 89], ['Wesley Plaisier', 'NL', 36, 90], ['Andy Baetens', 'BE', 38, 90],
-  ['Stowe Buntz', 'US', 47, 89], ['Alan Soutar', 'SCO', 48, 89], ['Owen Bates', 'ENG', 27, 90],
-  ['Nathan Rafferty', 'NIR', 24, 91], ['Paolo Nebrida', 'PH', 48, 88], ['Jamai van den Herik', 'NL', 22, 90],
-  ['Ted Evetts', 'ENG', 29, 90], ['Mitchell Clegg', 'ENG', 26, 89], ['Christian Kist', 'NL', 40, 89],
-  ['Rowby-John Rodriguez', 'AT', 32, 89], ['Lukas Wenig', 'DE', 30, 89], ['Kai Gotthardt', 'DE', 24, 89],
-  ['Niko Springer', 'DE', 26, 92], ['Sebastian Białecki', 'PL', 24, 90], ['Arron Monk', 'ENG', 33, 89],
-  ['Cameron Carolissen', 'ZA', 28, 89], ['Max Hopp', 'DE', 30, 89], ['Haupai Puha', 'NZ', 46, 88],
-  ['Richard Veenstra', 'NL', 45, 88], ['Cor Dekker', 'NL', 27, 89], ['Bradley Brooks', 'ENG', 23, 89],
-  ['Tom Bissell', 'ENG', 34, 88], ['Simon Whitlock', 'AU', 58, 88], ['Justin Hood', 'ENG', 33, 90],
-  ['Adam Lipscombe', 'ENG', 32, 88], ['Danny Lauby', 'US', 33, 88], ['Darren Beveridge', 'SCO', 38, 88],
-  ['Keegan Brown', 'ENG', 34, 89], ['Matthew Dennant', 'ENG', 32, 88], ['Damian Mol', 'NL', 26, 88],
-  ['Leighton Bennett', 'ENG', 21, 88], ['Ben Robb', 'NZ', 32, 88], ['Jules van Dongen', 'US', 36, 88],
+  ['Karel Sedláček', 'CZ', 47, 90], ['Bradley Brooks', 'ENG', 23, 89], ['Cam Crabtree', 'ENG', 22, 88],
+  ['Wesley Plaisier', 'NL', 36, 90], ['Sebastian Białecki', 'PL', 24, 90], ['Max Hopp', 'DE', 30, 89],
+  ['Adam Lipscombe', 'ENG', 32, 88], ['Dominik Grüllich', 'DE', 21, 87], ['Cor Dekker', 'NL', 27, 89],
+  ['Maik Kuivenhoven', 'NL', 38, 87], ['Andy Boulton', 'ENG', 40, 87], ['Tavis Dudeney', 'ENG', 22, 87],
+  ['Oskar Lukasiak', 'PL', 24, 88], ['Darryl Pilgrim', 'ENG', 38, 87], ['Tom Bissell', 'ENG', 34, 88],
+  ['Christian Kist', 'NL', 40, 89], ['Leon Weber', 'DE', 24, 88], ['Dennie Olde Kalter', 'NL', 25, 87],
+  ['Jim Long', 'CA', 41, 88], ['Thomas Lovely', 'ENG', 33, 87], ['Marvin van Velzen', 'NL', 26, 87],
+  ['Viktor Tingström', 'SE', 30, 87], ['Adam Warner', 'ENG', 34, 87], ['Greg Ritchie', 'ENG', 40, 87],
+  ['Adam Paxton', 'ENG', 30, 87], ['Maximilian Czerwinski', 'DE', 25, 87], ['Tytus Kanik', 'PL', 20, 87],
+  ['Stefaan Henderyck', 'BE', 45, 87], ['Rusty-Jake Rodriguez', 'AT', 28, 88], ['Pero Ljubić', 'AT', 41, 87],
+  ['Kai Gotthardt', 'DE', 24, 89],
 ];
 
-// c) Neu 2026 (Q-School 2026, Challenge-/Dev-Tour 2025) → Karte gültig bis Ende 2027
+// c) Plätze 96–128: neu 2026 (Q-School 2026, Challenge-/Dev-Tour 2025) → Karte gültig bis Ende 2027
 export const TOUR_NEW_2026 = [
-  ['Stefan Bellmont', 'CH', 30, 89], ['Beau Greaves', 'ENG', 22, 92],
-  ['Rhys Griffin', 'WAL', 27, 89], ['Adam Leek', 'ENG', 30, 88], ['Carl Sneyd', 'ENG', 30, 88],
-  ['Niall Culleton', 'IRL', 42, 88], ['Tom Sykes', 'ENG', 28, 88], ['Shane McGuirk', 'IRL', 35, 88],
-  ['Charlie Manby', 'ENG', 21, 90], ['Samuel Price', 'ENG', 25, 88], ['Stephen Burton', 'ENG', 40, 88],
-  ['Mervyn King', 'ENG', 61, 88], ['Tyler Thorpe', 'ENG', 22, 88], ['Stephen Rosney', 'SCO', 38, 87],
-  ['David Sharp', 'ENG', 35, 87], ['Jimmy van Schie', 'NL', 36, 88], ['Chris Landman', 'NL', 38, 88],
-  ['Marvin Kraft', 'DE', 25, 88], ['Benjamin Pratnemer', 'SI', 35, 88], ['Adam Gawlas', 'CZ', 23, 89],
-  ['Jurjen van der Velde', 'NL', 36, 90], ['Alexander Merkx', 'NL', 24, 88], ['Pascal Rupprecht', 'DE', 26, 88],
-  ['Yorick Hofkens', 'BE', 27, 88], ['Matthias Ehlers', 'DE', 30, 87], ['Filip Bereza', 'PL', 25, 88],
-  ['Arno Merk', 'DE', 35, 87], ['Jeffrey de Zwaan', 'NL', 30, 89],
+  ['Stefan Bellmont', 'CH', 30, 89], ['Darius Labanauskas', 'LT', 50, 88], ['Beau Greaves', 'ENG', 22, 92],
+  ['Owen Bates', 'ENG', 27, 89], ['Arno Merk', 'DE', 35, 87], ['Filip Bereza', 'PL', 25, 88],
+  ['Rhys Griffin', 'WAL', 27, 89], ['Adam Leek', 'ENG', 30, 88], ['Jeffrey Sparidaans', 'NL', 26, 88],
+  ['Cristo Reyes', 'ES', 49, 88], ['Carl Sneyd', 'ENG', 30, 88], ['Niall Culleton', 'IRL', 42, 88],
+  ['Matthias Ehlers', 'DE', 30, 87], ['Yorick Hofkens', 'BE', 27, 88], ['Tom Sykes', 'ENG', 28, 88],
+  ['Shane McGuirk', 'IRL', 35, 88], ['Jeffrey de Zwaan', 'NL', 30, 89], ['Sietse Lap', 'NL', 28, 87],
+  ['Charlie Manby', 'ENG', 21, 90], ['Samuel Price', 'ENG', 25, 88], ['Jimmy van Schie', 'NL', 36, 88],
+  ['Chris Landman', 'NL', 38, 88], ['Marvin Kraft', 'DE', 25, 88], ['Benjamin Pratnemer', 'SI', 35, 88],
+  ['Adam Gawlas', 'CZ', 23, 89], ['Jurjen van der Velde', 'NL', 36, 90], ['Alexander Merkx', 'NL', 24, 88],
+  ['Pascal Rupprecht', 'DE', 26, 88], ['Stephen Burton', 'ENG', 40, 88], ['Mervyn King', 'ENG', 61, 88],
+  ['Tyler Thorpe', 'ENG', 22, 88], ['Stephen Rosney', 'SCO', 38, 87], ['David Sharp', 'ENG', 35, 87],
 ];
 
 export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
@@ -69,7 +69,7 @@ export const CHALLENGE_PLAYERS = [
   ['Andreas Harrysson', 'SE', 28, 88], ['Joe Hunt', 'ENG', 30, 88], ['Fallon Sherrock', 'ENG', 32, 85],
   ['Steve Beaton', 'ENG', 63, 85], ['Jamie Hughes', 'ENG', 41, 86], ['Kevin Burness', 'NIR', 42, 86],
   ['Ron Meulenkamp', 'NL', 38, 86], ['Boris Krčmar', 'HR', 47, 86], ['Berry van Peer', 'NL', 30, 86],
-  ['Geert Nentjes', 'NL', 37, 86], ['Danny van Trijp', 'NL', 30, 86], ['Maik Kuivenhoven', 'NL', 38, 85],
+  ['Geert Nentjes', 'NL', 37, 86], ['Danny van Trijp', 'NL', 30, 86], ['Ruud Jansen', 'NL', 38, 85],
   ['Dragutin Horvat', 'DE', 49, 86], ['Steffen Siepmann', 'DE', 39, 85], ['Nico Kurz', 'DE', 29, 86],
   ['Michael Unterbuchner', 'DE', 37, 86], ['Daniel Klose', 'DE', 40, 85], ['Kevin Münch', 'DE', 38, 86],
   ['Scott Waites', 'ENG', 49, 85], ['Darren Webster', 'ENG', 58, 85], ['Steve West', 'ENG', 47, 85],
@@ -88,8 +88,8 @@ export const CHALLENGE_PLAYERS = [
 // bitte bei Bedarf durch echte Namen ersetzen.
 export const DEV_PLAYERS = [
   ['Thomas Banks', 'ENG', 21, 86], ['Nathan Girvan', 'SCO', 23, 85], ['Jenson Walker', 'ENG', 20, 83],
-  ['Owen Roelofs', 'NL', 22, 86], ['Dominik Grüllich', 'DE', 21, 84], ['Keelan Kay', 'ENG', 22, 83],
-  ['Moreno Blom', 'NL', 22, 84], ['Tavis Dudeney', 'ENG', 22, 84], ['Cam Crabtree', 'ENG', 22, 84],
+  ['Owen Roelofs', 'NL', 22, 86], ['Moritz Baier', 'DE', 21, 84], ['Keelan Kay', 'ENG', 22, 83],
+  ['Moreno Blom', 'NL', 22, 84], ['Kyle Hammond', 'ENG', 22, 84], ['Reece Pritchard', 'ENG', 22, 84],
   ['Bradly Roes', 'NL', 23, 86], ['Archie Self', 'ENG', 23, 84], ['Mitchell Lawrie', 'ENG', 23, 83],
   // fiktiv:
   ['Finn Hagemann', 'DE', 19, 82], ['Lasse Brinkmann', 'DE', 18, 80], ['Jonas Albers', 'DE', 20, 83],

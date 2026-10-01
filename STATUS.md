@@ -112,7 +112,8 @@
 - Checkout-% zählt jeden Dart mit Rest ≤ 40 (gerade) bzw. 50 als Doppelversuch.
 
 ## Unsichere Angaben (bei echten Daten prüfen)
-- Websuche lief, aber Wikipedia/dartsnews/fandom sind im Container gesperrt → nur Suchzusammenfassungen. **Gesichert**: OOM-Top 17 (Anfang 2026), Q-School-2026-Gewinner (UK + EU), Stefan Bellmont (CT 2025), Beau Greaves (Dev 2025 Platz 2), Abgänge (de Sousa, Campbell, Jim Williams, Slevin, Klaasen, Lennon, Harrysson).
+- **Tourcard-Holder 2026: vom Nutzer geliefert** (Reihenfolge 1–128 → Top 64 / Plätze 65–95 auslaufend / 96–128 neu 2026). Platz 46 war doppelt „Madars Razma“ → 127 Spieler; Nationen, Alter, Averages geschätzt.
+- (alt) Websuche lief, aber Wikipedia/dartsnews/fandom sind im Container gesperrt → nur Suchzusammenfassungen. **Gesichert**: OOM-Top 17 (Anfang 2026), Q-School-2026-Gewinner (UK + EU), Stefan Bellmont (CT 2025), Beau Greaves (Dev 2025 Platz 2), Abgänge (de Sousa, Campbell, Jim Williams, Slevin, Klaasen, Lennon, Harrysson).
 - **Aus Gedächtnis/ungeprüft**: OOM-Plätze 18–64 und Reihenfolge, Liste `TOUR_EXPIRING` (wer 2026 eine Karte hatte, aber nicht Top 64 ist) inkl. Keegan Brown, Matthew Dennant, Damian Mol, Leighton Bennett, Ben Robb, Jules van Dongen; „Samuel Price“ (Q-School UK 2026, Name laut Suche); „Marvin Kraft“ (Suche nennt auch „Martin Kraft“).
 - Alle Altersangaben und Averages sind Schätzungen. Challenge-Liste = bekannte Spieler ohne Karte (Stand ungeprüft). Dev-Liste: 12 reale Nachwuchsnamen (Alter geschätzt) + 38 fiktive Talente.
 - Exakte PDC-Termine/Orte 2027 (noch nicht veröffentlicht) – angenähert an 2025/2026.

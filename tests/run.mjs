@@ -40,9 +40,9 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 50 + 50 + 50 + 63);
-  // Start 2027: 64 verlängert + 28 neu 2026 + 4 CT/Dev-2026 = 96 Karten, Rest in der Q-School
-  assert.equal(playersOfTier(s, 'tour').length, 96);
+  assert.equal(Object.keys(s.world.players).length, 127 + 50 + 50 + 50 + 63);
+  // Start 2027: 63 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 100 Karten, Rest in der Q-School
+  assert.equal(playersOfTier(s, 'tour').length, 100);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
 });
 
@@ -194,7 +194,7 @@ test('Q-School: 4 Tage, Karten, Challenge-Zugang', () => {
   if (places.includes('CARD')) assert.equal(s.player.tour, 'tour');
   nextWeek(s);                                                  // UK-Q-School läuft im Hintergrund
   const tour = playersOfTier(s, 'tour').length + (s.player.tour === 'tour' ? 1 : 0);
-  assert.equal(tour, 96 + 32);
+  assert.equal(tour, 100 + 32);
   assert.equal(s.player.qschoolYear, 2027);
   const ct = eventsInWeek(s, 2027, 7).find(e => e.cat === 'challenge');
   s.date.week = 7; s.week = { played: false, eventId: null };
@@ -354,7 +354,7 @@ test('Sponsoren: Angebote, Vertrag, Zahlungen, Kündigung, Ablauf', () => {
   for (let i = 0; i < 8; i++) nextWeek(s);
   assert.equal(s.sponsors.offers.length, 0);                       // gesperrt ohne Tourcard
   s.player.tour = 'tour'; s.player.cardUntil = 2029; s.player.everTourcard = true;
-  for (let i = 0; i < 30 && s.sponsors.offers.length < 2; i++) nextWeek(s);
+  for (let i = 0; i < 40 && !s.sponsors.offers.length; i++) nextWeek(s);
   assert.ok(s.sponsors.offers.length >= 1);
   const o = s.sponsors.offers[0];
   assert.ok(o.amount > 0 && o.years >= 1);
