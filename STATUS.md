@@ -92,6 +92,7 @@
 - **Rivale** (Vorschlag 2): gleichaltriges Talent, Duelle mit Bilanz, News, Selbstvertrauen, eigener Screen + Hub-Kachel, Banner im DartConnect, hält mit deinem Niveau mit (Migration v10). Bot-Karriere: ~50–80 Duelle in 8 Saisons, Bilanz ausgeglichen.
 - Fix: XP-Anzeige am Turnierende/nach Matches enthält jetzt den Trainer-Bonus.
 - Challenge/Dev Tour: immer 5 Turniere pro Wochenende (Nutzerwunsch), 5 Wochenenden je Tour = 25 Turniere (vorher 12 × 2).
+- Hub: Button „✓ Alle gelesen“ in der Neuigkeiten-Kachel (setzt alle Meldungen auf gelesen, ohne den Feed zu öffnen).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.

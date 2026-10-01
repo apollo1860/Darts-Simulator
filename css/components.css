@@ -607,3 +607,5 @@
 .rival-score { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 2.6rem; line-height: 1; color: var(--gold); }
 .rival-score span { color: var(--muted, #8aa); margin: 0 4px; }
 .rival-cmp td { padding: 6px 8px; }
+.tile-action { display: inline-block; margin-top: 6px; padding: 3px 9px; border: 1px solid var(--cyan); border-radius: 999px; font-size: .74rem; font-weight: 700; color: var(--cyan); cursor: pointer; }
+.tile-action:hover { background: rgba(34, 228, 255, .12); }

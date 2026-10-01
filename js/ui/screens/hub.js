@@ -11,7 +11,7 @@ import { eventsInWeek } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
 import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
 import { eventStatus } from '../../tournaments.js';
-import { unreadCount } from '../../news.js';
+import { unreadCount, markAllRead } from '../../news.js';
 import { sponsorsUnlocked } from '../../sponsors.js';
 import { tourStatus, DEV_MAX_AGE, playersOfTier } from '../../world.js';
 import { rankOf } from '../../rankings.js';
@@ -116,7 +116,7 @@ export function render(app) {
     ${rivalTile(s)}
     ${teamTile(s)}
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}
-    ${tile('news', '📰', 'Neuigkeiten', esc(lastNews?.title ?? 'Keine Meldungen'), unread ? `<span class="badge">${unread}</span>` : '')}
+    ${tile('news', '📰', 'Neuigkeiten', `${esc(lastNews?.title ?? 'Keine Meldungen')}${unread ? '<br><span class="tile-action" role="button" tabindex="0" data-readall>✓ Alle gelesen</span>' : ''}`, unread ? `<span class="badge">${unread}</span>` : '')}
     ${tile('stats', '📊', 'Statistiken', `${s.stats.career.wins}–${s.stats.career.matches - s.stats.career.wins} · ${s.stats.career.titles} Titel`)}
     ${tile('sponsors', sp ? '🤝' : '🔒', 'Sponsoren', sp ? `${s.sponsors.active.length}/4 aktiv` : 'Ab erster Tourcard', s.sponsors.offers.length ? `<span class="badge">${s.sponsors.offers.length}</span>` : '', sp ? '' : 'locked')}
     ${tile('settings', '⚙️', 'Speichern', 'Export · Import · Menü')}
@@ -130,6 +130,13 @@ export function render(app) {
 
 export function mount(root, app) {
   bindInterview(root, app);
+  // Neuigkeiten direkt im Hub als gelesen markieren (ohne den Feed zu öffnen)
+  const ra = root.querySelector('[data-readall]');
+  if (ra) {
+    const go = e => { e.preventDefault(); e.stopPropagation(); markAllRead(app.state); app.save(); app.refresh(); };
+    ra.addEventListener('click', go);
+    ra.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') go(e); });
+  }
   root.querySelector('#btn-jump').onclick = () => {
     const s = app.state;
     if (s.activeEvent?.done) { app.go('event'); return; }
