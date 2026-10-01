@@ -35,6 +35,15 @@
 - Balancing (tests/career.mjs, einfacher Bot): Tourcard nach ~4–5 Saisons (Alter 21–23, Ziel-Ø ~90).
 - 15 Node-Tests; 3 KI-Saisons in ~0,2 s, Spielstand ~70 KB.
 
+## Umbau nach Phase 4 (Nutzerwunsch, vor Phase 5)
+- „Selbst spielen“ ausgeblendet; im Turnier: 📺 DartConnect (mit Störmomenten) oder ⚡ Schnellsimulation.
+- Neue Attribute Scoring/Finishing/Mental/Fokus als Perzentile (Start 60 = ~65 Ø) + Erfahrung −4…+10 (Clutch).
+- Lokale Turniere: 16 Spieler, nur im eigenen Bundesland. 4 DDV-Ranglistenturniere/Jahr (64 Spieler, mehr XP).
+- Training-Panel direkt nach jedem Turnier; Teilnahme-XP sorgt dafür, dass man sich anfangs nach fast jedem Turnier verbessert.
+- Störmomente mit 2 Entscheidungen und sichtbarer Erfolgschance (7 Situationen, je nach Turnierebene).
+- Balancing (tests/career.mjs, Bot verteilt Punkte gleichmäßig): Tourcard nach ~5–6 Saisons, nach 8 Saisons PDC-Platz ~20–40, Erfahrung +9.
+- Spielstand-Migration v5: alte Attribute → Perzentile, Welt v3 (Erfahrung, DDV-Pool), Bundesland-Standard NRW.
+
 ## Stand Phase 4
 - Players Championships (30 Turniere, Doppel-Blöcke) und European Tour (14 Events mit Qualifikation → 48er-Hauptfeld, Top 16 gesetzt) spielbar in allen Match-Modi und im Hintergrund simuliert.
 - PDC OOM (2 Jahre, mit Startwerten 2025/2026) und Pro Tour OOM werden mit Preisgeld gefüllt; Top 64 am Jahresende nach Geld. Rang im Hub und in den News nach jedem Pro-Tour-Wochenende.
@@ -49,6 +58,9 @@
 - `IMPLEMENTED_PHASE = 5`.
 
 ## Annahmen
+- **Umbau**: Perzentil→Average-Kurve geschätzt (60 ≈ 65 Ø). Erfahrungsstufen-Schwellen, XP-Werte und Störmoment-Chancen/Effekte sind Balancing-Werte (data/distractions.js, js/player.js) – leicht anpassbar.
+- DDV-Turniere gibt es unabhängig von der Nation (auch für Nicht-Deutsche), Reise immer Deutschland-Tarif. Für Nicht-DE-Spieler gibt es kein Bundesland; lokale Turniere nutzen dann die Städteliste der Nation.
+- Störmomente nur, wenn der Spieler wirft, max. 1 pro Match; nicht in der Schnellsimulation.
 - **Phase 4**: PC-Auslosung frei (ohne Setzliste); bei mehr als 128 Holdern spielen die 128 bestplatzierten der PDC OOM. ET ohne Host-Nation-/Associate-Qualifier: alle 32 Quali-Plätze gehen an Tour-Holder. Keine Teilnahmegebühren auf der Pro Tour, nur Reisekosten (ET-Quali + Hauptfeld = eine Reise).
 - PDC-OOM-Startwerte 2025/2026 sind synthetisch (Kurve nach Listenplatz), nicht die echten Beträge.
 - **Phase 3**: Q-School ohne Setzliste, nur Spieler ohne Karte (Pools ~60–75 je Standort, real ~400). Gebühr 4 × 25 € wird bei Meldung komplett fällig, auch bei Kartengewinn an Tag 1.
@@ -77,6 +89,7 @@
 - Preisgeld-Tabellen in `data/prizemoney.js` für CT/Dev/PC/ET sind Näherungswerte (noch nicht aktiv).
 
 ## Bekannte Bugs / Offene Punkte
+- Manueller Modus (`matchUI.js`) deaktiviert; `manualParams` nutzt noch die alte Attribut-Skala → vor Reaktivierung neu kalibrieren (tests/humanSim.mjs).
 - Google Fonts werden online geladen; offline greift die Systemschrift (Arial Narrow/Roboto Condensed).
 - Manuell bei perfektem Timing sehr starke Spieler (Attribute 95) erreichen ~114 Ø – bewusst als Skill-Belohnung; ggf. in Phase 6 nachjustieren.
 - Gegner-Wurftempo fest (0,52 s/Dart); Option „schnell“ evtl. in Phase 6.

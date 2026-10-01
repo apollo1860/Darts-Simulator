@@ -5,7 +5,9 @@ import { getPlayer } from '../../world.js';
 import { formatLabel } from '../../matchEngine.js';
 import { legAverage, liveAverage } from '../../matchState.js';
 import { playerMatch, startManualMatch, liveAiVisit, finishManualMatch, simulateLiveRest, nextRound } from '../../tournaments.js';
-import { confirmDialog } from '../components.js';
+import { confirmDialog, modal } from '../components.js';
+import { planDistraction, distractionDue, describe, resolveDistraction } from '../../distractions.js';
+import { fmtPct } from '../../util.js';
 
 export const VISIT_MS = 1500;
 let ui = null;
@@ -22,7 +24,6 @@ export function render(app) {
     <div class="dc" id="dc"></div>
     <div class="watch-controls">
       <button class="btn btn-sm" id="w-pause">Pause</button>
-      <button class="btn btn-sm btn-gold" id="w-self">🎯 Selbst spielen</button>
       <button class="btn btn-sm btn-ghost" id="w-end">Sofort beenden</button>
     </div>
   </div>`;
@@ -31,6 +32,7 @@ export function render(app) {
 export function mount(root, app) {
   const s = app.state;
   const live = startManualMatch(s);
+  planDistraction(s);
   app.save();
   const pm = playerMatch(s.activeEvent);
   ui = { app, s, live, me: live.me, ids: [pm.a, pm.b], timer: 0, paused: false, showLast: false, el: root.querySelector('#dc') };
@@ -39,7 +41,6 @@ export function mount(root, app) {
     e.target.textContent = ui.paused ? 'Weiter' : 'Pause';
     if (!ui.paused) schedule(400);
   };
-  root.querySelector('#w-self').onclick = () => app.go('match');
   root.querySelector('#w-end').onclick = async () => {
     if (!await confirmDialog('Sofort beenden?', 'Der Rest des Matches wird ohne Anzeige simuliert.', 'Beenden')) return;
     if (!ui) return;
@@ -62,12 +63,41 @@ function step() {
   const m = ui.live.m;
   if (m.done) return finish();
   ui.showLast = false;
+  if (distractionDue(ui.s)) return askDistraction();
   const ev = liveAiVisit(ui.s);
   ui.app.save();
   if (ev?.legEnd) ui.showLast = true;   // abgeschlossenes Leg noch kurz zeigen
   draw(ev);
   if (m.done) { ui.timer = setTimeout(() => ui && finish(), VISIT_MS * 1.5); return; }
   schedule(ev?.legEnd ? VISIT_MS * 1.6 : VISIT_MS);
+}
+
+// Störmoment: Spiel pausiert, 2 Optionen mit Erfolgschance
+function askDistraction() {
+  const s = ui.s, d = describe(s, ui.live.dist);
+  ui.paused = true;
+  modal({
+    title: `${d.icon} ${d.title}`,
+    dismissable: false,
+    body: `<p>${esc(d.text)}</p><p class="muted" style="font-size:.82rem">Wie reagierst du? Die Chance hängt von Fokus bzw. Mental und deiner Erfahrung ab.</p>
+      <div class="stack">${d.options.map((o, i) => `<button class="panel choice" data-choice="${i}">
+        <div class="row-between"><b>${esc(o.label)}</b><span class="badge ${o.chance >= 0.5 ? 'badge-green' : ''}">${fmtPct(o.chance, 0)}</span></div>
+        <div class="muted" style="font-size:.78rem">${o.attr === 'foc' ? 'Fokus' : 'Mental'} · ${o.base >= 0.55 ? 'sicher, kleiner Effekt' : 'riskant, großer Effekt'}</div></button>`).join('')}</div>`,
+    actions: [],
+    onMount: bd => bd.querySelectorAll('[data-choice]').forEach(btn => btn.onclick = () => { bd.remove(); answer(+btn.dataset.choice); }),
+  });
+}
+
+function answer(i) {
+  if (!ui) return;
+  const r = resolveDistraction(ui.s, i);
+  ui.app.save();
+  modal({
+    title: r.ok ? '✅ Geklappt' : '❌ Ging schief',
+    dismissable: false,
+    body: `<p>${esc(r.text)}</p><p class="muted" style="font-size:.8rem">„${esc(r.label)}“ · Chance war ${fmtPct(r.chance, 0)}</p>`,
+    actions: [{ label: 'Weiter', cls: 'btn-primary', onClick: () => { if (!ui) return; ui.paused = false; draw(); schedule(600); } }],
+  });
 }
 
 function finish() {
@@ -92,7 +122,7 @@ function draw(ev) {
     const stats = `<div class="dc-avgs"><span class="dc-legavg">${fmtNum(legAvg(i), 0)}</span><span class="dc-avg">${fmtNum(liveAverage(m, i), 0)}</span></div>`;
     const won = last && m.lastLeg.winner === i;
     return `<div class="dc-player ${side} ${active === i ? 'active' : ''} ${won ? 'won' : ''}">
-      <div class="dc-name">${starter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm" title="${esc(p.name)}">${esc(shortName(p.name))}</span></div>
+      <div class="dc-name">${modTag(i)}${starter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm" title="${esc(p.name)}">${esc(shortName(p.name))}</span></div>
       <div class="dc-scorebox">${side === 'left' ? stats : ''}<span class="dc-rem">${rem[i]}</span>${side === 'right' ? stats : ''}</div>
     </div>`;
   };
@@ -111,6 +141,8 @@ function draw(ev) {
     body += `<div class="dc-row">${cell(me, r, 'left')}<div class="dc-no">${r + 1}</div>${cell(op, r, 'right')}</div>`;
   }
   const setsTxt = m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : '';
+  const mods = (ui.live.mods ?? []);
+  const modTag = side => { const mm = mods.filter(x => x.side === side); if (!mm.length) return ''; const v = mm.reduce((a, x) => a * x.mult, 1); return `<span class="dc-mod" title="${v > 1 ? 'gestört' : 'Rückenwind'}">${v > 1 ? '😤' : '🔥'}</span>`; };
   const banner = last ? `<div class="dc-banner">Leg · ${esc(getPlayer(ui.s, ui.ids[m.lastLeg.winner]).name)}</div>` : '';
   ui.el.innerHTML = `
     <div class="dc-top">

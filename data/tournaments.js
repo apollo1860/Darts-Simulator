@@ -4,6 +4,7 @@
 
 export const CATEGORIES = {
   local:     { label: 'Lokal',             short: 'LOKAL', phase: 1 },
+  ddv:       { label: 'DDV-Ranglistenturnier', short: 'DDV', phase: 1 },
   qschool:   { label: 'Q-School',          short: 'Q-SCHOOL', phase: 3 },
   challenge: { label: 'Challenge Tour',    short: 'CT', phase: 3 },
   dev:       { label: 'Development Tour',  short: 'DEV', phase: 3 },
@@ -32,7 +33,14 @@ const ET = [
   [36, 'German Darts Championship', 'Hildesheim', 'DE'], [39, 'Swiss Darts Trophy', 'Basel', 'CH'],
 ];
 
+// DDV (Deutscher Dartverband): 4 Ranglistenturniere pro Jahr, nur ohne Tourcard
+const DDV = [[9, 'Gelsenkirchen'], [20, 'Bad Nauheim'], [33, 'Hamburg'], [44, 'München']];
+
 export const CALENDAR = [
+  ...DDV.map(([w, city], i) => ({
+    id: `ddv-${i + 1}`, cat: 'ddv', name: `DDV-Ranglistenturnier ${i + 1}`, week: w, city, country: 'DE',
+    note: '64 Spieler · viel Erfahrung',
+  })),
   { id: 'qs-uk', cat: 'qschool', name: 'Q-School UK', week: 2, city: 'Milton Keynes', country: 'ENG', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
   { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
   { id: 'ws-bah', cat: 'ws', name: 'Bahrain Darts Masters', week: 3, city: 'Manama', country: 'BH' },
@@ -89,7 +97,8 @@ export const LOCAL_CITIES = {
 // Formate je Kategorie: default-Format, Abweichungen nach verbleibenden Spielern, stopAt = Turnierende
 // (Q-School: bei den letzten 4 → diese erhalten eine Tourcard). {legs:n} = first to n.
 export const FORMATS = {
-  local: { field: 32, default: { legs: 3 }, byRemaining: { 4: { legs: 4 }, 2: { legs: 5 } } },
+  local: { field: 16, default: { legs: 3 }, byRemaining: { 4: { legs: 4 }, 2: { legs: 5 } } },
+  ddv: { field: 64, default: { legs: 4 }, byRemaining: { 4: { legs: 5 }, 2: { legs: 6 } } },
   qschool: { default: { legs: 5 }, stopAt: 4, cards: true },
   pc: { field: 128, default: { legs: 6 } },
   etq: { default: { legs: 6 }, stopAt: 32 },                       // Tour-Card-Holder-Qualifier

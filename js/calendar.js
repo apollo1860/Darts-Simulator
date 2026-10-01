@@ -1,5 +1,6 @@
 // Wochenkalender (DOM-frei)
 import { CALENDAR, LOCAL_BLOCKED_WEEKS, LOCAL_NAMES, LOCAL_CITIES } from '../data/tournaments.js';
+import { REGIONS } from '../data/regions.js';
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
 import { WEEKS_PER_YEAR } from './util.js';
@@ -11,13 +12,14 @@ import { seasonStats } from './state.js';
 export function localEvent(state, year, week) {
   if (LOCAL_BLOCKED_WEEKS.includes(week)) return null;
   const r = new RNG(hashSeed(state.seed, 'local', year, week));
-  const cities = LOCAL_CITIES[state.player.nation] ?? LOCAL_CITIES._;
+  const reg = state.player.nation === 'DE' ? REGIONS[state.player.region] : null;
+  const cities = reg?.cities ?? LOCAL_CITIES[state.player.nation] ?? LOCAL_CITIES._;
   const city = r.pick(cities);
   const { winMin, winMax } = PRIZES.local;
   return {
     id: `local-${year}-${week}`, cat: 'local', week, weeks: 1,
     name: r.pick(LOCAL_NAMES).replace('{c}', city),
-    city, country: state.player.nation,
+    city, country: state.player.nation, region: reg?.name ?? null,
     prizeWin: Math.round(r.int(winMin, winMax) / 10) * 10,
   };
 }

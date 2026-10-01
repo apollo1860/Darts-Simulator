@@ -146,6 +146,7 @@
 }
 .tag-local { color: var(--green); }
 .tag-qschool { color: var(--gold); }
+.tag-ddv { color: #ffdf5e; background: rgba(0, 0, 0, .25); }
 .tag-challenge { color: var(--orange); }
 .tag-dev { color: #ff7ad9; }
 .tag-pc { color: var(--cyan); }
@@ -536,3 +537,8 @@
 .watch-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 .table tr.cut td { border-bottom: 2px solid var(--gold); }
 @media (max-width: 480px) { .hide-sm { display: none; } .table td, .table th { padding: 8px 6px; } }
+.dc-mod { font-size: .9em; flex: none; animation: pulse 1.2s ease-in-out infinite; }
+.choice { width: 100%; text-align: left; cursor: pointer; color: var(--text); font: inherit; padding: 12px 14px; transition: border-color .2s, transform .15s; }
+.choice:hover { border-color: var(--gold); }
+.choice:active { transform: scale(.98); }
+.modal-actions:empty { display: none; }

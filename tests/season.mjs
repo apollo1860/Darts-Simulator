@@ -7,7 +7,7 @@ for (let y = 0; y < 3; y++) { let t=0, pr=0, w0 = s.stats.career.wins, m0 = s.st
   for (let w = 0; w < 52; w++) {
     const l = eventsInWeek(s, s.date.year, s.date.week).find(e => e.cat === 'local');
     if (l) { enterEvent(s, l.id); while (s.activeEvent.playerAlive && !s.activeEvent.done) { playRound(s); nextRound(s); } if (!s.activeEvent.done) simulateRest(s); if (s.activeEvent.place==='W') t++; pr += s.activeEvent.prize; closeEvent(s); }
-    while (s.player.points > 0) { const k = ['sco','fin','sco','con','ner','sta'].find(k => raiseAttr(s.player, k)); if (!k) break; }
+    while (s.player.points > 0) { const k = ['sco','fin','sco','men','foc'].find(k => raiseAttr(s.player, k)); if (!k) break; }
     advanceWeek(s);
   }
   console.log(`Jahr ${y+1}: Titel ${t}, Preisgeld ${pr}, Siege ${s.stats.career.wins-w0}/${s.stats.career.matches-m0}, OVR ${overall(s.player.attrs)}, Avg gespielt ${s.player.avgReal}, Punkte ${s.player.pointsEarned}`);

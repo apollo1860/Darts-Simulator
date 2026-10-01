@@ -28,7 +28,7 @@ export function render(app) {
     return `<div class="panel event-card ${st.playable ? '' : 'disabled'}">
       <div class="ev-head">${catTag(ev.cat)} <span class="muted" style="font-size:.8rem">${esc(CATEGORIES[ev.cat].label)}${ev.count > 1 ? ` · ${ev.count} Turniere` : ''}</span></div>
       <div class="ev-name">${esc(ev.name)}</div>
-      <div class="muted" style="font-size:.86rem">${flag(ev.country)} ${esc(ev.city)}${ev.city !== 'diverse' ? `, ${esc(nationName(ev.country))}` : ''}${ev.note ? ` · ${esc(ev.note)}` : ''}</div>
+      <div class="muted" style="font-size:.86rem">${flag(ev.country)} ${esc(ev.city)}${ev.region ? `, ${esc(ev.region)}` : ev.city !== 'diverse' ? `, ${esc(nationName(ev.country))}` : ''}${ev.note ? ` · ${esc(ev.note)}` : ''}</div>
       ${costLine(ev, st)}
       <div class="row-between">
         <div class="status-line ${st.playable ? '' : 'no'}">${st.playable ? 'Meldung möglich' : esc(st.reason)}</div>

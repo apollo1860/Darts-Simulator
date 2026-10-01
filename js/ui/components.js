@@ -1,7 +1,7 @@
 // Wiederverwendbare UI-Bausteine
 import { esc, fmtEUR, fmtNum } from '../util.js';
 import { flag } from '../../data/nations.js';
-import { ATTRS, overall, targetAverage } from '../player.js';
+import { ATTRS, overall, targetAverage, attrCost, raiseAttr, expLabel } from '../player.js';
 import { tourStatus } from '../world.js';
 import { CATEGORIES } from '../../data/tournaments.js';
 
@@ -63,9 +63,9 @@ export const catTag = cat => `<span class="tag tag-${cat}">${esc(CATEGORIES[cat]
 
 // ---- FUT-Karte ----
 export function cardTier(ovr) {
-  if (ovr >= 85) return 'elite';
-  if (ovr >= 70) return 'gold';
-  if (ovr >= 50) return 'silver';
+  if (ovr >= 90) return 'elite';
+  if (ovr >= 75) return 'gold';
+  if (ovr >= 55) return 'silver';
   return 'bronze';
 }
 const initials = name => name.split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase();
@@ -82,6 +82,7 @@ export function futCard(p, { small = false, me = false } = {}) {
     <div class="fut-name ${p.name.length > 14 ? 'long' : ''}">${esc(p.name)}</div>
     <div class="fut-attrs">
       ${ATTRS.map(a => `<span><b>${p.attrs[a.key]}</b> ${a.short}</span>`).join('')}
+      <span><b>${expLabel(p.exp ?? 0)}</b> ERF</span>
       <span><b>${p.age}</b> ALT</span>
     </div>
     <div class="fut-foot">${esc(status)}</div>
@@ -90,6 +91,24 @@ export function futCard(p, { small = false, me = false } = {}) {
 
 export function playerModal(p, me = false) {
   modal({ title: p.name, body: `<div class="card-stage">${futCard(p, { me })}</div>` });
+}
+
+// ---- Attribute mit „+“-Buttons (Profil + Training nach Turnieren) ----
+export function attrRows(p) {
+  return ATTRS.map(a => {
+    const v = p.attrs[a.key], c = attrCost(v);
+    return `<div class="attr-row">
+      <div><div class="attr-name">${a.label} <span class="dim" style="font-size:.75rem">${a.info}</span></div>
+        <div class="attr-bar"><i style="width:${v}%"></i></div></div>
+      <div class="attr-val">${v}</div>
+      <button class="icon-btn" data-raise="${a.key}" ${p.points < c || v >= 100 ? 'disabled' : ''} title="Kosten: ${c} Punkt${c > 1 ? 'e' : ''}">+</button>
+    </div>`;
+  }).join('');
+}
+export function bindRaise(root, app) {
+  root.querySelectorAll('[data-raise]').forEach(b => b.onclick = () => {
+    if (raiseAttr(app.state.player, b.dataset.raise)) { app.save(); app.refresh(); }
+  });
 }
 
 export const nameWithFlag = p => `${flag(p.nation)} ${esc(p.name)}`;

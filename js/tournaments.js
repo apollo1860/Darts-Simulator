@@ -8,7 +8,7 @@ import { createMatch, throwDart, matchResult } from './matchState.js';
 import { aiDart, aiSigma } from './throwModel.js';
 import { eventCost, canAfford, book } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
-import { addXp, XP_FACTOR, XP_BASE } from './player.js';
+import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE } from './player.js';
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek } from './calendar.js';
@@ -25,6 +25,7 @@ export function eligibility(state, ev) {
   const card = p.tour === 'tour';
   switch (ev.cat) {
     case 'local': return { ok: true };
+    case 'ddv': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
     case 'qschool': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
     case 'challenge':
       if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
@@ -113,6 +114,10 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(withPlayer ? ['P', ...pool] : pool);
   }
   let ids;
+  if (ev.cat === 'ddv') {
+    ids = playersOfTier(state, 'ddv').map(p => p.id).slice(0, FORMATS.ddv.field - (withPlayer ? 1 : 0));
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
+  }
   if (ev.cat === 'qschool') {
     const uk = ev.id === 'qs-uk';
     ids = nonCardPros(state).filter(p => QSCHOOL_UK_NATIONS.includes(p.nation) === uk).map(p => p.id);
@@ -178,7 +183,7 @@ export function playerMatch(inst) {
   return inst.rounds[inst.current]?.matches.find(m => (m.a === 'P' || m.b === 'P') && !m.bye) ?? null;
 }
 
-const attrsOf = (state, id) => getPlayer(state, id).attrs;
+const attrsOf = (state, id) => perf(getPlayer(state, id));
 
 // Eigenes Match simulieren (Ergebnis wird gespeichert und zurückgegeben)
 export function simulatePlayerMatch(state) {
@@ -216,10 +221,22 @@ export function liveAiDart(state, side) {
 export function liveAiVisit(state) {
   const inst = state.activeEvent, pm = playerMatch(inst), lm = inst.live.m;
   const rng = new RNG(state.rng), side = lm.turn, a = attrsOf(state, side === 0 ? pm.a : pm.b);
-  const sig = aiSigma(a);
+  const sig = aiSigma(a), mult = modMult(inst.live, side);
   let ev = null;
-  while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) ev = throwDart(lm, aiDart(lm, side, a, rng, sig).hit);
+  while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) ev = throwDart(lm, aiDart(lm, side, a, rng, sig, mult).hit);
+  tickMods(inst.live, side);
   return ev;
+}
+
+// Temporäre Leistungs-Modifikatoren (Ablenkungen): Multiplikator auf die Streuung, gilt für n Aufnahmen
+export function addMod(live, side, mult, visits) {
+  (live.mods ??= []).push({ side, mult, visits });
+}
+const modMult = (live, side) => (live.mods ?? []).filter(x => x.side === side).reduce((p, x) => p * x.mult, 1);
+function tickMods(live, side) {
+  if (!live.mods) return;
+  for (const x of live.mods) if (x.side === side) x.visits--;
+  live.mods = live.mods.filter(x => x.visits > 0);
 }
 
 // Rest des Live-Matches simulieren (dartgenau, beide Seiten mit KI-Modell)
@@ -272,6 +289,14 @@ function recordPlayerMatch(state, inst, m, res) {
   const xp = Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * Math.min(inst.current, 6)) * f);
   inst.xp += xp;
   grantXp(state, xp);
+  // Erfahrung (Clutch): jedes Match, Entscheidungslegs/-sätze zählen extra
+  const fmt = inst.rounds[inst.current].format, isSets = !!fmt.sets;
+  const sc = res.score, to = isSets ? fmt.sets : fmt.legs;
+  const decider = sc[0] >= to - 1 && sc[1] >= to - 1;
+  const cp = Math.round((2 + (decider ? 3 : 0) + (decider && won ? 3 : 0)) * f);
+  inst.clutch = (inst.clutch ?? 0) + cp;
+  const up = addClutch(state.player, cp);
+  if (up > 0) addNews(state, 'xp', `Erfahrung steigt auf ${expLabel(state.player.exp)}`, 'Du bleibst in engen Momenten ruhiger – Matchdarts und Entscheidungslegs gelingen dir besser.');
   if (!won) inst.playerAlive = false;
   inst.lastMatch = {
     round: inst.rounds[inst.current].name, opp: me ? m.a : m.b, won,
@@ -369,6 +394,10 @@ function finishEvent(state, inst) {
   if (!inst.withPlayer) return;
   const place = inst.place, prize = inst.prize;
   const f = XP_FACTOR[inst.cat] ?? 1;
+  // Teilnahme-Bonus: nach jedem Turnier kann trainiert werden
+  const evXp = Math.round(XP_BASE.event * f);
+  inst.xp += evXp;
+  grantXp(state, evXp);
   if (place === 'W' || place === 'CARD') {
     const bonus = Math.round(XP_BASE.title * f);
     inst.xp += bonus;

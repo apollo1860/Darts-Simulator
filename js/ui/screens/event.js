@@ -5,7 +5,8 @@ import { getPlayer } from '../../world.js';
 import { formatLabel } from '../../matchEngine.js';
 import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../tournaments.js';
 import { MANUAL_AVAILABLE } from '../../matchUI.js';
-import { topbar, futCard, modal, catTag, playerModal } from '../components.js';
+import { topbar, futCard, modal, catTag, playerModal, attrRows, bindRaise } from '../components.js';
+import { expLabel } from '../../player.js';
 
 const nm = (s, id) => getPlayer(s, id).name;
 
@@ -37,12 +38,13 @@ function matchPanel(s, inst) {
       <span class="tag tag-pc">${formatLabel(round.format)}</span></div>
     <div class="versus">${futCard(s.player, { small: true, me: true })}<div class="vs">VS</div><div data-pl="${oppId}" style="cursor:pointer">${futCard(opp, { small: true })}</div></div>
     <div class="row" style="justify-content:center">
-      ${inst.live ? `<button class="btn btn-gold" data-go="match">🎯 Selbst weiterspielen</button>
-      <button class="btn btn-primary" data-go="watch">📺 Weiter zuschauen</button>`
-        : `<button class="btn btn-gold" data-go="match" ${MANUAL_AVAILABLE ? '' : 'disabled'}>🎯 Selbst spielen</button>
-      <button class="btn" data-go="watch">📺 Schnellsimulation</button>
-      <button class="btn btn-primary" id="btn-sim">Sofort ▸</button>`}
+      ${inst.live ? `<button class="btn btn-primary" data-go="watch">📺 Weiter zuschauen</button>
+      ${MANUAL_AVAILABLE ? '<button class="btn btn-gold" data-go="match">🎯 Selbst weiterspielen</button>' : ''}`
+        : `${MANUAL_AVAILABLE ? '<button class="btn btn-gold" data-go="match">🎯 Selbst spielen</button>' : ''}
+      <button class="btn btn-gold" data-go="watch">📺 DartConnect</button>
+      <button class="btn btn-primary" id="btn-sim">⚡ Schnellsimulation</button>`}
     </div>
+    <p class="muted center" style="font-size:.78rem;margin:0">${inst.live ? '' : 'DartConnect: Aufnahme für Aufnahme mitverfolgen – mit Entscheidungen bei Störmomenten. Schnellsimulation: Ergebnis sofort.'}</p>
     ${inst.live ? `<p class="muted center" style="font-size:.82rem;margin:0">Laufendes Match: ${inst.live.m.format.sets ? `Sätze ${inst.live.m.sets.join(':')} · ` : ''}Legs ${inst.live.m.legs.join(':')}</p>` : ''}
   </div>`;
 }
@@ -69,6 +71,17 @@ function myPath(s, inst) {
   return rows.length ? `<div class="section-title"><span class="label">Dein Weg</span></div><div class="panel table-wrap"><table class="table">${rows.join('')}</table></div>` : '';
 }
 
+// Training direkt nach dem Turnier: verdiente Punkte sofort verteilen
+function trainingPanel(s, inst) {
+  const p = s.player;
+  if (!p.points) return '';
+  return `<div class="panel">
+    <div class="row-between"><h3>🏋️ Training</h3><span class="badge badge-green">${p.points} Punkt${p.points === 1 ? '' : 'e'} frei</span></div>
+    <p class="muted" style="font-size:.84rem;margin:6px 0 0">Nach dem Turnier kannst du dich verbessern. Erfahrung: <b class="gold">${expLabel(p.exp)}</b>${inst.clutch ? ` (+${inst.clutch} Clutch-Punkte in diesem Turnier)` : ''}.</p>
+    ${attrRows(p)}
+  </div>`;
+}
+
 function donePanel(s, inst) {
   const win = inst.place === 'W', card = inst.place === 'CARD', qual = inst.place === 'QUAL';
   const winnerKpi = inst.winner
@@ -89,7 +102,8 @@ function donePanel(s, inst) {
       <div class="kpi"><div class="label">Kontostand</div><div class="v num">${fmtEUR(s.finance.balance)}</div></div>
     </div>
     ${nextBtn}
-  </div>`;
+  </div>
+  ${trainingPanel(s, inst)}`;
 }
 
 export function render(app) {
@@ -135,6 +149,7 @@ function resultModal(s, res, onClose) {
 
 export function mount(root, app, params = {}) {
   const s = app.state;
+  bindRaise(root, app);
   if (params.showResult && s.activeEvent?.lastMatch) {
     params.showResult = false;
     resultModal(s, null, () => app.refresh());

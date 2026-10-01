@@ -1,10 +1,11 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS } from '../data/names.js';
-import { attrsForAverage, targetAverage, overall } from './player.js';
+import { attrsForAverage, overall, ratingForAvg, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
 
-export const WORLD_VERSION = 2;
+export const WORLD_VERSION = 3;
+export const DDV_POOL = 63;
 export const DEV_MAX_AGE = 23;
 
 // tier: tour | challenge | dev | local ; cardUntil = letzte Saison mit gültiger Tourcard
@@ -12,7 +13,7 @@ export function createWorld(rng, startYear = 2027) {
   const players = {};
   const add = (rows, prefix, tier, cardUntil) => rows.forEach(([name, nation, age, avg], i) => {
     const id = `${prefix}${i + 1}`;
-    players[id] = { id, name, nation, age, avg, tier, cardUntil, attrs: attrsForAverage(avg, rng) };
+    players[id] = { id, name, nation, age, avg, tier, cardUntil, attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
   });
   add(TOUR_TOP64, 'T', 'tour', startYear + 1);          // Ende 2026 als Top 64 verlängert
   add(TOUR_EXPIRING, 'X', 'challenge', null);           // Karte Ende 2026 verloren → Q-School
@@ -21,6 +22,7 @@ export function createWorld(rng, startYear = 2027) {
   add(DEV_PLAYERS, 'D', 'dev', null);
   add(LOCAL_PLAYERS, 'L', 'local', null);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
+  addDdvPool(world, rng);
   // Challenge-/Dev-Tour 2026: je Top 2 (hier: die Stärksten) erhalten eine Karte bis Ende 2028
   for (const tier of ['challenge', 'dev']) {
     Object.values(players).filter(p => p.tier === tier)
@@ -44,14 +46,43 @@ export function tourStatus(p, year = p.qschoolYear) {
     if (year && p.qschoolYear === year) return p.age <= DEV_MAX_AGE ? 'Challenge + Dev Tour' : 'Challenge Tour';
     return 'Amateur';
   }
-  return { tour: 'Tourcard', top: 'Tourcard', challenge: 'Challenge Tour', dev: 'Development Tour', local: 'Amateur' }[p.tier];
+  return { tour: 'Tourcard', top: 'Tourcard', challenge: 'Challenge Tour', dev: 'Development Tour', ddv: 'DDV-Rangliste', local: 'Amateur' }[p.tier];
 }
 
 // ---- Jahresentwicklung der KI ----
+// Erfahrung der KI nach Ebene und Alter (−4 … +10)
+export function aiExp(tier, age, rng) {
+  const base = { tour: 2 + (age - 20) * 0.35, challenge: (age - 22) * 0.25, dev: -2 + (age - 16) * 0.3,
+    ddv: -1 + (age - 18) * 0.12, local: -3 + (age - 18) * 0.1 }[tier] ?? 0;
+  return clamp(Math.round(base + rng.normal(0, 1.4)), EXP_MIN, EXP_MAX);
+}
+
+// 63 fiktive Spieler der DDV-Ranglistenturniere (Deutschland, ~66–88 Ø)
+function addDdvPool(world, rng) {
+  const pool = NAME_POOLS.DE, used = new Set(Object.values(world.players).map(p => p.name));
+  for (let i = 1; i <= DDV_POOL; i++) {
+    let name;
+    do name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`; while (used.has(name));
+    used.add(name);
+    const avg = Math.round(rng.float(66, 88)), age = rng.int(19, 52);
+    world.players[`V${i}`] = { id: `V${i}`, name, nation: 'DE', age, avg, tier: 'ddv', cardUntil: null,
+      attrs: attrsForAverage(avg, rng), exp: aiExp('ddv', age, rng) };
+  }
+}
+
+// Spielstände mit Welt v2 → v3: neue Attribute, Erfahrung, DDV-Pool
+export function upgradeWorld(world, rng) {
+  for (const p of Object.values(world.players)) { p.attrs = attrsForAverage(p.avg, rng); p.exp = aiExp(p.tier, p.age, rng); }
+  addDdvPool(world, rng);
+  world.version = WORLD_VERSION;
+}
+
 function changeStrength(p, delta) {
-  const d = delta / 0.77;
-  for (const k of Object.keys(p.attrs)) p.attrs[k] = clamp(Math.round(p.attrs[k] + d * (k === 'sco' ? 1 : 0.8)), 1, 99);
-  p.avg = Math.round(targetAverage(p.attrs) * 10) / 10;
+  const before = p.attrs.sco;
+  p.avg = clamp(Math.round((p.avg + delta) * 10) / 10, 30, 108);
+  const d = ratingForAvg(p.avg) - before;
+  for (const k of ['fin', 'men', 'foc']) p.attrs[k] = clamp(p.attrs[k] + d, 1, 100);
+  p.attrs.sco = clamp(before + d, 1, 100);
 }
 
 function newTalent(state, rng, year) {
@@ -62,7 +93,7 @@ function newTalent(state, rng, year) {
   const avg = Math.round(rng.float(74, 86));
   const p = {
     id, name: `${rng.pick(pool.first)} ${rng.pick(pool.last)}`, nation: rng.pick(pool.nations),
-    age: rng.int(16, 18), avg, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), generated: year,
+    age: rng.int(16, 18), avg, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 17, rng), generated: year,
   };
   state.world.players[id] = p;
   return p;
@@ -72,8 +103,9 @@ function newTalent(state, rng, year) {
 export function developWorld(state, rng, year) {
   const report = { retired: [], talents: [] };
   for (const p of Object.values(state.world.players)) {
-    if (p.tier === 'local') continue;
+    if (p.tier === 'local' || p.tier === 'ddv') continue;
     const a = p.age;
+    if (a < 38 && rng.chance(p.tier === 'tour' ? 0.45 : 0.3)) p.exp = Math.min(EXP_MAX, (p.exp ?? 0) + 1);
     const mean = a <= 20 ? 2.2 : a <= 23 ? 1.4 : a <= 28 ? 0.5 : a <= 34 ? 0 : a <= 40 ? -0.4 : -1;
     changeStrength(p, rng.normal(mean, 1.4));
     // Ruhestand: ab 45 steigend, ohne Tourcard eher

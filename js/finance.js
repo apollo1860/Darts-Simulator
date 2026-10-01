@@ -3,7 +3,7 @@ import { UK } from '../data/nations.js';
 
 export const START_BUDGET = 5000;
 export const ENTRY_FEE = 25;
-const FEE_CATS = new Set(['qschool', 'challenge', 'dev']);
+const FEE_CATS = new Set(['qschool', 'challenge', 'dev', 'ddv']);
 
 export function travelCost(country) {
   if (UK.has(country)) return 600;

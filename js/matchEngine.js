@@ -9,14 +9,15 @@ const SCORING_BOOST = 1.045;                          // Kalibrierung: Scoring-A
 
 // Leistungsprofil für ein Match (inkl. Tagesform)
 export function makeProfile(attrs, rng, mod = {}) {
-  const formSd = 0.045 - attrs.con * 0.00025;
+  const formSd = 0.045 - attrs.foc * 0.00025;
   const form = (rng ? rng.normal(1, formSd) : 1) * (mod.formMult ?? 1);
   return {
     avg: targetAverage(attrs) * form,
-    sd: 27 - attrs.con * 0.12,
+    sd: 27 - attrs.foc * 0.12,
     co: checkoutBase(attrs) * (mod.coMult ?? 1),
-    ner: attrs.ner,
-    sta: attrs.sta,
+    men: attrs.men,
+    foc: attrs.foc,
+    exp: attrs.exp ?? 0,
   };
 }
 
@@ -100,8 +101,10 @@ function simLeg(starter, prof, st, rng, ctx) {
   let t = starter;
   for (let n = 0; n < 400; n++) {
     const p = prof[t], s = st[t];
-    const pressure = ctx.wouldWin(t) ? 0.82 + 0.18 * (p.ner / 99) : 1;
-    const fatigue = ctx.legIdx > 10 ? Math.max(0.9, 1 - (ctx.legIdx - 10) * 0.0025 * (1 - p.sta / 100)) : 1;
+    // Matchdarts: Mental + Erfahrung (−4 … +10) entscheiden
+    const pressure = ctx.wouldWin(t) ? clamp(0.8 + 0.17 * (p.men / 100) + 0.025 * p.exp, 0.55, 1.3) : 1;
+    let fatigue = ctx.legIdx > 10 ? Math.max(0.9, 1 - (ctx.legIdx - 10) * 0.0025 * (1 - p.foc / 100)) : 1;
+    if (ctx.wouldWin(0) && ctx.wouldWin(1)) fatigue *= 1 + 0.006 * p.exp;   // Entscheidungsleg: Scoring
     const v = visit(p, rem[t], s, rng, pressure, fatigue);
     s.darts += v.darts; legDarts[t] += v.darts;
     if (!v.bust) { s.points += v.pts; rem[t] -= v.pts; addScore(s, v.pts); }

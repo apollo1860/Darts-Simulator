@@ -34,23 +34,25 @@ export function aiSigma(attrs) {
   return { score: interp(SIGMA_TABLE, targetAverage(attrs)), dbl: sigmaForDouble(clamp(checkoutBase(attrs), 0.05, 0.8)) };
 }
 
-// Druckfaktor (≥1): Entscheidungsleg, Match-Dart, Doppel-Finish – gedämpft durch Nervenstärke
-export function pressureFactor(m, i, target, ner) {
+// Druckfaktor (Streuungs-Multiplikator): Entscheidungsleg, Match-Dart, Doppel-Finish – gedämpft durch Mental,
+// Erfahrung (−4 … +10) wirkt in Clutch-Momenten: negativ = Matchdarts wackeln, positiv = eiskalt
+export function pressureFactor(m, i, target, men, exp = 0) {
   const dbl = isDoubleLabel(target) && onDouble(m.rem[i]);
   const matchDart = dbl && wouldWinMatch(m, i);
   const load = (isDecider(m) ? 0.15 : 0) + (matchDart ? 0.25 : 0) + (dbl ? 0.1 : 0);
-  return 1 + load * (1 - ner / 99) * 1.6;
+  const clutch = matchDart ? 1 - 0.025 * exp : isDecider(m) ? 1 - 0.006 * exp : 1;
+  return (1 + load * (1 - men / 100) * 1.6) * clutch;
 }
 
 // Ausdauer: Leistungsabfall in langen Matches
-export const fatigueFactor = (m, sta) => 1 + Math.max(0, m.legIdx - 8) * 0.012 * (1 - sta / 100);
+export const fatigueFactor = (m, foc) => 1 + Math.max(0, m.legIdx - 8) * 0.012 * (1 - foc / 100);
 
 // KI-Dart: Ziel wählen + werfen. Rückgabe {target, x, y, hit}
-export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs)) {
+export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1) {
   const target = suggestTarget(m.rem[i], dartsLeft(m));
   const p = targetPoint(target);
   const base = isDoubleLabel(target) ? sig.dbl : sig.score;
-  const s = base * pressureFactor(m, i, target, attrs.ner) * fatigueFactor(m, attrs.sta);
+  const s = base * mult * pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);
   const x = p.x + rng.normal(0, s), y = p.y + rng.normal(0, s);
   return { target, x, y, hit: scoreAt(x, y) };
 }
@@ -59,12 +61,12 @@ export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs)) {
 export function manualParams(attrs, m, i, target) {
   let amp = 66 - 0.48 * attrs.sco;              // Scoring 42 → 46 mm, 95 → 20 mm
   let freq = 0.75 + 0.6 * (1 - attrs.sco / 99);  // Scoring 42 → 1,1 Hz, 95 → 0,77 Hz
-  let scatter = 12 - attrs.con * 0.085;          // Konstanz → Zufallsstreuung (mm)
+  let scatter = 12 - attrs.foc * 0.085;          // Fokus → Zufallsstreuung (mm)
   if (isDoubleLabel(target)) {
     const k = 1.3 - attrs.fin / 200;             // Doppelquote → Genauigkeit auf Doppel
     amp *= k; scatter *= k;
   }
-  const pf = pressureFactor(m, i, target, attrs.ner) * fatigueFactor(m, attrs.sta);
+  const pf = pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);
   return { amp: amp * pf, freq: freq * Math.sqrt(pf), scatter: scatter * pf, pressure: pf > 1.05 };
 }
 

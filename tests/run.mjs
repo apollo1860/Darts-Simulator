@@ -14,6 +14,7 @@ import { scoreAt, targetPoint, checkoutRoute, labelValue } from '../js/board.js'
 import { createMatch, throwDart } from '../js/matchState.js';
 import { startManualMatch, liveAiDart, simulateLiveRest, liveAiVisit } from '../js/tournaments.js';
 import { legAverage } from '../js/matchState.js';
+import * as D from '../js/distractions.js';
 import { wave } from '../js/throwModel.js';
 
 let n = 0;
@@ -30,9 +31,10 @@ test('Neue Karriere: Startwerte', () => {
   assert.equal(s.player.age, 18);
   assert.equal(s.date.year, 2027);
   const o = overall(s.player.attrs);
-  assert.ok(o >= 38 && o <= 52, 'Gesamt ' + o);
+  assert.equal(o, 60); assert.equal(s.player.exp, -4);
+  assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 50 + 50 + 50);
+  assert.equal(Object.keys(s.world.players).length, 128 + 50 + 50 + 50 + 63);
   // Start 2027: 64 verlängert + 28 neu 2026 + 4 CT/Dev-2026 = 96 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 96);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -46,7 +48,7 @@ test('Kosten', () => {
 });
 
 test('Simulation: Satzformat', () => {
-  const r = simulateMatch({ sco: 80, fin: 80, con: 80, ner: 80, sta: 80 }, { sco: 80, fin: 80, con: 80, ner: 80, sta: 80 }, { sets: 3, legs: 3 }, new RNG(3));
+  const r = simulateMatch({ sco: 80, fin: 80, men: 80, foc: 80 }, { sco: 80, fin: 80, men: 80, foc: 80 }, { sets: 3, legs: 3 }, new RNG(3));
   assert.equal(Math.max(...r.score), 3);
 });
 
@@ -224,7 +226,7 @@ test('Pro Tour: PC-Doppel + ET (Quali → Hauptfeld) + OOM', () => {
   const pdc0 = orderOfMerit(s, 'pdc');
   assert.equal(pdc0[0].p.name, 'Luke Littler'); assert.ok(pdc0[63].money > 0);
   s.player.tour = 'tour'; s.player.cardUntil = 2028;
-  Object.keys(s.player.attrs).forEach(k => { s.player.attrs[k] = 95; });
+  Object.keys(s.player.attrs).forEach(k => { s.player.attrs[k] = 97; });
   s.date.week = 6;
   const pcEv = eventsInWeek(s, 2027, 6).find(e => e.cat === 'pc');
   assert.ok(eventStatus(s, pcEv).playable);
@@ -257,5 +259,41 @@ test('ET: Top-16-Spieler direkt im Hauptfeld', () => {
 });
 
 function closeEventAfterAll(s) { for (;;) { simulateRest(s); if (!s.activeEvent.hasNext) break; nextSub(s); } closeEvent(s); }
+
+test('Lokal: 16er-Feld im eigenen Bundesland, DDV-Turnier', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', region: 'BY', hand: 'R', seed: 12 });
+  const loc = eventsInWeek(s, 2027, 1).find(e => e.cat === 'local');
+  assert.equal(loc.region, 'Bayern');
+  enterEvent(s, loc.id);
+  assert.equal(s.activeEvent.fieldSize, 16);
+  simulateRest(s); closeEvent(s);
+  assert.ok(s.player.clutch > 0);
+  s.date.week = 9; s.week = { played: false, eventId: null };
+  const ddv = eventsInWeek(s, 2027, 9).find(e => e.cat === 'ddv');
+  assert.ok(eventStatus(s, ddv).playable);
+  const bal = s.finance.balance;
+  enterEvent(s, ddv.id);
+  assert.equal(bal - s.finance.balance, 25 + 250);
+  assert.equal(s.activeEvent.fieldSize, 64);
+  simulateRest(s); closeEvent(s);
+});
+
+test('Störmoment: Chancen, Entscheidung, Modifikator', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 13 });
+  const loc = eventsInWeek(s, 2027, 1).find(e => e.cat === 'local');
+  enterEvent(s, loc.id);
+  const live = startManualMatch(s);
+  live.dist = { id: 'chat', atVisit: 0, who: 'opp', done: false };
+  live.m.turn = live.me;
+  assert.ok(D.distractionDue(s));
+  const info = D.describe(s, live.dist);
+  assert.equal(info.options.length, 2);
+  // Start: Fokus 60, Erfahrung −4 → 65 % − 6 % = 59 %
+  assert.equal(Math.round(info.options[0].chance * 100), 59);
+  const r = D.resolveDistraction(s, 1);
+  assert.ok(live.dist.done && typeof r.ok === 'boolean');
+  assert.ok((live.mods ?? []).length >= 1);
+  liveAiVisit(s);
+});
 
 console.log(`\n${n} Tests ok`);

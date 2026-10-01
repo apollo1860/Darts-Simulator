@@ -1,12 +1,13 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
-import { startAttrs } from './player.js';
-import { createWorld, WORLD_VERSION } from './world.js';
+import { startAttrs, ratingForAvg, EXP_MIN } from './player.js';
+import { createWorld, upgradeWorld, WORLD_VERSION } from './world.js';
+import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 4;
+export const VERSION = 5;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -17,7 +18,7 @@ export const emptyStats = () => ({
   events: 0, titles: 0, finals: 0,
 });
 
-export function newCareer({ name, nation, hand, slot = 1, seed = randomSeed() }) {
+export function newCareer({ name, nation, hand, region = DEFAULT_REGION, slot = 1, seed = randomSeed() }) {
   const rngState = { s: seed >>> 0 };
   const rng = new RNG(rngState);
   const state = {
@@ -26,7 +27,8 @@ export function newCareer({ name, nation, hand, slot = 1, seed = randomSeed() })
     date: { year: START_YEAR, week: 1 },
     player: {
       id: 'P', name, nation, hand, age: 18,
-      attrs: startAttrs(rng),
+      region: nation === 'DE' ? region : null,
+      attrs: startAttrs(), exp: EXP_MIN, clutch: 0,
       xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
       tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false,
     },
@@ -90,7 +92,7 @@ export function validate(obj) {
 
 export function migrate(s) {
   // v1/v2 → v3 (Phase 3): echte Spielerwelt, neue Ranglisten-Struktur. Lokale IDs bleiben gleich.
-  if ((s.world?.version ?? 1) < WORLD_VERSION) {
+  if ((s.world?.version ?? 1) < 2) {
     s.world = createWorld(new RNG(s.rng), s.date.year);
     s.rankings = { years: {} };
     s.player.cardUntil ??= null; s.player.qschoolYear ??= null;
@@ -98,6 +100,16 @@ export function migrate(s) {
     s.activeEvent = null;
   }
   if (!s.rankings.seeded) seedRankings(s, new RNG(s.rng), START_YEAR);   // v3 → v4 (Phase 4)
+  // v4 → v5: Perzentil-Attribute (Scoring, Finishing, Mental, Fokus), Erfahrung, Bundesland, DDV
+  if (s.world.version < WORLD_VERSION) upgradeWorld(s.world, new RNG(s.rng));
+  const p = s.player;
+  if (p.attrs.con !== undefined) {
+    const old = p.attrs, r = v => ratingForAvg(30 + 0.77 * v);
+    p.attrs = { sco: r(old.sco), fin: r(old.fin), men: r(old.ner), foc: r(old.con) };
+    p.exp = EXP_MIN; p.clutch = 0;
+    s.activeEvent = null;
+  }
+  p.region ??= p.nation === 'DE' ? DEFAULT_REGION : null;
   s.version = VERSION;
   return s;
 }

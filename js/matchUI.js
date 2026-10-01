@@ -11,7 +11,9 @@ import { esc, fmtNum } from './util.js';
 import { flag } from '../data/nations.js';
 import { confirmDialog } from './ui/components.js';
 
-export const MANUAL_AVAILABLE = true;
+// Vorerst deaktiviert (Wunsch Nutzer): nur DartConnect- oder Schnellsimulation. Parameter in throwModel.manualParams
+// müssen bei Reaktivierung auf die Perzentil-Attribute neu kalibriert werden.
+export const MANUAL_AVAILABLE = false;
 const AI_DART_MS = 520, VISIT_PAUSE_MS = 900, LEG_PAUSE_MS = 1500;
 
 // ---------- Scheibe (SVG, einmal erzeugt) ----------
