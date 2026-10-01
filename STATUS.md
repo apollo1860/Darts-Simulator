@@ -29,7 +29,8 @@
 - Lokale Turniere: jede Woche außer KW 52; Ort aus Städteliste der eigenen Nation; 32er-Feld; Ft3 bis VF, HF Ft4, Finale Ft5; Preisgeld Sieger 50–200 € (10er-Schritte), Finale 40 %, Halbfinale 20 %. Keine Reisekosten.
 - Gegner im lokalen Turnier: zufällige 31 aus den 50 fiktiven Amateuren (unabhängig von der eigenen Nation).
 - XP: Match 10, Sieg +16, +6 je Runde, Titel +50, × Kategoriefaktor (lokal 0,8 … Major 2). Punktschwelle 60 + 8·(verdiente Punkte). Attributkosten 1/2/3 Punkte (<60 / 60–79 / ≥80).
-- Attribut→Leistung: Average = 30 + 0,77·Scoring; Checkout-Basis = 12 % + 0,33 %·Doppelquote.
+- Kein vorgegebener Start-Average (Wunsch Nutzer): Karte/Hub/Profil zeigen den gespielten Karriere-Average (`player.avgReal`). Gegner zeigen ihren Daten-Average.
+- Attribut→Engine-Leistung intern: 30 + 0,77·Scoring; Checkout-Basis = 12 % + 0,33 %·Doppelquote.
 - Spielerdaten Tour/Challenge/Dev sind Platzhalter („Tourspieler 001“ …). Echte Namen in Phase 3.
 
 ## Unsichere Angaben (bei echten Daten prüfen)
@@ -38,4 +39,4 @@
 
 ## Bekannte Bugs / Offene Punkte
 - Google Fonts werden online geladen; offline greift die Systemschrift (Arial Narrow/Roboto Condensed).
-- Balancing lokal: Start-Spieler (~62 Ø) gewinnt im ersten Jahr selten ein lokales Turnier, wenn er keine Punkte verteilt. Feinschliff in Phase 2/6.
+- Balancing lokal: Start-Spieler (Scoring 40–45) gewinnt im ersten Jahr selten ein lokales Turnier, wenn er keine Punkte verteilt. Feinschliff in Phase 2/6.

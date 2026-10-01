@@ -126,6 +126,8 @@ function recordPlayerMatch(state, inst, m, res) {
     t.hiFinish = Math.max(t.hiFinish, s.hiFinish);
     if (s.bestLeg && (!t.bestLeg || s.bestLeg < t.bestLeg)) t.bestLeg = s.bestLeg;
   }
+  const c = state.stats.career;
+  state.player.avgReal = c.darts ? Math.round(c.points / c.darts * 300) / 100 : null;
   const f = XP_FACTOR[inst.cat] ?? 1;
   const xp = Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * inst.current) * f);
   inst.xp += xp;

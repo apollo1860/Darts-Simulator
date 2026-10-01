@@ -27,7 +27,7 @@ export function newCareer({ name, nation, hand, slot = 1, seed = randomSeed() })
       id: 'P', name, nation, hand, age: 18,
       attrs: startAttrs(rng),
       xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
-      tour: 'none', tourCardUntil: null, everTourcard: false,
+      tour: 'none', tourCardUntil: null, avgReal: null, everTourcard: false,
     },
     world: createWorld(rng),
     finance: { balance: START_BUDGET, tx: [], seasons: {}, prizeTotal: 0 },

@@ -75,7 +75,7 @@ export function futCard(p, { small = false, me = false } = {}) {
   const status = tourStatus(p);
   return `<div class="fut-card ${cardTier(ovr)} ${small ? 'small' : ''} ${me ? 'me' : ''}">
     <div class="fut-top">
-      <div><div class="fut-ovr">${ovr}</div><div class="fut-pos">${fmtNum(targetAverage(p.attrs), 0)} Ø</div></div>
+      <div><div class="fut-ovr">${ovr}</div><div class="fut-pos">${p.id === 'P' ? (p.avgReal ? fmtNum(p.avgReal, 0) : '–') : fmtNum(p.avg ?? targetAverage(p.attrs), 0)} Ø</div></div>
       <div class="fut-flag" title="${esc(p.nation)}">${flag(p.nation)}</div>
     </div>
     <div class="fut-avatar">${esc(initials(p.name))}</div>

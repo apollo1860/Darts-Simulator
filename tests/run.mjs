@@ -1,7 +1,7 @@
 // Node-Tests: node tests/run.mjs
 import assert from 'node:assert/strict';
 import { newCareer } from '../js/state.js';
-import { overall, targetAverage } from '../js/player.js';
+import { overall } from '../js/player.js';
 import { eventsInWeek, advanceWeek } from '../js/calendar.js';
 import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch } from '../js/tournaments.js';
 import { eventCost } from '../js/finance.js';
@@ -21,9 +21,9 @@ test('Neue Karriere: Startwerte', () => {
   assert.equal(s.finance.balance, 5000);
   assert.equal(s.player.age, 18);
   assert.equal(s.date.year, 2027);
-  const o = overall(s.player.attrs), avg = targetAverage(s.player.attrs);
+  const o = overall(s.player.attrs);
   assert.ok(o >= 38 && o <= 52, 'Gesamt ' + o);
-  assert.ok(avg >= 60 && avg <= 65, 'Avg ' + avg);
+  assert.equal(s.player.avgReal, null); // kein vorgegebener Average
   assert.equal(Object.keys(s.world.players).length, 128 + 50 + 50 + 50);
 });
 
@@ -66,6 +66,7 @@ test('Lokales Turnier komplett + Saison', () => {
   assert.equal(s.date.year, 2028);
   assert.equal(s.player.age, 19);
   assert.equal(s.finance.balance, 5000 + prize);
+  assert.ok(s.player.avgReal > 30 && s.player.avgReal < 110, 'Avg ' + s.player.avgReal);
   console.log(`   Titel: ${titles}, Preisgeld: ${prize} €, Punkte verdient: ${s.player.pointsEarned}, Bilanz: ${s.stats.career.wins}-${s.stats.career.matches - s.stats.career.wins}`);
   JSON.parse(JSON.stringify(s));
 });

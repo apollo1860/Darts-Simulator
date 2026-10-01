@@ -1,7 +1,7 @@
 // Spielerprofil: Karte, Attribute verteilen, XP
 import { esc, fmtNum, fmtPct } from '../../util.js';
 import { nationName } from '../../../data/nations.js';
-import { ATTRS, overall, targetAverage, checkoutBase, xpForNextPoint, attrCost, raiseAttr } from '../../player.js';
+import { ATTRS, overall, checkoutBase, xpForNextPoint, attrCost, raiseAttr } from '../../player.js';
 import { tourStatus } from '../../world.js';
 import { topbar, futCard } from '../components.js';
 
@@ -35,7 +35,7 @@ export function render(app) {
       </div>
       <div class="kpi-grid">
         <div class="kpi"><div class="label">Gesamt</div><div class="v">${overall(p.attrs)}</div></div>
-        <div class="kpi"><div class="label">Ziel-Average</div><div class="v num">${fmtNum(targetAverage(p.attrs), 1)}</div></div>
+        <div class="kpi"><div class="label">Average (gespielt)</div><div class="v num">${p.avgReal ? fmtNum(p.avgReal, 1) : '–'}</div></div>
         <div class="kpi"><div class="label">Doppel-Basis</div><div class="v num">${fmtPct(checkoutBase(p.attrs), 0)}</div></div>
         <div class="kpi"><div class="label">Status</div><div class="v" style="font-size:1.05rem">${esc(tourStatus(p))}</div></div>
       </div>

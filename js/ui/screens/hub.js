@@ -1,7 +1,7 @@
 // Karriere-Hub (Kachel-Raster)
 import { esc, fmtEUR, weekLabel, fmtNum } from '../../util.js';
 import { flag } from '../../../data/nations.js';
-import { overall, targetAverage } from '../../player.js';
+import { overall } from '../../player.js';
 import { eventsInWeek, advanceWeek } from '../../calendar.js';
 import { eventStatus } from '../../tournaments.js';
 import { unreadCount } from '../../news.js';
@@ -61,7 +61,7 @@ export function render(app) {
   <div class="tile-grid">
     ${heroTile(s)}
     ${tile('calendar', '📅', 'Kalender', `Saison ${s.date.year}`)}
-    ${tile('profile', '🎯', 'Spielerprofil', `Ø ${fmtNum(targetAverage(p.attrs), 1)} · OVR ${overall(p.attrs)}`,
+    ${tile('profile', '🎯', 'Spielerprofil', `Ø ${p.avgReal ? fmtNum(p.avgReal, 1) : '–'} · OVR ${overall(p.attrs)}`,
       p.points ? `<span class="badge badge-green">+${p.points}</span>` : '')}
     ${tile('rankings', '🏆', 'Weltrangliste', 'Order of Merit')}
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}

@@ -57,10 +57,10 @@ sponsors:{active:[], offers:[]}, ended:bool
 Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Woche und nach jedem Turnier.
 
 ## Spielregeln (Kurzfassung Spezifikation)
-- **Start**: Jahr 2027, KW 1, Alter 18, Budget 5.000 €, keine Tourcard. Gesamtwertung ~40–50, Average ~60–65.
+- **Start**: Jahr 2027, KW 1, Alter 18, Budget 5.000 €, keine Tourcard. Gesamtwertung ~40–50. **Kein vorgegebener Average**: Spieler wird nur über Attribute beschrieben; angezeigt wird der echte, gespielte Karriere-Average (`player.avgReal`, vor dem 1. Match „–“).
 - **Attribute** (1–99): Scoring (sco), Doppelquote (fin), Konstanz (con), Nervenstärke (ner), Ausdauer (sta).
   - Gesamt = 0,35·sco + 0,30·fin + 0,15·con + 0,10·ner + 0,10·sta
-  - Ziel-Average = 30 + 0,77·sco (99 → ~106) ; Checkout-Basis = 0,12 + 0,0033·fin
+  - Interne Engine-Leistung = 30 + 0,77·sco (nur Simulation, nicht als Spielerwert angezeigt) ; Checkout-Basis = 0,12 + 0,0033·fin
   - Konstanz → Streuung der Aufnahmen und der Tagesform; Nervenstärke → Checkout bei Entscheidungsleg/Match-Darts; Ausdauer → Leistungsabfall in langen Matches.
 - **XP**: aus Matches/Turnieren (Faktor nach Kategorie). Punkt-Schwelle = 100 + 10·(bisher verdiente Punkte). Attribut erhöhen kostet 1 Punkt (<60), 2 (60–79), 3 (≥80). Kein Alterungsverlust. Alter +1 zum Jahreswechsel.
 - **Kalender**: ISO-KW 1–52 (KW 53 wird übersprungen). Pro Woche max. ein Event. „Weiter“ → nächste Woche.
