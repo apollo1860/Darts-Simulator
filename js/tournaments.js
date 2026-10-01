@@ -330,9 +330,12 @@ function applyResult(m, res) {
   m.avg = res.stats.map(s => Math.round(s.avg * 10) / 10);
 }
 
+// XP gutschreiben (inkl. Trainer-Faktor); Rückgabe = tatsächlich gutgeschriebene XP (für die Anzeige)
 function grantXp(state, xp) {
-  const ups = addXp(state.player, Math.round(xp * xpMult(state)));
+  const got = Math.round(xp * xpMult(state));
+  const ups = addXp(state.player, got);
   if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Verteile sie im Spielerprofil oder direkt nach dem Turnier.');
+  return got;
 }
 
 function recordPlayerMatch(state, inst, m, res) {
@@ -350,9 +353,8 @@ function recordPlayerMatch(state, inst, m, res) {
   const c = state.stats.career;
   state.player.avgReal = c.darts ? Math.round(c.points / c.darts * 300) / 100 : null;
   const f = xpFactor(inst);
-  const xp = Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * Math.min(inst.current, 6)) * f);
+  const xp = grantXp(state, Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * Math.min(inst.current, 6)) * f));
   inst.xp += xp;
-  grantXp(state, xp);
   // Erfahrung (Clutch): jedes Match, Entscheidungslegs/-sätze zählen extra
   const fmt = inst.rounds[inst.current].format, isSets = !!fmt.sets;
   const sc = res.score, to = isSets ? fmt.sets : fmt.legs;
@@ -477,14 +479,10 @@ function finishEvent(state, inst) {
   const place = inst.place, prize = inst.prize;
   const f = xpFactor(inst);
   // Teilnahme-Bonus: nach jedem Turnier kann trainiert werden
-  const evXp = Math.round(XP_BASE.event * f);
-  inst.xp += evXp;
-  grantXp(state, evXp);
+  inst.xp += grantXp(state, Math.round(XP_BASE.event * f));
   if (place === 'W') titleMomentum(state.player, inst.cat);
   if (place === 'W' || place === 'CARD') {
-    const bonus = Math.round(XP_BASE.title * f);
-    inst.xp += bonus;
-    grantXp(state, bonus);
+    inst.xp += grantXp(state, Math.round(XP_BASE.title * f));
   }
   if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
   sponsorEventPayout(state, inst);

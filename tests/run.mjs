@@ -501,6 +501,8 @@ test('Team: Manager-Provision, Sponsor-/Exhibition-Boni, Trainer 1 Jahr', () => 
   s.finance.balance = 10000;
   assert.ok(ST.hireCoach(s, 'c2')); assert.equal(s.finance.balance, 4000);
   assert.equal(ST.xpMult(s), 1.2); assert.equal(ST.hireCoach(s, 'c1'), false);   // nur einer gleichzeitig
+  { const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local'); const x0 = s.player.xpTotal;
+    enterEvent(s, e.id); simulateRest(s); assert.equal(s.activeEvent.xp, s.player.xpTotal - x0, 'Anzeige = gutgeschriebene XP'); closeEvent(s); }
   for (let i = 0; i < 52; i++) nextWeek(s);
   assert.equal(ST.coachActive(s), null); assert.equal(ST.xpMult(s), 1);
 });
