@@ -8,7 +8,7 @@ export const WORLD_VERSION = 3;   // Rechnen (cal) wird in state.migrate ergänz
 export const DDV_POOL = 63;
 export const DEV_MAX_AGE = 23;
 export const LOCAL_SHIFT = 6;   // lokale Gegner etwas schwächer als die Listenwerte
-const POOL_MAX = 200;          // Spieler ohne Karte (Challenge + Dev)
+const POOL_MAX = 300;          // Spieler ohne Karte (Challenge + Dev, inkl. schwacher Pool)
 
 // tier: tour | challenge | dev | local ; cardUntil = letzte Saison mit gültiger Tourcard
 export function createWorld(rng, startYear = 2027) {
@@ -25,6 +25,7 @@ export function createWorld(rng, startYear = 2027) {
   add(LOCAL_PLAYERS.map(([n, nat, a, avg]) => [n, nat, a, avg - LOCAL_SHIFT]), 'L', 'local', null);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   addDdvPool(world, rng);
+  addWeakPool(world, rng);
   // Challenge-/Dev-Tour 2026: je Top 2 der Nutzerliste (Listenplatz 1–2) erhalten eine Karte bis Ende 2028
   for (const prefix of ['C', 'D']) {
     [1, 2].map(i => players[prefix + i])
@@ -78,6 +79,26 @@ function addDdvPool(world, rng) {
   }
 }
 
+// Schwache fiktive Spieler aus ganz Europa für die Auslosung von CT/Dev Tour (F1…F90):
+// 50 Dev (16–22 J., 64–72 Ø), 40 Challenge (24–48 J., 68–75 Ø) – „Kanonenfutter“ der ersten Runden
+export const WEAK_DEV = 50, WEAK_CT = 40;
+export function addWeakPool(world, rng) {
+  const used = new Set(Object.values(world.players).map(p => p.name));
+  for (let i = 1; i <= WEAK_DEV + WEAK_CT; i++) {
+    const dev = i <= WEAK_DEV;
+    let r = rng.next(), key = 'EN';
+    for (const [k, w] of POOL_WEIGHTS) { if (r < w) { key = k; break; } r -= w; }
+    const pool = NAME_POOLS[key];
+    let name;
+    do name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`; while (used.has(name));
+    used.add(name);
+    const avg = Math.round(dev ? rng.float(64, 72) : rng.float(68, 75)), age = dev ? rng.int(16, 22) : rng.int(24, 48);
+    const tier = dev ? 'dev' : 'challenge';
+    world.players[`F${i}`] = { id: `F${i}`, name, nation: rng.pick(pool.nations), age, avg, tier, cardUntil: null,
+      attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
+  }
+}
+
 // Spielstände mit Welt v2 → v3: neue Attribute, Erfahrung, DDV-Pool
 export function upgradeWorld(world, rng) {
   for (const p of Object.values(world.players)) { p.attrs = attrsForAverage(p.avg, rng); p.exp = aiExp(p.tier, p.age, rng); }
@@ -98,7 +119,7 @@ function newTalent(state, rng, year) {
   for (const [k, w] of POOL_WEIGHTS) { if (r < w) { key = k; break; } r -= w; }
   const pool = NAME_POOLS[key];
   const id = `G${state.world.nextId++}`;
-  const avg = Math.round(rng.float(74, 86));
+  const avg = Math.round(rng.float(70, 82));          // Dev-Niveau (unter der Challenge Tour)
   const p = {
     id, name: `${rng.pick(pool.first)} ${rng.pick(pool.last)}`, nation: rng.pick(pool.nations),
     age: rng.int(16, 18), avg, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 17, rng), generated: year,

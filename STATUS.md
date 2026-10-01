@@ -94,6 +94,7 @@
 - Challenge/Dev Tour: immer 5 Turniere pro Wochenende (Nutzerwunsch), 5 Wochenenden je Tour = 25 Turniere (vorher 12 × 2).
 - Hub: Button „✓ Alle gelesen“ in der Neuigkeiten-Kachel (setzt alle Meldungen auf gelesen, ohne den Feed zu öffnen).
 - Checkout-Entscheidung (Nutzerwunsch): immer 3 Wege mit festem Ausgang – einer checkt, einer spielt sauber auf ein Doppel runter, einer wird eine sehr schlechte Aufnahme. Für 115 von 130 Resten (41–170) gibt es 3 Wege; sonst keine Entscheidung.
+- Preisgelder CT/Dev (Sieg 3.000 … L64 100 €) und DDV (Sieg 350, Finale 100 €) nach Vorgabe; lokale Turniere immer best of 5; Dev Tour 4 Ø schwächer als CT; 90 schwache fiktive Spieler im CT/Dev-Pool (Migration v11).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.

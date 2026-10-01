@@ -128,7 +128,7 @@ export const LOCAL_CITIES = {
 // Formate je Kategorie: default-Format, Abweichungen nach verbleibenden Spielern, stopAt = Turnierende
 // (Q-School: bei den letzten 4 → diese erhalten eine Tourcard). {legs:n} = first to n.
 export const FORMATS = {
-  local: { field: 16, default: { legs: 3 }, byRemaining: { 4: { legs: 4 }, 2: { legs: 5 } } },
+  local: { field: 16, default: { legs: 3 } },          // immer best of 5 (first to 3), auch im Finale
   ddv: { field: 64, default: { legs: 4 }, byRemaining: { 4: { legs: 5 }, 2: { legs: 6 } } },
   wdf: { field: 64, default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 6 } } },
   qschool: { default: { legs: 5 }, stopAt: 4, cards: true },

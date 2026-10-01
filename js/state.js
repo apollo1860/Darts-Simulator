@@ -1,15 +1,15 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT } from './world.js';
-import { LOCAL_PLAYERS } from '../data/players.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength } from './world.js';
+import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL } from '../data/players.js';
 import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 10;
+export const VERSION = 11;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -134,6 +134,13 @@ export function migrate(s) {
   });
   // v9 → v10: Rivale
   if (!s.rival) createRival(s);
+  // v10 → v11: Dev Tour schwächer (−4 Ø, außer CT-Listen-Spieler), schwacher fiktiver Pool für CT/Dev
+  if ((s.version ?? 1) < 11 && !freshWorld) {
+    const r = new RNG(s.rng), keep = new Set(DEV_AT_CT_LEVEL), devNames = new Set(DEV_PLAYERS.map(x => x[0]));
+    for (const x of Object.values(s.world.players))
+      if (x.id[0] === 'D' && devNames.has(x.name) && !keep.has(x.name) && x.tier !== 'tour') changeStrength(x, -4);
+    if (!s.world.players.F1) addWeakPool(s.world, r);
+  }
   s.version = VERSION;
   return s;
 }
