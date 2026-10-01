@@ -13,7 +13,7 @@ Karrieremodus für Darts im FIFA-Stil: vom Kneipenturnier im eigenen Bundesland 
 1. **Charakter erstellen:** Name, Nation, Bundesland, Wurfhand. Alle Attribute starten bei 60 von 100, dazu verteilst du 25 Bonuspunkte frei. Die Erfahrung startet bei −4, das Budget bei 5.000 €.
 2. **Wochenkalender:** Pro Woche ein Event (die Premier League kommt zusätzlich), dann „Weiter“. Gespeichert wird automatisch nach jeder Woche.
 3. **Turniere:** Jedes Match wird simuliert, entweder als **📺 DartConnect** (Aufnahme für Aufnahme, mit Störmomenten und Entscheidungen) oder als **⚡ Schnellsimulation**.
-4. **Training:** Nach jedem Turnier verteilst du Punkte auf Scoring, Finishing, Mental und Fokus.
+4. **Training:** Nach jedem Turnier verteilst du Punkte auf Scoring, Finishing, Mental, Fokus und Rechnen. Dazu kommt einmal pro Woche eine Trainingseinheit. Wer länger nicht trainiert, verliert an Form.
 5. **Aufstieg:** Lokal und DDV, dann Q-School (Tourcard) oder Challenge/Development Tour (Top 2), dann Pro Tour und Majors. Die Tourcard gilt 2 Jahre, danach behalten sie nur die Top 64 der PDC-Rangliste.
 6. **Sponsoren:** Ab der ersten Tourcard, höchstens 4 gleichzeitig (eine pro Kategorie), Laufzeit 1–3 Jahre, jederzeit kündbar.
 7. **Karriereende:** Jederzeit über „Speichern & Menü“, mit Abschlussbilanz.
