@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { newCareer } from '../js/state.js';
 import { overall } from '../js/player.js';
 import { eventsInWeek } from '../js/calendar.js';
+import { CALENDAR } from '../data/tournaments.js';
 import { nextWeek, jumpToNextEvent } from '../js/season.js';
 import { perf, xpForLevel, addXp, levelFromXp, MAX_LEVEL } from '../js/player.js';
 import { migrate } from '../js/state.js';
@@ -207,19 +208,23 @@ test('Q-School: 4 Tage, Karten, Challenge-Zugang', () => {
   const tour = playersOfTier(s, 'tour').length + (s.player.tour === 'tour' ? 1 : 0);
   assert.equal(tour, 101 + 32);
   assert.equal(s.player.qschoolYear, 2027);
-  const ct = eventsInWeek(s, 2027, 7).find(e => e.cat === 'challenge');
-  s.date.week = 7; s.week = { played: false, eventId: null };
+  const ct = eventsInWeek(s, 2027, 11).find(e => e.cat === 'challenge');
+  s.date.week = 11; s.week = { played: false, eventId: null };
   assert.equal(eventStatus(s, ct).playable, s.player.tour !== 'tour');
 });
 
-test('Challenge-Doppel + Hintergrund-OOM', () => {
+test('Challenge-Wochenende (5 Turniere) + Hintergrund-OOM', () => {
   const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 4 });
-  s.player.qschoolYear = 2027; s.date.week = 7;
+  s.player.qschoolYear = 2027; s.date.week = 11;
+  const b0 = s.finance.balance;
   const places = playBlock(s, 'ct-1');
-  assert.equal(places.length, 2);
+  assert.equal(places.length, 5);
+  assert.ok(s.results.slice(0, 5).every((r, i) => r.name === `Challenge Tour ${5 - i}`), s.results.slice(0, 5).map(r => r.name).join());
+  assert.equal(CALENDAR.filter(e => e.cat === 'challenge').reduce((n, e) => n + e.count, 0), 25);
+  assert.equal(CALENDAR.filter(e => e.cat === 'dev' && e.count).reduce((n, e) => n + e.count, 0), 25);
   const ct = orderOfMerit(s, 'challenge');
   assert.ok(ct.filter(x => x.money > 0).length >= 32);
-  s.week = { played: true, eventId: 'ct-1' }; s.date.week = 8;   // Dev-Wochenende ohne Spieler
+  s.week = { played: true, eventId: 'ct-1' }; s.date.week = 14;  // Dev-Wochenende ohne Spieler
   nextWeek(s);
   assert.ok(orderOfMerit(s, 'dev').filter(x => x.money > 0).length >= 30);
 });

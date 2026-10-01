@@ -91,6 +91,7 @@
 - WDF: zufälliger XP-Boost ×1,2–1,6 je Turnier (Anzeige am Turnierende); pro Woche nur noch ein WDF-Open (Tallinn, Canadian und Philippines Open gestrichen → 17 Events).
 - **Rivale** (Vorschlag 2): gleichaltriges Talent, Duelle mit Bilanz, News, Selbstvertrauen, eigener Screen + Hub-Kachel, Banner im DartConnect, hält mit deinem Niveau mit (Migration v10). Bot-Karriere: ~50–80 Duelle in 8 Saisons, Bilanz ausgeglichen.
 - Fix: XP-Anzeige am Turnierende/nach Matches enthält jetzt den Trainer-Bonus.
+- Challenge/Dev Tour: immer 5 Turniere pro Wochenende (Nutzerwunsch), 5 Wochenenden je Tour = 25 Turniere (vorher 12 × 2).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -98,6 +99,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- CT/Dev: 5 Wochenenden je Tour (Gesamtzahl wie real ~24–25 Turniere); Termine KW 11/19/29/37/42 (CT) und 14/22/32/39/43 (Dev), möglichst ohne DDV-Überschneidung.
 - Rivale: gleiche Nation, Stärke folgt dir (50 %/Jahr), damit die Rivalität spannend bleibt; Häufigkeit über gezielte Feldplätze lokal/DDV/WDF (sonst nur Zufall in CT/Dev/Q-School/Tour).
 - WDF: KW nach den Terminen 2026 (gilt jedes Jahr gleich). Orte für Dänemark/England/Finnland/Kanada/NZ/Australien/Wales/Tschechien/Italien geschätzt; Italian/Finnish Open (ohne Kategorie) als Bronze. Bei zwei WDF-Opens in einer KW bleibt nur eins: Estonian Open, The Steel Masters, Belgium Open (Nutzerwunsch statt Philippines). Keine Startgebühr. Feld = zufällige Spieler ohne Karte + DDV-Pool (keine echten Übersee-Amateure).
 - XP gesenkt: Basis Match 10/Sieg 15/Runde 6/Titel 40/Teilnahme 45, lokal ×0,55. Bot (spielt aus Geldmangel fast nur lokal) erreicht nach 8 Saisons Level ~47 / OVR ~92, noch ohne Tourcard – wer CT/DDV spielt, steigt schneller. Level-Up-Fenster im laufenden Turnier erst nach Turnierende.
@@ -122,8 +124,8 @@
 - Tourgröße schwankt (Q-School vergibt fest 32 Karten): ca. 125–140 Holder.
 - XP großzügiger als in Phase 1 (Schwelle 50 + 3·n), damit eine Tourcard in einigen Saisons erreichbar ist.
 - Kalender nutzt ISO-KW 1–52, KW 53 wird übersprungen. WM in KW 51–52 (Finale Anfang Januar nicht separat).
-- Kalender 2027 frei nach PDC-Muster (Termine/Orte angenähert): PC 15 Doppel-Blöcke, ET 14 Events, CT/Dev je 12 Wochenenden à 2 Turniere, Q-School UK (Milton Keynes) + EU (Kalkar) beide KW 2.
-- Doppel-Events (PC, CT, Dev) zählen als *ein* Wochen-Event; Anmeldegebühr 25 € **je Turnier** (CT-Doppel = 50 €, Q-School 4 Tage = 100 €).
+- Kalender 2027 frei nach PDC-Muster (Termine/Orte angenähert): PC 15 Doppel-Blöcke, ET 14 Events, CT/Dev je 5 Wochenenden à 5 Turniere, Q-School UK (Milton Keynes) + EU (Kalkar) beide KW 2.
+- Mehrfach-Events (PC-Doppel, CT/Dev-Wochenende mit 5 Turnieren) zählen als *ein* Wochen-Event; Anmeldegebühr 25 € **je Turnier** (CT-Wochenende = 125 €, Q-School 4 Tage = 100 €).
 - Reisekosten richten sich nach dem Land des Events (UK-Landesteile = England-Tarif), unabhängig vom Heimatland.
 - Lokale Turniere: jede Woche außer KW 52; Ort aus Städteliste der eigenen Nation; 32er-Feld; Ft3 bis VF, HF Ft4, Finale Ft5; Preisgeld Sieger 50–200 € (10er-Schritte), Finale 40 %, Halbfinale 20 %. Keine Reisekosten.
 - Gegner im lokalen Turnier: zufällige 31 aus den 50 fiktiven Amateuren (unabhängig von der eigenen Nation).

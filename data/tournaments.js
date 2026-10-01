@@ -19,8 +19,10 @@ export const CATEGORIES = {
 const pcWeeks = [6, 8, 11, 13, 15, 17, 19, 21, 25, 27, 31, 33, 35, 38, 41];
 const pcCities = ['Leicester', 'Leicester', 'Wigan', 'Leicester', 'Milton Keynes', 'Wigan', 'Leicester', 'Hildesheim',
   'Wigan', 'Milton Keynes', 'Leicester', 'Wigan', 'Hildesheim', 'Leicester', 'Leicester'];
-const ctWeeks = [7, 11, 14, 17, 20, 23, 27, 30, 33, 36, 39, 42];
-const devWeeks = [8, 13, 16, 19, 22, 26, 28, 32, 35, 38, 41, 43];
+// Challenge/Dev Tour: je 5 Wochenenden à 5 Turniere (= 25 je Tour)
+const ctWeeks = [11, 19, 29, 37, 42];
+const devWeeks = [14, 22, 32, 39, 43];
+export const TOUR_WEEKEND_EVENTS = 5;
 const tourCities = ['Milton Keynes', 'Leicester', 'Hildesheim', 'Wigan'];
 const cityCountry = c => (c === 'Hildesheim' ? 'DE' : 'ENG');
 
@@ -102,12 +104,12 @@ export const CALENDAR = [
     subs: ['Qualifikation', 'Hauptfeld'], subFmts: ['etq', 'et'], note: 'Top 16 PDC gesetzt · Rest: Qualifikation (32 Plätze)',
   })),
   ...ctWeeks.map((w, i) => ({
-    id: `ct-${i + 1}`, cat: 'challenge', name: `Challenge Tour ${i * 2 + 1} & ${i * 2 + 2}`,
-    week: w, city: tourCities[i % 4], country: cityCountry(tourCities[i % 4]), count: 2,
+    id: `ct-${i + 1}`, cat: 'challenge', name: `Challenge Tour ${i * 5 + 1}–${i * 5 + 5}`,
+    week: w, city: tourCities[i % 4], country: cityCountry(tourCities[i % 4]), count: TOUR_WEEKEND_EVENTS,
   })),
   ...devWeeks.map((w, i) => ({
-    id: `dev-${i + 1}`, cat: 'dev', name: `Development Tour ${i * 2 + 1} & ${i * 2 + 2}`,
-    week: w, city: tourCities[(i + 2) % 4], country: cityCountry(tourCities[(i + 2) % 4]), count: 2,
+    id: `dev-${i + 1}`, cat: 'dev', name: `Development Tour ${i * 5 + 1}–${i * 5 + 5}`,
+    week: w, city: tourCities[(i + 2) % 4], country: cityCountry(tourCities[(i + 2) % 4]), count: TOUR_WEEKEND_EVENTS,
   })),
 ];
 

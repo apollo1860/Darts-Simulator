@@ -1,5 +1,5 @@
 // Turniere: Berechtigung, Meldung, Feld/Auslosung, Runden, Platzierungen, Preisgeld/OOM,
-// Mehrfach-Events (z. B. CT-Doppel, 4 Q-School-Tage) und KI-Hintergrund-Turniere (DOM-frei)
+// Mehrfach-Events (z. B. CT-Wochenende mit 5 Turnieren, 4 Q-School-Tage) und KI-Hintergrund-Turniere (DOM-frei)
 import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS } from '../data/tournaments.js';
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG } from './rng.js';
@@ -88,7 +88,7 @@ const subLabel = (ev, sub) => (ev.subs?.[sub] ?? (ev.count > 1 ? (ev.cat === 'qs
 const subName = (ev, sub) => {
   if (ev.subs) return sub === 0 ? `${ev.name} · ${ev.subs[0]}` : ev.name;
   if (ev.count > 1 && ev.cat !== 'qschool') {
-    const m = ev.name.match(/^(.*?)(\d+) & (\d+)$/);
+    const m = ev.name.match(/^(.*?)(\d+)(?: & |–)(\d+)$/);
     if (m) return `${m[1]}${+m[2] + sub}`;
   }
   return ev.count > 1 ? `${ev.name} · ${subLabel(ev, sub)}` : ev.name;
