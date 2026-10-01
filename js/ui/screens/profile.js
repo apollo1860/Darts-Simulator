@@ -37,7 +37,7 @@ export function render(app) {
         <div class="kpi"><div class="label">Gesamt</div><div class="v">${overall(p.attrs)}</div></div>
         <div class="kpi"><div class="label">Average (gespielt)</div><div class="v num">${p.avgReal ? fmtNum(p.avgReal, 1) : '–'}</div></div>
         <div class="kpi"><div class="label">Doppel-Basis</div><div class="v num">${fmtPct(checkoutBase(p.attrs), 0)}</div></div>
-        <div class="kpi"><div class="label">Status</div><div class="v" style="font-size:1.05rem">${esc(tourStatus(p))}</div></div>
+        <div class="kpi"><div class="label">Status</div><div class="v" style="font-size:1.05rem">${esc(tourStatus(p, app.state.date.year))}</div></div>
       </div>
     </div>
   </div>`;

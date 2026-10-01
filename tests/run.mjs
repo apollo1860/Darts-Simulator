@@ -2,8 +2,11 @@
 import assert from 'node:assert/strict';
 import { newCareer } from '../js/state.js';
 import { overall } from '../js/player.js';
-import { eventsInWeek, advanceWeek } from '../js/calendar.js';
-import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch } from '../js/tournaments.js';
+import { eventsInWeek } from '../js/calendar.js';
+import { nextWeek } from '../js/season.js';
+import { orderOfMerit } from '../js/rankings.js';
+import { playersOfTier, nonCardPros } from '../js/world.js';
+import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub } from '../js/tournaments.js';
 import { eventCost } from '../js/finance.js';
 import { RNG } from '../js/rng.js';
 import { simulateMatch } from '../js/matchEngine.js';
@@ -30,6 +33,9 @@ test('Neue Karriere: Startwerte', () => {
   assert.ok(o >= 38 && o <= 52, 'Gesamt ' + o);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
   assert.equal(Object.keys(s.world.players).length, 128 + 50 + 50 + 50);
+  // Start 2027: 64 verlängert + 28 neu 2026 + 4 CT/Dev-2026 = 96 Karten, Rest in der Q-School
+  assert.equal(playersOfTier(s, 'tour').length, 96);
+  assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
 });
 
 test('Kosten', () => {
@@ -50,8 +56,6 @@ test('Lokales Turnier komplett + Saison', () => {
   for (let w = 0; w < 60; w++) {
     const local = eventsInWeek(s, s.date.year, s.date.week).find(e => e.cat === 'local');
     if (local) {
-      const qs = eventsInWeek(s, s.date.year, s.date.week).find(e => e.cat === 'qschool');
-      if (qs) assert.equal(eventStatus(s, qs).playable, false);
       assert.ok(eventStatus(s, local).playable);
       enterEvent(s, local.id);
       assert.equal(eventStatus(s, local).playable, false);
@@ -66,7 +70,7 @@ test('Lokales Turnier komplett + Saison', () => {
       prize += s.activeEvent.prize;
       closeEvent(s);
     }
-    assert.ok(advanceWeek(s));
+    assert.ok(nextWeek(s));
   }
   assert.equal(s.date.year, 2028);
   assert.equal(s.player.age, 19);
@@ -154,6 +158,64 @@ test('Schnellsimulation: Aufnahmen + Leg-Average', () => {
   let legs = 0;
   while (!lm.done) { const e = liveAiVisit(s); if (e.legEnd) { legs++; assert.ok(lm.lastLeg.visits[e.legWinner].at(-1).checkout); } }
   assert.equal(legs, lm.log.length);
+});
+
+// Hilfsfunktion: eigenes Event komplett per Simulation durchspielen (inkl. aller Teil-Turniere)
+function playBlock(s, id) {
+  enterEvent(s, id);
+  const places = [];
+  for (;;) {
+    simulateRest(s);
+    places.push(s.activeEvent.place);
+    if (!s.activeEvent.hasNext) break;
+    nextSub(s);
+  }
+  closeEvent(s);
+  return places;
+}
+
+test('Q-School: 4 Tage, Karten, Challenge-Zugang', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 21 });
+  nextWeek(s);                                                  // → KW 2
+  const qs = eventsInWeek(s, s.date.year, s.date.week).find(e => e.id === 'qs-eu');
+  assert.ok(eventStatus(s, qs).playable);
+  const before = s.finance.balance;
+  const places = playBlock(s, 'qs-eu');
+  assert.equal(before - s.finance.balance, 100 + 250);           // 4 × 25 € + Reise DE
+  assert.ok(places.length >= 1 && places.length <= 4);
+  if (places.includes('CARD')) assert.equal(s.player.tour, 'tour');
+  nextWeek(s);                                                  // UK-Q-School läuft im Hintergrund
+  const tour = playersOfTier(s, 'tour').length + (s.player.tour === 'tour' ? 1 : 0);
+  assert.equal(tour, 96 + 32);
+  assert.equal(s.player.qschoolYear, 2027);
+  const ct = eventsInWeek(s, 2027, 7).find(e => e.cat === 'challenge');
+  s.date.week = 7; s.week = { played: false, eventId: null };
+  assert.equal(eventStatus(s, ct).playable, s.player.tour !== 'tour');
+});
+
+test('Challenge-Doppel + Hintergrund-OOM', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 4 });
+  s.player.qschoolYear = 2027; s.date.week = 7;
+  const places = playBlock(s, 'ct-1');
+  assert.equal(places.length, 2);
+  const ct = orderOfMerit(s, 'challenge');
+  assert.ok(ct.filter(x => x.money > 0).length >= 32);
+  s.week = { played: true, eventId: 'ct-1' }; s.date.week = 8;   // Dev-Wochenende ohne Spieler
+  nextWeek(s);
+  assert.ok(orderOfMerit(s, 'dev').filter(x => x.money > 0).length >= 30);
+});
+
+test('Mehrere Saisons: Karten, Jahreswechsel, Welt bleibt stabil', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 77 });
+  const t0 = Date.now();
+  for (let i = 0; i < 52 * 3 + 2; i++) assert.ok(nextWeek(s));    // bis nach der Q-School 2030
+  assert.equal(s.date.year, 2030); assert.equal(s.player.age, 21);
+  const tour = playersOfTier(s, 'tour').length;
+  assert.ok(tour >= 115 && tour <= 145, 'Tourgröße ' + tour);
+  assert.ok(nonCardPros(s).length >= 60);           // nach Q-School (32 Karten vergeben)
+  assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
+  assert.ok(playersOfTier(s, 'tour').every(p => p.cardUntil >= 2030));
+  console.log(`   3 Saisons in ${Date.now() - t0} ms · Tour ${tour} · ohne Karte ${nonCardPros(s).length} · JSON ${(JSON.stringify(s).length / 1024).toFixed(0)} KB`);
 });
 
 console.log(`\n${n} Tests ok`);

@@ -1,22 +1,48 @@
-// Order of Merits (DOM-frei). Phase 1: noch keine Ranglisten-Turniere → Anzeige nach Stärke.
-// Ab Phase 3/4: state.rankings.entries [{id, oom, amount, year, week}] → rollierend summieren.
-import { playersOfTier } from './world.js';
+// Order of Merits (DOM-frei). Preisgeld wird je Jahr/Typ/Spieler aggregiert:
+// state.rankings.years[year][type][id] = Betrag
+import { playersOfTier, nonCardPros } from './world.js';
 import { overall } from './player.js';
 
 export const OOM_TYPES = {
-  pdc: { label: 'PDC Order of Merit', tiers: ['top', 'tour'], tour: 'tour', years: 2 },
-  protour: { label: 'Pro Tour OOM', tiers: ['top', 'tour'], tour: 'tour', years: 1 },
-  challenge: { label: 'Challenge Tour OOM', tiers: ['challenge'], tour: 'challenge', years: 1 },
-  dev: { label: 'Development Tour OOM', tiers: ['dev'], tour: 'dev', years: 1 },
+  pdc: { label: 'PDC Order of Merit', short: 'PDC', years: 2, cards: 64 },
+  protour: { label: 'Pro Tour OOM', short: 'Pro Tour', years: 1 },
+  challenge: { label: 'Challenge Tour OOM', short: 'Challenge', years: 1, cards: 2 },
+  dev: { label: 'Development Tour OOM', short: 'Dev', years: 1, cards: 2 },
 };
 
-export function orderOfMerit(state, type) {
-  const t = OOM_TYPES[type];
-  const money = {};
-  const minYear = state.date.year - t.years + 1;
-  for (const e of state.rankings.entries) if (e.oom === type && e.year >= minYear) money[e.id] = (money[e.id] ?? 0) + e.amount;
-  const list = playersOfTier(state, ...t.tiers).map(p => ({ p, money: money[p.id] ?? 0, ovr: overall(p.attrs) }));
-  if (state.player.tour === t.tour) list.push({ p: state.player, money: money.P ?? 0, ovr: overall(state.player.attrs) });
+export function addMoney(state, type, id, amount, year = state.date.year) {
+  if (!amount) return;
+  const y = (state.rankings.years ??= {})[year] ??= {};
+  const t = y[type] ??= {};
+  t[id] = (t[id] ?? 0) + amount;
+}
+
+// Teilnehmerkreis je Rangliste
+function members(state, type, year) {
+  const p = state.player;
+  if (type === 'pdc' || type === 'protour') {
+    const list = playersOfTier(state, 'tour');
+    if (p.tour === 'tour') list.push(p);
+    return list;
+  }
+  const list = type === 'dev' ? playersOfTier(state, 'dev') : nonCardPros(state);
+  const eligible = p.tour !== 'tour' && p.qschoolYear === year && (type !== 'dev' || p.age <= 23);
+  if (eligible) list.push(p);
+  return list;
+}
+
+export function moneyOf(state, type, id, year = state.date.year) {
+  let sum = 0;
+  for (let y = year - OOM_TYPES[type].years + 1; y <= year; y++) sum += state.rankings.years?.[y]?.[type]?.[id] ?? 0;
+  return sum;
+}
+
+// Sortiert nach Preisgeld; Gleichstand (z. B. noch keine Turniere) → Spielstärke
+export function orderOfMerit(state, type, year = state.date.year) {
+  const list = members(state, type, year).map(p => ({ p, money: moneyOf(state, type, p.id, year), ovr: overall(p.attrs) }));
+  // Spieler mit Preisgeld, die nicht mehr im Teilnehmerkreis sind (z. B. Karte gewonnen), bleiben sichtbar
   list.sort((a, b) => b.money - a.money || b.ovr - a.ovr);
   return list.map((x, i) => ({ ...x, rank: i + 1 }));
 }
+
+export const rankOf = (state, type, id, year) => orderOfMerit(state, type, year).find(x => x.p.id === id)?.rank ?? null;

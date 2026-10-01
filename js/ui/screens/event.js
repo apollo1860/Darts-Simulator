@@ -3,17 +3,20 @@ import { esc, fmtEUR, fmtNum, fmtPct } from '../../util.js';
 import { flag } from '../../../data/nations.js';
 import { getPlayer } from '../../world.js';
 import { formatLabel } from '../../matchEngine.js';
-import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel } from '../../tournaments.js';
+import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../tournaments.js';
 import { MANUAL_AVAILABLE } from '../../matchUI.js';
 import { topbar, futCard, modal, catTag, playerModal } from '../components.js';
 
 const nm = (s, id) => getPlayer(s, id).name;
 
+// Baum ab den letzten 32 (große Felder werden gekürzt)
 function bracket(s, inst) {
-  return `<div class="bracket-scroll"><div class="bracket">${inst.rounds.map((r, ri) => `
+  const shown = inst.rounds.filter(r => r.remaining <= 32);
+  return `<div class="bracket-scroll"><div class="bracket">${shown.map(r => `
     <div class="bracket-col"><h4 class="h-display">${esc(r.name)}</h4>
-    ${(r.matches.length ? r.matches : Array.from({ length: inst.rounds[0].matches.length >> ri }, () => null)).map(m => {
+    ${(r.matches.length ? r.matches : Array.from({ length: r.remaining / 2 }, () => null)).map(m => {
       if (!m) return '<div class="b-match"><div class="b-line dim"><span class="nm">–</span></div><div class="b-line dim"><span class="nm">–</span></div></div>';
+      if (m.bye) return `<div class="b-match"><div class="b-line win"><span class="nm">${flag(getPlayer(s, m.a).nation)} ${esc(nm(s, m.a))}</span></div><div class="b-line dim"><span class="nm">Freilos</span></div></div>`;
       const mine = m.a === 'P' || m.b === 'P';
       const line = (id, i) => {
         const cls = [m.winner ? (m.winner === id ? 'win' : 'lose') : '', id === 'P' ? 'me' : ''].join(' ');
@@ -52,18 +55,38 @@ function outPanel(inst) {
   </div>`;
 }
 
+// Eigene Matches dieses Turniers
+function myPath(s, inst) {
+  const rows = [];
+  for (const r of inst.rounds) {
+    const m = r.matches.find(x => (x.a === 'P' || x.b === 'P') && !x.bye && x.winner);
+    if (!m) continue;
+    const me = m.a === 'P' ? 0 : 1, opp = me ? m.a : m.b;
+    rows.push(`<tr><td class="muted">${esc(r.name)}</td><td>${flag(getPlayer(s, opp).nation)} ${esc(nm(s, opp))}</td>
+      <td class="r num ${m.winner === 'P' ? 'pos' : 'neg'}">${m.score[me]}:${m.score[1 - me]}</td></tr>`);
+  }
+  return rows.length ? `<div class="section-title"><span class="label">Dein Weg</span></div><div class="panel table-wrap"><table class="table">${rows.join('')}</table></div>` : '';
+}
+
 function donePanel(s, inst) {
-  const win = inst.place === 'W';
+  const win = inst.place === 'W', card = inst.place === 'CARD';
+  const winnerKpi = inst.winner
+    ? `<div class="kpi"><div class="label">Sieger</div><div class="v" style="font-size:1.1rem">${flag(getPlayer(s, inst.winner).nation)} ${esc(nm(s, inst.winner))}</div></div>`
+    : `<div class="kpi"><div class="label">Tourcards</div><div style="font-size:.85rem;font-weight:700">${inst.survivors.map(id => esc(nm(s, id))).join(', ')}</div></div>`;
+  const nextBtn = inst.hasNext
+    ? `<button class="btn btn-primary btn-continue" id="btn-next-sub">Weiter: ${inst.cat === 'qschool' ? `Tag ${inst.sub + 2}` : `Turnier ${inst.sub + 2}`} ▸</button>`
+    : `<button class="btn btn-primary btn-continue" id="btn-close">Zurück zum Hub ▸</button>`;
   return `<div class="panel stack center">
-    <div class="label">Turnier beendet</div>
-    <h2 class="${win ? 'gold' : ''}">${win ? '🏆 Turniersieg!' : placeLabel(inst.place)}</h2>
+    <div class="label">${inst.subLabel ? `${esc(inst.subLabel)} von ${inst.count} beendet` : 'Turnier beendet'}</div>
+    <h2 class="${win || card ? 'gold' : ''}">${card ? '🎉 Tourcard gewonnen!' : win ? '🏆 Turniersieg!' : placeLabel(inst.place)}</h2>
+    ${card ? `<p>Du spielst ab sofort mit Tourcard (gültig bis Ende ${s.player.cardUntil}).</p>` : ''}
     <div class="kpi-grid" style="text-align:left">
       <div class="kpi"><div class="label">Preisgeld</div><div class="v gold num">${fmtEUR(inst.prize)}</div></div>
       <div class="kpi"><div class="label">Erfahrung</div><div class="v cyan num">+${inst.xp} XP</div></div>
-      <div class="kpi"><div class="label">Sieger</div><div class="v" style="font-size:1.1rem">${flag(getPlayer(s, inst.winner).nation)} ${esc(nm(s, inst.winner))}</div></div>
+      ${winnerKpi}
       <div class="kpi"><div class="label">Kontostand</div><div class="v num">${fmtEUR(s.finance.balance)}</div></div>
     </div>
-    <button class="btn btn-primary btn-continue" id="btn-close">Zurück zum Hub ▸</button>
+    ${nextBtn}
   </div>`;
 }
 
@@ -71,8 +94,9 @@ export function render(app) {
   const s = app.state, inst = s.activeEvent;
   if (!inst) return `${topbar({ title: 'Turnier' })}<div class="panel">Kein laufendes Turnier.</div>`;
   const body = inst.done ? donePanel(s, inst) : inst.playerAlive ? matchPanel(s, inst) : outPanel(inst);
-  return `${topbar({ title: inst.name, sub: `${catTag(inst.cat)} ${esc(inst.city)} · Sieger ${fmtEUR(inst.prizes.W ?? 0)}`, back: 'hub' })}
-    <div class="stack">${body}
+  const prizeTxt = inst.stopAt > 1 ? `${inst.survivors?.length ?? 4} Tourcards` : `Sieger ${fmtEUR(inst.prizes.W ?? 0)}`;
+  return `${topbar({ title: inst.name, sub: `${catTag(inst.cat)} ${esc(inst.city)} · ${inst.fieldSize} Spieler · ${prizeTxt}`, back: 'hub' })}
+    <div class="stack">${body}${myPath(s, inst)}
     <div class="section-title"><span class="label">Turnierbaum</span></div>
     <div class="panel">${bracket(s, inst)}</div></div>`;
 }
@@ -125,6 +149,9 @@ export function mount(root, app, params = {}) {
   });
   root.querySelector('#btn-rest')?.addEventListener('click', () => {
     simulateRest(s); app.save(); app.refresh();
+  });
+  root.querySelector('#btn-next-sub')?.addEventListener('click', () => {
+    nextSub(s); app.save(); app.go('event');
   });
   root.querySelector('#btn-close')?.addEventListener('click', () => {
     closeEvent(s); app.save(); app.go('hub');

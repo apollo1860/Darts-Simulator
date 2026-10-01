@@ -39,7 +39,7 @@ export function startAttrs(rng) {
 }
 
 // XP → Attributpunkte
-export const xpForNextPoint = earned => 60 + 8 * earned;
+export const xpForNextPoint = earned => 50 + 3 * earned;
 export function addXp(p, xp) {
   p.xp += xp; p.xpTotal += xp;
   let gained = 0;
@@ -59,7 +59,7 @@ export function raiseAttr(p, key) {
 
 // XP-Faktor je Event-Kategorie
 export const XP_FACTOR = { local: 0.8, qschool: 1, challenge: 1, dev: 1, pc: 1.5, et: 1.5, ws: 2, major: 2, pl: 2 };
-export const XP_BASE = { match: 10, win: 16, title: 50, perRound: 6 };
+export const XP_BASE = { match: 14, win: 22, title: 60, perRound: 8 };
 
 export const TIER_LABEL = {
   top: 'Tour (Top)', tour: 'Tourcard', challenge: 'Challenge Tour', dev: 'Development Tour', local: 'Lokal', none: 'Amateur',

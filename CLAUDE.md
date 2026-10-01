@@ -21,15 +21,17 @@ js/rng.js             RNG (mulberry32) mit Zustand {s}
 js/util.js            Formatierung (€, Zahlen de-DE), Datum/KW, esc()
 js/state.js           Neue Karriere, Speicher-Slots (localStorage), Export/Import JSON
 js/player.js          Attribute, Gesamtwertung, Average/Checkout-Ableitung, XP/Attributpunkte
-js/world.js           KI-Welt erzeugen (Spieler aus data/players.js), Lookups
-js/calendar.js        Wochenkalender, Events pro Woche, Woche vorrücken, Jahreswechsel
-js/tournaments.js     Berechtigung, Meldung, Auslosung, Runden, Platzierung, Preisgeld
+js/world.js           KI-Welt (Tiers, Tourcards), Ruhestand/Nachwuchs/Entwicklung (developWorld), updateTiers
+js/calendar.js        Wochenkalender, Events pro Woche, advanceWeek (Datum/Alter)
+js/season.js          nextWeek(): KI-Turniere der Woche, Jahresabschluss (Tourcards, Kartenverlust), News
+js/bracket.js         K.-o.-Baum: Setzliste, Freilose, Rundennamen, Platzierungen
+js/tournaments.js     Berechtigung, Meldung, Feld/Setzliste, Mehrfach-Events (sub), Preisgeld/OOM, KI-Hintergrundturniere
 js/matchEngine.js     Schnelle Simulation (Aufnahme-basiert), für Sim-Modus + alle KI-Hintergrundmatches
 js/board.js           Scheibengeometrie (mm), scoreAt(), targetPoint(), Checkout-Wege, suggestTarget()
 js/matchState.js      Dartgenauer Match-Zustand (Bust, Double-Out, Legs/Sets, Stats) – serialisierbar
 js/throwModel.js      KI-Dart (Gauß um Ziel, σ aus Attributen), Parameter fürs manuelle Zielen, wave()
 js/matchUI.js         Screen 'match': SVG-Scheibe, Zielkreuz, Linien (rAF), Scoreboard, Rest simulieren
-js/rankings.js        Order of Merits (ab Phase 3/4 befüllt)
+js/rankings.js        Order of Merits: addMoney(), orderOfMerit(), rankOf()
 js/finance.js         Kontostand, Buchungen, Kosten pro Event
 js/sponsors.js        (Phase 6) Sponsoren
 js/news.js            Nachrichten-Feed
@@ -37,7 +39,8 @@ js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
                       stats, news, rankings, sponsors, settings, careerEnd
 data/nations.js       Nationen + Flaggen
-data/players.js       Spielerlisten (Tour 128, Challenge 50, Dev 50, Lokal 50) – leicht editierbar
+data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 50, Dev 50, Lokal 50
+data/names.js         Namensbausteine für generierte Talente
 data/tournaments.js   Jahreskalender (KW-basiert), Kategorien, Formate
 data/prizemoney.js    Preisgeldtabellen in €
 tests/run.mjs         Node-Tests (Regeln, Checkouts, Turnierablauf, Live-Match)
@@ -49,11 +52,14 @@ Start lokal: `python3 -m http.server` im Projektordner → http://localhost:8000
 ```
 version, slot, savedAt, rng:{s}, date:{year, week}
 player: {id:'P', name, nation, hand, age, attrs:{sco,fin,con,ner,sta}, xp, xpTotal, pointsEarned, points,
-         tour:'none'|'tour'|'challenge'|'dev', tourCardUntil}
-world:  {players:{id:{id,name,nation,age,tier,attrs}}}   tier: top|tour|challenge|dev|local
+         tour:'none'|'tour', cardUntil (letzte gültige Saison), qschoolYear (→ CT/Dev-Berechtigung), avgReal, everTourcard}
+world:  {version:2, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,attrs}}}   tier: tour|challenge|dev|local
+        IDs: T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, L=lokal, G=generierte Talente
+rankings:{years:{[year]:{challenge|dev|pdc|protour:{[id]:€}}}}
 finance:{balance, tx:[{year,week,text,amount,cat}]}
 week:   {played:bool, eventId}         aktuelle Woche
-activeEvent: Turnier-Instanz oder null (rounds[{name,format,matches[{a,b,winner,score}]}], live:{m,me}|null = laufendes manuelles Match)
+activeEvent: Turnier-Instanz oder null: {eventId, cat, sub/count (Teil-Turnier), rounds[{name,remaining,format,matches[{a,b,winner,score,bye}]}],
+         stopAt (Q-School 4), place ('W','F',…,'CARD'), hasNext, survivors, live:{m,me}|null}
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
 sponsors:{active:[], offers:[]}, ended:bool
@@ -66,11 +72,17 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Gesamt = 0,35·sco + 0,30·fin + 0,15·con + 0,10·ner + 0,10·sta
   - Interne Engine-Leistung = 30 + 0,77·sco (nur Simulation, nicht als Spielerwert angezeigt) ; Checkout-Basis = 0,12 + 0,0033·fin
   - Konstanz → Streuung der Aufnahmen und der Tagesform; Nervenstärke → Checkout bei Entscheidungsleg/Match-Darts; Ausdauer → Leistungsabfall in langen Matches.
-- **XP**: aus Matches/Turnieren (Faktor nach Kategorie). Punkt-Schwelle = 60 + 8·(bisher verdiente Punkte). Attribut erhöhen kostet 1 Punkt (<60), 2 (60–79), 3 (≥80). Kein Alterungsverlust. Alter +1 zum Jahreswechsel.
+- **XP**: aus Matches/Turnieren (Faktor nach Kategorie). Punkt-Schwelle = 50 + 3·(bisher verdiente Punkte); XP je Match 14, Sieg +22, +8 je Runde (max. 6), Titel/Karte +60. Attribut erhöhen kostet 1 Punkt (<60), 2 (60–79), 3 (≥80). Kein Alterungsverlust. Alter +1 zum Jahreswechsel.
 - **Kalender**: ISO-KW 1–52 (KW 53 wird übersprungen). Pro Woche max. ein Event. „Weiter“ → nächste Woche.
 - **Kosten**: Anmeldegebühr 25 € (Q-School, Challenge, Dev). Reise: England/UK 600 €, Deutschland 250 €, sonst 400 €. Lokal: kostenlos, keine Reise. Melden nur bei genug Budget.
 - **Lokale Turniere**: jede Woche außer KW 52, 32 Spieler (fiktiv), Siegprämie zufällig 50–200 €, Finalist 40 %, Halbfinale 20 %.
-- **Tour-Struktur (ab Phase 3/4)**: 128 Tourcards, 2 Jahre gültig, danach nur Top 64 PDC OOM bleibt. Q-School UK (Milton Keynes) + EU (Kalkar), je 4 Tage, 4 Tourcards pro Tag/Standort (=32). Gescheiterte → Challenge Tour (+ Dev Tour bei Alter ≤ 23). Challenge-OOM Top 2 und Dev-OOM Top 2 → Tourcard. Dev Tour nur bis 23 Jahre. Tourcard-Holder nicht auf Challenge/Dev und umgekehrt.
+- **Tour-Struktur (Phase 3 umgesetzt)**:
+  - Start 2027: 2026er Top 64 (Karte bis 2028) + 28 Neue 2026 (bis 2027) + je Top 2 CT/Dev 2026 (= stärkste, bis 2028) = 96 Karten; 36 weitere 2026er Holder verlieren die Karte → Q-School.
+  - Q-School KW 2: UK (Milton Keynes, Nationen UK/IRL/AUS/USA…) und EU (Kalkar, Rest). Je 4 Tage, jeder Tag K.-o. ohne Setzliste, first to 5; wer das Halbfinale erreicht (letzte 4) → Tourcard bis Ende Folgejahr. Kartengewinner fehlen an späteren Tagen. Teilnahme → CT-Berechtigung (+ Dev bis 23) für das Jahr.
+  - Challenge Tour: 12 Wochenenden × 2 Turniere, Feld = alle ohne Karte (Challenge+Dev) + Spieler, Setzliste nach CT-OOM, Freilose. Dev Tour analog nur ≤ 23. Youth-WM (KW 45) zählt nicht zur OOM.
+  - KI-Events laufen im Hintergrund (season.nextWeek → simulateWeekAI), Preisgeld → OOM.
+  - Jahresende: CT-OOM Top 2 + Dev-OOM Top 2 (ohne Karte, Preisgeld > 0) → Karte bis Jahr+2. Auslaufende Karten: PDC-OOM-Rang ≤ 64 → verlängert bis Jahr+2, sonst Verlust → Challenge. Danach developWorld: Stärke nach Alter (jung +, alt −), Ruhestand ab 45, Pool ohne Karte wird mit Talenten (16–18 J.) auf 100 aufgefüllt. Neujahr: Alter +1, Dev ab 24 → Challenge.
+  - Tourcard-Holder nicht auf Challenge/Dev und umgekehrt.
 - **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM.
 - **Sponsoren (Phase 6)**: erst nach erster Tourcard, max. 4, Laufzeit 1–3 Jahre, jederzeit kündbar.
 

@@ -32,6 +32,8 @@ export const NATIONS = {
   JP: { name: 'Japan', flag: '🇯🇵' },
   PH: { name: 'Philippinen', flag: '🇵🇭' },
   ZA: { name: 'Südafrika', flag: '🇿🇦' },
+  SI: { name: 'Slowenien', flag: '🇸🇮' },
+  GI: { name: 'Gibraltar', flag: '🇬🇮' },
   BH: { name: 'Bahrain', flag: '🇧🇭' },
 };
 export const nationName = c => NATIONS[c]?.name ?? c;

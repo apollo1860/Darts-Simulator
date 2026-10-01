@@ -1,35 +1,40 @@
-// Turniere: Berechtigung, Meldung, Auslosung, Runden, Platzierungen (DOM-frei)
-import { CATEGORIES, FORMATS } from '../data/tournaments.js';
+// Turniere: Berechtigung, Meldung, Feld/Auslosung, Runden, Platzierungen, Preisgeld/OOM,
+// Mehrfach-Events (z. B. CT-Doppel, 4 Q-School-Tage) und KI-Hintergrund-Turniere (DOM-frei)
+import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS } from '../data/tournaments.js';
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult } from './matchState.js';
 import { aiDart, aiSigma } from './throwModel.js';
 import { eventCost, canAfford, book } from './finance.js';
-import { getPlayer, playersOfTier } from './world.js';
+import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
 import { addXp, XP_FACTOR, XP_BASE } from './player.js';
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
-import { findEvent } from './calendar.js';
+import { findEvent, eventsInWeek } from './calendar.js';
+import { buildRounds, pairWinners, placeOf } from './bracket.js';
+import { addMoney, orderOfMerit } from './rankings.js';
 import { fmtEUR } from './util.js';
 
-export const IMPLEMENTED_PHASE = 1;
+export const IMPLEMENTED_PHASE = 3;
+export const AI_CATS = ['qschool', 'challenge', 'dev'];   // laufen ohne Spieler im Hintergrund
 
-// Inhaltliche Berechtigung (Vorbereitung für Phase 3–5)
+// Inhaltliche Berechtigung
 export function eligibility(state, ev) {
-  const p = state.player;
+  const p = state.player, y = state.date.year;
+  const card = p.tour === 'tour';
   switch (ev.cat) {
     case 'local': return { ok: true };
-    case 'qschool': return p.tour === 'tour' ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
+    case 'qschool': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
     case 'challenge':
-      if (p.tour === 'tour') return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
-      return p.qschoolYear === state.date.year ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
+      if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
+      return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
     case 'dev':
-      if (p.tour === 'tour') return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
-      if (p.age > 23) return { ok: false, reason: 'Nur bis 23 Jahre' };
-      return p.qschoolYear === state.date.year ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
-    case 'pc': return p.tour === 'tour' ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
-    case 'et': return p.tour === 'tour' ? { ok: true } : { ok: false, reason: 'Tourcard + Qualifikation nötig' };
+      if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
+      if (p.age > DEV_MAX_AGE) return { ok: false, reason: 'Nur bis 23 Jahre' };
+      return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
+    case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
+    case 'et': return card ? { ok: true } : { ok: false, reason: 'Tourcard + Qualifikation nötig' };
     case 'pl': return { ok: false, reason: 'Nur auf Einladung' };
     default: return { ok: false, reason: 'Qualifikation nötig' };
   }
@@ -49,18 +54,62 @@ export function eventStatus(state, ev) {
   return { playable, reason, cost, eligible: elig.ok };
 }
 
-// Platzierungsschlüssel nach Ausscheiden in Runde i (0-basiert) von R Runden
-const PLACE_KEYS = ['F', 'SF', 'QF', 'L16', 'L32', 'L64', 'L128'];
-const PLACE_LABEL = { W: 'Sieger', F: 'Finale', SF: 'Halbfinale', QF: 'Viertelfinale', L16: 'Achtelfinale', L32: 'Letzte 32', L64: 'Letzte 64', L128: 'Letzte 128' };
+const PLACE_LABEL = {
+  W: 'Sieger', F: 'Finale', SF: 'Halbfinale', QF: 'Viertelfinale', L16: 'Achtelfinale', L32: 'Letzte 32',
+  L64: 'Letzte 64', L128: 'Letzte 128', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
+};
 export const placeLabel = k => PLACE_LABEL[k] ?? k;
-const placeKey = (i, R) => PLACE_KEYS[R - 1 - i];
+
+const fmtKey = ev => ev.fmt ?? ev.cat;
+const oomType = ev => (ev.noOom ? null : ev.cat === 'challenge' || ev.cat === 'dev' ? ev.cat : null);
+const subLabel = (ev, sub) => (ev.count > 1 ? (ev.cat === 'qschool' ? `Tag ${sub + 1}` : `Turnier ${sub + 1}`) : '');
+const subName = (ev, sub) => {
+  if (ev.count > 1 && ev.cat !== 'qschool') {
+    const m = ev.name.match(/^(.*?)(\d+) & (\d+)$/);
+    if (m) return `${m[1]}${+m[2] + sub}`;
+  }
+  return ev.count > 1 ? `${ev.name} · ${subLabel(ev, sub)}` : ev.name;
+};
 
 function prizeTable(ev) {
   if (ev.cat === 'local') {
     const W = ev.prizeWin, s = PRIZES.local.shares;
     return { W, F: Math.round(W * s.F / 5) * 5, SF: Math.round(W * s.SF / 5) * 5 };
   }
-  return PRIZES[ev.cat] ?? {};
+  return PRIZES[fmtKey(ev)] ?? {};
+}
+
+// ---- Teilnehmerfeld (Setzliste: Bester zuerst) ----
+function seededField(state, ev, withPlayer, rng) {
+  const y = state.date.year;
+  if (ev.cat === 'local') {
+    const pool = rng.shuffle(playersOfTier(state, 'local').map(p => p.id)).slice(0, FORMATS.local.field - (withPlayer ? 1 : 0));
+    return rng.shuffle(withPlayer ? ['P', ...pool] : pool);
+  }
+  let ids;
+  if (ev.cat === 'qschool') {
+    const uk = ev.id === 'qs-uk';
+    ids = nonCardPros(state).filter(p => QSCHOOL_UK_NATIONS.includes(p.nation) === uk).map(p => p.id);
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);     // Q-School ohne Setzliste
+  }
+  const type = ev.cat === 'dev' ? 'dev' : 'challenge';
+  const order = orderOfMerit(state, type, y).map(x => x.p.id);
+  ids = order.filter(id => id !== 'P' || withPlayer);
+  if (withPlayer && !ids.includes('P')) ids.push('P');
+  return ids;
+}
+
+function newInstance(state, ev, sub, withPlayer, rng) {
+  const field = seededField(state, ev, withPlayer, rng);
+  return {
+    eventId: ev.id, cat: ev.cat, fmt: fmtKey(ev), name: subName(ev, sub), baseName: ev.name,
+    city: ev.city, country: ev.country, year: state.date.year, week: state.date.week,
+    count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomType(ev),
+    prizes: prizeTable(ev), stopAt: FORMATS[fmtKey(ev)].stopAt ?? 1, fieldSize: field.length,
+    rounds: buildRounds(field, FORMATS[fmtKey(ev)]),
+    current: 0, playerAlive: withPlayer, withPlayer, done: false, place: null, prize: 0, xp: 0,
+    lastMatch: null, live: null, cardWon: false, hasNext: false, survivors: null,
+  };
 }
 
 // Melden: Kosten buchen, Feld auslosen, Instanz anlegen
@@ -70,29 +119,30 @@ export function enterEvent(state, eventId) {
   const st = eventStatus(state, ev);
   if (!st.playable) throw new Error(st.reason);
   const rng = new RNG(state.rng);
-  const fmt = FORMATS[ev.cat];
-
   if (st.cost.fee) book(state, -st.cost.fee, `Anmeldegebühr ${ev.name}`, 'fee');
   if (st.cost.travel) book(state, -st.cost.travel, `Reise ${ev.city}`, 'travel');
-
-  const pool = rng.shuffle(playersOfTier(state, 'local').map(p => p.id));
-  const field = rng.shuffle(['P', ...pool.slice(0, fmt.field - 1)]);
-  const first = [];
-  for (let i = 0; i < field.length; i += 2) first.push({ a: field[i], b: field[i + 1], winner: null, score: null });
-
+  if (ev.cat === 'qschool') {
+    state.player.qschoolYear = state.date.year;
+    addNews(state, 'info', `Gemeldet: ${ev.name}`, `4 Turniertage – wer an einem Tag das Halbfinale erreicht, gewinnt eine Tourcard. Mit der Teilnahme bist du ${state.date.year} für die Challenge Tour${state.player.age <= DEV_MAX_AGE ? ' und die Development Tour' : ''} berechtigt.`);
+  }
   state.week = { played: true, eventId: ev.id };
-  state.activeEvent = {
-    eventId: ev.id, cat: ev.cat, name: ev.name, city: ev.city, country: ev.country,
-    year: state.date.year, week: state.date.week,
-    prizes: prizeTable(ev),
-    rounds: fmt.rounds.map((r, i) => ({ name: r.name, format: r.format, matches: i === 0 ? first : [] })),
-    current: 0, playerAlive: true, done: false, place: null, prize: 0, xp: 0, lastMatch: null,
-  };
+  state.activeEvent = newInstance(state, ev, 0, true, rng);
+  skipPlayerByes(state);
+  return state.activeEvent;
+}
+
+// Nächstes Turnier im Block (Tag 2, Turnier 2 …)
+export function nextSub(state) {
+  const inst = state.activeEvent;
+  if (!inst?.done || !inst.hasNext) return null;
+  const ev = findEvent(state, inst.eventId, inst.year, inst.week);
+  state.activeEvent = newInstance(state, ev, inst.sub + 1, true, new RNG(state.rng));
+  skipPlayerByes(state);
   return state.activeEvent;
 }
 
 export function playerMatch(inst) {
-  return inst.rounds[inst.current]?.matches.find(m => m.a === 'P' || m.b === 'P') ?? null;
+  return inst.rounds[inst.current]?.matches.find(m => (m.a === 'P' || m.b === 'P') && !m.bye) ?? null;
 }
 
 const attrsOf = (state, id) => getPlayer(state, id).attrs;
@@ -166,6 +216,11 @@ function applyResult(m, res) {
   m.avg = res.stats.map(s => Math.round(s.avg * 10) / 10);
 }
 
+function grantXp(state, xp) {
+  const pts = addXp(state.player, xp);
+  if (pts) addNews(state, 'xp', `+${pts} Attributpunkt${pts > 1 ? 'e' : ''}`, 'Verteile sie im Spielerprofil.');
+}
+
 function recordPlayerMatch(state, inst, m, res) {
   const me = m.a === 'P' ? 0 : 1, s = res.stats[me], o = res.stats[1 - me];
   const won = m.winner === 'P';
@@ -181,10 +236,9 @@ function recordPlayerMatch(state, inst, m, res) {
   const c = state.stats.career;
   state.player.avgReal = c.darts ? Math.round(c.points / c.darts * 300) / 100 : null;
   const f = XP_FACTOR[inst.cat] ?? 1;
-  const xp = Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * inst.current) * f);
+  const xp = Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * Math.min(inst.current, 6)) * f);
   inst.xp += xp;
-  const pts = addXp(state.player, xp);
-  if (pts) addNews(state, 'xp', `+${pts} Attributpunkt${pts > 1 ? 'e' : ''}`, 'Verteile sie im Spielerprofil.');
+  grantXp(state, xp);
   if (!won) inst.playerAlive = false;
   inst.lastMatch = {
     round: inst.rounds[inst.current].name, opp: me ? m.a : m.b, won,
@@ -193,13 +247,15 @@ function recordPlayerMatch(state, inst, m, res) {
 }
 
 // Alle offenen KI-Matches der aktuellen Runde simulieren
-export function simulateRoundAI(state) {
-  const inst = state.activeEvent, rng = new RNG(state.rng);
-  const round = inst.rounds[inst.current];
+function simRoundMatches(state, round, rng) {
   for (const m of round.matches) {
     if (m.winner || m.a === 'P' || m.b === 'P') continue;
     applyResult(m, simulateMatch(attrsOf(state, m.a), attrsOf(state, m.b), round.format, rng));
   }
+}
+export function simulateRoundAI(state) {
+  const inst = state.activeEvent;
+  simRoundMatches(state, inst.rounds[inst.current], new RNG(state.rng));
 }
 
 export const roundComplete = inst => inst.rounds[inst.current].matches.every(m => m.winner);
@@ -208,12 +264,18 @@ export const roundComplete = inst => inst.rounds[inst.current].matches.every(m =
 export function nextRound(state) {
   const inst = state.activeEvent;
   if (!roundComplete(inst)) return;
-  const winners = inst.rounds[inst.current].matches.map(m => m.winner);
-  if (winners.length === 1) return finishEvent(state, winners[0]);
-  const next = [];
-  for (let i = 0; i < winners.length; i += 2) next.push({ a: winners[i], b: winners[i + 1], winner: null, score: null });
+  if (inst.current === inst.rounds.length - 1) return finishEvent(state, inst);
   inst.current++;
-  inst.rounds[inst.current].matches = next;
+  inst.rounds[inst.current].matches = pairWinners(inst.rounds[inst.current - 1]);
+  skipPlayerByes(state);
+}
+
+// Freilos des Spielers: Runde der KI automatisch spielen
+export function skipPlayerByes(state) {
+  const inst = state.activeEvent;
+  if (!inst || inst.done || !inst.playerAlive || playerMatch(inst)) return;
+  simulateRoundAI(state);
+  nextRound(state);
 }
 
 // Komplette Runde (eigenes Match + KI) spielen
@@ -223,47 +285,103 @@ export function playRound(state) {
   return res;
 }
 
-// Nach Ausscheiden: Rest des Turniers simulieren
+// Rest des Turniers simulieren (auch eigene Matches)
 export function simulateRest(state) {
   const inst = state.activeEvent;
   while (!inst.done) {
-    if (playerMatch(inst) && !playerMatch(inst).winner) simulatePlayerMatch(state);
+    const pm = playerMatch(inst);
+    if (pm && !pm.winner) { inst.live = null; simulatePlayerMatch(state); }
     simulateRoundAI(state);
     nextRound(state);
   }
 }
 
-function finishEvent(state, winnerId) {
-  const inst = state.activeEvent, R = inst.rounds.length;
-  let place = 'W';
-  if (winnerId !== 'P') {
-    const i = inst.rounds.findIndex(r => r.matches.some(m => (m.a === 'P' || m.b === 'P') && m.winner !== 'P'));
-    place = placeKey(i, R);
+// Ergebnis verbuchen: Preisgeld + OOM für alle, Tourcards (Q-School)
+function settle(state, inst) {
+  const last = inst.rounds[inst.rounds.length - 1];
+  const survivors = last.matches.map(m => m.winner);
+  inst.survivors = survivors;
+  const ids = new Set();
+  for (const r of inst.rounds) for (const m of r.matches) { ids.add(m.a); if (m.b) ids.add(m.b); }
+  const year = state.date.year;
+  for (const id of ids) {
+    const place = survivors.includes(id) ? (inst.stopAt > 1 ? 'CARD' : 'W') : placeOf(inst.rounds, id);
+    const prize = inst.prizes[place] ?? 0;
+    if (inst.oom && prize) addMoney(state, inst.oom, id, prize, year);
+    if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
-  const prize = inst.prizes[place] ?? 0;
-  inst.done = true; inst.place = place; inst.prize = prize; inst.winner = winnerId;
+  if (inst.stopAt > 1) {                                     // Q-School: Tourcards
+    for (const id of survivors) awardCard(state, id, year + 1, inst.baseName);
+    addNews(state, 'draw', `${inst.name}: Tourcards vergeben`, survivors.map(id => getPlayer(state, id).name).join(', '));
+  }
+}
 
+export function awardCard(state, id, until, via) {
+  if (id === 'P') {
+    const p = state.player;
+    p.tour = 'tour'; p.cardUntil = until; p.everTourcard = true;
+    addNews(state, 'result', '🎉 TOURCARD GEWONNEN!', `Über ${via} – gültig bis Ende ${until}. Ab ${state.date.week >= 50 ? state.date.year + 1 : 'sofort'} spielst du auf der PDC Pro Tour (ab Phase 4 spielbar).`);
+  } else {
+    const p = state.world.players[id];
+    if (p) { p.tier = 'tour'; p.cardUntil = until; }
+  }
+}
+
+function finishEvent(state, inst) {
+  inst.done = true;
+  settle(state, inst);
+  inst.winner = inst.stopAt === 1 ? inst.survivors[0] : null;
+  inst.hasNext = inst.sub < inst.count - 1 && inst.place !== 'CARD';
+  if (!inst.withPlayer) return;
+  const place = inst.place, prize = inst.prize;
   const f = XP_FACTOR[inst.cat] ?? 1;
-  if (place === 'W') {
+  if (place === 'W' || place === 'CARD') {
     const bonus = Math.round(XP_BASE.title * f);
     inst.xp += bonus;
-    const pts = addXp(state.player, bonus);
-    if (pts) addNews(state, 'xp', `+${pts} Attributpunkt${pts > 1 ? 'e' : ''}`, 'Verteile sie im Spielerprofil.');
+    grantXp(state, bonus);
   }
   if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
-
   for (const t of [state.stats.career, seasonStats(state, state.date.year)]) {
     t.events++; if (place === 'W') t.titles++; if (place === 'W' || place === 'F') t.finals++;
   }
   state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place, prize });
-
-  const wName = getPlayer(state, winnerId).name;
   if (place === 'W') addNews(state, 'result', `TITEL! ${inst.name} gewonnen`, `Preisgeld: ${fmtEUR(prize)}.`);
-  else addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`,
-    `Turniersieger: ${wName}.${prize ? ` Preisgeld: ${fmtEUR(prize)}.` : ''}`);
+  else if (place !== 'CARD') {
+    const wTxt = inst.winner ? ` Turniersieger: ${getPlayer(state, inst.winner).name}.` : '';
+    addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, `${wTxt.trim()}${prize ? ` Preisgeld: ${fmtEUR(prize)}.` : ''}`.trim());
+  }
 }
 
-// Abgeschlossenes Turnier schließen
+// Abgeschlossenes Turnier schließen; nicht gespielte Rest-Turniere des Blocks laufen im Hintergrund
 export function closeEvent(state) {
-  if (state.activeEvent?.done) state.activeEvent = null;
+  const inst = state.activeEvent;
+  if (!inst?.done) return;
+  const ev = findEvent(state, inst.eventId, inst.year, inst.week);
+  if (ev) for (let s = inst.sub + 1; s < inst.count; s++) runAITournament(state, ev, s);
+  state.activeEvent = null;
+}
+
+// ---- KI-Turniere im Hintergrund ----
+export function runAITournament(state, ev, sub) {
+  const rng = new RNG(state.rng);
+  const inst = newInstance(state, ev, sub, false, rng);
+  for (;;) {
+    simRoundMatches(state, inst.rounds[inst.current], rng);
+    if (inst.current === inst.rounds.length - 1) break;
+    inst.current++;
+    inst.rounds[inst.current].matches = pairWinners(inst.rounds[inst.current - 1]);
+  }
+  inst.done = true;
+  settle(state, inst);
+  return inst;
+}
+
+// Alle KI-relevanten Events der aktuellen Woche, die der Spieler nicht gespielt hat
+export function simulateWeekAI(state) {
+  const out = [];
+  for (const ev of eventsInWeek(state, state.date.year, state.date.week)) {
+    if (!AI_CATS.includes(ev.cat) || !ev.startsThisWeek || ev.id === state.week.eventId) continue;
+    for (let s = 0; s < (ev.count ?? 1); s++) out.push(runAITournament(state, ev, s));
+  }
+  return out;
 }

@@ -5,7 +5,7 @@ import { START_YEAR } from '../../state.js';
 import { avgOf, coOf } from './stats.js';
 import { futCard } from '../components.js';
 
-const ORDER = ['W', 'F', 'SF', 'QF', 'L16', 'L32', 'L64', 'L128'];
+const ORDER = ['W', 'CARD', 'F', 'SF', 'QF', 'L16', 'L32', 'L64', 'L128'];
 
 export function render(app) {
   const s = app.state, c = s.stats.career;

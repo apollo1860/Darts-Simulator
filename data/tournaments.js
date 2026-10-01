@@ -33,8 +33,8 @@ const ET = [
 ];
 
 export const CALENDAR = [
-  { id: 'qs-uk', cat: 'qschool', name: 'Q-School UK', week: 2, city: 'Milton Keynes', country: 'ENG', count: 4 },
-  { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4 },
+  { id: 'qs-uk', cat: 'qschool', name: 'Q-School UK', week: 2, city: 'Milton Keynes', country: 'ENG', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
+  { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
   { id: 'ws-bah', cat: 'ws', name: 'Bahrain Darts Masters', week: 3, city: 'Manama', country: 'BH' },
   { id: 'ws-ned', cat: 'ws', name: 'Dutch Darts Masters', week: 4, city: 'Leeuwarden', country: 'NL' },
   { id: 'masters', cat: 'major', name: 'The Masters', week: 5, city: 'Milton Keynes', country: 'ENG' },
@@ -51,7 +51,7 @@ export const CALENDAR = [
   { id: 'ws-final', cat: 'ws', name: 'World Series Finals', week: 37, city: 'Amsterdam', country: 'NL' },
   { id: 'wgp', cat: 'major', name: 'World Grand Prix', week: 40, city: 'Leicester', country: 'ENG' },
   { id: 'ec', cat: 'major', name: 'European Championship', week: 42, city: 'Dortmund', country: 'DE' },
-  { id: 'youth-wm', cat: 'dev', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24' },
+  { id: 'youth-wm', cat: 'dev', fmt: 'youth', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24 · zählt nicht zur Dev-OOM', noOom: true },
   { id: 'gsod', cat: 'major', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG' },
   { id: 'pcf', cat: 'major', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG' },
   { id: 'wm-quali', cat: 'major', name: 'WM-Qualifikation', week: 49, city: 'Milton Keynes', country: 'ENG' },
@@ -83,16 +83,15 @@ export const LOCAL_CITIES = {
   _: ['Nordstadt', 'Westhafen', 'Altstadt', 'Bergheim', 'Seedorf', 'Lindental'],
 };
 
-// Formate (Phase 1: nur lokal). Runden von vorn nach hinten, first-to-Legs.
+// Formate je Kategorie: default-Format, Abweichungen nach verbleibenden Spielern, stopAt = Turnierende
+// (Q-School: bei den letzten 4 → diese erhalten eine Tourcard). {legs:n} = first to n.
 export const FORMATS = {
-  local: {
-    field: 32,
-    rounds: [
-      { name: '1. Runde', format: { legs: 3 } },
-      { name: 'Achtelfinale', format: { legs: 3 } },
-      { name: 'Viertelfinale', format: { legs: 3 } },
-      { name: 'Halbfinale', format: { legs: 4 } },
-      { name: 'Finale', format: { legs: 5 } },
-    ],
-  },
+  local: { field: 32, default: { legs: 3 }, byRemaining: { 4: { legs: 4 }, 2: { legs: 5 } } },
+  qschool: { default: { legs: 5 }, stopAt: 4, cardsPerDay: 4 },
+  challenge: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
+  dev: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
+  youth: { default: { legs: 5 }, byRemaining: { 8: { legs: 6 }, 4: { legs: 6 }, 2: { legs: 7 } } },
 };
+
+// Q-School: Zuordnung zum Standort nach Nation (Rest → Europa)
+export const QSCHOOL_UK_NATIONS = ['ENG', 'SCO', 'WAL', 'NIR', 'IRL', 'AU', 'NZ', 'US', 'CA', 'ZA', 'PH'];

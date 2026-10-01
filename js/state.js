@@ -1,11 +1,11 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs } from './player.js';
-import { createWorld } from './world.js';
+import { createWorld, WORLD_VERSION } from './world.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 
-export const VERSION = 1;
+export const VERSION = 3;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -27,7 +27,7 @@ export function newCareer({ name, nation, hand, slot = 1, seed = randomSeed() })
       id: 'P', name, nation, hand, age: 18,
       attrs: startAttrs(rng),
       xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
-      tour: 'none', tourCardUntil: null, avgReal: null, everTourcard: false,
+      tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false,
     },
     world: createWorld(rng),
     finance: { balance: START_BUDGET, tx: [], seasons: {}, prizeTotal: 0 },
@@ -37,7 +37,7 @@ export function newCareer({ name, nation, hand, slot = 1, seed = randomSeed() })
     results: [],
     stats: { career: emptyStats(), seasons: {} },
     sponsors: { active: [], offers: [] },
-    rankings: { entries: [] },
+    rankings: { years: {} },
     ended: false,
   };
   seasonFinance(state, START_YEAR);
@@ -87,8 +87,15 @@ export function validate(obj) {
 }
 
 export function migrate(s) {
-  // Platz für spätere Versions-Migrationen
-  s.version ??= VERSION;
+  // v1/v2 → v3 (Phase 3): echte Spielerwelt, neue Ranglisten-Struktur. Lokale IDs bleiben gleich.
+  if ((s.world?.version ?? 1) < WORLD_VERSION) {
+    s.world = createWorld(new RNG(s.rng), s.date.year);
+    s.rankings = { years: {} };
+    s.player.cardUntil ??= null; s.player.qschoolYear ??= null;
+    delete s.player.tourCardUntil;
+    s.activeEvent = null;
+  }
+  s.version = VERSION;
   return s;
 }
 

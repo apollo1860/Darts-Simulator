@@ -534,3 +534,5 @@
 .dc-arrow.left { right: 8px; border-right: 14px solid #fff; }
 .dc-banner { background: var(--gold); color: #1d1300; text-align: center; font-weight: 900; text-transform: uppercase; padding: 4px; letter-spacing: .05em; animation: dc-pop .3s ease both; }
 .watch-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.table tr.cut td { border-bottom: 2px solid var(--gold); }
+@media (max-width: 480px) { .hide-sm { display: none; } .table td, .table th { padding: 8px 6px; } }

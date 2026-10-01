@@ -2,11 +2,13 @@
 import { esc, fmtEUR, weekLabel, fmtNum } from '../../util.js';
 import { flag } from '../../../data/nations.js';
 import { overall } from '../../player.js';
-import { eventsInWeek, advanceWeek } from '../../calendar.js';
+import { eventsInWeek } from '../../calendar.js';
+import { nextWeek } from '../../season.js';
 import { eventStatus } from '../../tournaments.js';
 import { unreadCount } from '../../news.js';
 import { sponsorsUnlocked } from '../../sponsors.js';
-import { tourStatus } from '../../world.js';
+import { tourStatus, DEV_MAX_AGE } from '../../world.js';
+import { rankOf } from '../../rankings.js';
 import { catTag } from '../components.js';
 
 function heroTile(state) {
@@ -46,6 +48,17 @@ function heroTile(state) {
 const tile = (go, icon, title, sub, extra = '', cls = '') =>
   `<button class="tile ${cls}" data-go="${go}">${extra}<div class="tile-icon">${icon}</div><div><div class="tile-title">${title}</div><div class="tile-sub">${sub}</div></div></button>`;
 
+function oomLine(s) {
+  const p = s.player, y = s.date.year;
+  if (p.tour === 'tour') return `PDC OOM: Platz ${rankOf(s, 'pdc', 'P', y)}`;
+  if (p.qschoolYear === y) {
+    const parts = [`CT ${rankOf(s, 'challenge', 'P', y)}.`];
+    if (p.age <= DEV_MAX_AGE) parts.push(`Dev ${rankOf(s, 'dev', 'P', y)}.`);
+    return parts.join(' · ');
+  }
+  return 'Order of Merit';
+}
+
 export function render(app) {
   const s = app.state, p = s.player;
   const unread = unreadCount(s);
@@ -54,7 +67,7 @@ export function render(app) {
   return `<header class="topbar">
     <div class="title">
       <h2>${flag(p.nation)} ${esc(p.name)}</h2>
-      <div class="sub">${p.age} J. · ${esc(tourStatus(p))} · OVR ${overall(p.attrs)}</div>
+      <div class="sub">${p.age} J. · ${esc(tourStatus(p, s.date.year))} · OVR ${overall(p.attrs)}</div>
     </div>
     <div class="money num">${fmtEUR(s.finance.balance)}</div>
   </header>
@@ -63,7 +76,7 @@ export function render(app) {
     ${tile('calendar', '📅', 'Kalender', `Saison ${s.date.year}`)}
     ${tile('profile', '🎯', 'Spielerprofil', `Ø ${p.avgReal ? fmtNum(p.avgReal, 1) : '–'} · OVR ${overall(p.attrs)}`,
       p.points ? `<span class="badge badge-green">+${p.points}</span>` : '')}
-    ${tile('rankings', '🏆', 'Weltrangliste', 'Order of Merit')}
+    ${tile('rankings', '🏆', 'Ranglisten', oomLine(s))}
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}
     ${tile('news', '📰', 'Neuigkeiten', esc(lastNews?.title ?? 'Keine Meldungen'), unread ? `<span class="badge">${unread}</span>` : '')}
     ${tile('stats', '📊', 'Statistiken', `${s.stats.career.wins}–${s.stats.career.matches - s.stats.career.wins} · ${s.stats.career.titles} Titel`)}
@@ -80,7 +93,7 @@ export function mount(root, app) {
   root.querySelector('#btn-next').onclick = () => {
     const s = app.state;
     if (s.activeEvent?.done) { app.go('event'); return; }
-    if (!advanceWeek(s)) return;
+    if (!nextWeek(s)) return;
     app.save();
     app.toast(`${weekLabel(s.date.year, s.date.week)}`);
     app.refresh();
