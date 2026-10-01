@@ -4,6 +4,7 @@ import { flag } from '../../../data/nations.js';
 import { overall, ATTRS } from '../../player.js';
 import { staffOf, coachActive } from '../../staff.js';
 import { momentumState } from '../../form.js';
+import { interviewPanel, bindInterview } from '../interview.js';
 import { eventsInWeek } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
 import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
@@ -94,6 +95,7 @@ export function render(app) {
     </div>
     <div class="money num">${fmtEUR(s.finance.balance)}</div>
   </header>
+  ${interviewPanel(s)}
   <div class="tile-grid">
     ${heroTile(s)}
     ${trainingTile(s)}
@@ -117,6 +119,7 @@ export function render(app) {
 }
 
 export function mount(root, app) {
+  bindInterview(root, app);
   root.querySelector('#btn-jump').onclick = () => {
     const s = app.state;
     if (s.activeEvent?.done) { app.go('event'); return; }

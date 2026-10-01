@@ -24,6 +24,8 @@ Karrieremodus für Darts im FIFA-Stil: vom Kneipenturnier im eigenen Bundesland 
 - Ranglisten: PDC Order of Merit (2 Jahre), Pro Tour, Challenge Tour, Development Tour, Premier-League-Tabelle
 - Die Spielwelt lebt: Auf- und Abstieg, Kartenverlust, Entwicklung nach Alter, Ruhestand, neue Talente
 - Tour-Seite: alle Tourcard-Holder (gültig bis, Herkunft) und Titelträger aller Majors mit Siegerliste je Saison
+- Team: Manager (Provision, mehr Sponsoren, Exhibitions) und Trainer (mehr XP)
+- Selbstvertrauen, Erfahrung auf der großen Bühne, Gegner-Matchdarts auf der Dartscheibe, Interviews nach Majors
 - Statistik-Archiv: Saisons, Titel, Bestergebnisse, Höchstplatzierungen
 - Mehrere Speicher-Slots, Export und Import als JSON
 

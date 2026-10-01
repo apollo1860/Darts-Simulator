@@ -22,6 +22,7 @@ import { routeTarget } from './decisions.js';
 import { addEventFatigue } from './training.js';
 import { trackTitle, recordChampion } from './history.js';
 import { xpMult } from './staff.js';
+import { maybeInterview } from './interviews.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -488,6 +489,7 @@ function finishEvent(state, inst) {
     t.events++; if (place === 'W') t.titles++; if (place === 'W' || place === 'F') t.finals++;
   }
   state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place, prize });
+  maybeInterview(state, inst);
   if (place === 'W') addNews(state, 'result', `TITEL! ${inst.name} gewonnen`, `Preisgeld: ${fmtEUR(prize)}.`);
   else if (place !== 'CARD') {
     const wTxt = inst.winner ? ` Turniersieger: ${getPlayer(state, inst.winner).name}.` : '';

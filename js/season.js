@@ -9,6 +9,7 @@ import { WEEKS_PER_YEAR } from './util.js';
 import { plTable, plState } from './majors.js';
 import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
 import { staffWeek } from './staff.js';
+import { interviewWeekEnd } from './interviews.js';
 import { recordHistory, trackPeak } from './history.js';
 import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
 import { eventStatus } from './tournaments.js';
@@ -19,6 +20,7 @@ export function nextWeek(state) {
   const { year, week } = state.date;
   const evs = eventsInWeek(state, year, week);
   const ai = simulateWeekAI(state);
+  interviewWeekEnd(state);
   trainingWeekEnd(state);
   weeklyRecovery(state);
   weekNews(state, evs, ai);

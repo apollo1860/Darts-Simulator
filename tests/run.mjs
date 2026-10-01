@@ -9,6 +9,7 @@ import { migrate } from '../js/state.js';
 import { liveDartStep, oppMatchDartVisit } from '../js/tournaments.js';
 import * as ST from '../js/staff.js';
 import * as FO from '../js/form.js';
+import * as IV from '../js/interviews.js';
 import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
@@ -539,6 +540,22 @@ test('Gegner-Matchdarts: Erkennung + dartweiser Wurf', () => {
   do { r = liveDartStep(s); n++; assert.ok(r.dart.target && Number.isFinite(r.dart.x)); } while (!r.visitOver);
   assert.ok(n >= 1 && n <= 3);
   assert.ok(lm.done || lm.turn === live.me);
+});
+
+test('Interview nach Major: 25 Floskeln, 4–6 Reihenfolge, Belohnung', () => {
+  const s = newCareer({ name: 'I', nation: 'DE', hand: 'R', seed: 31 });
+  assert.equal(IV.maybeInterview(s, { cat: 'pc', place: 'W', name: 'PC 1' }), null);          // nur Majors
+  const iv = IV.maybeInterview(s, { cat: 'major', eventId: 'wm', place: 'W', name: 'Weltmeisterschaft' });
+  assert.ok(iv && iv.tiles.length === 25 && new Set(iv.tiles).size === 25 && iv.seq.length === 6);
+  const x0 = s.player.xpTotal, c0 = s.player.clutch ?? 0;
+  const r = IV.resolveInterview(s, [...iv.seq]);
+  assert.ok(r.ok && s.player.xpTotal - x0 === r.xp && (s.player.clutch ?? 0) - c0 === 18);
+  assert.equal(s.interview, null);
+  let n = 0;
+  for (let i = 0; i < 40; i++) { const v = IV.maybeInterview(s, { cat: 'major', eventId: 'masters', place: 'L16', name: 'M' }); if (v) { n++; assert.ok(v.seq.length >= 4 && v.seq.length <= 5); IV.skipInterview(s); } }
+  assert.ok(n > 3 && n < 20, 'nur manchmal ' + n);
+  const v = IV.maybeInterview(s, { cat: 'major', eventId: 'wm', place: 'W', name: 'WM' });
+  assert.equal(IV.resolveInterview(s, [v.seq[1]]).ok, false);                                // falsche Reihenfolge
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

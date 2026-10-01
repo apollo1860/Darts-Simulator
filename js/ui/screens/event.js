@@ -7,6 +7,7 @@ import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel
 import { MANUAL_AVAILABLE } from '../../matchUI.js';
 import { topbar, futCard, modal, catTag, playerModal, attrRows, bindRaise } from '../components.js';
 import { expLabel, xpForLevel, MAX_LEVEL } from '../../player.js';
+import { interviewPanel, bindInterview } from '../interview.js';
 import { groupTable, GROUP_NAMES } from '../../bracket.js';
 
 // Name (World Cup: Teamname; eigenes Team mit Hinweis)
@@ -132,6 +133,7 @@ function donePanel(s, inst) {
     </div>
     ${nextBtn}
   </div>
+  ${interviewPanel(s)}
   ${trainingPanel(s, inst)}`;
 }
 
@@ -180,6 +182,7 @@ function resultModal(s, res, onClose) {
 export function mount(root, app, params = {}) {
   const s = app.state;
   bindRaise(root, app);
+  bindInterview(root, app);
   if (params.showResult && s.activeEvent?.lastMatch) {
     params.showResult = false;
     resultModal(s, null, () => app.refresh());

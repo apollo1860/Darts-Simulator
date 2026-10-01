@@ -83,6 +83,7 @@
 - Fix: Dev-Pool lief nach ~7 Saisons leer (Absturz in Dev-Turnieren), weil der große Pool ohne Karte keine Talente mehr bekam → jährlicher Nachwuchs + Obergrenze 200.
 - Lokale Gegner schwächer (Nutzerwunsch): −6 Ø (jetzt 54–74 statt 60–80). Frischer Spieler ohne Training: Turniersiege lokal ~3 % → ~18 %, Aus in Runde 1 50 % → 36 %. Migration v8 für bestehende Spielstände.
 - **Training aufgewertet** (Empfehlung umgesetzt): jede Einheit gibt XP (3 % des Level-Bedarfs, wächst mit) + Turniervorbereitung +3 auf das trainierte Attribut für diese und nächste Woche; Formverlust milder (ab 4 Wochen, 10–30 %). Exhibition-XP skaliert ebenfalls (5 %). Bot: Training ≈ +25–30 % XP (2030: 52k statt 40k), Level 64 statt 54 nach 8 Saisons.
+- **Großes Paket (Nutzerwunsch)**: Team-Screen mit Manager (3 Stufen, Provision 10–20 %, mehr/bessere Sponsoren, Exhibition-Einladungen als Klick-Event) und Trainer (Einmalzahlung, 1 Jahr, +10–30 % XP); Erfahrung zählt auf der großen Bühne (Majors, gegen Top 16); Selbstvertrauen/Momentum mit Anzeige; Gegner-Matchdarts Wurf für Wurf auf der Dartscheibe; Interviews nach Majors (Floskel-Memory). 34 Node-Tests.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -90,6 +91,9 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- Manager-Provision 10/15/20 % (übliche Spanne im Sport); Freischaltung nach Tourcard/Top 64/Top 16. Exhibition-Einladungen kommen zusätzlich zum Wochenplan (Ermüdung +15). Trainerpreise 1.500/6.000/18.000 €.
+- Bühnen-Effekt symmetrisch um Erfahrung +3 (typischer Tour-Profi): Neuling (−4) auf großer Bühne ≈ −5 Punkte, Veteran (+10) ≈ +5. Momentum lokal nur ¼, damit Kneipenturniere keinen Dauer-Lauf erzeugen (Bot: meist „Normal“, Phasen mit Selbstvertrauen).
+- Matchdart-Scheibe erscheint für die ganze Aufnahme, sobald der Gegner auf einem Match-Finish steht (auch wenn zuerst gestellt wird).
 - Level-Kurve: 50·L·(1 + 2·((L−1)/99)²) XP – erfüllt 50/100 aus dem Wunsch, ab Mitte deutlich steiler. Frühe Saisons etwas schneller als das alte Punktesystem (Saison 1 ≈ 80 statt 55 Punkte), ab Saison 4 gleich, danach langsamer.
 - Beobachtung: Bot (spielt aus Geldmangel viel lokal) bekommt mit der stärkeren echten CT/Dev-Welt erst nach 8+ Saisons eine Karte – Balancing ggf. nachziehen.
 - Startalter 16 (Nutzerwunsch). Titelträger werden ab Karrierestart 2027 erfasst (2026er Sieger nicht hinterlegt). Herkunft 2026: Bellmont/Labanauskas = CT 2025, Greaves/Bates = Dev 2025 (Zuordnung geschätzt). Alte Spielstände: Herkunft „–“, bis neue Karten vergeben werden.

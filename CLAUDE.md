@@ -39,15 +39,22 @@ js/finance.js         Kontostand, Buchungen, Kosten pro Event
 js/sponsors.js        Sponsoren: Angebote (alle 4 Wochen), Verträge, Zahlungen, Kündigung, Ablauf
 js/history.js         Statistik-Archiv: Saisonbilanzen, Titel, Bestergebnisse, Höchstplatzierungen
 js/news.js            Nachrichten-Feed
+js/staff.js           Team: Manager (Provision in finance.book, Sponsor-/Gagen-Boni, Exhibition-Einladungen), Trainer (1 Jahr, XP-Faktor)
+js/form.js            Bühne (Erfahrung zählt in Majors/gegen Top 16) + Selbstvertrauen/Momentum
+js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP + Clutch)
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
+js/ui/boardSvg.js     Dartscheibe als SVG (matchUI + Matchdart-Anzeige in watch)
+js/ui/interview.js    Interview-Minispiel (Panel im Turnier-Screen und Hub)
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
-                      stats, news, rankings, tour (Holder + Titelträger), sponsors, settings, careerEnd, training
+                      stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
 data/regions.js       16 Bundesländer mit Städten (lokale Turniere)
 data/distractions.js  Störmoment-Situationen mit je 2 Optionen
+data/staff.js         Manager (3 Stufen) und Trainer (3 Stufen), Exhibition-Orte
+data/interviews.js    Interview-Floskeln
 data/sponsors.js      Fiktive Sponsoren (3 Stufen), Vertragsplätze, Vertragsarten
 data/tournaments.js   Jahreskalender (KW-basiert), Kategorien, Formate
 data/prizemoney.js    Preisgeldtabellen in €
@@ -76,7 +83,8 @@ champions:{[year]:[{week,eventId,name,cat,id,who,nation}]}  Sieger aller Turnier
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
 training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.activity = train|rest|sponsor|exhibition, week.trained = Attribut
-player.fatigue 0–100, state.lastTrained;  live.route = {start, darts} (gewählter Checkout-Weg), live.coDec = {left, asked}
+player.fatigue 0–100, player.momentum −10…10, player.prep {key,bonus,weeks}, state.lastTrained;  live.route = {start, darts} (gewählter Checkout-Weg), live.coDec = {left, asked}
+staff:{manager:{…,cut,since,paid}|null, coach:{…,xp,until}|null, gigs:[{id,kind,city,fee,until}]}, interview:{event,place,tiles,seq}|null
 sponsors:{active:[{name,slot,type,amount,years,start,until,paid}], offers:[{…,expires}], total}, ended:bool
 archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pdc|challenge|dev:{rank,year,week}}}
 ```
@@ -123,6 +131,10 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - World Series (8 Events): Top 8 PDC + 8 Qualifikanten (PDC 9–64 zugelost); Finals: Top 24 WS-Wertung. Keine PDC-OOM.
   - Premier League: Top 8 PDC zu Saisonbeginn, 16 Spieltage (KW 6–21) als **Zusatz-Event** (zählt nicht als Wochen-Event), K.-o. first to 6, Punkte 5/3/2/2; Play-offs KW 22 (Top 4). Keine OOM.
   - Majors-Preisgeld → PDC OOM (nicht Pro Tour). Alle Majors laufen im Hintergrund (AI_CATS).
+- **Team** (`staff.js`): **Manager** ab erster Tourcard (Stufe 2 ab Top 64, Stufe 3 ab Top 16): Provision 10/15/20 % auf alle Einnahmen (Preisgeld, Sponsoren, Exhibitions; zentral in `book`), dafür Sponsor-Angebotschance 75/90/100 % (statt 60 %), Beträge +10/25/45 %, mehr offene Angebote, Exhibition-Gagen ×1,2/1,5/2 und **Exhibition-Einladungen** (20/30/40 % pro Woche, zusätzlich zum Wochenplan, reines Klick-Event: Gage, XP, Clutch +2, Ermüdung +15). **Trainer**: Einmalzahlung 1.500/6.000/18.000 € für 52 Wochen → alle XP ×1,1/1,2/1,3 und schnellerer Trainingsfortschritt.
+- **Bühne** (`form.js`): in Majors/WS/PL (Faktor 1, ab Viertelfinale 1,5) und gegen PDC-Top-16 (0,7) zählt Erfahrung: ±0,5 × Faktor je Stufe über/unter +3 auf Scoring, Finishing, Mental (beide Seiten, in `attrsOf`). Anzeige „🎭“ im DartConnect.
+- **Selbstvertrauen** (`player.momentum` −10…10): Sieg +1 (gegen Stärkere/Top 16 +1,5), Niederlage −1 (gegen Schwächere −1,5, gegen Stärkere −0,4), lokal ×¼; Titel (nicht lokal) +3; wöchentlich −20 % und 0,3 (negativ 0,6) Richtung 0. Ab ±3: ±1,5/±3/±4 auf Scoring, Finishing, Fokus (`perf`). Anzeige im Hub-Kopf, Profil, DartConnect (🔥/🥶).
+- **Interviews** nach Majors (außer WM-Quali), PL-Play-offs, WS-Finals: Chance Sieg 100 %, Finale 80 %, HF 60 %, VF 40 %, sonst 25 %. 25 Floskeln im 5×5-Raster, 4–5 (Sieg 6) leuchten nacheinander grün auf, dann in Reihenfolge antippen; richtig → XP (12 % Level-Bedarf × Länge/5, mind. 30, × Trainer) + 3 Clutch je Floskel; ein Fehler beendet es. Anfrage verfällt nach der Woche.
 - **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM, Premier-League-Tabelle.
 - **Sponsoren (Phase 6 umgesetzt)**: erst nach erster Tourcard. 4 Plätze (Darts-Ausrüster, Trikot, Getränk, Partner), je einer aktiv. Angebote alle 4 Wochen (60 %, max. 3 offen, 6 Wochen gültig). Marktwert = 250.000 € · PDC-Rang^−1,1 (+2 % je Titel, 600–400.000 €). Typen: Jahresgehalt (quartalsweise KW 1/14/27/40, erste Rate bei Unterschrift), Antrittsgeld je Profi-Turnier, Erfolgsbonus ab Halbfinale (Titel ×3). Laufzeit 1–3 Jahre (Top 16 bis 3, Top 64 bis 2), Sponsorstufe nach Rang. Kündigung jederzeit ohne Kosten.
 
@@ -132,6 +144,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - Stats: Average (Punkte/Darts·3), 180er, 140+, 100+, Checkout-% (Treffer/Doppelversuche), höchstes Finish.
 - **Spielmodi im Turnier**: 📺 DartConnect (Screen 'watch', Zuschauen mit Störmomenten) und ⚡ Schnellsimulation (sofort). Manueller Modus vorerst deaktiviert.
 - **Checkout-Entscheidungen** (nur DartConnect, `decisions.js`): vor einer eigenen Aufnahme auf 41–170 (kein Bogey) mit 30 % Chance, max. 2 je Match. 2–3 Wege (`alternativeRoutes`: verschiedene erste Darts, gleiche Darts in anderer Reihenfolge zusammengefasst). Angezeigte Chance = Monte-Carlo mit eigenen Werten (400 Würfe) + Schätzfehler N(0, (100 − Rechnen)·0,15 %-Punkte); „★ Empfohlen“ ab Rechnen 75. Gewählter Weg wird ohne Rechenfehler gespielt (`routeTarget`), solange der Rest zum Plan passt.
+- **Gegner-Matchdarts** (nur DartConnect): steht der Gegner zu Beginn seiner Aufnahme auf einem Match-Finish (≤ 170, kein Bogey), erscheint die Dartscheibe als Overlay und die Darts kommen einzeln (1,1 s) mit Zielfeld und Treffer (`liveDartStep`, `oppMatchDartVisit`).
 - **Störmomente** (nur DartConnect, vor einer eigenen Aufnahme): Wahrscheinlichkeit je Match lokal 50 %, DDV 35 %, sonst 25 %. Situationen je Ebene (Quatschen/Handy nur lokal; Zwischenruf/Zeitspiel DDV+Pro; Auspfeifen nur Pro). 2 Optionen: sicher (höhere Chance, kleiner Effekt) vs. riskant (niedrige Chance, großer Effekt). Chance = base + (Attribut−60)·0,6 % + Erfahrung·1,5 % (10–92 %). Effekt = Streuungs-Multiplikator für n Aufnahmen (eigene oder gegnerische Seite), Anzeige 😤/🔥 im Scoreboard.
 - **Manueller Modus** (`matchUI.js`, deaktiviert – Parameter noch auf alter Attribut-Skala): Ziel wählen (Tippen auf Scheibe / Chips, Standard = `suggestTarget`: T20 bzw. Checkout-Weg) → „Werfen“ → vertikale Linie (x) stoppen → horizontale Linie (y) stoppen → Treffer = Schnittpunkt + Gauß-Reststreuung. Bedienung: Tippen, Button oder Leertaste.
   - Linienposition = Ziel + amp·wave(Startphase + t·freq), t aus `performance.now()` → frameunabhängig. amp = 66 − 0,48·sco (mm), freq = 0,75 + 0,6·(1 − sco/99) Hz (y-Linie ×1,13), Reststreuung = 12 − 0,085·con mm.
