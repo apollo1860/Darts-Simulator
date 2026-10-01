@@ -100,6 +100,7 @@
 - Zufallsereignisse (Finger eingequetscht, Schule bis 18, Zahn-/Rückenschmerzen, Erkältung, Magen-Darm): Trainingsrückschlag oder seltener eine Woche ohne Turnier.
 - Exhibitions nur noch auf Angebot (ab Tourcard), Gage steigt mit dem Level.
 - **Meilensteine** mit Extra-XP (16 Stück, Liste im Profil). Alte Spielstände bekommen sie ab jetzt (keine rückwirkende Vergabe).
+- Formverlust neu (Nutzerwunsch): jedes Attribut muss mindestens alle 6 Wochen trainiert werden, sonst Rückgang bei diesem Attribut; Anzeige „zuletzt vor X Wo.“ je Attribut. Alte Spielstände starten mit höchstens 4 Wochen (Schonfrist).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.

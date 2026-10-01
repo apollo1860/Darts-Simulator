@@ -1,7 +1,7 @@
 // Wochenplan: genau eine Aktivität pro Woche (Training, Ruhetag, Sponsortermin, Exhibition) + Ermüdung
 import { esc, fmtPct, fmtEUR } from '../../util.js';
 import { ATTRS } from '../../player.js';
-import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, exOffer, trainingXp, exhibitionXp, PREP_BONUS, RECOVERY, recoveryPrice, canRecover, buyRecovery } from '../../training.js';
+import { train, trainingOf, sessionsFor, DECAY_AFTER, idleOf, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, exOffer, trainingXp, exhibitionXp, PREP_BONUS, RECOVERY, recoveryPrice, canRecover, buyRecovery } from '../../training.js';
 import { topbar, modal } from '../components.js';
 import { staffOf, acceptGig, declineGig } from '../../staff.js';
 
@@ -32,8 +32,9 @@ function gigs(s) {
 }
 
 export function render(app) {
-  const s = app.state, p = s.player, t = trainingOf(s), act = weekActivity(s);
-  const warn = t.idle >= DECAY_AFTER - 1 && act !== 'train';
+  const s = app.state, p = s.player, t = trainingOf(s), act = weekActivity(s), by = idleOf(s);
+  const due = ATTRS.filter(a => by[a.key] >= DECAY_AFTER - 1 && s.week.trained !== a.key);   // ab 5 Wochen: Warnung
+  const warn = due.length > 0;
   const status = act
     ? `<b class="pos">✔ Diese Woche: ${ACTIVITIES[act].icon} ${ACTIVITIES[act].label}${act === 'train' ? ` (${esc(ATTRS.find(a => a.key === s.week.trained).label)})` : ''}</b> <span class="muted">– nächste Aktivität ab kommender Woche.</span>`
     : '<span class="muted">Eine Aktivität pro Woche – zusätzlich zum Turnier. Wähle klug!</span>';
@@ -46,7 +47,9 @@ export function render(app) {
   };
   return `${topbar({ title: 'Wochenplan', sub: `KW ${s.date.week} · 1 Aktivität pro Woche` })}
   <div class="panel ${warn ? 'warn' : ''}" style="margin-bottom:12px">${status}
-    ${t.idle && act !== 'train' ? `<div class="${warn ? 'neg' : 'muted'}" style="font-size:.82rem;margin-top:4px">${t.idle} Woche${t.idle > 1 ? 'n' : ''} ohne Training – ab ${DECAY_AFTER} Wochen droht Formverlust.</div>` : ''}
+    <div class="${warn ? 'neg' : 'muted'}" style="font-size:.82rem;margin-top:4px">${warn
+      ? `⚠ Bald fällig: ${due.map(a => `${esc(a.label)} (${by[a.key]} Wo.)`).join(', ')} – jedes Attribut mindestens alle ${DECAY_AFTER} Wochen trainieren, sonst Formverlust.`
+      : `Jedes Attribut mindestens alle ${DECAY_AFTER} Wochen einmal trainieren, sonst droht Formverlust.`}</div>
   </div>
   <div class="panel" style="margin-bottom:12px">${fatigueBar(p)}
     <div class="row" style="margin-top:10px">${Object.entries(RECOVERY).map(([k, r]) => {
@@ -68,7 +71,8 @@ export function render(app) {
         <div class="muted" style="font-size:.78rem">${a.info} · ${need} Einheiten für +1</div></div>
         <button class="btn btn-sm btn-primary" data-train="${a.key}" ${act || v >= 100 ? 'disabled' : ''}>Trainieren</button></div>
       <div class="xp-bar" style="margin-top:8px"><i style="width:${prog * 100}%"></i></div>
-      <div class="muted" style="font-size:.75rem;margin-top:3px">Fortschritt ${fmtPct(prog, 0)}</div>
+      <div class="row-between" style="font-size:.75rem;margin-top:3px"><span class="muted">Fortschritt ${fmtPct(prog, 0)}</span>
+        <span class="${by[a.key] >= DECAY_AFTER ? 'neg' : by[a.key] >= DECAY_AFTER - 1 ? 'gold' : 'muted'}">${by[a.key] === 0 ? 'gerade trainiert' : `zuletzt vor ${by[a.key]} Wo.`}${by[a.key] >= DECAY_AFTER ? ' · Formverlust droht!' : ''}</span></div>
     </div>`;
   }).join('')}</div>
   <div class="section-title"><span class="label">Alternativen</span></div>

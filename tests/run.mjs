@@ -506,7 +506,7 @@ test('Training: XP + Turniervorbereitung (+3, 2 Wochen), schwächerer Formverlus
   nextWeek(s); assert.equal(p.prep.weeks, 1);                       // nächste Woche noch aktiv
   nextWeek(s); assert.equal(p.prep, undefined); assert.equal(perf(p).fin, p.attrs.fin);
   p.level = 30; assert.ok(TR.trainingXp(p) > 40);                   // wächst mit dem Level
-  assert.equal(TR.DECAY_AFTER, 4);
+  assert.equal(TR.DECAY_AFTER, 6);
 });
 
 test('Team: Manager-Provision, Sponsor-/Exhibition-Boni, Trainer 1 Jahr', () => {
@@ -525,7 +525,7 @@ test('Team: Manager-Provision, Sponsor-/Exhibition-Boni, Trainer 1 Jahr', () => 
   s.finance.balance = 10000;
   assert.ok(ST.hireCoach(s, 'c2')); assert.equal(s.finance.balance, 4000);
   assert.equal(ST.xpMult(s), 1.2); assert.equal(ST.hireCoach(s, 'c1'), false);   // nur einer gleichzeitig
-  { const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local'); const x0 = s.player.xpTotal; s.week.blocked = null;
+  { const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local'); const x0 = s.player.xpTotal; s.week.blocked = null; s.milestones = Object.fromEntries(MS.MILESTONES.map(m => [m.id, {}]));   // Meilenstein-XP ausklammern
     enterEvent(s, e.id); simulateRest(s); assert.equal(s.activeEvent.xp, s.player.xpTotal - x0, 'Anzeige = gutgeschriebene XP'); closeEvent(s); }
   for (let i = 0; i < 52; i++) nextWeek(s);
   assert.equal(ST.coachActive(s), null); assert.equal(ST.xpMult(s), 1);
@@ -730,13 +730,33 @@ test('Meilensteine: einmalig, Extra-XP, Match/Titel/Rang', () => {
   MS.titleMilestones(s, { place: 'W', cat: 'wdf' }); assert.ok(MS.reached(s, 'wdf'));
   MS.titleMilestones(s, { place: 'F', cat: 'dev' }); assert.ok(!MS.reached(s, 'dev'));
   MS.titleMilestones(s, { place: 'W', cat: 'major', eventId: 'wm-quali' }); assert.ok(!MS.reached(s, 'major'));
-  // im echten Turnier: lokaler Sieg / erster Sieg werden erkannt
+  // im echten Turnier: lokaler Sieg wird erkannt (starker Spieler, damit es sicher klappt)
+  s.player.attrs = { sco: 88, fin: 88, men: 88, foc: 88, cal: 88 };
   for (let i = 0; i < 20 && !MS.reached(s, 'local'); i++) {
     const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local');
     if (e && !s.week.blocked) { enterEvent(s, e.id); simulateRest(s); closeEvent(s); }
     nextWeek(s);
   }
   assert.ok(MS.reached(s, 'local'));
+});
+
+test('Formverlust je Attribut: jedes Attribut mind. 1× in 6 Wochen trainieren', () => {
+  const keys = ['sco', 'fin', 'men', 'foc', 'cal'];
+  // reihum trainieren (alle 5 Wochen jedes Attribut) → kein Verlust
+  const a = newCareer({ name: 'A', nation: 'DE', hand: 'R', seed: 97, bonus: { sco: 25 } });
+  for (let w = 0; w < 30; w++) { a.week.blocked = null; TR.train(a, keys[w % 5]); nextWeek(a); }
+  assert.equal(TR.trainingOf(a).lost, 0);
+  assert.ok(Object.values(TR.idleOf(a)).every(v => v < 6));
+  // nur Scoring trainieren → die anderen vier verlieren, Scoring nicht
+  const b = newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 98, bonus: { sco: 10, fin: 10, foc: 5 } });
+  const before = { ...b.player.attrs };
+  let scoUps = 0;
+  for (let w = 0; w < 20; w++) { const r = TR.train(b, 'sco'); if (r?.up) scoUps++; nextWeek(b); }
+  assert.ok(TR.trainingOf(b).lost >= 4, 'Verluste ' + TR.trainingOf(b).lost);
+  assert.equal(b.player.attrs.sco, before.sco + scoUps);              // trainiertes Attribut verliert nie
+  assert.ok(['fin', 'men', 'foc', 'cal'].filter(k => b.player.attrs[k] < before[k]).length >= 3);
+  assert.equal(TR.idleOf(b).sco, 0); assert.equal(TR.idleOf(b).fin, 20);
+  assert.equal(TR.mostOverdue(b) !== 'sco', true);
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

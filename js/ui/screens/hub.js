@@ -9,7 +9,7 @@ import { levelBar } from '../level.js';
 import { rivalOf } from '../../rival.js';
 import { eventsInWeek } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
-import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
+import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER, idleOf, mostOverdue } from '../../training.js';
 import { eventStatus } from '../../tournaments.js';
 import { unreadCount, markAllRead } from '../../news.js';
 import { sponsorsUnlocked } from '../../sponsors.js';
@@ -67,8 +67,9 @@ function oomLine(s) {
 
 function trainingTile(s) {
   const t = trainingOf(s), act = weekActivity(s), f = s.player.fatigue ?? 0;
-  const sub = act ? `✔ ${ACTIVITIES[act].label}` : t.idle >= DECAY_AFTER ? `⚠ ${t.idle} Wochen ohne Training` : 'Training · Ruhetag · Sponsor · Exhibition';
-  const badge = act ? '' : `<span class="badge ${t.idle >= DECAY_AFTER ? '' : 'badge-green'}">!</span>`;
+  const by = idleOf(s), od = mostOverdue(s), late = by[od] >= DECAY_AFTER - 1;
+  const sub = act ? `✔ ${ACTIVITIES[act].label}` : late ? `⚠ ${ATTRS.find(a => a.key === od).label} seit ${by[od]} Wo. nicht trainiert` : 'Training · Ruhetag · Sponsor · Exhibition';
+  const badge = act ? '' : `<span class="badge ${late ? '' : 'badge-green'}">!</span>`;
   const prep = s.player.prep ? ` · 🎯 ${ATTRS.find(a => a.key === s.player.prep.key).short} +${s.player.prep.bonus}` : '';
   return tile('training', '📋', 'Wochenplan', `${sub}<br>Ermüdung ${f} %${f > 30 ? ' ⚠' : ''}${prep}`, badge);
 }

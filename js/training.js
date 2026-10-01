@@ -1,7 +1,7 @@
 // Wöchentliches Training (DOM-frei): 1 Einheit pro Woche auf ein Attribut.
 // Fortschritt sammelt sich; Einheiten für +1 = 5 × Attributkosten (60 → 5, 75 → 10, 90 → 15, 95+ → 20).
 // Jede Einheit bringt XP (mitwachsend mit dem Level) und +3 auf das Attribut für Turniere dieser + nächster Woche.
-// Ohne Training: ab der 4. Woche in Folge droht pro Woche ein Formverlust (−1, eher bei hohen Werten).
+// Jedes Attribut muss mind. 1× in 6 Wochen trainiert werden, sonst droht diesem Attribut pro Woche ein Rückgang (−1).
 import { ATTRS, attrCost } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { addNews } from './news.js';
@@ -11,7 +11,7 @@ import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
 import { xpMult } from './staff.js';
 import { momentumDecay } from './form.js';
 
-export const DECAY_AFTER = 4;           // Wochen ohne Training bis zum ersten Risiko
+export const DECAY_AFTER = 6;           // Wochen ohne Training eines Attributs bis zum ersten Risiko (je Attribut)
 export const PREP_BONUS = 3, PREP_WEEKS = 2;   // Turniervorbereitung: +3 auf das trainierte Attribut (diese + nächste Woche)
 // XP je Einheit: 3 % des aktuellen Level-Bedarfs × Qualität (mind. 10); Exhibition 5 %
 export const trainingXp = (p, quality = 1) => Math.max(10, Math.round(xpForLevel(p.level ?? 1) * 0.03 * quality / 5) * 5);
@@ -22,6 +22,18 @@ const tr = state => (state.training ??= { progress: {}, idle: 0, sessions: 0, lo
 export const trainingOf = tr;
 export const trainedThisWeek = state => !!state.week.trained;
 export const weekActivity = state => state.week.activity ?? (state.week.trained ? 'train' : null);
+// Wochen seit dem letzten Training je Attribut (alte Spielstände: Start bei höchstens 4 → 2 Wochen Schonfrist)
+export const idleOf = state => {
+  const t = tr(state);
+  t.idleBy ??= Object.fromEntries(ATTRS.map(a => [a.key, Math.min(t.idle ?? 0, DECAY_AFTER - 2)]));
+  for (const a of ATTRS) t.idleBy[a.key] ??= 0;
+  return t.idleBy;
+};
+// Am längsten nicht trainiertes Attribut (bei Gleichstand das schwächere)
+export const mostOverdue = state => {
+  const by = idleOf(state), a = state.player.attrs;
+  return ATTRS.map(x => x.key).sort((x, y) => by[y] - by[x] || a[x] - a[y])[0];
+};
 
 // Eine Trainingseinheit. Rückgabe {gain (0..1 Fortschritt), up (Attribut gestiegen), text}
 export function train(state, key) {
@@ -36,7 +48,7 @@ export function train(state, key) {
   let up = false;
   if (t.progress[key] >= 1 && v < 100) { p.attrs[key] = v + 1; t.progress[key] -= 1; up = true; }
   state.week.trained = key; state.week.activity = 'train'; state.lastTrained = key;
-  t.idle = 0; t.sessions++;
+  t.idle = 0; t.sessions++; idleOf(state)[key] = 0;
   p.prep = { key, bonus: PREP_BONUS, weeks: PREP_WEEKS };
   const xp = Math.round(trainingXp(p, quality) * boost), ups = addXp(p, xp);
   const label = ATTRS.find(a => a.key === key).label;
@@ -49,22 +61,18 @@ export function train(state, key) {
 export function trainingWeekEnd(state) {
   const t = tr(state), p = state.player;
   if (p.prep && --p.prep.weeks <= 0) delete p.prep;          // Turniervorbereitung läuft ab
-  if (state.week.trained) return null;
-  t.idle++;
-  if (t.idle < DECAY_AFTER) return null;
-  const rng = new RNG(state.rng);
-  const risk = clamp(0.1 + (t.idle - DECAY_AFTER) * 0.05, 0, 0.3);
-  if (!rng.chance(risk)) return null;
-  // Höhere Werte verlieren eher (gewichtete Auswahl), Untergrenze DECAY_FLOOR
-  const cand = ATTRS.filter(a => p.attrs[a.key] > DECAY_FLOOR);
-  if (!cand.length) return null;
-  const weights = cand.map(a => Math.pow(p.attrs[a.key], 2));
-  let r = rng.next() * weights.reduce((x, y) => x + y, 0), pick = cand[0];
-  for (let i = 0; i < cand.length; i++) { r -= weights[i]; if (r <= 0) { pick = cand[i]; break; } }
-  p.attrs[pick.key]--; t.lost++;
-  t.progress[pick.key] = 0;
-  addNews(state, 'ranking', `Formverlust: ${pick.label} −1`, `${t.idle} Wochen ohne Training. Trainiere wieder regelmäßig (1 Einheit pro Woche), sonst geht es weiter bergab.`);
-  return pick.key;
+  const by = idleOf(state);
+  for (const a of ATTRS) by[a.key] = state.week.trained === a.key ? 0 : by[a.key] + 1;
+  t.idle = state.week.trained ? 0 : (t.idle ?? 0) + 1;
+  // Je Attribut: ab 6 Wochen ohne Training pro Woche Risiko 25 % (+10 %/Woche, max. 60 %) auf −1 (nicht unter DECAY_FLOOR)
+  const rng = new RNG(state.rng), lost = [];
+  for (const a of ATTRS) {
+    if (by[a.key] < DECAY_AFTER || p.attrs[a.key] <= DECAY_FLOOR) continue;
+    if (!rng.chance(clamp(0.25 + (by[a.key] - DECAY_AFTER) * 0.1, 0, 0.6))) continue;
+    p.attrs[a.key]--; t.lost++; t.progress[a.key] = 0; lost.push(a.key);
+    addNews(state, 'ranking', `Formverlust: ${a.label} −1`, `${a.label} seit ${by[a.key]} Wochen nicht trainiert. Jedes Attribut muss mindestens alle ${DECAY_AFTER} Wochen einmal trainiert werden.`);
+  }
+  return lost.length ? lost : null;
 }
 
 // ---- Wochenplan: genau EINE Aktivität pro Woche ----

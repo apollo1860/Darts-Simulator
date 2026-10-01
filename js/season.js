@@ -13,7 +13,7 @@ import { interviewWeekEnd } from './interviews.js';
 import { rivalYearEnd } from './rival.js';
 import { mishapWeek } from './mishaps.js';
 import { rankMilestones } from './milestones.js';
-import { exhibitionWeek } from './training.js';
+import { exhibitionWeek, mostOverdue } from './training.js';
 import { recordHistory, trackPeak } from './history.js';
 import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
 import { eventStatus } from './tournaments.js';
@@ -129,8 +129,7 @@ export function jumpToNextEvent(state, { autoTrain = true, max = 20 } = {}) {
   do {
     if (state.activeEvent && !state.activeEvent.done) break;
     if (autoTrain && !weekActivity(state)) {
-      const a = state.player.attrs, last = state.lastTrained;
-      train(state, last ?? Object.keys(a).sort((x, y) => a[x] - a[y])[0]);
+      train(state, mostOverdue(state));                      // das am längsten nicht trainierte Attribut
     }
     if (!nextWeek(state)) break;
     n++;
