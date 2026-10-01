@@ -34,7 +34,8 @@ js/throwModel.js      KI-Dart (Gauß um Ziel, σ aus Attributen), Parameter für
 js/matchUI.js         Screen 'match' (manuelles Spiel) – VORERST DEAKTIVIERT (MANUAL_AVAILABLE = false)
 js/rankings.js        Order of Merits: addMoney(), orderOfMerit(), rankOf()
 js/finance.js         Kontostand, Buchungen, Kosten pro Event
-js/sponsors.js        (Phase 6) Sponsoren
+js/sponsors.js        Sponsoren: Angebote (alle 4 Wochen), Verträge, Zahlungen, Kündigung, Ablauf
+js/history.js         Statistik-Archiv: Saisonbilanzen, Titel, Bestergebnisse, Höchstplatzierungen
 js/news.js            Nachrichten-Feed
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
@@ -45,6 +46,7 @@ data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
 data/regions.js       16 Bundesländer mit Städten (lokale Turniere)
 data/distractions.js  Störmoment-Situationen mit je 2 Optionen
+data/sponsors.js      Fiktive Sponsoren (3 Stufen), Vertragsplätze, Vertragsarten
 data/tournaments.js   Jahreskalender (KW-basiert), Kategorien, Formate
 data/prizemoney.js    Preisgeldtabellen in €
 tests/run.mjs         Node-Tests (Regeln, Checkouts, Turnierablauf, Live-Match)
@@ -70,7 +72,8 @@ activeEvent: Turnier-Instanz oder null: {eventId, cat, sub/count (Teil-Turnier),
          live:{m,me,mods:[{side,mult,visits}],dist:{id,atVisit,who,done}|null}|null}
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
-sponsors:{active:[], offers:[]}, ended:bool
+sponsors:{active:[{name,slot,type,amount,years,start,until,paid}], offers:[{…,expires}], total}, ended:bool
+archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pdc|challenge|dev:{rank,year,week}}}
 ```
 Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Woche und nach jedem Turnier.
 
@@ -110,7 +113,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Premier League: Top 8 PDC zu Saisonbeginn, 16 Spieltage (KW 6–21) als **Zusatz-Event** (zählt nicht als Wochen-Event), K.-o. first to 6, Punkte 5/3/2/2; Play-offs KW 22 (Top 4). Keine OOM.
   - Majors-Preisgeld → PDC OOM (nicht Pro Tour). Alle Majors laufen im Hintergrund (AI_CATS).
 - **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM, Premier-League-Tabelle.
-- **Sponsoren (Phase 6)**: erst nach erster Tourcard, max. 4, Laufzeit 1–3 Jahre, jederzeit kündbar.
+- **Sponsoren (Phase 6 umgesetzt)**: erst nach erster Tourcard. 4 Plätze (Darts-Ausrüster, Trikot, Getränk, Partner), je einer aktiv. Angebote alle 4 Wochen (60 %, max. 3 offen, 6 Wochen gültig). Marktwert = 250.000 € · PDC-Rang^−1,1 (+2 % je Titel, 600–400.000 €). Typen: Jahresgehalt (quartalsweise KW 1/14/27/40, erste Rate bei Unterschrift), Antrittsgeld je Profi-Turnier, Erfolgsbonus ab Halbfinale (Titel ×3). Laufzeit 1–3 Jahre (Top 16 bis 3, Top 64 bis 2), Sponsorstufe nach Rang. Kündigung jederzeit ohne Kosten.
 
 ## Match-Engine
 - Format: `{legs:n}` = first to n Legs; `{sets:s, legs:l}` = first to s Sets, je first to l Legs. 501, Double Out.
@@ -120,6 +123,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - **Störmomente** (nur DartConnect, vor einer eigenen Aufnahme): Wahrscheinlichkeit je Match lokal 50 %, DDV 35 %, sonst 25 %. Situationen je Ebene (Quatschen/Handy nur lokal; Zwischenruf/Zeitspiel DDV+Pro; Auspfeifen nur Pro). 2 Optionen: sicher (höhere Chance, kleiner Effekt) vs. riskant (niedrige Chance, großer Effekt). Chance = base + (Attribut−60)·0,6 % + Erfahrung·1,5 % (10–92 %). Effekt = Streuungs-Multiplikator für n Aufnahmen (eigene oder gegnerische Seite), Anzeige 😤/🔥 im Scoreboard.
 - **Manueller Modus** (`matchUI.js`, deaktiviert – Parameter noch auf alter Attribut-Skala): Ziel wählen (Tippen auf Scheibe / Chips, Standard = `suggestTarget`: T20 bzw. Checkout-Weg) → „Werfen“ → vertikale Linie (x) stoppen → horizontale Linie (y) stoppen → Treffer = Schnittpunkt + Gauß-Reststreuung. Bedienung: Tippen, Button oder Leertaste.
   - Linienposition = Ziel + amp·wave(Startphase + t·freq), t aus `performance.now()` → frameunabhängig. amp = 66 − 0,48·sco (mm), freq = 0,75 + 0,6·(1 − sco/99) Hz (y-Linie ×1,13), Reststreuung = 12 − 0,085·con mm.
+  - (Hinweis: KI-Attribute haben 1 Nachkommastelle für feine Auflösung an der Spitze; Anzeige gerundet. Tagesform-σ = 0,055 − 0,0003·foc.)
   - Doppel/Bull als Ziel: amp & Streuung × (1,3 − fin/200). Druck (Entscheidungsleg, Doppel-Finish, Match-Dart) × (1 + Last·(1 − ner/99)·1,6). Ausdauer: ab Leg 9 leicht steigend.
 - **Gegner-KI** (live): dartgenau, Ziel = `suggestTarget`, Streuung σ je Achse aus Average-Tabelle (`SIGMA_TABLE`, kalibriert mit `tests/fitSigma.mjs`), Doppel-σ aus Checkout-Basis (analytisch). Gleiche Druck-/Ausdauerfaktoren.
 - **Schnellsimulation** (`js/ui/screens/watch.js`, Screen 'watch'): DartConnect-Stil, 1 Aufnahme alle 1,5 s (`VISIT_MS`), dartgenaue KI für beide Seiten. Eigener Spieler links; je Spieler Rest groß, daneben rot Leg-Average, weiß Gesamt-Average; Liste aller Aufnahmen des Legs mit Aufnahme-Nr. in der Mitte, Pfeil = wer dran ist, Punkt = Anwurf. Pause / Selbst spielen / Sofort beenden. Nutzt `inst.live` → jederzeit zwischen Zuschauen und Selbstspielen wechselbar.

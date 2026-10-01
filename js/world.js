@@ -1,7 +1,7 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS } from '../data/names.js';
-import { attrsForAverage, overall, ratingForAvg, EXP_MIN, EXP_MAX } from './player.js';
+import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
 
 export const WORLD_VERSION = 3;
@@ -81,9 +81,9 @@ export function upgradeWorld(world, rng) {
 function changeStrength(p, delta) {
   const before = p.attrs.sco;
   p.avg = clamp(Math.round((p.avg + delta) * 10) / 10, 30, 108);
-  const d = ratingForAvg(p.avg) - before;
-  for (const k of ['fin', 'men', 'foc']) p.attrs[k] = clamp(p.attrs[k] + d, 1, 100);
-  p.attrs.sco = clamp(before + d, 1, 100);
+  const d = ratingForAvgExact(p.avg) - before;
+  for (const k of ['fin', 'men', 'foc']) p.attrs[k] = clamp(Math.round(p.attrs[k] + d), 1, 100);
+  p.attrs.sco = clamp(Math.round((before + d) * 10) / 10, 1, 100);
 }
 
 function newTalent(state, rng, year) {

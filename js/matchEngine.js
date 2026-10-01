@@ -9,7 +9,7 @@ const SCORING_BOOST = 1.045;                          // Kalibrierung: Scoring-A
 
 // Leistungsprofil für ein Match (inkl. Tagesform)
 export function makeProfile(attrs, rng, mod = {}) {
-  const formSd = 0.045 - attrs.foc * 0.00025;
+  const formSd = 0.055 - attrs.foc * 0.0003;           // Tagesform: auch Topspieler haben schwache Tage
   const form = (rng ? rng.normal(1, formSd) : 1) * (mod.formMult ?? 1);
   return {
     avg: targetAverage(attrs) * form,

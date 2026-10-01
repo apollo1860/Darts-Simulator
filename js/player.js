@@ -27,13 +27,15 @@ function interp(tab, x, xi = 0, yi = 1) {
 }
 export const avgForRating = r => interp(AVG_CURVE, r);
 export const ratingForAvg = avg => clamp(Math.round(interp(AVG_CURVE, avg, 1, 0)), 1, 100);
+// Genau (1 Nachkommastelle) – für KI-Spieler, damit die Spitze fein aufgelöst bleibt
+export const ratingForAvgExact = avg => clamp(Math.round(interp(AVG_CURVE, avg, 1, 0) * 10) / 10, 1, 100);
 
 export const targetAverage = a => avgForRating(a.sco);
 export const checkoutBase = a => 0.06 + 0.0037 * a.fin;          // 60 → 28 %, 100 → 43 %
 
 // Attribute für einen Ziel-Average erzeugen (KI-Spieler); Streuung oben kleiner (Perzentile drängen sich)
 export function attrsForAverage(avg, rng, spread = 7) {
-  const sco = ratingForAvg(avg);
+  const sco = ratingForAvgExact(avg);
   const sd = spread * Math.max(0.2, 1 - sco / 125);
   const around = (base, k = 1) => clamp(Math.round(rng.normal(base, sd * k)), 1, 100);
   return { sco, fin: around(sco - 1), men: around(sco - 2, 1.3), foc: around(sco - 1, 1.2) };

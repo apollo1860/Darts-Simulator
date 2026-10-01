@@ -80,7 +80,7 @@ export function render(app) {
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}
     ${tile('news', '📰', 'Neuigkeiten', esc(lastNews?.title ?? 'Keine Meldungen'), unread ? `<span class="badge">${unread}</span>` : '')}
     ${tile('stats', '📊', 'Statistiken', `${s.stats.career.wins}–${s.stats.career.matches - s.stats.career.wins} · ${s.stats.career.titles} Titel`)}
-    ${tile('sponsors', sp ? '🤝' : '🔒', 'Sponsoren', sp ? `${s.sponsors.active.length}/4 aktiv` : 'Ab erster Tourcard', '', sp ? '' : 'locked')}
+    ${tile('sponsors', sp ? '🤝' : '🔒', 'Sponsoren', sp ? `${s.sponsors.active.length}/4 aktiv` : 'Ab erster Tourcard', s.sponsors.offers.length ? `<span class="badge">${s.sponsors.offers.length}</span>` : '', sp ? '' : 'locked')}
     ${tile('settings', '⚙️', 'Speichern', 'Export · Import · Menü')}
   </div>
   <div class="bottom-bar"><div class="inner">

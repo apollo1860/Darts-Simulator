@@ -7,6 +7,8 @@ import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
 import { WEEKS_PER_YEAR } from './util.js';
 import { plTable, plState } from './majors.js';
+import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
+import { recordHistory, trackPeak } from './history.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -15,8 +17,10 @@ export function nextWeek(state) {
   const evs = eventsInWeek(state, year, week);
   const ai = simulateWeekAI(state);
   weekNews(state, evs, ai);
-  if (week >= WEEKS_PER_YEAR) yearEnd(state);
+  if (week >= WEEKS_PER_YEAR) { recordHistory(state); sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);
+  sponsorWeek(state);
+  trackPeak(state);
   if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); }
   return true;
 }

@@ -6,7 +6,7 @@
 - [x] **Phase 3 – Unterbau-Tour** (echte Spielerdaten, Q-School, Challenge/Dev Tour + OOM, Altersregel, Tourcards, Jahreswechsel/KI-Entwicklung)
 - [ ] Phase 4 – Pro Tour (Tourcard 2 Jahre/Top 64, Players Championships, European Tour, Rankings, Preisgeld)
 - [x] **Phase 5 – Majors & Events** (WM, UK Open, Masters, Matchplay, Grand Prix, Grand Slam, PC Finals, World Cup, Premier League, World Series)
-- [ ] Phase 6 – Sponsoren & Politur (Sponsoren, Statistik-Archive, Animationen, Balancing, README final)
+- [x] **Phase 6 – Sponsoren & Politur** (Sponsoren, Statistik-Archive, Animationen, Balancing, README final)
 
 ## Stand Phase 1
 - Spielbar: Neue Karriere → Hub → Woche → lokales Turnier melden → Runde für Runde simulieren (FUT-Karten-Vorschau, Ergebnis-Modal mit Stats) → Bracket → Preisgeld/XP → „Weiter“.
@@ -59,11 +59,22 @@
 - Ruheständler bleiben als 'retired' erhalten (Namen in alten Tabellen).
 - 22 Node-Tests.
 
-## Nächste Schritte (Phase 6)
-- Sponsoren (nach erster Tourcard, max. 4, 1–3 Jahre, kündbar, Angebote über News), Karriereende-Bilanz erweitern (Majors-Titel), Statistik-Archive, Animationen, Balancing (Littler-Dominanz, Erfahrung, XP), README final.
-- Optional: manuellen Modus auf Perzentil-Attribute neu kalibrieren und wieder freischalten.
+## Stand Phase 6
+- Sponsorensystem komplett (Screen mit 4 Vertragsplätzen, Angeboten, Kündigung; Zahlungen in den Finanzen; Hub-Badge für neue Angebote).
+- Statistik-Archiv: Saison-Archiv (Status, Rang, OVR, Erfahrung, Ø, Titel, Preisgeld), Titelliste, Bestergebnisse je Event/Serie, Höchstplatzierungen.
+- Karriereende-Bilanz um Major-Titel, beste PDC-Platzierung, Sponsoreinnahmen, Erfahrung und Titelliste erweitert.
+- Animationen: Konfetti + Gold-Panel bei Titel/Tourcard; Toasts stapeln sich nicht mehr.
+- Balancing: KI-Attribute mit Nachkommastelle, mehr Tagesform-Streuung, Littler 102,5 Ø → Titel verteilen sich (Littler 2–6 pro Saison statt fast alle).
+- Bugfixes: Gruppen-Aus-Platzierung, Ruheständler bleiben erhalten, Bestplatzierung ignoriert Quali-Ergebnisse, automatische PL-Spieltage erscheinen in der Historie.
+- README final (Hinweis „nur private Nutzung, echte Namen“). 23 Node-Tests.
+
+## Mögliche nächste Schritte
+- Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
+- Echte Spielerdaten prüfen/ergänzen (siehe „Unsichere Angaben“), echte Dev-Tour-Namen statt fiktiver.
+- Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- **Phase 6**: Sponsorennamen fiktiv. Jahresgehalt-Raten auch für das laufende Jahr ab Unterschrift (Antrittsrate = 1 Quartal). Premier-League-Spieltagssiege zählen nicht als Titel (nur Bestergebnis).
 - **Phase 5**: Qualifikationsregeln vereinfacht (siehe CLAUDE.md). World Grand Prix ohne Double-In. WM komplett im alten Jahr (KW 51–52), Preisgeld zählt fürs laufende Jahr. Premier-League-Spieltage brauchen keine Woche, kosten aber Reise; Bonus 12.000 € pro Tagessieg, Play-offs 300.000 € Sieg. PL-, WS- und World-Cup-Geld zählt nicht zur PDC OOM. WS-Qualifikanten = zugeloste Tour-Spieler (PDC 9–64). „International“-WM-Plätze = stärkste Spieler ohne Karte (inkl. DDV-Pool).
 - **Umbau**: Perzentil→Average-Kurve geschätzt (60 ≈ 65 Ø). Erfahrungsstufen-Schwellen, XP-Werte und Störmoment-Chancen/Effekte sind Balancing-Werte (data/distractions.js, js/player.js) – leicht anpassbar.
 - DDV-Turniere gibt es unabhängig von der Nation (auch für Nicht-Deutsche), Reise immer Deutschland-Tarif. Für Nicht-DE-Spieler gibt es kein Bundesland; lokale Turniere nutzen dann die Städteliste der Nation.

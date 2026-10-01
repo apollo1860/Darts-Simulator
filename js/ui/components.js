@@ -8,6 +8,7 @@ import { CATEGORIES } from '../../data/tournaments.js';
 // ---- Toast ----
 export function toast(msg, type = '') {
   const host = document.getElementById('toasts');
+  while (host.children.length >= 2) host.firstChild.remove();   // nicht stapeln
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   el.textContent = msg;
@@ -81,7 +82,7 @@ export function futCard(p, { small = false, me = false } = {}) {
     <div class="fut-avatar">${esc(initials(p.name))}</div>
     <div class="fut-name ${p.name.length > 14 ? 'long' : ''}">${esc(p.name)}</div>
     <div class="fut-attrs">
-      ${ATTRS.map(a => `<span><b>${p.attrs[a.key]}</b> ${a.short}</span>`).join('')}
+      ${ATTRS.map(a => `<span><b>${Math.round(p.attrs[a.key])}</b> ${a.short}</span>`).join('')}
       <span><b>${expLabel(p.exp ?? 0)}</b> ERF</span>
       <span><b>${p.age}</b> ALT</span>
     </div>

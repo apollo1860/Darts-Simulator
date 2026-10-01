@@ -102,6 +102,13 @@ function trainingPanel(s, inst) {
   </div>`;
 }
 
+// Konfetti bei Titel / Tourcard
+function confetti() {
+  const cols = ['#22e4ff', '#3dff9a', '#ffc83d', '#ff4d6d', '#9b6bff'];
+  return `<div class="confetti" aria-hidden="true">${Array.from({ length: 40 }, (_, i) =>
+    `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.12}s;--r:${(i * 53) % 360}deg;background:${cols[i % cols.length]}"></i>`).join('')}</div>`;
+}
+
 function donePanel(s, inst) {
   const win = inst.place === 'W', card = inst.place === 'CARD', qual = inst.place === 'QUAL';
   const winnerKpi = inst.winner
@@ -111,7 +118,7 @@ function donePanel(s, inst) {
   const nextBtn = inst.hasNext
     ? `<button class="btn btn-primary btn-continue" id="btn-next-sub">Weiter: ${inst.isQualifier ? 'Hauptfeld' : inst.cat === 'qschool' ? `Tag ${inst.sub + 2}` : `Turnier ${inst.sub + 2}`} ▸</button>`
     : `<button class="btn btn-primary btn-continue" id="btn-close">Zurück zum Hub ▸</button>`;
-  return `<div class="panel stack center">
+  return `${win || card ? confetti() : ''}<div class="panel stack center ${win || card ? 'celebrate' : ''}">
     <div class="label">${inst.subLabel ? `${esc(inst.subLabel)} von ${inst.count} beendet` : 'Turnier beendet'}</div>
     <h2 class="${win || card || qual ? 'gold' : ''}">${card ? '🎉 Tourcard gewonnen!' : win ? '🏆 Turniersieg!' : qual ? '✅ Qualifiziert!' : placeLabel(inst.place)}</h2>
     ${card ? `<p>Du spielst ab sofort mit Tourcard (gültig bis Ende ${s.player.cardUntil}).</p>` : ''}

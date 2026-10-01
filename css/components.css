@@ -545,3 +545,17 @@
 .group-grid { display: grid; gap: 10px; }
 @media (min-width: 720px) { .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .group-grid h4 { margin-bottom: 4px; }
+
+/* ---------- Feier-Animationen ---------- */
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
+.confetti i {
+  position: absolute; top: -12px; left: var(--x); width: 8px; height: 14px; border-radius: 2px;
+  transform: rotate(var(--r)); animation: confetti-fall 2.6s cubic-bezier(.25, .6, .4, 1) var(--d) forwards; opacity: 0;
+}
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translateY(0) rotate(var(--r)); }
+  100% { opacity: 0; transform: translateY(105vh) rotate(calc(var(--r) + 540deg)); }
+}
+.celebrate { animation: celebrate 1.2s var(--ease) both; box-shadow: 0 0 40px rgba(255, 200, 61, .25); border-color: var(--gold); }
+@keyframes celebrate { 0% { transform: scale(.94); } 40% { transform: scale(1.02); } 100% { transform: scale(1); } }
+.kpi .v.gold, .tile-value { transition: color .3s; }

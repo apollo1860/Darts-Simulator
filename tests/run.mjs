@@ -15,6 +15,7 @@ import { createMatch, throwDart } from '../js/matchState.js';
 import { startManualMatch, liveAiDart, simulateLiveRest, liveAiVisit } from '../js/tournaments.js';
 import { legAverage } from '../js/matchState.js';
 import * as D from '../js/distractions.js';
+import * as SP from '../js/sponsors.js';
 import { wave } from '../js/throwModel.js';
 
 let n = 0;
@@ -341,6 +342,31 @@ test('World Cup: Team mit Spieler, Preisgeld geteilt', () => {
   simulateRest(s);
   if (inst.place === 'W') assert.equal(inst.prize, 47000);
   closeEvent(s);
+});
+
+test('Sponsoren: Angebote, Vertrag, Zahlungen, Kündigung, Ablauf', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 51 });
+  for (let i = 0; i < 8; i++) nextWeek(s);
+  assert.equal(s.sponsors.offers.length, 0);                       // gesperrt ohne Tourcard
+  s.player.tour = 'tour'; s.player.cardUntil = 2029; s.player.everTourcard = true;
+  for (let i = 0; i < 30 && s.sponsors.offers.length < 2; i++) nextWeek(s);
+  assert.ok(s.sponsors.offers.length >= 1);
+  const o = s.sponsors.offers[0];
+  assert.ok(o.amount > 0 && o.years >= 1);
+  const bal = s.finance.balance;
+  assert.ok(SP.acceptOffer(s, o.id).ok);
+  assert.equal(s.sponsors.active.length, 1);
+  if (o.type === 'annual') assert.ok(s.finance.balance > bal);
+  // gleicher Platz doppelt → abgelehnt
+  s.sponsors.offers.push({ ...o, id: 'X', name: 'Test GmbH' });
+  assert.equal(SP.acceptOffer(s, 'X').ok, false);
+  SP.cancelContract(s, o.name);
+  assert.equal(s.sponsors.active.length, 0);
+  assert.ok(SP.acceptOffer(s, 'X').ok);
+  s.sponsors.active[0].until = s.date.year;                        // läuft zum Jahresende aus
+  while (s.date.week !== 1) nextWeek(s);
+  assert.equal(s.sponsors.active.length, 0);
+  assert.ok(s.archive.seasons[2027]);
 });
 
 console.log(`\n${n} Tests ok`);

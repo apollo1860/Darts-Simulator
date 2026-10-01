@@ -6,7 +6,7 @@
 // --- Tourcard-Holder 2026 (128) ---
 // a) Top 64 der PDC Order of Merit (Reihenfolge ≈ OOM Anfang 2026) → Karte wird Ende 2026 verlängert
 export const TOUR_TOP64 = [
-  ['Luke Littler', 'ENG', 20, 104], ['Luke Humphries', 'ENG', 32, 101], ['Gian van Veen', 'NL', 25, 99],
+  ['Luke Littler', 'ENG', 20, 102.5], ['Luke Humphries', 'ENG', 32, 100], ['Gian van Veen', 'NL', 25, 99],
   ['Michael van Gerwen', 'NL', 37, 98], ['Jonny Clayton', 'WAL', 52, 96], ['Gary Anderson', 'SCO', 56, 96],
   ['Stephen Bunting', 'ENG', 41, 97], ['James Wade', 'ENG', 43, 94], ['Josh Rock', 'NIR', 25, 97],
   ['Danny Noppert', 'NL', 36, 95], ['Ryan Searle', 'ENG', 39, 96], ['Gerwyn Price', 'WAL', 41, 97],

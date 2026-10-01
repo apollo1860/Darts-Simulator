@@ -16,6 +16,8 @@ import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, gr
 import { MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare } from './majors.js';
 import { addMoney, orderOfMerit, rankOf } from './rankings.js';
 import { fmtEUR } from './util.js';
+import { sponsorEventPayout } from './sponsors.js';
+import { trackTitle } from './history.js';
 
 export const IMPLEMENTED_PHASE = 5;
 export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl'];   // laufen ohne Spieler im Hintergrund
@@ -434,6 +436,8 @@ function finishEvent(state, inst) {
     grantXp(state, bonus);
   }
   if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
+  sponsorEventPayout(state, inst);
+  trackTitle(state, inst);
   if (inst.isQualifier) {
     addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, place === 'QUAL' ? 'Du stehst im Hauptfeld (Letzte 48).' : 'Kein Platz im Hauptfeld.');
     if (place === 'NQ') state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });
@@ -475,6 +479,9 @@ export function runAITournament(state, ev, sub, ctx = {}) {
   // Premier League / World Cup ohne Meldung: Spieler spielt automatisch mit
   if (inst.autoPlayer && inst.places?.P) {
     if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place)})`, 'prize');
+    sponsorEventPayout(state, inst);
+    trackTitle(state, inst);
+    state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: inst.prize });
     addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, inst.prize ? `Preisgeld: ${fmtEUR(inst.prize)}.` : '');
   }
   return inst;
