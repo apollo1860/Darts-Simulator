@@ -87,6 +87,7 @@
 - Lokale Turniere nur noch deutsche Spieler (20 Namen ersetzt, Migration v9). Turnier-XP gesenkt (lokaler Sieg ~120 statt ~260 XP, frühes Aus ~30 statt ~70). **Level-Up-Fenster** (großes „LEVEL UP! N“, +Punkte, „Punkte verteilen“) und **animierter Level-Balken** im Hub und am Turnierende (füllt sich, läuft bei Aufstieg über).
 - Erholung kaufen (Nutzerwunsch): Saunabesuch (−10 % Ermüdung) und Massage (−15 %) im Wochenplan, je 50–100 €, je 1× pro Woche, zusätzlich zur Wochenaktivität.
 - Checkout-Entscheidung zeigt nur noch die Wege, keine Wahrscheinlichkeiten mehr („★ Empfohlen“ ab Rechnen 75 bleibt).
+- **WDF-Opens** (Nutzerliste): 20 Turniere für Spieler ohne Tourcard, Sieg 1.000–2.500 € je nach Kategorie, Finale 500/HF 250/VF 100 €, Reise Europa 400 €/Übersee 1.000 €.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -94,6 +95,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- WDF: KW nach den Terminen 2026 (gilt jedes Jahr gleich). Orte für Dänemark/England/Finnland/Kanada/NZ/Australien/Wales/Tschechien/Italien geschätzt; Italian/Finnish Open (ohne Kategorie) als Bronze. Estonian + Tallinn Open in derselben KW → nur eins spielbar. Keine Startgebühr. Feld = zufällige Spieler ohne Karte + DDV-Pool (keine echten Übersee-Amateure).
 - XP gesenkt: Basis Match 10/Sieg 15/Runde 6/Titel 40/Teilnahme 45, lokal ×0,55. Bot (spielt aus Geldmangel fast nur lokal) erreicht nach 8 Saisons Level ~47 / OVR ~92, noch ohne Tourcard – wer CT/DDV spielt, steigt schneller. Level-Up-Fenster im laufenden Turnier erst nach Turnierende.
 - Manager-Provision 10/15/20 % (übliche Spanne im Sport); Freischaltung nach Tourcard/Top 64/Top 16. Exhibition-Einladungen kommen zusätzlich zum Wochenplan (Ermüdung +15). Trainerpreise 1.500/6.000/18.000 €.
 - Bühnen-Effekt symmetrisch um Erfahrung +3 (typischer Tour-Profi): Neuling (−4) auf großer Bühne ≈ −5 Punkte, Veteran (+10) ≈ +5. Momentum lokal nur ¼, damit Kneipenturniere keinen Dauer-Lauf erzeugen (Bot: meist „Normal“, Phasen mit Selbstvertrauen).

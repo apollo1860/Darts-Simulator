@@ -26,7 +26,7 @@ import { maybeInterview } from './interviews.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
-export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl'];   // laufen ohne Spieler im Hintergrund
+export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl', 'wdf'];   // laufen ohne Spieler im Hintergrund
 
 // Inhaltliche Berechtigung
 export function eligibility(state, ev) {
@@ -34,7 +34,7 @@ export function eligibility(state, ev) {
   const card = p.tour === 'tour';
   switch (ev.cat) {
     case 'local': return { ok: true };
-    case 'ddv': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
+    case 'ddv': case 'wdf': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
     case 'qschool': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
     case 'challenge':
       if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
@@ -98,6 +98,7 @@ function prizeTable(ev, sub = 0) {
     const W = ev.prizeWin, s = PRIZES.local.shares;
     return { W, F: Math.round(W * s.F / 5) * 5, SF: Math.round(W * s.SF / 5) * 5 };
   }
+  if (ev.cat === 'wdf') return { W: ev.prizeWin ?? 1000, ...PRIZES.wdf };   // Sieg aus dem Kalender (calendar.wdfPrize)
   return PRIZES[fmtKey(ev, sub)] ?? {};
 }
 
@@ -128,6 +129,11 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(withPlayer ? ['P', ...pool] : pool);
   }
   let ids;
+  if (ev.cat === 'wdf') {                    // offene Auslosung: Spieler ohne Karte + DDV-Pool, keine Setzliste
+    const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'ddv')].map(p => p.id));
+    ids = pool.slice(0, (ev.field ?? FORMATS.wdf.field) - (withPlayer ? 1 : 0));
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
+  }
   if (ev.cat === 'ddv') {
     ids = playersOfTier(state, 'ddv').map(p => p.id).slice(0, FORMATS.ddv.field - (withPlayer ? 1 : 0));
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);

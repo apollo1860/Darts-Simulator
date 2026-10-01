@@ -21,7 +21,7 @@ export function trackTitle(state, inst) {
   const a = arch(state);
   if (inst.place === 'W' && !inst.plNight) a.titles.unshift({ year: inst.year, week: inst.week, name: inst.name, cat: inst.cat, prize: inst.prize });
   // Bestergebnis je Event (Pro Tour/CT/Dev zusammengefasst je Serie)
-  const key = inst.plNight ? 'cat:plnight' : ['pc', 'et', 'challenge', 'dev', 'local', 'ddv'].includes(inst.cat) && inst.eventId !== 'youth-wm' ? `cat:${inst.cat}` : inst.baseName;
+  const key = inst.plNight ? 'cat:plnight' : ['pc', 'et', 'challenge', 'dev', 'local', 'ddv', 'wdf'].includes(inst.cat) && inst.eventId !== 'youth-wm' ? `cat:${inst.cat}` : inst.baseName;
   const b = a.bests[key];
   if (!b || better(inst.place, b.place)) a.bests[key] = { place: inst.place, year: inst.year, cat: inst.cat, name: key.startsWith('cat:') ? null : inst.baseName };
 }

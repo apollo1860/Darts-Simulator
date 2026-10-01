@@ -14,6 +14,7 @@ export function travelCost(country) {
 // Gebühr gilt je Turnier im Block (z. B. CT-Doppel = 2 × 25 €, Q-School 4 Tage = 4 × 25 €)
 export function eventCost(ev) {
   if (ev.cat === 'local') return { fee: 0, travel: 0, total: 0 };
+  if (ev.cat === 'wdf') { const travel = ev.europe ? 400 : 1000; return { fee: 0, travel, total: travel }; }   // WDF: Europa 400 €, Übersee 1.000 €
   const fee = FEE_CATS.has(ev.cat) ? ENTRY_FEE * (ev.count ?? 1) : 0;
   const travel = travelCost(ev.country);
   return { fee, travel, total: fee + travel };

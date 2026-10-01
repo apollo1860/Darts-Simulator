@@ -14,6 +14,8 @@ export const NATIONS = {
   CZ: { name: 'Tschechien', flag: '🇨🇿' },
   HU: { name: 'Ungarn', flag: '🇭🇺' },
   LV: { name: 'Lettland', flag: '🇱🇻' },
+  EE: { name: 'Estland', flag: '🇪🇪' },
+  IM: { name: 'Isle of Man', flag: '🇮🇲' },
   LT: { name: 'Litauen', flag: '🇱🇹' },
   DK: { name: 'Dänemark', flag: '🇩🇰' },
   SE: { name: 'Schweden', flag: '🇸🇪' },

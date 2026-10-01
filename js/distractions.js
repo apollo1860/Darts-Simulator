@@ -5,7 +5,7 @@ import { getPlayer } from './world.js';
 import { addMod } from './tournaments.js';
 import { clamp } from './util.js';
 
-export const levelOf = cat => (cat === 'local' ? 'local' : cat === 'ddv' ? 'ddv' : 'pro');
+export const levelOf = cat => (cat === 'local' ? 'local' : cat === 'ddv' || cat === 'wdf' ? 'ddv' : 'pro');
 
 // Beim Start einer DartConnect-Simulation: kommt es zu einem Störmoment, und wann?
 export function planDistraction(state) {

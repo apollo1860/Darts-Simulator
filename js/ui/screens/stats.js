@@ -6,7 +6,7 @@ import { archiveOf, PLACE_ORDER } from '../../history.js';
 import { CATEGORIES } from '../../../data/tournaments.js';
 import { expLabel } from '../../player.js';
 
-const SERIES = { 'cat:pc': 'Players Championships', 'cat:et': 'European Tour', 'cat:challenge': 'Challenge Tour', 'cat:dev': 'Development Tour', 'cat:local': 'Lokale Turniere', 'cat:ddv': 'DDV-Ranglistenturniere', 'cat:plnight': 'Premier League · Spieltage' };
+const SERIES = { 'cat:pc': 'Players Championships', 'cat:et': 'European Tour', 'cat:challenge': 'Challenge Tour', 'cat:dev': 'Development Tour', 'cat:wdf': 'WDF Opens', 'cat:local': 'Lokale Turniere', 'cat:ddv': 'DDV-Ranglistenturniere', 'cat:plnight': 'Premier League · Spieltage' };
 
 export const avgOf = t => (t.darts ? t.points / t.darts * 3 : 0);
 export const coOf = t => (t.coAtt ? t.coHit / t.coAtt : 0);

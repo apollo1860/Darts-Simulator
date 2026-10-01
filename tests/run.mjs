@@ -571,6 +571,30 @@ test('Erholung kaufen: Sauna/Massage, Preis 50–100 €, je 1× pro Woche', () 
   nextWeek(s); assert.ok(TR.canRecover(s, 'sauna').ok);
 });
 
+test('WDF-Opens: nur ohne Karte, Reise 400/1.000 €, Preisgeld, kompletter Ablauf', () => {
+  const s = newCareer({ name: 'W', nation: 'DE', hand: 'R', seed: 51 });
+  s.date.week = 6;
+  const dutch = eventsInWeek(s, 2027, 6).find(e => e.id === 'wdf-dutch');
+  assert.ok(dutch && dutch.prizeWin >= 2200 && dutch.prizeWin <= 2500);                      // Platinum
+  assert.equal(eventCost(dutch).total, 400);
+  assert.equal(eventCost(eventsInWeek(s, 2027, 3).find(e => e.id === 'wdf-vegas')).total, 1000);
+  for (let w = 1; w <= 52; w++) for (const e of eventsInWeek(s, 2027, w).filter(e => e.cat === 'wdf')) assert.ok(e.prizeWin >= 1000 && e.prizeWin <= 2500);
+  assert.ok(eventStatus(s, dutch).playable);
+  const b0 = s.finance.balance;
+  enterEvent(s, dutch.id);
+  assert.equal(s.activeEvent.fieldSize, 128);
+  simulateRest(s);
+  const inst = s.activeEvent, pr = { W: dutch.prizeWin, F: 500, SF: 250, QF: 100 }[inst.place] ?? 0;
+  assert.equal(inst.prize, pr);
+  closeEvent(s);
+  assert.equal(s.finance.balance, b0 - 400 + pr);
+  s.player.tour = 'tour'; s.player.cardUntil = 2028;
+  assert.equal(eventStatus(s, eventsInWeek(s, 2027, 10).find(e => e.id === 'wdf-iom')).playable, false);   // mit Karte gesperrt
+  s.player.tour = 'none'; s.week = { played: true }; s.date.week = 16;
+  nextWeek(s);                                                                                    // KI-WDF im Hintergrund
+  assert.ok(s.champions[2027].some(c => c.eventId === 'wdf-estonia') && s.champions[2027].some(c => c.eventId === 'wdf-tallinn'));
+});
+
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
   const s = newCareer({ name: 'L', nation: 'DE', hand: 'R', seed: 4 });
   const loc = playersOfTier(s, 'local').map(p => p.avg);

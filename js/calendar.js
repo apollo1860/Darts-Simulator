@@ -1,5 +1,5 @@
 // Wochenkalender (DOM-frei)
-import { CALENDAR, LOCAL_BLOCKED_WEEKS, LOCAL_NAMES, LOCAL_CITIES } from '../data/tournaments.js';
+import { CALENDAR, LOCAL_BLOCKED_WEEKS, LOCAL_NAMES, LOCAL_CITIES, WDF_PRIZE_BAND } from '../data/tournaments.js';
 import { REGIONS } from '../data/regions.js';
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
@@ -24,10 +24,17 @@ export function localEvent(state, year, week) {
   };
 }
 
+// WDF-Siegprämie: je Event und Jahr zufällig im Band der Kategorie (50-€-Schritte)
+export function wdfPrize(state, ev, year) {
+  const [lo, hi] = WDF_PRIZE_BAND[ev.tier] ?? [1000, 2500];
+  return lo + Math.round(new RNG(hashSeed(state.seed, ev.id, year)).next() * (hi - lo) / 50) * 50;
+}
+
 const runsInWeek = (ev, week) => week >= ev.week && week < ev.week + (ev.weeks ?? 1);
 
 export function eventsInWeek(state, year, week) {
-  const list = CALENDAR.filter(ev => runsInWeek(ev, week)).map(ev => ({ ...ev, startsThisWeek: ev.week === week }));
+  const list = CALENDAR.filter(ev => runsInWeek(ev, week)).map(ev => ({ ...ev, startsThisWeek: ev.week === week,
+    ...(ev.cat === 'wdf' ? { prizeWin: wdfPrize(state, ev, year) } : {}) }));
   const loc = localEvent(state, year, week);
   if (loc) list.unshift(loc);
   return list;
