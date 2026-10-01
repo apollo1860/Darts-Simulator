@@ -416,16 +416,25 @@ test('Rechnen: schwache Rechner stehen öfter auf Bogey-Zahlen', () => {
   assert.ok(ba > bb * 2, `${ba} vs ${bb}`);
 });
 
-test('Checkout-Entscheidung: Wege, Chancen, gewählter Weg wird gespielt', () => {
+test('Checkout-Entscheidung: 3 Wege – Check, Doppel-Rest, schlechte Aufnahme; gewählter Weg wird gespielt', () => {
   const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 71, bonus: { cal: 25 } });
   enterEvent(s, eventsInWeek(s, 2027, 1).find(e => e.cat === 'local').id);
   const live = startManualMatch(s), lm = live.m;
   lm.turn = live.me; lm.rem[live.me] = 100; lm.visit = { darts: [], start: 100 };
   let co = null;
   for (let k = 0; k < 40 && !co; k++) { lm.stats[live.me].darts = k * 3; co = DC.checkoutDecisionDue(s); }
-  assert.ok(co && co.opts.length >= 2);
-  assert.equal(co.recommended !== null, true);                       // Rechnen 85 → Empfehlung
-  assert.deepEqual(co.opts[0].route, ['T20', 'D20']);
+  assert.ok(co && co.opts.length === 3);
+  assert.deepEqual(co.opts.map(o => o.outcome).sort(), ['bad', 'check', 'setup']);
+  assert.equal(co.opts[co.recommended].outcome, 'check');            // Rechnen 85 → Empfehlung = der Check-Weg
+  for (const o of co.opts) {                                         // jede Wahl im Live-Match nachspielen
+    const t = JSON.parse(JSON.stringify(s)), tl = t.activeEvent.live;
+    DC.chooseRoute(t, 100, o.route, o.script);
+    liveAiVisit(t);
+    const rest = tl.m.rem[tl.me];
+    if (o.outcome === 'check') assert.ok(tl.m.legs[tl.me] === 1 || tl.m.done, 'Check');
+    if (o.outcome === 'setup') assert.ok(rest >= 2 && rest <= 40 && rest % 2 === 0, 'Doppel-Rest ' + rest);
+    if (o.outcome === 'bad') assert.ok(rest === 100 || !(rest <= 40 && rest % 2 === 0), 'schlecht ' + rest);
+  }
   DC.chooseRoute(s, 100, ['T19', 'S11', 'D16']);
   assert.equal(DC.routeTarget(live, 100, 0), 'T19');
   assert.equal(DC.routeTarget(live, 43, 1), 'S11');                  // nach T19 (57) → 43

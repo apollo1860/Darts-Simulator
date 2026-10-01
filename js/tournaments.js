@@ -18,7 +18,7 @@ import { MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlN
 import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
-import { routeTarget } from './decisions.js';
+import { routeTarget, scriptedHit } from './decisions.js';
 import { addEventFatigue } from './training.js';
 import { trackTitle, recordChampion } from './history.js';
 import { xpMult } from './staff.js';
@@ -267,7 +267,8 @@ export function liveAiVisit(state) {
   const live = inst.live, mine = side === live.me;
   while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) {
     const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
-    ev = throwDart(lm, aiDart(lm, side, a, rng, sig, mult, forced).hit);
+    const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
+    ev = throwDart(lm, scripted ?? aiDart(lm, side, a, rng, sig, mult, forced).hit);
   }
   if (mine) live.route = null;
   tickMods(inst.live, side);
@@ -282,7 +283,9 @@ export function liveDartStep(state) {
   const inst = state.activeEvent, pm = playerMatch(inst), live = inst.live, lm = live.m;
   const side = lm.turn, a = attrsOf(state, side === 0 ? pm.a : pm.b), mine = side === live.me;
   const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
+  const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
   const dart = aiDart(lm, side, a, new RNG(state.rng), aiSigma(a), modMult(live, side), forced);
+  if (scripted) dart.hit = scripted;
   const ev = throwDart(lm, dart.hit);
   const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
   if (visitOver) { if (mine) live.route = null; tickMods(live, side); }

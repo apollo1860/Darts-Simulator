@@ -1,11 +1,11 @@
 // Checkout-Entscheidungen in der DartConnect-Simulation (DOM-frei):
-// Gelegentlich (vor einer eigenen Aufnahme auf 41–170) wählt der Spieler den Weg. Rechnen bestimmt,
-// wie genau die angezeigten Chancen sind und ob eine Empfehlung erscheint.
-import { alternativeRoutes, targetPoint, scoreAt, labelValue, isDoubleLabel, BOGEY } from './board.js';
+// Gelegentlich (vor einer eigenen Aufnahme auf 41–170) wählt der Spieler zwischen 3 Wegen. Der Ausgang steht fest:
+// der beste Weg (höchste Chance) → Check, der zweite → sauber auf ein Doppel runtergespielt, der dritte → sehr schlechte
+// Aufnahme (Nachbarfelder, Bust oder krummer Rest). Rechnen ≥ 75 zeigt den richtigen Weg als Empfehlung.
+import { alternativeRoutes, targetPoint, scoreAt, labelValue, isDoubleLabel, BOGEY, ORDER } from './board.js';
 import { aiSigma } from './throwModel.js';
 import { RNG, hashSeed } from './rng.js';
 import { perf } from './player.js';
-import { clamp } from './util.js';
 
 export const DECISION_CHANCE = 0.3;           // je passender Aufnahme
 export const MAX_DECISIONS = 2;               // pro Match
@@ -41,23 +41,78 @@ export function checkoutDecisionDue(state) {
   live.coDec.asked[key] = true;
   const rng = new RNG(hashSeed(state.seed, 'co', inst.eventId, inst.current, key));
   if (!rng.chance(DECISION_CHANCE)) return null;
-  const routes = alternativeRoutes(rem, 3, 3);
-  if (routes.length < 2) return null;
-  const p = state.player, a = perf(p);
-  const cal = p.attrs.cal ?? 60, noise = (100 - cal) * 0.15;      // Schätzfehler in Prozentpunkten
-  const opts = routes.map(route => {
-    const real = routeChance(a, rem, route, rng);
-    return { route, real, shown: clamp(Math.round(real * 100 + rng.normal(0, noise)), 1, 95) };
-  });
-  const bestIdx = opts.reduce((bi, o, i) => (o.real > opts[bi].real ? i : bi), 0);
-  return { rem, opts, recommended: cal >= 75 ? bestIdx : null, cal };
+  const p = state.player;
+  const opts = buildOptions(rem, perf(p), rng);
+  if (!opts) return null;
+  const cal = p.attrs.cal ?? 60;
+  return { rem, opts, recommended: cal >= 75 ? opts.findIndex(o => o.outcome === 'check') : null, cal };
 }
 
-// Gewählten Weg für die nächste eigene Aufnahme festlegen
-export function chooseRoute(state, rem, route) {
+// 3 Wege mit festem Ausgang (Reihenfolge gemischt). null, wenn es keine 3 verschiedenen Wege gibt.
+export function buildOptions(rem, attrs, rng) {
+  const routes = alternativeRoutes(rem, 3, 3);
+  if (routes.length < 3) return null;
+  const ranked = routes.map(route => ({ route, real: routeChance(attrs, rem, route, rng) })).sort((x, y) => y.real - x.real);
+  const outcomes = ['check', 'setup', 'bad'];
+  const opts = ranked.map((o, i) => ({ route: o.route, outcome: outcomes[i], script: scriptFor(rem, o.route, outcomes[i]) }));
+  return rng.shuffle(opts);
+}
+
+// ---- Skripte: Treffer-Labels der Aufnahme ----
+const GOOD_LEAVE = r => r >= 2 && r <= 40 && r % 2 === 0;
+const neighbors = n => { const i = ORDER.indexOf(n); return [ORDER[(i + 19) % 20], ORDER[(i + 1) % 20]]; };
+// Aufnahme nachspielen: Rest, Bust, Check
+export function playScript(rem, script) {
+  let r = rem;
+  for (const l of script) {
+    const v = l === 'OUT' ? 0 : labelValue(l), after = r - v;
+    if (after < 0 || after === 1 || (after === 0 && !isDoubleLabel(l))) return { rest: rem, bust: true, checkout: false };
+    r = after;
+    if (r === 0) return { rest: 0, bust: false, checkout: true };
+  }
+  return { rest: r, bust: false, checkout: false };
+}
+function scriptFor(rem, route, outcome) {
+  if (outcome === 'check') return [...route];
+  if (outcome === 'setup') {
+    // alle Stelldarts sitzen, die Darts aufs Doppel landen außerhalb → Rest = das Doppel
+    // (bleibt z. B. Bull = 50 stehen, stellt ein Single-Dart noch auf ein gutes Doppel: 50 → S10 → 40)
+    const s = route.slice(0, -1);
+    const r = playScript(rem, s).rest;
+    if (!GOOD_LEAVE(r) && s.length < 3) {
+      const n = [10, 18, 20, 9, 14, 17, 2, 6, 4, 8, 12, 16].find(x => GOOD_LEAVE(r - x));
+      if (n) s.push(`S${n}`);
+    }
+    while (s.length < 3) s.push('OUT');
+    return s;
+  }
+  // schlecht: jeder Dart landet im kleineren Nachbar-Single, Doppel/Bull daneben
+  const s = route.map(l => {
+    if (l === 'BULL' || l === '25') return 'S1';
+    if (l[0] === 'D') return 'OUT';
+    return `S${Math.min(...neighbors(+l.slice(1)))}`;
+  });
+  while (s.length < 3) s.push(`S${Math.min(...neighbors(5))}`);
+  const res = playScript(rem, s);
+  if (!res.bust && (res.checkout || GOOD_LEAVE(res.rest))) s[2] = playScript(rem, [...s.slice(0, 2), 'S1']).checkout ? 'S3' : 'S1';
+  return s;
+}
+
+// Gewählten Weg für die nächste eigene Aufnahme festlegen (script = feststehende Treffer)
+export function chooseRoute(state, rem, route, script = null) {
   const live = state.activeEvent.live;
-  live.route = { start: rem, darts: route };
+  live.route = { start: rem, darts: route, script };
   live.coDec.left--;
+}
+
+// Skript-Treffer für den i-ten Dart (nur in der Aufnahme, für die der Weg gewählt wurde)
+export function scriptedHit(live, visitStart, i) {
+  const r = live.route;
+  if (!r?.script || r.start !== visitStart || i >= r.script.length) return null;
+  const l = r.script[i];
+  if (l === 'OUT') return { label: 'OUT', score: 0, mult: 0, num: 0, double: false };
+  const p = targetPoint(l);
+  return scoreAt(p.x, p.y);
 }
 
 // Ziel für den i-ten Dart der Aufnahme, solange der Rest zum Plan passt (sonst null → Standardlogik)

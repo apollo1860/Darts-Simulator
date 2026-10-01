@@ -157,7 +157,8 @@ function askCheckout(co) {
     onMount: bd => bd.querySelectorAll('[data-route]').forEach(btn => btn.onclick = () => {
       bd.remove();
       if (!ui) return;
-      chooseRoute(ui.s, co.rem, co.opts[+btn.dataset.route].route);
+      const o = co.opts[+btn.dataset.route];
+      chooseRoute(ui.s, co.rem, o.route, o.script);
       ui.paused = false; ui.app.save(); schedule(400);
     }),
   });

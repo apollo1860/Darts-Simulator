@@ -93,6 +93,7 @@
 - Fix: XP-Anzeige am Turnierende/nach Matches enthält jetzt den Trainer-Bonus.
 - Challenge/Dev Tour: immer 5 Turniere pro Wochenende (Nutzerwunsch), 5 Wochenenden je Tour = 25 Turniere (vorher 12 × 2).
 - Hub: Button „✓ Alle gelesen“ in der Neuigkeiten-Kachel (setzt alle Meldungen auf gelesen, ohne den Feed zu öffnen).
+- Checkout-Entscheidung (Nutzerwunsch): immer 3 Wege mit festem Ausgang – einer checkt, einer spielt sauber auf ein Doppel runter, einer wird eine sehr schlechte Aufnahme. Für 115 von 130 Resten (41–170) gibt es 3 Wege; sonst keine Entscheidung.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -100,6 +101,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- Checkout-Entscheidung: Welcher Weg checkt, bestimmt die eigene Trefferchance (bester Weg = Check). Ausgang ist bewusst fest (kein Zufall), damit die Wahl zählt; Rechnen ≥ 75 verrät per ★ den Check-Weg.
 - CT/Dev: 5 Wochenenden je Tour (Gesamtzahl wie real ~24–25 Turniere); Termine KW 11/19/29/37/42 (CT) und 14/22/32/39/43 (Dev), möglichst ohne DDV-Überschneidung.
 - Rivale: gleiche Nation, Stärke folgt dir (50 %/Jahr), damit die Rivalität spannend bleibt; Häufigkeit über gezielte Feldplätze lokal/DDV/WDF (sonst nur Zufall in CT/Dev/Q-School/Tour).
 - WDF: KW nach den Terminen 2026 (gilt jedes Jahr gleich). Orte für Dänemark/England/Finnland/Kanada/NZ/Australien/Wales/Tschechien/Italien geschätzt; Italian/Finnish Open (ohne Kategorie) als Bronze. Bei zwei WDF-Opens in einer KW bleibt nur eins: Estonian Open, The Steel Masters, Belgium Open (Nutzerwunsch statt Philippines). Keine Startgebühr. Feld = zufällige Spieler ohne Karte + DDV-Pool (keine echten Übersee-Amateure).
