@@ -558,6 +558,19 @@ test('Interview nach Major: 25 Floskeln, 4–6 Reihenfolge, Belohnung', () => {
   assert.equal(IV.resolveInterview(s, [v.seq[1]]).ok, false);                                // falsche Reihenfolge
 });
 
+test('Erholung kaufen: Sauna/Massage, Preis 50–100 €, je 1× pro Woche', () => {
+  const s = newCareer({ name: 'E', nation: 'DE', hand: 'R', seed: 41 });
+  assert.equal(TR.canRecover(s, 'sauna').ok, false);                // ausgeruht
+  s.player.fatigue = 40;
+  const pr = TR.recoveryPrice(s, 'massage'), b0 = s.finance.balance;
+  assert.ok(pr >= 50 && pr <= 100 && pr === TR.recoveryPrice(s, 'massage'));   // pro Woche fest
+  assert.ok(TR.buyRecovery(s, 'massage').ok); assert.equal(s.player.fatigue, 25); assert.equal(s.finance.balance, b0 - pr);
+  assert.ok(TR.buyRecovery(s, 'sauna').ok); assert.equal(s.player.fatigue, 15);
+  assert.equal(TR.buyRecovery(s, 'sauna').ok, false);               // 1× pro Woche
+  assert.equal(TR.train(s, 'sco') !== null, true);                  // Wochenaktivität bleibt frei
+  nextWeek(s); assert.ok(TR.canRecover(s, 'sauna').ok);
+});
+
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
   const s = newCareer({ name: 'L', nation: 'DE', hand: 'R', seed: 4 });
   const loc = playersOfTier(s, 'local').map(p => p.avg);

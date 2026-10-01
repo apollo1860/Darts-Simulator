@@ -1,7 +1,7 @@
 // Wochenplan: genau eine Aktivität pro Woche (Training, Ruhetag, Sponsortermin, Exhibition) + Ermüdung
 import { esc, fmtPct, fmtEUR } from '../../util.js';
 import { ATTRS } from '../../player.js';
-import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, trainingXp, exhibitionXp, PREP_BONUS } from '../../training.js';
+import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, trainingXp, exhibitionXp, PREP_BONUS, RECOVERY, recoveryPrice, canRecover, buyRecovery } from '../../training.js';
 import { topbar, modal } from '../components.js';
 import { staffOf, acceptGig, declineGig } from '../../staff.js';
 
@@ -48,7 +48,13 @@ export function render(app) {
   <div class="panel ${warn ? 'warn' : ''}" style="margin-bottom:12px">${status}
     ${t.idle && act !== 'train' ? `<div class="${warn ? 'neg' : 'muted'}" style="font-size:.82rem;margin-top:4px">${t.idle} Woche${t.idle > 1 ? 'n' : ''} ohne Training – ab ${DECAY_AFTER} Wochen droht Formverlust.</div>` : ''}
   </div>
-  <div class="panel" style="margin-bottom:12px">${fatigueBar(p)}</div>
+  <div class="panel" style="margin-bottom:12px">${fatigueBar(p)}
+    <div class="row" style="margin-top:10px">${Object.entries(RECOVERY).map(([k, r]) => {
+      const st = canRecover(s, k);
+      return `<button class="btn btn-sm ${st.ok ? '' : 'btn-ghost'}" data-rec="${k}" ${st.ok ? '' : 'disabled'} title="Zusätzlich zur Wochenaktivität, 1× pro Woche">
+        ${r.icon} ${r.label} −${r.fatigue} % · ${st.ok || st.reason === 'Zu teuer' ? fmtEUR(recoveryPrice(s, k)) : esc(st.reason)}</button>`;
+    }).join('')}</div>
+  </div>
   ${gigs(s)}
   <div class="section-title"><span class="label">🏋️ Training</span></div>
   <div class="panel" style="margin-bottom:10px;font-size:.84rem">
@@ -84,6 +90,12 @@ export function mount(root, app) {
     done(r.up ? `⬆ ${label} +1!` : `🏋️ ${r.text}`,
       `${r.up ? `Durchbruch – ${esc(label)} steigt auf <b>${app.state.player.attrs[b.dataset.train]}</b>.` : `${esc(label)}: Fortschritt jetzt ${fmtPct(r.progress, 0)} (${r.need} Einheiten für +1).`}
       <br><b class="cyan">+${r.xp} XP</b>${r.ups ? ` – <b class="gold">Level ${app.state.player.level}!</b>` : ''} · <b class="gold">${esc(label)} +${PREP_BONUS}</b> für Turniere dieser und nächster Woche.`);
+  });
+  root.querySelectorAll('[data-rec]').forEach(b => b.onclick = () => {
+    const r = buyRecovery(app.state, b.dataset.rec);
+    if (!r.ok) return;
+    app.save();
+    done(`${RECOVERY[b.dataset.rec].icon} ${RECOVERY[b.dataset.rec].label}`, esc(r.text));
   });
   root.querySelectorAll('[data-gig]').forEach(b => b.onclick = () => {
     const r = acceptGig(app.state, b.dataset.gig);

@@ -3,7 +3,7 @@
 // Jede Einheit bringt XP (mitwachsend mit dem Level) und +3 auf das Attribut für Turniere dieser + nächster Woche.
 // Ohne Training: ab der 4. Woche in Folge droht pro Woche ein Formverlust (−1, eher bei hohen Werten).
 import { ATTRS, attrCost } from './player.js';
-import { RNG } from './rng.js';
+import { RNG, hashSeed } from './rng.js';
 import { addNews } from './news.js';
 import { clamp, fmtEUR } from './util.js';
 import { book } from './finance.js';
@@ -75,6 +75,30 @@ export const ACTIVITIES = {
   sponsor: { label: 'Sponsortermin', icon: '🤝', info: 'Geld von deinen Sponsoren (nur mit aktivem Vertrag)' },
   exhibition: { label: 'Exhibition', icon: '🎪', info: 'Showkampf: Geld + Erfahrung, aber Ermüdung +20' },
 };
+
+// ---- Erholung kaufen (zusätzlich zur Wochenaktivität, je Art 1× pro Woche) ----
+// Preis zufällig 50–100 €, aber pro Woche fest (aus Spiel-Seed, Jahr, KW, Art)
+export const RECOVERY = {
+  sauna: { label: 'Saunabesuch', icon: '🧖', fatigue: 10 },
+  massage: { label: 'Massage', icon: '💆', fatigue: 15 },
+};
+export const recoveryPrice = (state, type) =>
+  50 + Math.round(new RNG(hashSeed(state.seed ?? 0, state.date.year, state.date.week, type)).next() * 10) * 5;
+export function canRecover(state, type) {
+  if ((state.week.recovery ?? []).includes(type)) return { ok: false, reason: 'Diese Woche schon' };
+  if (!(state.player.fatigue > 0)) return { ok: false, reason: 'Du bist ausgeruht' };
+  if (state.finance.balance < recoveryPrice(state, type)) return { ok: false, reason: 'Zu teuer' };
+  return { ok: true };
+}
+export function buyRecovery(state, type) {
+  const st = canRecover(state, type);
+  if (!st.ok) return { ok: false, text: st.reason };
+  const r = RECOVERY[type], price = recoveryPrice(state, type), p = state.player;
+  book(state, -price, r.label, 'recovery');
+  p.fatigue = Math.max(0, p.fatigue - r.fatigue);
+  (state.week.recovery ??= []).push(type);
+  return { ok: true, price, text: `${r.label} für ${fmtEUR(price)}: Ermüdung −${r.fatigue} %, jetzt ${p.fatigue} %.` };
+}
 
 export function canDo(state, type) {
   if (weekActivity(state)) return { ok: false, reason: 'Diese Woche schon verplant' };
