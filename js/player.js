@@ -10,6 +10,7 @@ export const ATTRS = [
   { key: 'cal', label: 'Rechnen', short: 'REC', info: 'Wege stellen, Bogey-Zahlen vermeiden' },
 ];
 export const START_VALUE = 60;
+export const CREATION_POINTS = 25;      // frei verteilbar bei der Charaktererstellung (1 Punkt = +1)
 export const EXP_MIN = -4, EXP_MAX = 10;
 
 export const overall = a => clamp(Math.round(a.sco * 0.36 + a.fin * 0.27 + a.men * 0.13 + a.foc * 0.13 + (a.cal ?? a.fin) * 0.11), 1, 100);
@@ -42,7 +43,15 @@ export function attrsForAverage(avg, rng, spread = 7) {
   return { sco, fin: around(sco - 1), men: around(sco - 2, 1.3), foc: around(sco - 1, 1.2), cal: around(sco, 1.3) };
 }
 
-export const startAttrs = () => ({ sco: START_VALUE, fin: START_VALUE, men: START_VALUE, foc: START_VALUE, cal: START_VALUE });
+export const startAttrs = (bonus = {}) => {
+  const a = { sco: START_VALUE, fin: START_VALUE, men: START_VALUE, foc: START_VALUE, cal: START_VALUE };
+  let left = CREATION_POINTS;
+  for (const k of Object.keys(a)) {                    // ungültige/zu viele Punkte werden ignoriert
+    const add = Math.max(0, Math.min(Math.floor(bonus[k] ?? 0), left));
+    a[k] += add; left -= add;
+  }
+  return a;
+};
 
 // Rechenfehler-Wahrscheinlichkeit je Stelldart/Finish-Entscheidung: 60 → 12 %, 80 → 6 %, 100 → 0 %
 export const calcError = cal => clamp((100 - (cal ?? 70)) * 0.003, 0, 0.3);

@@ -80,7 +80,7 @@ archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pd
 Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Woche und nach jedem Turnier.
 
 ## Spielregeln (Kurzfassung Spezifikation)
-- **Start**: Jahr 2027, KW 1, Alter 18, Budget 5.000 €, keine Tourcard, Bundesland wählbar (bei Nation DE). Alle Attribute 60, Erfahrung −4.
+- **Start**: Jahr 2027, KW 1, Alter 18, Budget 5.000 €, keine Tourcard, Bundesland wählbar (bei Nation DE). Alle Attribute 60 + **25 Bonuspunkte** frei verteilbar bei der Erstellung (1 Punkt = +1, max. 85 je Attribut; Start erst wenn alle verteilt; `startAttrs(bonus)`), Erfahrung −4.
 - **Attribute** (1–100) sind **Perzentile**: „stärker als X von 100 Dartspielern“ – nicht der Average.
   - Scoring (sco) → Average über Kurve `AVG_CURVE` (40→53, 60→65, 80→79, 90→89, 95→95, 99→103, 100→106 Ø).
   - Finishing (fin) → Checkout-Basis 6 % + 0,37 %·fin (60 → 28 %, 100 → 43 %).

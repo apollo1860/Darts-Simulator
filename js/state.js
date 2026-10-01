@@ -18,7 +18,7 @@ export const emptyStats = () => ({
   events: 0, titles: 0, finals: 0,
 });
 
-export function newCareer({ name, nation, hand, region = DEFAULT_REGION, slot = 1, seed = randomSeed() }) {
+export function newCareer({ name, nation, hand, region = DEFAULT_REGION, bonus = {}, slot = 1, seed = randomSeed() }) {
   const rngState = { s: seed >>> 0 };
   const rng = new RNG(rngState);
   const state = {
@@ -28,7 +28,7 @@ export function newCareer({ name, nation, hand, region = DEFAULT_REGION, slot = 
     player: {
       id: 'P', name, nation, hand, age: 18,
       region: nation === 'DE' ? region : null,
-      attrs: startAttrs(), exp: EXP_MIN, clutch: 0,
+      attrs: startAttrs(bonus), exp: EXP_MIN, clutch: 0,
       xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
       tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false,
     },

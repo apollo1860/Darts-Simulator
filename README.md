@@ -10,7 +10,7 @@ Karrieremodus für Darts im FIFA-Stil: vom Kneipenturnier im eigenen Bundesland 
 - **Tests:** `node tests/run.mjs` (Node ≥ 18)
 
 ## Spielablauf
-1. **Charakter erstellen:** Name, Nation, Bundesland, Wurfhand. Alle Attribute starten bei 60 von 100, die Erfahrung bei −4, das Budget bei 5.000 €.
+1. **Charakter erstellen:** Name, Nation, Bundesland, Wurfhand. Alle Attribute starten bei 60 von 100, dazu verteilst du 25 Bonuspunkte frei. Die Erfahrung startet bei −4, das Budget bei 5.000 €.
 2. **Wochenkalender:** Pro Woche ein Event (die Premier League kommt zusätzlich), dann „Weiter“. Gespeichert wird automatisch nach jeder Woche.
 3. **Turniere:** Jedes Match wird simuliert, entweder als **📺 DartConnect** (Aufnahme für Aufnahme, mit Störmomenten und Entscheidungen) oder als **⚡ Schnellsimulation**.
 4. **Training:** Nach jedem Turnier verteilst du Punkte auf Scoring, Finishing, Mental und Fokus.

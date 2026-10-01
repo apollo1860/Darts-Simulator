@@ -73,6 +73,8 @@
 - **Wöchentliches Training** (Hub-Kachel, eigener Screen): 1 Einheit/Woche, Fortschrittsbalken je Attribut; ohne regelmäßiges Training Formverlust (Warnung ab 2 Wochen Pause).
 - Migration v6 (Rechnen: Spieler 60, KI ≈ Scoring). 25 Node-Tests.
 
+- Charaktererstellung: 25 Bonuspunkte frei auf die 5 Attribute verteilen (+/−, „Gleichmäßig“, „Zurücksetzen“, Live-Karte).
+
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
 - Echte Spielerdaten prüfen/ergänzen (siehe „Unsichere Angaben“), echte Dev-Tour-Namen statt fiktiver.

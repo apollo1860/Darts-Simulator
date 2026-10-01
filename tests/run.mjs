@@ -34,6 +34,8 @@ test('Neue Karriere: Startwerte', () => {
   assert.equal(s.date.year, 2027);
   const o = overall(s.player.attrs);
   assert.equal(o, 60); assert.equal(s.player.exp, -4);
+  const b = newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 1, bonus: { sco: 20, cal: 10 } });
+  assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
   assert.equal(Object.keys(s.world.players).length, 128 + 50 + 50 + 50 + 63);
