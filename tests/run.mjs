@@ -9,7 +9,8 @@ import { RNG } from '../js/rng.js';
 import { simulateMatch } from '../js/matchEngine.js';
 import { scoreAt, targetPoint, checkoutRoute, labelValue } from '../js/board.js';
 import { createMatch, throwDart } from '../js/matchState.js';
-import { startManualMatch, liveAiDart, simulateLiveRest } from '../js/tournaments.js';
+import { startManualMatch, liveAiDart, simulateLiveRest, liveAiVisit } from '../js/tournaments.js';
+import { legAverage } from '../js/matchState.js';
 import { wave } from '../js/throwModel.js';
 
 let n = 0;
@@ -138,6 +139,21 @@ test('Manuelles Match: Live → Rest simulieren', () => {
   assert.ok(s.activeEvent.rounds[0].matches.every(m => m.winner));
   assert.equal(s.stats.career.matches, 1);
   assert.ok(s.player.avgReal > 0);
+});
+
+test('Schnellsimulation: Aufnahmen + Leg-Average', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 8 });
+  const local = eventsInWeek(s, s.date.year, s.date.week).find(e => e.cat === 'local');
+  enterEvent(s, local.id);
+  const lm = startManualMatch(s).m;
+  const t = lm.turn, ev = liveAiVisit(s);
+  assert.ok(ev.visitEnd); assert.notEqual(lm.turn, t);
+  assert.equal(lm.legVisits[t].length, 1);
+  const v = lm.legVisits[t][0];
+  assert.equal(legAverage(lm, t), v.score);                 // 1 Aufnahme à 3 Darts
+  let legs = 0;
+  while (!lm.done) { const e = liveAiVisit(s); if (e.legEnd) { legs++; assert.ok(lm.lastLeg.visits[e.legWinner].at(-1).checkout); } }
+  assert.equal(legs, lm.log.length);
 });
 
 console.log(`\n${n} Tests ok`);

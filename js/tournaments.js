@@ -129,6 +129,16 @@ export function liveAiDart(state, side) {
   return aiDart(inst.live.m, side, attrsOf(state, id), new RNG(state.rng));
 }
 
+// Eine komplette Aufnahme per KI (Schnellsimulation zum Zuschauen). Rückgabe: letztes Ereignis
+export function liveAiVisit(state) {
+  const inst = state.activeEvent, pm = playerMatch(inst), lm = inst.live.m;
+  const rng = new RNG(state.rng), side = lm.turn, a = attrsOf(state, side === 0 ? pm.a : pm.b);
+  const sig = aiSigma(a);
+  let ev = null;
+  while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) ev = throwDart(lm, aiDart(lm, side, a, rng, sig).hit);
+  return ev;
+}
+
 // Rest des Live-Matches simulieren (dartgenau, beide Seiten mit KI-Modell)
 export function simulateLiveRest(state) {
   const inst = state.activeEvent, pm = playerMatch(inst), lm = inst.live.m;

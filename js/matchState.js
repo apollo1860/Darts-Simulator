@@ -7,6 +7,7 @@ export function createMatch(format, starter = 0) {
     format, sets: [0, 0], legs: [0, 0], rem: [501, 501],
     turn: starter, legStarter: starter, setStarter: starter, legIdx: 0,
     visit: { darts: [], start: 501 }, legDarts: [0, 0],
+    legPoints: [0, 0], legVisits: [[], []], lastLeg: null,
     stats: [newStats(), newStats()], last: [null, null], log: [],
     done: false, winner: null,
   };
@@ -32,6 +33,7 @@ function addScoreBand(s, pts) {
 // Einen Dart werten. hit = {label, score, double}. Rückgabe: Ereignis
 export function throwDart(m, hit) {
   if (m.done) return null;
+  m.legPoints ??= [0, 0]; m.legVisits ??= [[], []];   // ältere Spielstände
   const t = m.turn, s = m.stats[t];
   const r = m.rem[t];
   const after = r - hit.score;
@@ -65,6 +67,8 @@ function endVisit(m, ev, pts) {
   s.darts += m.visit.darts.length;
   if (!ev.bust) addScoreBand(s, pts);
   m.last[t] = { darts: [...m.visit.darts], score: pts, bust: ev.bust };
+  m.legPoints[t] += pts;
+  m.legVisits[t].push({ score: pts, bust: ev.bust, checkout: ev.checkout, rem: m.rem[t] });
   ev.visitEnd = true;
   ev.visitScore = pts;
   m.turn = 1 - t;
@@ -77,6 +81,7 @@ function endLeg(m, w, ev) {
   if (!s.bestLeg || m.legDarts[w] < s.bestLeg) s.bestLeg = m.legDarts[w];
   m.legs[w]++; m.legIdx++; m.log.push(w);
   ev.legEnd = true; ev.legWinner = w;
+  m.lastLeg = { visits: m.legVisits, starter: m.legStarter, winner: w, avg: [0, 1].map(i => legAverage(m, i)), rem: [...m.rem] };
   if (m.legs[w] >= legsTo(m)) {
     if (!m.format.sets) return finish(m, w, ev);
     m.sets[w]++; ev.setEnd = true;
@@ -84,6 +89,7 @@ function endLeg(m, w, ev) {
     m.legs = [0, 0]; m.setStarter = 1 - m.setStarter; m.legStarter = m.setStarter;
   } else m.legStarter = 1 - m.legStarter;
   m.rem = [501, 501]; m.legDarts = [0, 0]; m.last = [null, null];
+  m.legPoints = [0, 0]; m.legVisits = [[], []];
   m.turn = m.legStarter;
   m.visit = { darts: [], start: 501 };
 }
@@ -109,5 +115,13 @@ export function liveAverage(m, i) {
   const s = m.stats[i];
   let pts = s.points, d = s.darts;
   if (m.turn === i && m.visit.darts.length) { pts += m.visit.start - m.rem[i]; d += m.visit.darts.length; }
+  return d ? pts / d * 3 : 0;
+}
+
+// Average im laufenden Leg (inkl. angefangener Aufnahme)
+export function legAverage(m, i) {
+  let pts = m.legPoints?.[i] ?? 0;
+  if (m.turn === i && m.visit.darts.length) pts += m.visit.start - m.rem[i];
+  const d = m.legDarts[i];
   return d ? pts / d * 3 : 0;
 }

@@ -33,9 +33,11 @@ function matchPanel(s, inst) {
       <span class="tag tag-pc">${formatLabel(round.format)}</span></div>
     <div class="versus">${futCard(s.player, { small: true, me: true })}<div class="vs">VS</div><div data-pl="${oppId}" style="cursor:pointer">${futCard(opp, { small: true })}</div></div>
     <div class="row" style="justify-content:center">
-      ${inst.live ? `<button class="btn btn-gold btn-continue" data-go="match">Match fortsetzen ▸</button>`
+      ${inst.live ? `<button class="btn btn-gold" data-go="match">🎯 Selbst weiterspielen</button>
+      <button class="btn btn-primary" data-go="watch">📺 Weiter zuschauen</button>`
         : `<button class="btn btn-gold" data-go="match" ${MANUAL_AVAILABLE ? '' : 'disabled'}>🎯 Selbst spielen</button>
-      <button class="btn btn-primary btn-continue" id="btn-sim">Simulieren ▸</button>`}
+      <button class="btn" data-go="watch">📺 Schnellsimulation</button>
+      <button class="btn btn-primary" id="btn-sim">Sofort ▸</button>`}
     </div>
     ${inst.live ? `<p class="muted center" style="font-size:.82rem;margin:0">Laufendes Match: ${inst.live.m.format.sets ? `Sätze ${inst.live.m.sets.join(':')} · ` : ''}Legs ${inst.live.m.legs.join(':')}</p>` : ''}
   </div>`;

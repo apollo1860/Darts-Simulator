@@ -34,7 +34,7 @@ js/finance.js         Kontostand, Buchungen, Kosten pro Event
 js/sponsors.js        (Phase 6) Sponsoren
 js/news.js            Nachrichten-Feed
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
-js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, finance, profile,
+js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
                       stats, news, rankings, sponsors, settings, careerEnd
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten (Tour 128, Challenge 50, Dev 50, Lokal 50) – leicht editierbar
@@ -82,6 +82,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Linienposition = Ziel + amp·wave(Startphase + t·freq), t aus `performance.now()` → frameunabhängig. amp = 66 − 0,48·sco (mm), freq = 0,75 + 0,6·(1 − sco/99) Hz (y-Linie ×1,13), Reststreuung = 12 − 0,085·con mm.
   - Doppel/Bull als Ziel: amp & Streuung × (1,3 − fin/200). Druck (Entscheidungsleg, Doppel-Finish, Match-Dart) × (1 + Last·(1 − ner/99)·1,6). Ausdauer: ab Leg 9 leicht steigend.
 - **Gegner-KI** (live): dartgenau, Ziel = `suggestTarget`, Streuung σ je Achse aus Average-Tabelle (`SIGMA_TABLE`, kalibriert mit `tests/fitSigma.mjs`), Doppel-σ aus Checkout-Basis (analytisch). Gleiche Druck-/Ausdauerfaktoren.
+- **Schnellsimulation** (`js/ui/screens/watch.js`, Screen 'watch'): DartConnect-Stil, 1 Aufnahme alle 1,5 s (`VISIT_MS`), dartgenaue KI für beide Seiten. Eigener Spieler links; je Spieler Rest groß, daneben rot Leg-Average, weiß Gesamt-Average; Liste aller Aufnahmen des Legs mit Aufnahme-Nr. in der Mitte, Pfeil = wer dran ist, Punkt = Anwurf. Pause / Selbst spielen / Sofort beenden. Nutzt `inst.live` → jederzeit zwischen Zuschauen und Selbstspielen wechselbar.
 - **Rest simulieren**: Live-Match wird dartgenau mit KI-Modell für beide Seiten beendet (`simulateLiveRest`). Live-Match wird nach jeder Aufnahme gespeichert und kann fortgesetzt werden.
 
 ## Designsystem (FIFA-Look)
