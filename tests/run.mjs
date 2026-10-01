@@ -7,6 +7,7 @@ import { nextWeek, jumpToNextEvent } from '../js/season.js';
 import { perf, xpForLevel, addXp, levelFromXp, MAX_LEVEL } from '../js/player.js';
 import { migrate } from '../js/state.js';
 import * as ST from '../js/staff.js';
+import * as FO from '../js/form.js';
 import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
@@ -500,6 +501,27 @@ test('Team: Manager-Provision, Sponsor-/Exhibition-Boni, Trainer 1 Jahr', () => 
   assert.equal(ST.xpMult(s), 1.2); assert.equal(ST.hireCoach(s, 'c1'), false);   // nur einer gleichzeitig
   for (let i = 0; i < 52; i++) nextWeek(s);
   assert.equal(ST.coachActive(s), null); assert.equal(ST.xpMult(s), 1);
+});
+
+test('Bühne: Erfahrung zählt in Majors/gegen große Namen; Selbstvertrauen', () => {
+  const inst = { cat: 'major', eventId: 'wm', current: 0, rounds: [{ remaining: 64 }], big: [] };
+  assert.equal(FO.stageFactor(inst, 'P', 'T1'), 1);
+  inst.rounds[0].remaining = 8; assert.equal(FO.stageFactor(inst, 'P', 'T1'), 1.5);
+  const pc = { cat: 'pc', current: 0, rounds: [{ remaining: 64 }], big: ['T1'] };
+  assert.equal(FO.stageFactor(pc, 'P', 'T1'), 0.7); assert.equal(FO.stageFactor(pc, 'P', 'T99'), 0);
+  const rook = FO.applyStage({ sco: 80, fin: 80, men: 80, foc: 80, exp: -4 }, 1.5), vet = FO.applyStage({ sco: 80, fin: 80, men: 80, foc: 80, exp: 10 }, 1.5);
+  assert.ok(rook.sco < 76 && vet.sco > 84);
+  // ≈ Siegchance gleich starker Spieler: Veteran vs. Neuling auf großer Bühne deutlich vorn
+  let w = 0; const rng = new RNG(5);
+  for (let i = 0; i < 300; i++) if (simulateMatch(vet, rook, { legs: 6 }, rng).winner === 0) w++;
+  assert.ok(w / 300 > 0.62, 'Veteran ' + w / 300);
+  const p = { attrs: { sco: 70, fin: 70, men: 70, foc: 70, cal: 70 }, momentum: 0 };
+  for (let i = 0; i < 4; i++) FO.updateMomentum(p, { won: true, opp: { attrs: { sco: 80, fin: 80, men: 80, foc: 80, cal: 80 } }, cat: 'challenge' });
+  assert.equal(p.momentum, 6); assert.equal(FO.momentumBonus(p), 3); assert.equal(perf({ ...p, exp: 0 }).sco, 73);
+  FO.momentumDecay(p); assert.ok(p.momentum < 5);
+  for (let i = 0; i < 20; i++) FO.momentumDecay(p);
+  assert.equal(p.momentum, 0);
+  FO.updateMomentum(p, { won: true, opp: null, cat: 'local' }); assert.equal(p.momentum, 0.3);   // lokal zählt wenig
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

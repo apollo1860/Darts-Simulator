@@ -10,6 +10,7 @@ import { planDistraction, distractionDue, describe, resolveDistraction } from '.
 import { checkoutDecisionDue, chooseRoute } from '../../decisions.js';
 import { fieldName } from '../../board.js';
 import { fmtPct } from '../../util.js';
+import { stageFactor, stageDelta, momentumState } from '../../form.js';
 
 export const VISIT_MS = 1500;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
@@ -178,10 +179,24 @@ function draw(ev) {
       <div class="dc-mid"><div class="dc-badge"><small>Legs</small>${m.legs[me]}:${m.legs[op]}</div>${setsTxt}<div class="dc-legno">Leg ${legNo}</div></div>
       ${head(op, 'right')}
     </div>
-    ${banner}
+    ${banner}${formLine()}
     <div class="dc-list" id="dc-list">${body}</div>`;
   const list = ui.el.querySelector('#dc-list');
   list.scrollTop = list.scrollHeight;
+}
+
+// Bühne (Erfahrung zählt) und Selbstvertrauen des eigenen Spielers
+function formLine() {
+  const s = ui.s, inst = s.activeEvent, f = stageFactor(inst, ui.ids[0], ui.ids[1]);
+  const parts = [];
+  const ms = momentumState(s.player);
+  if (ms.bonus) parts.push(`<span class="${ms.bonus > 0 ? 'pos' : 'neg'}">${ms.icon} ${ms.label} ${ms.bonus > 0 ? '+' : ''}${ms.bonus}</span>`);
+  if (f) {
+    const exp = i => (inst.teams?.[ui.ids[i]] ?? getPlayer(s, ui.ids[i])).exp ?? 0;
+    const d = i => { const v = stageDelta(exp(i), f); return `${v >= 0 ? '+' : ''}${fmtNum(v, 1)}`; };
+    parts.push(`<span class="gold" title="Auf der großen Bühne zählt Erfahrung: ±0,5 je Stufe über/unter +3">🎭 ${f >= 1.5 ? 'Große Bühne' : f >= 1 ? 'Bühne' : 'Großer Name'}: du ${d(ui.me)} · Gegner ${d(1 - ui.me)}</span>`);
+  }
+  return parts.length ? `<div class="dc-form">${parts.join(' · ')}</div>` : '';
 }
 
 // Wie bei DartConnect: Nachname

@@ -534,6 +534,8 @@
 .dc-arrow.right { left: 8px; border-left: 14px solid #fff; }
 .dc-arrow.left { right: 8px; border-right: 14px solid #fff; }
 .dc-banner { background: var(--gold); color: #1d1300; text-align: center; font-weight: 900; text-transform: uppercase; padding: 4px; letter-spacing: .05em; animation: dc-pop .3s ease both; }
+.dc-form { text-align: center; font-size: .78rem; font-weight: 700; padding: 4px 8px; background: rgba(255,255,255,.04); border-bottom: 1px solid var(--line, rgba(255,255,255,.08)); }
+.xp-bar.momentum i { background: linear-gradient(90deg, #5ab4ff, var(--muted, #8aa) 50%, var(--gold) 75%, var(--red)); }
 .watch-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 .table tr.cut td { border-bottom: 2px solid var(--gold); }
 @media (max-width: 480px) { .hide-sm { display: none; } .table td, .table th { padding: 8px 6px; } }

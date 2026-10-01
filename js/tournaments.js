@@ -21,6 +21,7 @@ import { routeTarget } from './decisions.js';
 import { addEventFatigue } from './training.js';
 import { trackTitle, recordChampion } from './history.js';
 import { xpMult } from './staff.js';
+import { stageFactor, applyStage, updateMomentum, titleMomentum } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
 export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl'];   // laufen ohne Spieler im Hintergrund
@@ -157,6 +158,7 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomTypes(ev, sub),
     isQualifier: !!ev.qualifier && sub === 0, cards: !!fmt.cards,
     prizes: prizeTable(ev, sub), stopAt: fmt.stopAt ?? 1, fieldSize: field.length,
+    big: withPlayer ? orderOfMerit(state, 'pdc').slice(0, 16).map(x => x.p.id).filter(id => id !== 'P') : [],
     rounds,
     current: 0, playerAlive: withPlayer, withPlayer, done: false, place: null, prize: 0, xp: 0,
     lastMatch: null, live: null, cardWon: false, hasNext: false, survivors: null,
@@ -203,9 +205,12 @@ export function playerMatch(inst) {
 }
 
 // Leistungsdaten; World Cup: Teamwerte (Durchschnitt beider Spieler)
+// Bühne (Majors, große Namen): Erfahrung zählt zusätzlich (form.js)
 const attrsOf = (state, id, inst = state.activeEvent) => {
   const t = inst?.teams?.[id];
-  return t ? { ...t.attrs, exp: t.exp } : perf(getPlayer(state, id));
+  const base = t ? { ...t.attrs, exp: t.exp } : perf(getPlayer(state, id));
+  const m = inst?.rounds?.[inst.current]?.matches.find(x => x.a === id || x.b === id);
+  return applyStage(base, stageFactor(inst, m?.a, m?.b));
 };
 
 // Eigenes Match simulieren (Ergebnis wird gespeichert und zurückgegeben)
@@ -324,6 +329,11 @@ function recordPlayerMatch(state, inst, m, res) {
   const cp = Math.round((2 + (decider ? 3 : 0) + (decider && won ? 3 : 0)) * f);
   inst.clutch = (inst.clutch ?? 0) + cp;
   const up = addClutch(state.player, cp);
+  // Selbstvertrauen
+  const oppId = me === 0 ? m.b : m.a;
+  const step = updateMomentum(state.player, { won, opp: inst.teams?.[oppId] ?? getPlayer(state, oppId), cat: inst.cat, big: inst.big?.includes(oppId) });
+  if (step) addNews(state, 'xp', `${step.icon || '😐'} Selbstvertrauen: ${step.label}`, step.bonus > 0 ? `Du bist im Flow: +${step.bonus} auf Scoring, Finishing und Fokus.`
+    : step.bonus < 0 ? `Die Zweifel nagen: ${step.bonus} auf Scoring, Finishing und Fokus. Siege helfen raus.` : 'Dein Selbstvertrauen ist wieder im Normalbereich.');
   if (up > 0) addNews(state, 'xp', `Erfahrung steigt auf ${expLabel(state.player.exp)}`, 'Du bleibst in engen Momenten ruhiger – Matchdarts und Entscheidungslegs gelingen dir besser.');
   if (!won && !inst.rounds[inst.current].isGroup) inst.playerAlive = false;
   inst.lastMatch = {
@@ -439,6 +449,7 @@ function finishEvent(state, inst) {
   const evXp = Math.round(XP_BASE.event * f);
   inst.xp += evXp;
   grantXp(state, evXp);
+  if (place === 'W') titleMomentum(state.player, inst.cat);
   if (place === 'W' || place === 'CARD') {
     const bonus = Math.round(XP_BASE.title * f);
     inst.xp += bonus;

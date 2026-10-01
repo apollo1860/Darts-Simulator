@@ -4,12 +4,13 @@ import { nationName } from '../../../data/nations.js';
 import { REGIONS } from '../../../data/regions.js';
 import { overall, checkoutBase, xpForLevel, expLabel, expNext, EXP_MAX, MAX_LEVEL, POINTS_PER_LEVEL } from '../../player.js';
 import { tourStatus } from '../../world.js';
+import { momentumState } from '../../form.js';
 import { topbar, futCard, attrRows, bindRaise } from '../components.js';
 
 export function render(app) {
   const s = app.state, p = s.player;
   const lv = p.level ?? 1, max = lv >= MAX_LEVEL, need = max ? 1 : xpForLevel(lv);
-  const nextExp = expNext(p.exp);
+  const nextExp = expNext(p.exp), ms = momentumState(p);
   const reg = p.region ? ` · ${esc(REGIONS[p.region]?.name ?? '')}` : '';
   return `${topbar({ title: 'Spielerprofil', sub: `${esc(nationName(p.nation))}${reg} · ${p.hand === 'L' ? 'Linkshänder' : 'Rechtshänder'} · ${p.age} Jahre` })}
   <div class="two-col card-left">
@@ -21,9 +22,14 @@ export function render(app) {
         <div class="row-between muted" style="font-size:.8rem"><span>${max ? 'Maximales Level erreicht' : `${fmtNum(p.xp)} / ${fmtNum(need)} XP bis Level ${lv + 1} (+${POINTS_PER_LEVEL} Punkte)`}</span><span>Gesamt ${fmtNum(p.xpTotal)} XP</span></div>
       </div>
       <div class="panel stack">
+        <div class="row-between"><span class="label">Selbstvertrauen</span><b class="${ms.bonus > 0 ? 'pos' : ms.bonus < 0 ? 'neg' : 'muted'}">${ms.icon} ${ms.label}${ms.bonus ? ` (${ms.bonus > 0 ? '+' : ''}${ms.bonus})` : ''}</b></div>
+        <div class="xp-bar momentum"><i style="width:${((p.momentum ?? 0) + 10) * 5}%"></i></div>
+        <div class="muted" style="font-size:.8rem">Siege – vor allem gegen Stärkere – geben Schwung, Niederlagen nagen. Ab ±3 wirkt es auf Scoring, Finishing und Fokus. Lokale Turniere zählen wenig.</div>
+      </div>
+      <div class="panel stack">
         <div class="row-between"><span class="label">Erfahrung</span><span class="v gold" style="font-family:var(--font-display);font-style:italic;font-weight:800;font-size:1.6rem">${expLabel(p.exp)}</span></div>
         <div class="xp-bar"><i style="width:${((p.exp + 4) / (EXP_MAX + 4)) * 100}%"></i></div>
-        <div class="muted" style="font-size:.8rem">Skala −4 (Matchdarts wackeln) bis +10 (eiskalt in Entscheidungslegs). Wächst mit jedem Match – Entscheidungslegs und große Turniere zählen mehr.${nextExp ? ` Nächste Stufe: ${p.clutch ?? 0} / ${nextExp}.` : ''}</div>
+        <div class="muted" style="font-size:.8rem">Skala −4 (Matchdarts wackeln) bis +10 (eiskalt in Entscheidungslegs). Auf der großen Bühne (Majors, World Series, Premier League) und gegen Top-16-Spieler zählt jede Stufe zusätzlich. Wächst mit jedem Match – Entscheidungslegs und große Turniere zählen mehr.${nextExp ? ` Nächste Stufe: ${p.clutch ?? 0} / ${nextExp}.` : ''}</div>
       </div>
     </div>
     <div class="stack">

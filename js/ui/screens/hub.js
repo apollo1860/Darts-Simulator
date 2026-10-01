@@ -3,6 +3,7 @@ import { esc, fmtEUR, weekLabel, fmtNum } from '../../util.js';
 import { flag } from '../../../data/nations.js';
 import { overall, ATTRS } from '../../player.js';
 import { staffOf, coachActive } from '../../staff.js';
+import { momentumState } from '../../form.js';
 import { eventsInWeek } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
 import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
@@ -69,6 +70,12 @@ function trainingTile(s) {
   return tile('training', '📋', 'Wochenplan', `${sub}<br>Ermüdung ${f} %${f > 30 ? ' ⚠' : ''}${prep}`, badge);
 }
 
+// Selbstvertrauen nur anzeigen, wenn aktiv
+function momentumTag(p) {
+  const ms = momentumState(p);
+  return ms.bonus ? ` · <b class="${ms.bonus > 0 ? 'pos' : 'neg'}" title="${ms.bonus > 0 ? '+' : ''}${ms.bonus} auf Scoring, Finishing, Fokus">${ms.icon} ${ms.label}</b>` : '';
+}
+
 function teamTile(s) {
   const st = staffOf(s), c = coachActive(s);
   const sub = [st.manager ? `👔 ${st.manager.name.split(' ')[0]}` : 'Kein Manager', c ? `🧑‍🏫 +${Math.round(c.xp * 100)} % XP` : 'Kein Trainer'].join(' · ');
@@ -83,7 +90,7 @@ export function render(app) {
   return `<header class="topbar">
     <div class="title">
       <h2>${flag(p.nation)} ${esc(p.name)}</h2>
-      <div class="sub">${p.age} J. · ${esc(tourStatus(p, s.date.year))} · OVR ${overall(p.attrs)}</div>
+      <div class="sub">${p.age} J. · ${esc(tourStatus(p, s.date.year))} · OVR ${overall(p.attrs)}${momentumTag(p)}</div>
     </div>
     <div class="money num">${fmtEUR(s.finance.balance)}</div>
   </header>
