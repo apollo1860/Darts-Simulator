@@ -66,8 +66,8 @@ export const perf = p => {
 };
 
 // ---- Level (1–100): XP → Level-Aufstieg → 5 Attributpunkte ----
-// XP von Level L nach L+1 = 50·L·(1 + 2·((L−1)/99)²), auf 10 gerundet: 50, 100, 150 … L50 ≈ 3.760, L99 = 14.850
-// Summe bis Level 50 ≈ 77 Tsd. XP, bis Level 100 ≈ 500 Tsd. XP
+// XP von Level L nach L+1 = 50·L·(1 + 2·((L−1)/99)²), auf 10 gerundet: 50, 100, 150 … L50 ≈ 3.750, L99 = 14.650
+// Summe bis Level 50 ≈ 76 Tsd. XP, bis Level 100 ≈ 491 Tsd. XP
 export const MAX_LEVEL = 100, POINTS_PER_LEVEL = 5;
 export const xpForLevel = L => Math.round(50 * L * (1 + 2 * ((L - 1) / 99) ** 2) / 10) * 10;
 // Level + Rest-XP aus Gesamt-XP (Migration)

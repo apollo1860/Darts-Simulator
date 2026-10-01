@@ -79,7 +79,7 @@
 - **Wochenplan** statt reinem Training: Training, Ruhetag, Sponsortermin oder Exhibition – nur eins pro Woche. Neue **Ermüdung** durch Turniere (Leistungsabzug ab 30 %). **„⏭ Nächstes Event“** springt über leere Wochen (mit Auto-Training). 27 Node-Tests.
 - **Echte Spielerlisten** (Tourcard-Holder inkl. Herkunft, Dev Tour, Challenge Tour) vom Nutzer übernommen; Kartenregel Top 64 → +1 Jahr; Holder ≤ 23 außerhalb Top 64 spielen Dev Tour.
 - **Tour-Seite** (🎫 im Hub): Tourcard-Holder mit „Karte bis“ + Herkunft (Filter: läuft aus, Top 64, Q-School, CT/Dev) und Titelträger (aktueller Sieger je Major/WS/PL/Youth-WM + Siegerliste aller Turniere je Saison). Startalter 16.
-- **Level-System** (Nutzerwunsch): Level 1–100, 50 XP für Level 2, 100 für Level 3 …, Kurve wird zum Ende steiler (bis 14.850 XP je Level); je Level 5 Attributpunkte. Profil zeigt Level + Fortschritt, Turnierende XP-Balken, News „⬆️ Level N“. Migration v7: Level aus Gesamt-XP, schon verdiente Punkte bleiben. Bot: Level 17 nach Saison 1, ~51 nach 8 Saisons.
+- **Level-System** (Nutzerwunsch): Level 1–100, 50 XP für Level 2, 100 für Level 3 …, Kurve wird zum Ende steiler (bis 14.650 XP je Level); je Level 5 Attributpunkte. Profil zeigt Level + Fortschritt, Turnierende XP-Balken, News „⬆️ Level N“. Migration v7: Level aus Gesamt-XP, schon verdiente Punkte bleiben. Bot: Level 17 nach Saison 1, ~51 nach 8 Saisons.
 - Fix: Dev-Pool lief nach ~7 Saisons leer (Absturz in Dev-Turnieren), weil der große Pool ohne Karte keine Talente mehr bekam → jährlicher Nachwuchs + Obergrenze 200.
 
 ## Mögliche nächste Schritte
