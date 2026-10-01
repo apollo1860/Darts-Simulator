@@ -62,6 +62,8 @@ export const perf = p => {
   // Ermüdung über 30 % kostet Leistung (bis −6 Scoring, −8 Fokus, −4 Finishing bei 100 %)
   const f = Math.max(0, ((p.fatigue ?? 0) - 30) / 70);
   if (f) { a.sco -= f * 6; a.foc -= f * 8; a.fin -= f * 4; }
+  // Turniervorbereitung (Training): Bonus auf das trainierte Attribut
+  if (p.prep) a[p.prep.key] = Math.min(100, a[p.prep.key] + p.prep.bonus);
   return a;
 };
 

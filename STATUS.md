@@ -82,6 +82,7 @@
 - **Level-System** (Nutzerwunsch): Level 1–100, 50 XP für Level 2, 100 für Level 3 …, Kurve wird zum Ende steiler (bis 14.650 XP je Level); je Level 5 Attributpunkte. Profil zeigt Level + Fortschritt, Turnierende XP-Balken, News „⬆️ Level N“. Migration v7: Level aus Gesamt-XP, schon verdiente Punkte bleiben. Bot: Level 17 nach Saison 1, ~51 nach 8 Saisons.
 - Fix: Dev-Pool lief nach ~7 Saisons leer (Absturz in Dev-Turnieren), weil der große Pool ohne Karte keine Talente mehr bekam → jährlicher Nachwuchs + Obergrenze 200.
 - Lokale Gegner schwächer (Nutzerwunsch): −6 Ø (jetzt 54–74 statt 60–80). Frischer Spieler ohne Training: Turniersiege lokal ~3 % → ~18 %, Aus in Runde 1 50 % → 36 %. Migration v8 für bestehende Spielstände.
+- **Training aufgewertet** (Empfehlung umgesetzt): jede Einheit gibt XP (3 % des Level-Bedarfs, wächst mit) + Turniervorbereitung +3 auf das trainierte Attribut für diese und nächste Woche; Formverlust milder (ab 4 Wochen, 10–30 %). Exhibition-XP skaliert ebenfalls (5 %). Bot: Training ≈ +25–30 % XP (2030: 52k statt 40k), Level 64 statt 54 nach 8 Saisons.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.

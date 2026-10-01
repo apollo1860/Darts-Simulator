@@ -1,7 +1,7 @@
 // Karriere-Hub (Kachel-Raster)
 import { esc, fmtEUR, weekLabel, fmtNum } from '../../util.js';
 import { flag } from '../../../data/nations.js';
-import { overall } from '../../player.js';
+import { overall, ATTRS } from '../../player.js';
 import { eventsInWeek } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
 import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
@@ -64,7 +64,8 @@ function trainingTile(s) {
   const t = trainingOf(s), act = weekActivity(s), f = s.player.fatigue ?? 0;
   const sub = act ? `✔ ${ACTIVITIES[act].label}` : t.idle >= DECAY_AFTER ? `⚠ ${t.idle} Wochen ohne Training` : 'Training · Ruhetag · Sponsor · Exhibition';
   const badge = act ? '' : `<span class="badge ${t.idle >= DECAY_AFTER ? '' : 'badge-green'}">!</span>`;
-  return tile('training', '📋', 'Wochenplan', `${sub}<br>Ermüdung ${f} %${f > 30 ? ' ⚠' : ''}`, badge);
+  const prep = s.player.prep ? ` · 🎯 ${ATTRS.find(a => a.key === s.player.prep.key).short} +${s.player.prep.bonus}` : '';
+  return tile('training', '📋', 'Wochenplan', `${sub}<br>Ermüdung ${f} %${f > 30 ? ' ⚠' : ''}${prep}`, badge);
 }
 
 export function render(app) {

@@ -1,7 +1,7 @@
 // Wochenplan: genau eine Aktivität pro Woche (Training, Ruhetag, Sponsortermin, Exhibition) + Ermüdung
 import { esc, fmtPct, fmtEUR } from '../../util.js';
 import { ATTRS } from '../../player.js';
-import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue } from '../../training.js';
+import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, trainingXp, exhibitionXp, PREP_BONUS } from '../../training.js';
 import { topbar, modal } from '../components.js';
 
 export function fatigueBar(p) {
@@ -10,6 +10,13 @@ export function fatigueBar(p) {
   return `<div class="row-between"><span class="label">Ermüdung</span><b class="${cls}">${f} %</b></div>
     <div class="xp-bar fatigue"><i style="width:${f}%"></i></div>
     <div class="muted" style="font-size:.75rem">${f > 30 ? 'Über 30 % leidet deine Leistung (Scoring, Fokus, Finishing).' : 'Fit. Turniere ermüden, jede Woche erholst du dich um 10 %.'}</div>`;
+}
+
+// Aktive Turniervorbereitung
+export function prepLine(p) {
+  if (!p.prep) return '<span class="muted">Keine Turniervorbereitung aktiv.</span>';
+  const a = ATTRS.find(x => x.key === p.prep.key);
+  return `<b class="gold">🎯 Vorbereitung aktiv: ${esc(a.label)} +${p.prep.bonus}</b> <span class="muted">(${p.prep.weeks > 1 ? 'diese und nächste Woche' : 'noch diese Woche'})</span>`;
 }
 
 export function render(app) {
@@ -31,6 +38,10 @@ export function render(app) {
   </div>
   <div class="panel" style="margin-bottom:12px">${fatigueBar(p)}</div>
   <div class="section-title"><span class="label">🏋️ Training</span></div>
+  <div class="panel" style="margin-bottom:10px;font-size:.84rem">
+    ${prepLine(p)}
+    <div class="muted" style="margin-top:4px">Jede Einheit: <b class="cyan">+${trainingXp(p)} XP</b> (±30 % je nach Tagesform) und <b class="gold">+${PREP_BONUS}</b> auf das Attribut für Turniere dieser und nächster Woche. Dazu langsamer Fortschritt zum dauerhaften +1.</div>
+  </div>
   <div class="stack">${ATTRS.map(a => {
     const v = p.attrs[a.key], need = sessionsFor(v), prog = Math.min(1, t.progress[a.key] ?? 0);
     return `<div class="panel">
@@ -45,9 +56,9 @@ export function render(app) {
   <div class="stack">
     ${card('rest')}
     ${card('sponsor', s.sponsors.active.length ? `<div class="pos" style="font-size:.8rem">≈ ${fmtEUR(sponsorGigValue(s))}</div>` : '')}
-    ${card('exhibition', `<div class="pos" style="font-size:.8rem">≈ ${fmtEUR(exhibitionValue(s))} · +60 XP</div>`)}
+    ${card('exhibition', `<div class="pos" style="font-size:.8rem">≈ ${fmtEUR(exhibitionValue(s))} · +${exhibitionXp(p)} XP</div>`)}
   </div>
-  <p class="muted" style="font-size:.78rem;margin-top:12px">Training, Ruhetag, Sponsortermin oder Exhibition – nur eins davon pro Woche. Nur Training schützt vor Formverlust.</p>`;
+  <p class="muted" style="font-size:.78rem;margin-top:12px">Training, Ruhetag, Sponsortermin oder Exhibition – nur eins davon pro Woche. Nur Training schützt vor Formverlust (ab 4 Wochen Pause).</p>`;
 }
 
 export function mount(root, app) {
@@ -58,7 +69,8 @@ export function mount(root, app) {
     app.save();
     const label = ATTRS.find(a => a.key === b.dataset.train).label;
     done(r.up ? `⬆ ${label} +1!` : `🏋️ ${r.text}`,
-      r.up ? `Durchbruch – ${esc(label)} steigt auf <b>${app.state.player.attrs[b.dataset.train]}</b>.` : `${esc(label)}: Fortschritt jetzt ${fmtPct(r.progress, 0)} (${r.need} Einheiten für +1).`);
+      `${r.up ? `Durchbruch – ${esc(label)} steigt auf <b>${app.state.player.attrs[b.dataset.train]}</b>.` : `${esc(label)}: Fortschritt jetzt ${fmtPct(r.progress, 0)} (${r.need} Einheiten für +1).`}
+      <br><b class="cyan">+${r.xp} XP</b>${r.ups ? ` – <b class="gold">Level ${app.state.player.level}!</b>` : ''} · <b class="gold">${esc(label)} +${PREP_BONUS}</b> für Turniere dieser und nächster Woche.`);
   });
   root.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
     const r = doActivity(app.state, b.dataset.act);

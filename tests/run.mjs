@@ -468,6 +468,18 @@ test('Level: 50/100 XP, steigende Kosten, 5 Punkte je Level, Max 100, Migration'
   migrate(old); assert.equal(old.player.level, 4); assert.equal(old.player.points, 7);   // verdiente Punkte bleiben
 });
 
+test('Training: XP + Turniervorbereitung (+3, 2 Wochen), schwächerer Formverlust', () => {
+  const s = newCareer({ name: 'T', nation: 'DE', hand: 'R', seed: 9 }), p = s.player;
+  const r = TR.train(s, 'fin');
+  assert.ok(r.xp >= 10 && p.xpTotal === r.xp);
+  assert.deepEqual(p.prep, { key: 'fin', bonus: 3, weeks: 2 });
+  assert.equal(perf(p).fin, p.attrs.fin + 3);
+  nextWeek(s); assert.equal(p.prep.weeks, 1);                       // nächste Woche noch aktiv
+  nextWeek(s); assert.equal(p.prep, undefined); assert.equal(perf(p).fin, p.attrs.fin);
+  p.level = 30; assert.ok(TR.trainingXp(p) > 40);                   // wächst mit dem Level
+  assert.equal(TR.DECAY_AFTER, 4);
+});
+
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
   const s = newCareer({ name: 'L', nation: 'DE', hand: 'R', seed: 4 });
   const loc = playersOfTier(s, 'local').map(p => p.avg);
