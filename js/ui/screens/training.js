@@ -1,7 +1,7 @@
 // Wochenplan: genau eine Aktivität pro Woche (Training, Ruhetag, Sponsortermin, Exhibition) + Ermüdung
 import { esc, fmtPct, fmtEUR } from '../../util.js';
 import { ATTRS } from '../../player.js';
-import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, trainingXp, exhibitionXp, PREP_BONUS, RECOVERY, recoveryPrice, canRecover, buyRecovery } from '../../training.js';
+import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, exOffer, trainingXp, exhibitionXp, PREP_BONUS, RECOVERY, recoveryPrice, canRecover, buyRecovery } from '../../training.js';
 import { topbar, modal } from '../components.js';
 import { staffOf, acceptGig, declineGig } from '../../staff.js';
 
@@ -75,7 +75,8 @@ export function render(app) {
   <div class="stack">
     ${card('rest')}
     ${card('sponsor', s.sponsors.active.length ? `<div class="pos" style="font-size:.8rem">≈ ${fmtEUR(sponsorGigValue(s))}</div>` : '')}
-    ${card('exhibition', `<div class="pos" style="font-size:.8rem">≈ ${fmtEUR(exhibitionValue(s))} · +${exhibitionXp(p)} XP</div>`)}
+    ${card('exhibition', exOffer(s) ? `<div class="pos" style="font-size:.8rem">Angebot ${esc(exOffer(s).city)}: ${fmtEUR(exhibitionValue(s))} · +${exhibitionXp(p)} XP · bis KW ${exOffer(s).until.week}</div>`
+      : `<div class="muted" style="font-size:.8rem">${p.tour === 'tour' ? 'Aktuell kein Angebot – Angebote kommen zufällig, je höher dein Level, desto mehr Gage.' : 'Angebote erst ab Tourcard.'}</div>`)}
   </div>
   <p class="muted" style="font-size:.78rem;margin-top:12px">Training, Ruhetag, Sponsortermin oder Exhibition – nur eins davon pro Woche. Nur Training schützt vor Formverlust (ab 4 Wochen Pause).</p>`;
 }

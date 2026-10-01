@@ -12,6 +12,7 @@ import { staffWeek } from './staff.js';
 import { interviewWeekEnd } from './interviews.js';
 import { rivalYearEnd } from './rival.js';
 import { mishapWeek } from './mishaps.js';
+import { exhibitionWeek } from './training.js';
 import { recordHistory, trackPeak } from './history.js';
 import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
 import { eventStatus } from './tournaments.js';
@@ -29,6 +30,7 @@ export function nextWeek(state) {
   if (week >= WEEKS_PER_YEAR) { recordHistory(state); sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);
   mishapWeek(state);
+  exhibitionWeek(state);
   sponsorWeek(state);
   staffWeek(state);
   trackPeak(state);

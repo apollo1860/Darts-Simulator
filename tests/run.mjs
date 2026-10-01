@@ -451,8 +451,14 @@ test('Checkout-Entscheidung: 3 Wege – Check, Doppel-Rest, schlechte Aufnahme; 
 test('Wochenplan: 1 Aktivität, Ruhetag, Sponsortermin, Exhibition, Ermüdung, Sprung', () => {
   const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 81 });
   assert.equal(TR.canDo(s, 'sponsor').ok, false);                   // kein Sponsor
+  assert.equal(TR.doActivity(s, 'exhibition').ok, false);           // ohne Angebot / ohne Karte
+  s.player.tour = 'tour'; s.player.level = 30;
+  for (let i = 0; i < 40 && !TR.exOffer(s); i++) TR.exhibitionWeek(s);
+  const fee = TR.exOffer(s).fee;
+  assert.ok(fee >= 1700 && fee <= 2650, 'Gage ' + fee);            // (400 + 60·30) × 0,8–1,2
   const r = TR.doActivity(s, 'exhibition');
-  assert.ok(r.ok && s.player.fatigue === 20 && s.finance.balance > 5000);
+  assert.ok(r.ok && s.player.fatigue === 20 && s.finance.balance === 5000 + fee && !TR.exOffer(s));
+  s.player.tour = 'none';
   assert.equal(TR.train(s, 'sco'), null);                           // Woche schon verplant
   assert.equal(TR.doActivity(s, 'rest').ok, false);
   nextWeek(s);

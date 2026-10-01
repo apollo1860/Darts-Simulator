@@ -8,7 +8,6 @@ import { addNews } from './news.js';
 import { clamp, fmtEUR } from './util.js';
 import { book } from './finance.js';
 import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
-import { marketValue } from './sponsors.js';
 import { xpMult } from './staff.js';
 import { momentumDecay } from './form.js';
 
@@ -73,7 +72,7 @@ export const ACTIVITIES = {
   train: { label: 'Training', icon: '🏋️', info: 'XP + Turniervorbereitung (+3 auf das Attribut), schützt vor Formverlust' },
   rest: { label: 'Ruhetag', icon: '🛋️', info: 'Ermüdung −30' },
   sponsor: { label: 'Sponsortermin', icon: '🤝', info: 'Geld von deinen Sponsoren (nur mit aktivem Vertrag)' },
-  exhibition: { label: 'Exhibition', icon: '🎪', info: 'Showkampf: Geld + Erfahrung, aber Ermüdung +20' },
+  exhibition: { label: 'Exhibition', icon: '🎪', info: 'Nur auf Angebot (ab Tourcard): Geld + Erfahrung, aber Ermüdung +20' },
 };
 
 // ---- Erholung kaufen (zusätzlich zur Wochenaktivität, je Art 1× pro Woche) ----
@@ -104,14 +103,34 @@ export function canDo(state, type) {
   if (weekActivity(state)) return { ok: false, reason: 'Diese Woche schon verplant' };
   if (type === 'sponsor' && !state.sponsors.active.length) return { ok: false, reason: 'Kein aktiver Sponsor' };
   if (type === 'rest' && !(state.player.fatigue > 0)) return { ok: false, reason: 'Du bist ausgeruht' };
+  if (type === 'exhibition' && !exOffer(state)) return { ok: false, reason: state.player.tour === 'tour' ? 'Kein Angebot' : 'Ab Tourcard' };
   return { ok: true };
 }
+
+// ---- Exhibition-Angebote: nur mit Tourcard, 30 % pro Woche, 2 Wochen gültig; Gage steigt mit dem Level ----
+// Gage = (400 + 60 · Level) × Manager-Faktor × 0,8–1,2 (Level 10 ≈ 1.000 €, Level 50 ≈ 3.400 €)
+export const EX_OFFER_CHANCE = 0.3;
+const wk = (y, w) => y * 52 + w;
+export const exOffer = state => {
+  const o = state.exOffer;
+  return o && wk(o.until.year, o.until.week) >= wk(state.date.year, state.date.week) ? o : null;
+};
+export function exhibitionWeek(state) {
+  const p = state.player;
+  if (p.tour !== 'tour' || exOffer(state)) return null;
+  const rng = new RNG(state.rng);
+  if (!rng.chance(EX_OFFER_CHANCE)) return null;
+  const fee = Math.round((400 + 60 * (p.level ?? 1)) * (state.staff?.manager?.gigFee ?? 1) * rng.float(0.8, 1.2) / 50) * 50;
+  state.exOffer = { fee, city: rng.pick(EX_CITIES), until: { year: state.date.year, week: state.date.week + 1 } };
+  addNews(state, 'sponsor', `🎪 Exhibition-Angebot: ${state.exOffer.city}`, `Gage ${fmtEUR(fee)}. Annehmen im Wochenplan (ersetzt die Wochenaktivität), gültig 2 Wochen.`);
+  return state.exOffer;
+}
+const EX_CITIES = ['Oberhausen', 'Bremen', 'Hannover', 'Nürnberg', 'Graz', 'Utrecht', 'Blackpool', 'Glasgow', 'Kopenhagen', 'Gibraltar'];
 
 // Geldbetrag eines Sponsortermins bzw. einer Exhibition (für Anzeige + Auszahlung)
 export const sponsorGigValue = state => state.sponsors.active.reduce((sum, c) =>
   sum + Math.max(150, Math.round((c.type === 'annual' ? c.amount * 0.04 : c.type === 'event' ? c.amount * 0.6 : c.amount * 0.3) / 10) * 10), 0);
-export const exhibitionValue = state => Math.round((state.player.tour === 'tour'
-  ? (500 + marketValue(state) * 0.02) : 200) * (state.staff?.manager?.gigFee ?? 1) / 50) * 50;
+export const exhibitionValue = state => exOffer(state)?.fee ?? 0;
 
 export function doActivity(state, type) {
   const st = canDo(state, type);
@@ -130,7 +149,8 @@ export function doActivity(state, type) {
     return { ok: true, text: `Fotoshooting und Autogrammstunde: ${fmtEUR(v)}.` };
   }
   if (type === 'exhibition') {
-    const v = Math.round(exhibitionValue(state) * rng.float(0.8, 1.2) / 10) * 10;
+    const v = exhibitionValue(state);
+    state.exOffer = null;
     book(state, v, 'Exhibition', 'prize');
     const xp = Math.round(exhibitionXp(p) * xpMult(state)), ups = addXp(p, xp); addClutch(p, 3);
     p.fatigue = Math.min(100, p.fatigue + 20);

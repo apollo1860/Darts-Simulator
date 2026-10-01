@@ -98,6 +98,7 @@
 - Turnieranzahl bei CT/Dev wählbar (1–5, je 25 €); **Host-Nation-Qualifier** für ET-Events im eigenen Land (bis zu 4 Turniere, Sieg = ET-Hauptfeld).
 - WM-Qualifier für Q-School-Teilnehmer (KW 46, Sieger spielt die WM).
 - Zufallsereignisse (Finger eingequetscht, Schule bis 18, Zahn-/Rückenschmerzen, Erkältung, Magen-Darm): Trainingsrückschlag oder seltener eine Woche ohne Turnier.
+- Exhibitions nur noch auf Angebot (ab Tourcard), Gage steigt mit dem Level.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
