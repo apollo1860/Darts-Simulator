@@ -86,6 +86,7 @@
 - **Großes Paket (Nutzerwunsch)**: Team-Screen mit Manager (3 Stufen, Provision 10–20 %, mehr/bessere Sponsoren, Exhibition-Einladungen als Klick-Event) und Trainer (Einmalzahlung, 1 Jahr, +10–30 % XP); Erfahrung zählt auf der großen Bühne (Majors, gegen Top 16); Selbstvertrauen/Momentum mit Anzeige; Gegner-Matchdarts Wurf für Wurf auf der Dartscheibe; Interviews nach Majors (Floskel-Memory). 34 Node-Tests.
 - Lokale Turniere nur noch deutsche Spieler (20 Namen ersetzt, Migration v9). Turnier-XP gesenkt (lokaler Sieg ~120 statt ~260 XP, frühes Aus ~30 statt ~70). **Level-Up-Fenster** (großes „LEVEL UP! N“, +Punkte, „Punkte verteilen“) und **animierter Level-Balken** im Hub und am Turnierende (füllt sich, läuft bei Aufstieg über).
 - Erholung kaufen (Nutzerwunsch): Saunabesuch (−10 % Ermüdung) und Massage (−15 %) im Wochenplan, je 50–100 €, je 1× pro Woche, zusätzlich zur Wochenaktivität.
+- Checkout-Entscheidung zeigt nur noch die Wege, keine Wahrscheinlichkeiten mehr („★ Empfohlen“ ab Rechnen 75 bleibt).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.

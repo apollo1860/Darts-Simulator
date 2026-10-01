@@ -147,10 +147,9 @@ function askCheckout(co) {
   modal({
     title: `🎯 ${co.rem} Rest – welcher Weg?`,
     dismissable: false,
-    body: `<p class="muted" style="font-size:.84rem">Du stehst auf <b>${co.rem}</b>. Geschätzte Chance, ihn in dieser Aufnahme zu checken${co.cal < 60 ? ' (dein Rechnen ist schwach – die Schätzung kann daneben liegen)' : ''}:</p>
+    body: `<p class="muted" style="font-size:.84rem">Du stehst auf <b>${co.rem}</b>. Welchen Weg spielst du?</p>
       <div class="stack">${co.opts.map((o, i) => `<button class="panel choice" data-route="${i}">
-        <div class="row-between"><b style="font-size:1.1rem">${o.route.map(fieldName).join(' · ')}</b>
-          <span class="badge ${o.shown >= 35 ? 'badge-green' : ''}">≈ ${o.shown} %</span></div>
+        <div class="row-between"><b style="font-size:1.1rem">${o.route.map(fieldName).join(' · ')}</b></div>
         ${co.recommended === i ? '<div class="gold" style="font-size:.78rem;font-weight:700">★ Empfohlen</div>' : ''}
       </button>`).join('')}</div>`,
     actions: [],
