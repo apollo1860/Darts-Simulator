@@ -5,7 +5,17 @@ import { REGIONS } from '../../../data/regions.js';
 import { overall, checkoutBase, xpForLevel, expLabel, expNext, EXP_MAX, MAX_LEVEL, POINTS_PER_LEVEL } from '../../player.js';
 import { tourStatus } from '../../world.js';
 import { momentumState } from '../../form.js';
+import { MILESTONES, reached } from '../../milestones.js';
 import { topbar, futCard, attrRows, bindRaise } from '../components.js';
+
+// Meilensteine: erreicht (mit Datum) oben, offene mit Bonus-XP
+function milestonePanel(s) {
+  const got = MILESTONES.filter(m => reached(s, m.id)), open = MILESTONES.filter(m => !reached(s, m.id));
+  const row = (m, done) => `<div class="ms-row ${done ? 'done' : ''}"><span>${m.icon}</span><span class="ms-label">${esc(m.label)}</span>
+    <span class="${done ? 'muted' : 'cyan'}" style="font-size:.78rem;white-space:nowrap">${done ? `KW ${s.milestones[m.id].week}/${s.milestones[m.id].year}` : `+${m.xp} XP`}</span></div>`;
+  return `<div class="panel"><div class="row-between"><h3>🏅 Meilensteine</h3><span class="muted">${got.length}/${MILESTONES.length}</span></div>
+    ${got.map(m => row(m, true)).join('')}${open.map(m => row(m, false)).join('')}</div>`;
+}
 
 export function render(app) {
   const s = app.state, p = s.player;
@@ -45,6 +55,7 @@ export function render(app) {
         <div class="kpi"><div class="label">Doppel-Basis</div><div class="v num">${fmtPct(checkoutBase(p.attrs), 0)}</div></div>
         <div class="kpi"><div class="label">Status</div><div class="v" style="font-size:1.05rem">${esc(tourStatus(p, s.date.year))}</div></div>
       </div>
+      ${milestonePanel(s)}
     </div>
   </div>`;
 }

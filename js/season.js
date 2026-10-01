@@ -12,6 +12,7 @@ import { staffWeek } from './staff.js';
 import { interviewWeekEnd } from './interviews.js';
 import { rivalYearEnd } from './rival.js';
 import { mishapWeek } from './mishaps.js';
+import { rankMilestones } from './milestones.js';
 import { exhibitionWeek } from './training.js';
 import { recordHistory, trackPeak } from './history.js';
 import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
@@ -34,6 +35,7 @@ export function nextWeek(state) {
   sponsorWeek(state);
   staffWeek(state);
   trackPeak(state);
+  rankMilestones(state);
   if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); }
   return true;
 }

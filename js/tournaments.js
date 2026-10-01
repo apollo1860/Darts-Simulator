@@ -23,6 +23,7 @@ import { addEventFatigue } from './training.js';
 import { trackTitle, recordChampion } from './history.js';
 import { xpMult } from './staff.js';
 import { maybeInterview } from './interviews.js';
+import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum } from './form.js';
 
@@ -397,6 +398,7 @@ function recordPlayerMatch(state, inst, m, res) {
   // Selbstvertrauen (+ Rivalen-Duell)
   const oppId = me === 0 ? m.b : m.a;
   if (isRival(state, oppId)) rivalMeeting(state, inst, won, `${sc[me]}:${sc[1 - me]}`);
+  matchMilestones(state, s, won);
   const step = updateMomentum(state.player, { won, opp: inst.teams?.[oppId] ?? getPlayer(state, oppId), cat: inst.cat, big: inst.big?.includes(oppId) });
   if (step) addNews(state, 'xp', `${step.icon || '😐'} Selbstvertrauen: ${step.label}`, step.bonus > 0 ? `Du bist im Flow: +${step.bonus} auf Scoring, Finishing und Fokus.`
     : step.bonus < 0 ? `Die Zweifel nagen: ${step.bonus} auf Scoring, Finishing und Fokus. Siege helfen raus.` : 'Dein Selbstvertrauen ist wieder im Normalbereich.');
@@ -538,6 +540,7 @@ function finishEvent(state, inst) {
   if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
   sponsorEventPayout(state, inst);
   trackTitle(state, inst);
+  titleMilestones(state, inst);
   addEventFatigue(state, inst);
   if (inst.isQualifier) {
     addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, place === 'QUAL' ? 'Du stehst im Hauptfeld (Letzte 48).' : 'Kein Platz im Hauptfeld.');
@@ -583,6 +586,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place)})`, 'prize');
     sponsorEventPayout(state, inst);
     trackTitle(state, inst);
+    titleMilestones(state, inst);
     addEventFatigue(state, inst);
     state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: inst.prize });
     addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, inst.prize ? `Preisgeld: ${fmtEUR(inst.prize)}.` : '');

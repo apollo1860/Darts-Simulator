@@ -13,6 +13,7 @@ import * as FO from '../js/form.js';
 import * as IV from '../js/interviews.js';
 import * as RV from '../js/rival.js';
 import * as MH from '../js/mishaps.js';
+import * as MS from '../js/milestones.js';
 import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros, getPlayer } from '../js/world.js';
@@ -714,6 +715,28 @@ test('Zufallsereignisse: Trainingsrückschlag oder Ausfall (Turniere gesperrt), 
   t.week.blocked = { id: 'cold', label: 'Erkältung' };
   const loc = eventsInWeek(t, 2027, 1).find(e => e.cat === 'local');
   assert.equal(eventStatus(t, loc).playable, false);
+});
+
+test('Meilensteine: einmalig, Extra-XP, Match/Titel/Rang', () => {
+  const s = newCareer({ name: 'M', nation: 'DE', hand: 'R', seed: 95 });
+  const x0 = s.player.xpTotal;
+  MS.matchMilestones(s, { s180: 1, bestLeg: 11, points: 505, darts: 15 }, true);   // 101 Ø
+  assert.ok(['win', 's180', 'd12', 'd11', 'avg100'].every(id => MS.reached(s, id)));
+  assert.ok(!MS.reached(s, 'd10') && !MS.reached(s, 'avg110'));
+  assert.equal(s.player.xpTotal - x0, 30 + 50 + 120 + 250 + 300);
+  const x1 = s.player.xpTotal;
+  MS.matchMilestones(s, { s180: 3, bestLeg: 12, points: 330, darts: 9 }, true);    // nichts Neues außer 110er Avg
+  assert.equal(s.player.xpTotal - x1, 800);
+  MS.titleMilestones(s, { place: 'W', cat: 'wdf' }); assert.ok(MS.reached(s, 'wdf'));
+  MS.titleMilestones(s, { place: 'F', cat: 'dev' }); assert.ok(!MS.reached(s, 'dev'));
+  MS.titleMilestones(s, { place: 'W', cat: 'major', eventId: 'wm-quali' }); assert.ok(!MS.reached(s, 'major'));
+  // im echten Turnier: lokaler Sieg / erster Sieg werden erkannt
+  for (let i = 0; i < 20 && !MS.reached(s, 'local'); i++) {
+    const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local');
+    if (e && !s.week.blocked) { enterEvent(s, e.id); simulateRest(s); closeEvent(s); }
+    nextWeek(s);
+  }
+  assert.ok(MS.reached(s, 'local'));
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
