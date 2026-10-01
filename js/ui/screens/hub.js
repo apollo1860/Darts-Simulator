@@ -8,7 +8,7 @@ import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../trainin
 import { eventStatus } from '../../tournaments.js';
 import { unreadCount } from '../../news.js';
 import { sponsorsUnlocked } from '../../sponsors.js';
-import { tourStatus, DEV_MAX_AGE } from '../../world.js';
+import { tourStatus, DEV_MAX_AGE, playersOfTier } from '../../world.js';
 import { rankOf } from '../../rankings.js';
 import { catTag } from '../components.js';
 
@@ -86,6 +86,7 @@ export function render(app) {
     ${tile('profile', '🎯', 'Spielerprofil', `Ø ${p.avgReal ? fmtNum(p.avgReal, 1) : '–'} · OVR ${overall(p.attrs)}`,
       p.points ? `<span class="badge badge-green">+${p.points}</span>` : '')}
     ${tile('rankings', '🏆', 'Ranglisten', oomLine(s))}
+    ${tile('tour', '🎫', 'Tour & Titel', `${playersOfTier(s, 'tour').length + (p.tour === 'tour' ? 1 : 0)} Holder · Titelträger`)}
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}
     ${tile('news', '📰', 'Neuigkeiten', esc(lastNews?.title ?? 'Keine Meldungen'), unread ? `<span class="badge">${unread}</span>` : '')}
     ${tile('stats', '📊', 'Statistiken', `${s.stats.career.wins}–${s.stats.career.matches - s.stats.career.wins} · ${s.stats.career.titles} Titel`)}

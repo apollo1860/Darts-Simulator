@@ -13,7 +13,7 @@ const left = () => CREATION_POINTS - spent();
 
 function previewPlayer() {
   return {
-    id: 'P', name: form.name.trim() || 'Dein Name', nation: form.nation, age: 18, tour: 'none',
+    id: 'P', name: form.name.trim() || 'Dein Name', nation: form.nation, age: 16, tour: 'none',
     attrs: startAttrs(form.bonus), exp: EXP_MIN,
   };
 }
@@ -41,7 +41,7 @@ export function render() {
   const slots = listSlots();
   // Standard: erster freier Slot (bis der Nutzer selbst wählt)
   if (!form.slotTouched) form.slot = slots.find(s => s.empty)?.slot ?? 1;
-  return `${topbar({ title: 'Neue Karriere', sub: 'Start: Januar 2027 · 18 Jahre · 5.000 €', back: 'menu' })}
+  return `${topbar({ title: 'Neue Karriere', sub: 'Start: Januar 2027 · 16 Jahre · 5.000 €', back: 'menu' })}
   <div class="two-col card-left">
     <div class="card-stage" id="preview">${futCard(previewPlayer(), { me: true })}</div>
     <div class="panel stack">

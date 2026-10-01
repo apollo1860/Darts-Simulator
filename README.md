@@ -10,7 +10,7 @@ Karrieremodus für Darts im FIFA-Stil: vom Kneipenturnier im eigenen Bundesland 
 - **Tests:** `node tests/run.mjs` (Node ≥ 18)
 
 ## Spielablauf
-1. **Charakter erstellen:** Name, Nation, Bundesland, Wurfhand. Alle Attribute starten bei 60 von 100, dazu verteilst du 25 Bonuspunkte frei. Die Erfahrung startet bei −4, das Budget bei 5.000 €.
+1. **Charakter erstellen:** Name, Nation, Bundesland, Wurfhand. Du startest mit 16 Jahren. Alle Attribute starten bei 60 von 100, dazu verteilst du 25 Bonuspunkte frei. Die Erfahrung startet bei −4, das Budget bei 5.000 €.
 2. **Wochenkalender:** Pro Woche ein Event (die Premier League kommt zusätzlich), dann „Weiter“. Gespeichert wird automatisch nach jeder Woche.
 3. **Turniere:** Jedes Match wird simuliert, entweder als **📺 DartConnect** (Aufnahme für Aufnahme, mit Störmomenten und Entscheidungen) oder als **⚡ Schnellsimulation**.
 4. **Training:** Nach jedem Turnier verteilst du Punkte auf Scoring, Finishing, Mental, Fokus und Rechnen. Dazu kommt einmal pro Woche eine Trainingseinheit. Wer länger nicht trainiert, verliert an Form.
@@ -23,6 +23,7 @@ Karrieremodus für Darts im FIFA-Stil: vom Kneipenturnier im eigenen Bundesland 
 - Realistischer Jahreskalender mit Q-School, 24 Challenge- und 24 Development-Turnieren, 30 Players Championships, 14 European-Tour-Events, allen Majors, World Series, World Cup und Premier League
 - Ranglisten: PDC Order of Merit (2 Jahre), Pro Tour, Challenge Tour, Development Tour, Premier-League-Tabelle
 - Die Spielwelt lebt: Auf- und Abstieg, Kartenverlust, Entwicklung nach Alter, Ruhestand, neue Talente
+- Tour-Seite: alle Tourcard-Holder (gültig bis, Herkunft) und Titelträger aller Majors mit Siegerliste je Saison
 - Statistik-Archiv: Saisons, Titel, Bestergebnisse, Höchstplatzierungen
 - Mehrere Speicher-Slots, Export und Import als JSON
 

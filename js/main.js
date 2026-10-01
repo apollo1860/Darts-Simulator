@@ -12,6 +12,7 @@ import * as profile from './ui/screens/profile.js';
 import * as stats from './ui/screens/stats.js';
 import * as news from './ui/screens/news.js';
 import * as rankings from './ui/screens/rankings.js';
+import * as tour from './ui/screens/tour.js';
 import * as sponsors from './ui/screens/sponsors.js';
 import * as settings from './ui/screens/settings.js';
 import * as careerEnd from './ui/screens/careerEnd.js';
@@ -19,7 +20,7 @@ import * as match from './matchUI.js';
 import * as watch from './ui/screens/watch.js';
 import * as training from './ui/screens/training.js';
 
-const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, sponsors, settings, careerEnd, match, watch, training };
+const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, tour, sponsors, settings, careerEnd, match, watch, training };
 const root = document.getElementById('app');
 
 const app = {

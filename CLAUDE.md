@@ -42,7 +42,7 @@ js/news.js            Nachrichten-Feed
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
-                      stats, news, rankings, sponsors, settings, careerEnd, training
+                      stats, news, rankings, tour (Holder + Titelträger), sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
@@ -61,7 +61,7 @@ Start lokal: `python3 -m http.server` im Projektordner → http://localhost:8000
 version, slot, savedAt, rng:{s}, date:{year, week}
 player: {id:'P', name, nation, region (Bundesland), hand, age, attrs:{sco,fin,men,foc,cal}, exp, clutch, xp, xpTotal, pointsEarned, points,
          tour:'none'|'tour', cardUntil (letzte gültige Saison), qschoolYear (→ CT/Dev-Berechtigung), avgReal, everTourcard}
-world:  {version:3, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,attrs,exp}}}   tier: tour|challenge|dev|ddv|local
+world:  {version:3, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,cardVia,attrs,exp}}}   cardVia = Herkunft der Karte (auch player.cardVia)   tier: tour|challenge|dev|ddv|local
         IDs: T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, V=DDV-Pool (63), L=lokal, G=generierte Talente
 rankings:{seeded, years:{[year]:{challenge|dev|pdc|protour|eto|ws:{[id]:€}}}}   (2025/2026 = Startwerte PDC; eto/ws versteckt)
 qual:   {[year]:{[eventId]:[Feld], wmAuto, wmqSurvivors, wcTeams}}   Felder ab Event-Woche fixiert
@@ -72,6 +72,7 @@ week:   {played:bool, eventId}         aktuelle Woche
 activeEvent: Turnier-Instanz oder null: {eventId, cat, sub/count (Teil-Turnier), rounds[{name,remaining,format,matches[{a,b,winner,score,bye}]}],
          stopAt (Q-School 4, ET-Quali 32), isQualifier, cards, oom:[Typen], place ('W','F',…,'CARD','QUAL','NQ'), hasNext, survivors, clutch,
          live:{m,me,mods:[{side,mult,visits}],dist:{id,atVisit,who,done}|null}|null}
+champions:{[year]:[{week,eventId,name,cat,id,who,nation}]}  Sieger aller Turniere ab Karrierestart (ohne Lokal/Q-School/Quali/PL-Spieltage)
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
 training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.activity = train|rest|sponsor|exhibition, week.trained = Attribut
@@ -82,7 +83,7 @@ archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pd
 Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Woche und nach jedem Turnier.
 
 ## Spielregeln (Kurzfassung Spezifikation)
-- **Start**: Jahr 2027, KW 1, Alter 18, Budget 5.000 €, keine Tourcard, Bundesland wählbar (bei Nation DE). Alle Attribute 60 + **25 Bonuspunkte** frei verteilbar bei der Erstellung (1 Punkt = +1, max. 85 je Attribut; Start erst wenn alle verteilt; `startAttrs(bonus)`), Erfahrung −4.
+- **Start**: Jahr 2027, KW 1, Alter 16, Budget 5.000 €, keine Tourcard, Bundesland wählbar (bei Nation DE). Alle Attribute 60 + **25 Bonuspunkte** frei verteilbar bei der Erstellung (1 Punkt = +1, max. 85 je Attribut; Start erst wenn alle verteilt; `startAttrs(bonus)`), Erfahrung −4.
 - **Attribute** (1–100) sind **Perzentile**: „stärker als X von 100 Dartspielern“ – nicht der Average.
   - Scoring (sco) → Average über Kurve `AVG_CURVE` (40→53, 60→65, 80→79, 90→89, 95→95, 99→103, 100→106 Ø).
   - Finishing (fin) → Checkout-Basis 6 % + 0,37 %·fin (60 → 28 %, 100 → 43 %).

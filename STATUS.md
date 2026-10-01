@@ -77,6 +77,8 @@
 
 - **Checkout-Entscheidungen** im DartConnect: gelegentlich Wegwahl bei 41–170 Rest mit geschätzten Chancen (Genauigkeit/Empfehlung über Rechnen).
 - **Wochenplan** statt reinem Training: Training, Ruhetag, Sponsortermin oder Exhibition – nur eins pro Woche. Neue **Ermüdung** durch Turniere (Leistungsabzug ab 30 %). **„⏭ Nächstes Event“** springt über leere Wochen (mit Auto-Training). 27 Node-Tests.
+- **Echte Spielerlisten** (Tourcard-Holder inkl. Herkunft, Dev Tour, Challenge Tour) vom Nutzer übernommen; Kartenregel Top 64 → +1 Jahr; Holder ≤ 23 außerhalb Top 64 spielen Dev Tour.
+- **Tour-Seite** (🎫 im Hub): Tourcard-Holder mit „Karte bis“ + Herkunft (Filter: läuft aus, Top 64, Q-School, CT/Dev) und Titelträger (aktueller Sieger je Major/WS/PL/Youth-WM + Siegerliste aller Turniere je Saison). Startalter 16.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -84,6 +86,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- Startalter 16 (Nutzerwunsch). Titelträger werden ab Karrierestart 2027 erfasst (2026er Sieger nicht hinterlegt). Herkunft 2026: Bellmont/Labanauskas = CT 2025, Greaves/Bates = Dev 2025 (Zuordnung geschätzt). Alte Spielstände: Herkunft „–“, bis neue Karten vergeben werden.
 - **Wochenplan**: Exhibition/Sponsortermin-Beträge und Ermüdungswerte sind Balancing-Werte (js/training.js). Auto-Training beim Sprung, damit Überspringen keinen Formverlust erzeugt.
 - **Rechnen/Training**: Formverlust widerspricht bewusst der ursprünglichen Regel „nie schlechter“ (Nutzerwunsch); Alterungsverlust gibt es weiterhin nicht. KI trainiert implizit (Entwicklung nach Alter), hat keinen Formverlust.
 - **Phase 6**: Sponsorennamen fiktiv. Jahresgehalt-Raten auch für das laufende Jahr ab Unterschrift (Antrittsrate = 1 Quartal). Premier-League-Spieltagssiege zählen nicht als Titel (nur Bestergebnis).

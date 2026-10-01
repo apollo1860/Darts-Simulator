@@ -59,6 +59,9 @@ export const TOUR_NEW_2026 = [
   ['Tyler Thorpe', 'ENG', 21, 88], ['Stephen Rosney', 'SCO', 38, 87], ['David Sharp', 'ENG', 35, 87],
 ];
 
+// Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
+export const QSCHOOL_UK_2026 = ['Rhys Griffin', 'Adam Leek', 'Carl Sneyd', 'Niall Culleton', 'Tom Sykes', 'Shane McGuirk', 'Charlie Manby',
+  'Samuel Price', 'Stephen Burton', 'Mervyn King', 'Tyler Thorpe', 'Stephen Rosney', 'David Sharp'];
 export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
 
 // --- Challenge Tour (nur ohne Tourcard): Nutzerliste CT-OOM, Plätze 1–75 ---

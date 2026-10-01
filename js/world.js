@@ -1,5 +1,5 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026 } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -28,6 +28,12 @@ export function createWorld(rng, startYear = 2027) {
     [1, 2].map(i => players[prefix + i])
       .forEach(p => { p.tier = 'tour'; p.cardUntil = startYear + 1; });
   }
+  for (const p of Object.values(players)) {
+    if (p.id[0] === 'T') p.cardVia = `Top 64 PDC ${startYear - 1}`;
+    if (p.id[0] === 'N') p.cardVia = +p.id.slice(1) <= 2 ? `Challenge Tour ${startYear - 2}` : +p.id.slice(1) <= 4 ? `Development Tour ${startYear - 2}`
+      : `${QSCHOOL_UK_2026.includes(p.name) ? 'Q-School UK' : 'Q-School Europa'} ${startYear - 1}`;
+  }
+  for (const [pre, label] of [['C', 'Challenge Tour'], ['D', 'Development Tour']]) for (const i of [1, 2]) players[pre + i].cardVia = `${label} ${startYear - 1}`;
   updateTiers({ world });
   return world;
 }

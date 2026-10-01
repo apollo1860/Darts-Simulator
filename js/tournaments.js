@@ -19,7 +19,7 @@ import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
 import { routeTarget } from './decisions.js';
 import { addEventFatigue } from './training.js';
-import { trackTitle } from './history.js';
+import { trackTitle, recordChampion } from './history.js';
 
 export const IMPLEMENTED_PHASE = 5;
 export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl'];   // laufen ohne Spieler im Hintergrund
@@ -407,9 +407,10 @@ function settle(state, inst) {
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
+  if (survivors.length === 1 && !inst.isQualifier && !inst.cards && inst.cat !== 'local' && inst.fmt !== 'pln') recordChampion(state, inst, survivors[0]);
   if (inst.fmt === 'pln') scorePlNight(state, inst);
   if (inst.cards) {                                          // Q-School: Tourcards
-    for (const id of survivors) awardCard(state, id, year + 1, inst.baseName);
+    for (const id of survivors) awardCard(state, id, year + 1, `${inst.baseName} ${year}`);
     addNews(state, 'draw', `${inst.name}: Tourcards vergeben`, survivors.map(id => getPlayer(state, id).name).join(', '));
   }
 }
@@ -417,11 +418,11 @@ function settle(state, inst) {
 export function awardCard(state, id, until, via) {
   if (id === 'P') {
     const p = state.player;
-    p.tour = 'tour'; p.cardUntil = until; p.everTourcard = true;
+    p.tour = 'tour'; p.cardUntil = until; p.everTourcard = true; p.cardVia = via;
     addNews(state, 'result', '🎉 TOURCARD GEWONNEN!', `Über ${via} – gültig bis Ende ${until}. Ab ${state.date.week >= 50 ? state.date.year + 1 : 'sofort'} spielst du auf der PDC Pro Tour (ab Phase 4 spielbar).`);
   } else {
     const p = state.world.players[id];
-    if (p) { p.tier = 'tour'; p.cardUntil = until; }
+    if (p) { p.tier = 'tour'; p.cardUntil = until; p.cardVia = via; }
   }
 }
 

@@ -26,7 +26,7 @@ export function newCareer({ name, nation, hand, region = DEFAULT_REGION, bonus =
     rng: rngState,
     date: { year: START_YEAR, week: 1 },
     player: {
-      id: 'P', name, nation, hand, age: 18,
+      id: 'P', name, nation, hand, age: 16,
       region: nation === 'DE' ? region : null,
       attrs: startAttrs(bonus), exp: EXP_MIN, clutch: 0,
       xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,

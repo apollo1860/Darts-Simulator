@@ -87,7 +87,7 @@ export function yearEnd(state) {
   for (const x of orderOfMerit(state, 'pdc', y)) {
     const pl = x.p;
     if (!pl.cardUntil) continue;
-    if (x.rank <= 64) { pl.cardUntil = Math.max(pl.cardUntil, y + 1); continue; }
+    if (x.rank <= 64) { if (pl.cardUntil <= y) pl.cardVia = `Top 64 PDC ${y}`; pl.cardUntil = Math.max(pl.cardUntil, y + 1); continue; }
     if (pl.cardUntil > y) continue;
     lost.push(pl.name);
     if (pl.id === 'P') {

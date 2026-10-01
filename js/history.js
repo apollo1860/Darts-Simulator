@@ -2,11 +2,18 @@
 import { rankOf } from './rankings.js';
 import { seasonStats } from './state.js';
 import { overall } from './player.js';
+import { getPlayer } from './world.js';
 
 export const PLACE_ORDER = ['W', 'CARD', 'F', 'SF', 'QF', 'L16', 'G3', 'G4', 'L32', 'L64', 'L128', 'L256', 'QUAL', 'NQ'];
 const better = (a, b) => (b === undefined || PLACE_ORDER.indexOf(a) < PLACE_ORDER.indexOf(b));
 
 const arch = state => (state.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });
+
+// Turniersieger aller Turniere (außer lokal/Quali/PL-Spieltage): state.champions[year] = [{week, eventId, name, cat, id, who, nation}]
+export function recordChampion(state, inst, id) {
+  const w = getPlayer(state, id);
+  ((state.champions ??= {})[state.date.year] ??= []).push({ week: state.date.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, id, who: w?.name ?? '?', nation: w?.nation ?? null });
+}
 
 // Nach jedem eigenen Turnier
 export function trackTitle(state, inst) {

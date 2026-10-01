@@ -32,7 +32,7 @@ test('RNG reproduzierbar', () => {
 test('Neue Karriere: Startwerte', () => {
   const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 1 });
   assert.equal(s.finance.balance, 5000);
-  assert.equal(s.player.age, 18);
+  assert.equal(s.player.age, 16);
   assert.equal(s.date.year, 2027);
   const o = overall(s.player.attrs);
   assert.equal(o, 60); assert.equal(s.player.exp, -4);
@@ -85,7 +85,7 @@ test('Lokales Turnier komplett + Saison', () => {
     assert.ok(nextWeek(s));
   }
   assert.equal(s.date.year, 2028);
-  assert.equal(s.player.age, 19);
+  assert.equal(s.player.age, 17);
   assert.equal(s.finance.balance, 5000 + prize);
   assert.ok(s.player.avgReal > 30 && s.player.avgReal < 110, 'Avg ' + s.player.avgReal);
   console.log(`   Titel: ${titles}, Preisgeld: ${prize} €, Punkte verdient: ${s.player.pointsEarned}, Bilanz: ${s.stats.career.wins}-${s.stats.career.matches - s.stats.career.wins}`);
@@ -221,12 +221,16 @@ test('Mehrere Saisons: Karten, Jahreswechsel, Welt bleibt stabil', () => {
   const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 77 });
   const t0 = Date.now();
   for (let i = 0; i < 52 * 3 + 2; i++) assert.ok(nextWeek(s));    // bis nach der Q-School 2030
-  assert.equal(s.date.year, 2030); assert.equal(s.player.age, 21);
+  assert.equal(s.date.year, 2030); assert.equal(s.player.age, 19);
   const tour = playersOfTier(s, 'tour').length;
   assert.ok(tour >= 115 && tour <= 145, 'Tourgröße ' + tour);
   assert.ok(nonCardPros(s).length >= 60);           // nach Q-School (32 Karten vergeben)
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
-  assert.ok(playersOfTier(s, 'tour').every(p => p.cardUntil >= 2030));
+  assert.ok(playersOfTier(s, 'tour').every(p => p.cardUntil >= 2030 && p.cardVia));
+  // Titelträger: je Saison alle Majors erfasst
+  for (const y of [2027, 2028, 2029]) for (const id of ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm', 'wcod', 'pl-final', 'youth-wm'])
+    assert.ok(s.champions[y].some(c => c.eventId === id), `${id} ${y}`);
+  assert.equal(s.champions[2027].filter(c => c.cat === 'pc').length, 30);
   console.log(`   3 Saisons in ${Date.now() - t0} ms · Tour ${tour} · ohne Karte ${nonCardPros(s).length} · JSON ${(JSON.stringify(s).length / 1024).toFixed(0)} KB`);
 });
 
