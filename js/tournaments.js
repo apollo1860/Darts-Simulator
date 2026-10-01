@@ -8,7 +8,7 @@ import { createMatch, throwDart, matchResult } from './matchState.js';
 import { aiDart, aiSigma } from './throwModel.js';
 import { eventCost, canAfford, book } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
-import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE } from './player.js';
+import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, POINTS_PER_LEVEL } from './player.js';
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek } from './calendar.js';
@@ -294,8 +294,8 @@ function applyResult(m, res) {
 }
 
 function grantXp(state, xp) {
-  const pts = addXp(state.player, xp);
-  if (pts) addNews(state, 'xp', `+${pts} Attributpunkt${pts > 1 ? 'e' : ''}`, 'Verteile sie im Spielerprofil.');
+  const ups = addXp(state.player, xp);
+  if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Verteile sie im Spielerprofil oder direkt nach dem Turnier.');
 }
 
 function recordPlayerMatch(state, inst, m, res) {

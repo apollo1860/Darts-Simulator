@@ -79,6 +79,8 @@
 - **Wochenplan** statt reinem Training: Training, Ruhetag, Sponsortermin oder Exhibition – nur eins pro Woche. Neue **Ermüdung** durch Turniere (Leistungsabzug ab 30 %). **„⏭ Nächstes Event“** springt über leere Wochen (mit Auto-Training). 27 Node-Tests.
 - **Echte Spielerlisten** (Tourcard-Holder inkl. Herkunft, Dev Tour, Challenge Tour) vom Nutzer übernommen; Kartenregel Top 64 → +1 Jahr; Holder ≤ 23 außerhalb Top 64 spielen Dev Tour.
 - **Tour-Seite** (🎫 im Hub): Tourcard-Holder mit „Karte bis“ + Herkunft (Filter: läuft aus, Top 64, Q-School, CT/Dev) und Titelträger (aktueller Sieger je Major/WS/PL/Youth-WM + Siegerliste aller Turniere je Saison). Startalter 16.
+- **Level-System** (Nutzerwunsch): Level 1–100, 50 XP für Level 2, 100 für Level 3 …, Kurve wird zum Ende steiler (bis 14.850 XP je Level); je Level 5 Attributpunkte. Profil zeigt Level + Fortschritt, Turnierende XP-Balken, News „⬆️ Level N“. Migration v7: Level aus Gesamt-XP, schon verdiente Punkte bleiben. Bot: Level 17 nach Saison 1, ~51 nach 8 Saisons.
+- Fix: Dev-Pool lief nach ~7 Saisons leer (Absturz in Dev-Turnieren), weil der große Pool ohne Karte keine Talente mehr bekam → jährlicher Nachwuchs + Obergrenze 200.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -86,6 +88,8 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- Level-Kurve: 50·L·(1 + 2·((L−1)/99)²) XP – erfüllt 50/100 aus dem Wunsch, ab Mitte deutlich steiler. Frühe Saisons etwas schneller als das alte Punktesystem (Saison 1 ≈ 80 statt 55 Punkte), ab Saison 4 gleich, danach langsamer.
+- Beobachtung: Bot (spielt aus Geldmangel viel lokal) bekommt mit der stärkeren echten CT/Dev-Welt erst nach 8+ Saisons eine Karte – Balancing ggf. nachziehen.
 - Startalter 16 (Nutzerwunsch). Titelträger werden ab Karrierestart 2027 erfasst (2026er Sieger nicht hinterlegt). Herkunft 2026: Bellmont/Labanauskas = CT 2025, Greaves/Bates = Dev 2025 (Zuordnung geschätzt). Alte Spielstände: Herkunft „–“, bis neue Karten vergeben werden.
 - **Wochenplan**: Exhibition/Sponsortermin-Beträge und Ermüdungswerte sind Balancing-Werte (js/training.js). Auto-Training beim Sprung, damit Überspringen keinen Formverlust erzeugt.
 - **Rechnen/Training**: Formverlust widerspricht bewusst der ursprünglichen Regel „nie schlechter“ (Nutzerwunsch); Alterungsverlust gibt es weiterhin nicht. KI trainiert implizit (Entwicklung nach Alter), hat keinen Formverlust.

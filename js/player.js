@@ -65,16 +65,26 @@ export const perf = p => {
   return a;
 };
 
-// ---- XP → Attributpunkte ----
-export const xpForNextPoint = earned => Math.round(70 + 1.6 * earned);
+// ---- Level (1–100): XP → Level-Aufstieg → 5 Attributpunkte ----
+// XP von Level L nach L+1 = 50·L·(1 + 2·((L−1)/99)²), auf 10 gerundet: 50, 100, 150 … L50 ≈ 3.760, L99 = 14.850
+// Summe bis Level 50 ≈ 77 Tsd. XP, bis Level 100 ≈ 500 Tsd. XP
+export const MAX_LEVEL = 100, POINTS_PER_LEVEL = 5;
+export const xpForLevel = L => Math.round(50 * L * (1 + 2 * ((L - 1) / 99) ** 2) / 10) * 10;
+// Level + Rest-XP aus Gesamt-XP (Migration)
+export function levelFromXp(total) {
+  let L = 1, rest = total;
+  while (L < MAX_LEVEL && rest >= xpForLevel(L)) { rest -= xpForLevel(L); L++; }
+  return { level: L, xp: rest };
+}
+// Gibt die Zahl der Level-Aufstiege zurück (je Aufstieg POINTS_PER_LEVEL Punkte)
 export function addXp(p, xp) {
-  p.xp += xp; p.xpTotal += xp;
-  let gained = 0;
-  while (p.xp >= xpForNextPoint(p.pointsEarned)) {
-    p.xp -= xpForNextPoint(p.pointsEarned);
-    p.pointsEarned++; p.points++; gained++;
+  p.xp += xp; p.xpTotal += xp; p.level ??= 1;
+  let ups = 0;
+  while (p.level < MAX_LEVEL && p.xp >= xpForLevel(p.level)) {
+    p.xp -= xpForLevel(p.level); p.level++; ups++;
+    p.pointsEarned += POINTS_PER_LEVEL; p.points += POINTS_PER_LEVEL;
   }
-  return gained;
+  return ups;
 }
 // Höhere Perzentile sind teurer
 export const attrCost = v => (v >= 95 ? 4 : v >= 85 ? 3 : v >= 70 ? 2 : 1);

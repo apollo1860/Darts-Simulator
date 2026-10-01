@@ -4,7 +4,8 @@ import { newCareer } from '../js/state.js';
 import { overall } from '../js/player.js';
 import { eventsInWeek } from '../js/calendar.js';
 import { nextWeek, jumpToNextEvent } from '../js/season.js';
-import { perf } from '../js/player.js';
+import { perf, xpForLevel, addXp, levelFromXp, MAX_LEVEL } from '../js/player.js';
+import { migrate } from '../js/state.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
 import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub, simulateRoundAI } from '../js/tournaments.js';
@@ -449,6 +450,22 @@ test('Wochenplan: 1 Aktivität, Ruhetag, Sponsortermin, Exhibition, Ermüdung, S
   assert.ok(eventsInWeek(s, s.date.year, s.date.week).some(e => e.cat !== 'local' && eventStatus(s, e).playable));
   assert.equal(TR.trainingOf(s).idle, 0);
   assert.equal(jumpToNextEvent(s), 0);                              // jetzt steht ein Event an → kein Sprung
+});
+
+test('Level: 50/100 XP, steigende Kosten, 5 Punkte je Level, Max 100, Migration', () => {
+  assert.equal(xpForLevel(1), 50); assert.equal(xpForLevel(2), 100);
+  for (let L = 2; L < MAX_LEVEL; L++) assert.ok(xpForLevel(L) - xpForLevel(L - 1) >= xpForLevel(2) - xpForLevel(1) - 10, 'Zuwachs ' + L);
+  assert.ok(xpForLevel(99) - xpForLevel(98) > 3 * (xpForLevel(3) - xpForLevel(2)));   // am Ende deutlich schwerer
+  const s = newCareer({ name: 'L', nation: 'DE', hand: 'R', seed: 2 }), p = s.player;
+  assert.equal(p.level, 1); assert.equal(p.xp, 0);
+  assert.equal(addXp(p, 49), 0); assert.equal(addXp(p, 1), 1);
+  assert.equal(p.level, 2); assert.equal(p.points, 5); assert.equal(p.xp, 0);
+  assert.equal(addXp(p, 100 + 150), 2); assert.equal(p.level, 4); assert.equal(p.points, 15);
+  addXp(p, 10_000_000); assert.equal(p.level, MAX_LEVEL); assert.equal(p.pointsEarned, 5 * (MAX_LEVEL - 1));
+  assert.deepEqual(levelFromXp(50 + 100 + 30), { level: 3, xp: 30 });
+  const old = newCareer({ name: 'M', nation: 'DE', hand: 'R', seed: 3 });
+  delete old.player.level; old.player.xpTotal = 300; old.player.points = 7;
+  migrate(old); assert.equal(old.player.level, 4); assert.equal(old.player.points, 7);   // verdiente Punkte bleiben
 });
 
 console.log(`\n${n} Tests ok`);

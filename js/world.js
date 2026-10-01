@@ -7,6 +7,7 @@ import { clamp } from './util.js';
 export const WORLD_VERSION = 3;   // Rechnen (cal) wird in state.migrate ergänzt
 export const DDV_POOL = 63;
 export const DEV_MAX_AGE = 23;
+const POOL_MAX = 200;          // Spieler ohne Karte (Challenge + Dev)
 
 // tier: tour | challenge | dev | local ; cardUntil = letzte Saison mit gültiger Tourcard
 export function createWorld(rng, startYear = 2027) {
@@ -118,9 +119,13 @@ export function developWorld(state, rng, year) {
     const pRet = a < 45 ? 0 : (a - 44) * (p.tier === 'tour' ? 0.02 : 0.05);
     if (rng.chance(pRet)) { report.retired.push(p.name); p.tier = 'retired'; p.cardUntil = null; }   // bleibt für Historie erhalten
   }
-  // Pool ohne Karte bei ~100 halten (Nachwuchs rückt nach)
-  const target = 100;
-  while (nonCardPros(state).length < target) report.talents.push(newTalent(state, rng, year).name);
+  // Nachwuchs: jedes Jahr mind. 12 Talente, Dev-Pool (nach dem Altern ≤ 23) bei ~90 halten
+  const devNext = () => nonCardPros(state).filter(p => p.age + 1 <= DEV_MAX_AGE).length;
+  while ((report.talents.length < 12 || devNext() < 90) && report.talents.length < 40) report.talents.push(newTalent(state, rng, year).name);
+  // Pool ohne Karte auf 200 begrenzen: die schwächsten Challenge-Spieler ab 26 hören auf
+  const pool = nonCardPros(state);
+  if (pool.length > POOL_MAX) pool.filter(p => p.age >= 26).sort((x, y) => x.avg - y.avg)
+    .slice(0, pool.length - POOL_MAX).forEach(p => { p.tier = 'retired'; report.quit = (report.quit ?? 0) + 1; });
   return report;
 }
 

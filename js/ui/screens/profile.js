@@ -2,13 +2,13 @@
 import { esc, fmtNum, fmtPct } from '../../util.js';
 import { nationName } from '../../../data/nations.js';
 import { REGIONS } from '../../../data/regions.js';
-import { overall, checkoutBase, xpForNextPoint, expLabel, expNext, EXP_MAX } from '../../player.js';
+import { overall, checkoutBase, xpForLevel, expLabel, expNext, EXP_MAX, MAX_LEVEL, POINTS_PER_LEVEL } from '../../player.js';
 import { tourStatus } from '../../world.js';
 import { topbar, futCard, attrRows, bindRaise } from '../components.js';
 
 export function render(app) {
   const s = app.state, p = s.player;
-  const need = xpForNextPoint(p.pointsEarned);
+  const lv = p.level ?? 1, max = lv >= MAX_LEVEL, need = max ? 1 : xpForLevel(lv);
   const nextExp = expNext(p.exp);
   const reg = p.region ? ` · ${esc(REGIONS[p.region]?.name ?? '')}` : '';
   return `${topbar({ title: 'Spielerprofil', sub: `${esc(nationName(p.nation))}${reg} · ${p.hand === 'L' ? 'Linkshänder' : 'Rechtshänder'} · ${p.age} Jahre` })}
@@ -16,9 +16,9 @@ export function render(app) {
     <div class="stack">
       <div class="card-stage">${futCard(p, { me: true })}</div>
       <div class="panel stack">
-        <div class="row-between"><span class="label">Trainingspunkte (XP)</span><span class="num">${p.xp} / ${need} XP</span></div>
-        <div class="xp-bar"><i style="width:${Math.min(100, p.xp / need * 100)}%"></i></div>
-        <div class="muted" style="font-size:.8rem">Gesamt ${fmtNum(p.xpTotal)} XP · ${p.pointsEarned} Punkte verdient</div>
+        <div class="row-between"><span class="label">Level</span><span class="v cyan" style="font-family:var(--font-display);font-style:italic;font-weight:800;font-size:1.6rem">${lv}<span class="muted" style="font-size:.9rem"> / ${MAX_LEVEL}</span></span></div>
+        <div class="xp-bar"><i style="width:${max ? 100 : Math.min(100, p.xp / need * 100)}%"></i></div>
+        <div class="row-between muted" style="font-size:.8rem"><span>${max ? 'Maximales Level erreicht' : `${fmtNum(p.xp)} / ${fmtNum(need)} XP bis Level ${lv + 1} (+${POINTS_PER_LEVEL} Punkte)`}</span><span>Gesamt ${fmtNum(p.xpTotal)} XP</span></div>
       </div>
       <div class="panel stack">
         <div class="row-between"><span class="label">Erfahrung</span><span class="v gold" style="font-family:var(--font-display);font-style:italic;font-weight:800;font-size:1.6rem">${expLabel(p.exp)}</span></div>
@@ -31,7 +31,7 @@ export function render(app) {
         <div class="row-between"><h3>Attribute</h3>
           <span class="${p.points ? 'badge badge-green' : 'muted'}">${p.points} Punkt${p.points === 1 ? '' : 'e'} frei</span></div>
         ${attrRows(p)}
-        <p class="muted" style="font-size:.78rem;margin-top:10px">Werte 1–100 = „stärker als X von 100 Dartspielern“ (kein Average). Kosten je Stufe: 1 Punkt bis 69 · 2 Punkte 70–94 · 3 Punkte ab 95.</p>
+        <p class="muted" style="font-size:.78rem;margin-top:10px">Werte 1–100 = „stärker als X von 100 Dartspielern“ (kein Average). Kosten je Stufe: 1 Punkt bis 69 · 2 Punkte 70–84 · 3 Punkte 85–94 · 4 Punkte ab 95. Je Level-Aufstieg gibt es 5 Punkte.</p>
       </div>
       <div class="kpi-grid">
         <div class="kpi"><div class="label">Gesamt</div><div class="v">${overall(p.attrs)}</div></div>

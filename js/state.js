@@ -1,13 +1,13 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
-import { startAttrs, ratingForAvg, EXP_MIN } from './player.js';
+import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION } from './world.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 6;
+export const VERSION = 7;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -29,7 +29,7 @@ export function newCareer({ name, nation, hand, region = DEFAULT_REGION, bonus =
       id: 'P', name, nation, hand, age: 16,
       region: nation === 'DE' ? region : null,
       attrs: startAttrs(bonus), exp: EXP_MIN, clutch: 0,
-      xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
+      level: 1, xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
       tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false,
     },
     world: createWorld(rng),
@@ -116,6 +116,8 @@ export function migrate(s) {
     const r = new RNG(s.rng);
     for (const x of Object.values(s.world.players)) x.attrs.cal ??= Math.max(1, Math.min(100, Math.round(r.normal(x.attrs.sco, 4))));
   }
+  // v6 → v7: Level-System (Level aus Gesamt-XP; bereits verdiente Punkte bleiben)
+  if (p.level === undefined) Object.assign(p, levelFromXp(p.xpTotal ?? 0));
   s.version = VERSION;
   return s;
 }

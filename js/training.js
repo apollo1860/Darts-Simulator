@@ -96,9 +96,9 @@ export function doActivity(state, type) {
   if (type === 'exhibition') {
     const v = Math.round(exhibitionValue(state) * rng.float(0.8, 1.2) / 10) * 10;
     book(state, v, 'Exhibition', 'prize');
-    addXp(p, 60); addClutch(p, 3);
+    const ups = addXp(p, 60); addClutch(p, 3);
     p.fatigue = Math.min(100, p.fatigue + 20);
-    return { ok: true, text: `Showkampf vor Publikum: ${fmtEUR(v)}, +60 XP. Ermüdung jetzt ${p.fatigue} %.` };
+    return { ok: true, text: `Showkampf vor Publikum: ${fmtEUR(v)}, +60 XP${ups ? ` – Level ${p.level}!` : ''}. Ermüdung jetzt ${p.fatigue} %.` };
   }
   return { ok: false, text: 'Unbekannt' };
 }

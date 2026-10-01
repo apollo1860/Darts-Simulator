@@ -83,7 +83,7 @@ export function render(app) {
     ${heroTile(s)}
     ${trainingTile(s)}
     ${tile('calendar', '📅', 'Kalender', `Saison ${s.date.year}`)}
-    ${tile('profile', '🎯', 'Spielerprofil', `Ø ${p.avgReal ? fmtNum(p.avgReal, 1) : '–'} · OVR ${overall(p.attrs)}`,
+    ${tile('profile', '🎯', 'Spielerprofil', `Level ${p.level ?? 1} · OVR ${overall(p.attrs)} · Ø ${p.avgReal ? fmtNum(p.avgReal, 1) : '–'}`,
       p.points ? `<span class="badge badge-green">+${p.points}</span>` : '')}
     ${tile('rankings', '🏆', 'Ranglisten', oomLine(s))}
     ${tile('tour', '🎫', 'Tour & Titel', `${playersOfTier(s, 'tour').length + (p.tour === 'tour' ? 1 : 0)} Holder · Titelträger`)}
