@@ -46,3 +46,18 @@ export function orderOfMerit(state, type, year = state.date.year) {
 }
 
 export const rankOf = (state, type, id, year) => orderOfMerit(state, type, year).find(x => x.p.id === id)?.rank ?? null;
+
+// Startwerte PDC OOM (Saisons vor Karrierestart), damit die erste Rangliste nicht leer ist.
+// Top 64 nach Listenreihenfolge (≈ 2,8 Mio. € · Rang^−0,8), übrige 2026er Tour-Spieler 30–150 Tsd. €.
+export function seedRankings(state, rng, startYear) {
+  const add = (id, total) => {
+    addMoney(state, 'pdc', id, Math.round(total * 0.4 / 50) * 50, startYear - 2);
+    addMoney(state, 'pdc', id, Math.round(total * 0.6 / 50) * 50, startYear - 1);
+  };
+  for (const p of Object.values(state.world.players)) {
+    const n = +p.id.slice(1);
+    if (p.id[0] === 'T') add(p.id, 2800000 * Math.pow(n, -0.8));
+    else if (p.id[0] === 'X' || p.id[0] === 'N') add(p.id, rng.float(30000, 150000) * (p.id[0] === 'N' ? 0.4 : 1));
+  }
+  state.rankings.seeded = true;
+}

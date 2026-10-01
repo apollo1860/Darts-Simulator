@@ -35,13 +35,22 @@
 - Balancing (tests/career.mjs, einfacher Bot): Tourcard nach ~4–5 Saisons (Alter 21–23, Ziel-Ø ~90).
 - 15 Node-Tests; 3 KI-Saisons in ~0,2 s, Spielstand ~70 KB.
 
-## Nächste Schritte (Phase 4)
-- Pro Tour: Players Championships (128er Feld, alle Tourcard-Holder) + European Tour (Qualifikation: Top 16 gesetzt, Rest über Tour-Card-Holder-Qualifier/Pro-Tour-OOM), Formate/Preisgelder in `data/tournaments.js` / `data/prizemoney.js`.
-- PDC OOM (2 Jahre rollierend) + Pro Tour OOM mit Geld befüllen (KI-Hintergrund für PC/ET in `AI_CATS`); dann entscheidet echtes Preisgeld über Top 64 (statt Spielstärke).
-- Startwerte der PDC OOM 2027: Basis-Preisgeld aus Reihenfolge `TOUR_TOP64` vorbelegen (Jahre 2025/2026), sonst wäre die erste OOM leer.
-- `IMPLEMENTED_PHASE = 4`.
+## Stand Phase 4
+- Players Championships (30 Turniere, Doppel-Blöcke) und European Tour (14 Events mit Qualifikation → 48er-Hauptfeld, Top 16 gesetzt) spielbar in allen Match-Modi und im Hintergrund simuliert.
+- PDC OOM (2 Jahre, mit Startwerten 2025/2026) und Pro Tour OOM werden mit Preisgeld gefüllt; Top 64 am Jahresende nach Geld. Rang im Hub und in den News nach jedem Pro-Tour-Wochenende.
+- News: Pro-Tour-Sieger der Woche, eigene Quali-Ergebnisse.
+- Check Saison 2027: Pro-Tour-Spitze Littler (~0,5 Mio. €), van Veen, Rock, MvG …; Grenze Platz 64 ≈ 100 Tsd. €; ~28 Kartenverluste.
+- Balancing (tests/career.mjs): Bot holt Tourcard nach 4–6 Saisons und hält sich danach auf PDC-Platz ~30–60.
+- 17 Node-Tests; 3 Saisons inkl. Pro Tour ~0,6 s, Spielstand ~85 KB.
+
+## Nächste Schritte (Phase 5)
+- Majors & Events nach `data/tournaments.js` (cat 'major', 'ws', 'pl'): WM (Sets, 96/128er Feld), UK Open (offen für alle Holder + Amateure, Runden-Einstieg nach OOM), Masters (Top 24/32), World Matchplay (Top 16 PDC + Top 16 Pro Tour), World Grand Prix (Double-In! – vereinfachen?), Grand Slam (Gruppenphase + K.-o.), PC Finals (Top 64 Pro Tour), World Cup (Paare je Nation), European Championship (Top 32 ET-OOM), Premier League (Einladung Top 8, Ligaformat), World Series (Einladung).
+- Qualifikationslogik je Major (OOM-Stichtage), Majors-Preisgeld → PDC OOM. Gruppenphase in `bracket.js` ergänzen.
+- `IMPLEMENTED_PHASE = 5`.
 
 ## Annahmen
+- **Phase 4**: PC-Auslosung frei (ohne Setzliste); bei mehr als 128 Holdern spielen die 128 bestplatzierten der PDC OOM. ET ohne Host-Nation-/Associate-Qualifier: alle 32 Quali-Plätze gehen an Tour-Holder. Keine Teilnahmegebühren auf der Pro Tour, nur Reisekosten (ET-Quali + Hauptfeld = eine Reise).
+- PDC-OOM-Startwerte 2025/2026 sind synthetisch (Kurve nach Listenplatz), nicht die echten Beträge.
 - **Phase 3**: Q-School ohne Setzliste, nur Spieler ohne Karte (Pools ~60–75 je Standort, real ~400). Gebühr 4 × 25 € wird bei Meldung komplett fällig, auch bei Kartengewinn an Tag 1.
 - Challenge/Dev-Turniere: first to 5, Finale first to 6; Preisgeld CT 3.500 € Sieg … 175 € Letzte 32, Dev 2.800 € … 150 €, Youth-WM 12.000 € (zählt nicht zur OOM).
 - Bis Phase 4 hat die PDC OOM kein Preisgeld → „Top 64“ am Jahresende = 64 stärkste Tour-Spieler. Folge: der eigene Spieler verliert eine auslaufende Karte, wenn er nicht zu den 64 stärksten gehört.

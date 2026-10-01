@@ -8,7 +8,8 @@ export const PRIZES = {
   dev:       { W: 2800, F: 1400, SF: 750, QF: 500, L16: 300, L32: 150 },
   youth:     { W: 12000, F: 6000, SF: 3000, QF: 1500, L16: 750, L32: 400 },
   qschool:   {},
-  // Ab Phase 4 (noch nicht aktiv)
-  pc:        { W: 17500, F: 11500, SF: 6000, QF: 4500, L16: 3000, L32: 2000, L64: 1200 },
-  et:        { W: 35000, F: 14000, SF: 11500, QF: 7000, L16: 4500, L32: 3000, L48: 2000 },
+  // Pro Tour je Turnier (2025er Werte £ → € gerundet). ET: L64 = Verlierer der 1. Runde (Letzte 48)
+  pc:        { W: 17500, F: 11500, SF: 6000, QF: 4000, L16: 3000, L32: 1750, L64: 1150 },
+  et:        { W: 35000, F: 14000, SF: 10000, QF: 7000, L16: 4500, L32: 3000, L64: 1500 },
+  etq:       {},
 };

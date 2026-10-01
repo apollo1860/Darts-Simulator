@@ -5,11 +5,11 @@ import { OOM_TYPES, orderOfMerit } from '../../rankings.js';
 import { getPlayer } from '../../world.js';
 import { topbar, playerModal } from '../components.js';
 
-let tab = 'challenge';
+let tab = 'pdc';
 
 const NOTE = {
-  pdc: 'Preisgeld der letzten 2 Jahre. Am Saisonende behalten nur die Top 64 eine auslaufende Tourcard. Ranglisten-Turniere der Pro Tour folgen in Phase 4 – bis dahin nach Spielstärke sortiert.',
-  protour: 'Preisgeld aus Players Championships und European Tour (ab Phase 4).',
+  pdc: 'Preisgeld der letzten 2 Jahre (Players Championships, European Tour; Majors ab Phase 5). Am Saisonende behalten nur die Top 64 eine auslaufende Tourcard. Top 16 sind bei der European Tour gesetzt.',
+  protour: 'Preisgeld der laufenden Saison aus Players Championships und European Tour.',
   challenge: 'Saisonwertung der Challenge Tour (alle Spieler ohne Tourcard). Platz 1 und 2 erhalten am Jahresende eine Tourcard für 2 Jahre.',
   dev: 'Saisonwertung der Development Tour (bis 23 Jahre). Platz 1 und 2 erhalten am Jahresende eine Tourcard für 2 Jahre.',
 };

@@ -60,7 +60,10 @@ export const CALENDAR = [
     id: `pc-${i + 1}`, cat: 'pc', name: `Players Championship ${i * 2 + 1} & ${i * 2 + 2}`,
     week: w, city: pcCities[i], country: cityCountry(pcCities[i]), count: 2,
   })),
-  ...ET.map(([w, name, city, country], i) => ({ id: `et-${i + 1}`, cat: 'et', name, week: w, city, country })),
+  ...ET.map(([w, name, city, country], i) => ({
+    id: `et-${i + 1}`, cat: 'et', name, week: w, city, country, count: 2, qualifier: true,
+    subs: ['Qualifikation', 'Hauptfeld'], subFmts: ['etq', 'et'], note: 'Top 16 PDC gesetzt · Rest: Qualifikation (32 Plätze)',
+  })),
   ...ctWeeks.map((w, i) => ({
     id: `ct-${i + 1}`, cat: 'challenge', name: `Challenge Tour ${i * 2 + 1} & ${i * 2 + 2}`,
     week: w, city: tourCities[i % 4], country: cityCountry(tourCities[i % 4]), count: 2,
@@ -87,7 +90,10 @@ export const LOCAL_CITIES = {
 // (Q-School: bei den letzten 4 → diese erhalten eine Tourcard). {legs:n} = first to n.
 export const FORMATS = {
   local: { field: 32, default: { legs: 3 }, byRemaining: { 4: { legs: 4 }, 2: { legs: 5 } } },
-  qschool: { default: { legs: 5 }, stopAt: 4, cardsPerDay: 4 },
+  qschool: { default: { legs: 5 }, stopAt: 4, cards: true },
+  pc: { field: 128, default: { legs: 6 } },
+  etq: { default: { legs: 6 }, stopAt: 32 },                       // Tour-Card-Holder-Qualifier
+  et: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } }, seeds: 16 },
   challenge: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
   dev: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
   youth: { default: { legs: 5 }, byRemaining: { 8: { legs: 6 }, 4: { legs: 6 }, 2: { legs: 7 } } },

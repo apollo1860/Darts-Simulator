@@ -13,11 +13,11 @@ import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek } from './calendar.js';
 import { buildRounds, pairWinners, placeOf } from './bracket.js';
-import { addMoney, orderOfMerit } from './rankings.js';
+import { addMoney, orderOfMerit, rankOf } from './rankings.js';
 import { fmtEUR } from './util.js';
 
-export const IMPLEMENTED_PHASE = 3;
-export const AI_CATS = ['qschool', 'challenge', 'dev'];   // laufen ohne Spieler im Hintergrund
+export const IMPLEMENTED_PHASE = 4;
+export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et'];   // laufen ohne Spieler im Hintergrund
 
 // Inhaltliche Berechtigung
 export function eligibility(state, ev) {
@@ -57,13 +57,21 @@ export function eventStatus(state, ev) {
 const PLACE_LABEL = {
   W: 'Sieger', F: 'Finale', SF: 'Halbfinale', QF: 'Viertelfinale', L16: 'Achtelfinale', L32: 'Letzte 32',
   L64: 'Letzte 64', L128: 'Letzte 128', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
+  QUAL: 'Qualifiziert', NQ: 'Nicht qualifiziert',
 };
 export const placeLabel = k => PLACE_LABEL[k] ?? k;
 
-const fmtKey = ev => ev.fmt ?? ev.cat;
-const oomType = ev => (ev.noOom ? null : ev.cat === 'challenge' || ev.cat === 'dev' ? ev.cat : null);
-const subLabel = (ev, sub) => (ev.count > 1 ? (ev.cat === 'qschool' ? `Tag ${sub + 1}` : `Turnier ${sub + 1}`) : '');
+const fmtKey = (ev, sub = 0) => ev.subFmts?.[sub] ?? ev.fmt ?? ev.cat;
+// Ranglisten, in die das Preisgeld fließt
+const oomTypes = (ev, sub) => {
+  if (ev.noOom || FORMATS[fmtKey(ev, sub)].stopAt > 1) return [];
+  if (ev.cat === 'challenge' || ev.cat === 'dev') return [ev.cat];
+  if (ev.cat === 'pc' || ev.cat === 'et') return ['pdc', 'protour'];
+  return [];
+};
+const subLabel = (ev, sub) => (ev.subs?.[sub] ?? (ev.count > 1 ? (ev.cat === 'qschool' ? `Tag ${sub + 1}` : `Turnier ${sub + 1}`) : ''));
 const subName = (ev, sub) => {
+  if (ev.subs) return sub === 0 ? `${ev.name} · ${ev.subs[0]}` : ev.name;
   if (ev.count > 1 && ev.cat !== 'qschool') {
     const m = ev.name.match(/^(.*?)(\d+) & (\d+)$/);
     if (m) return `${m[1]}${+m[2] + sub}`;
@@ -71,17 +79,35 @@ const subName = (ev, sub) => {
   return ev.count > 1 ? `${ev.name} · ${subLabel(ev, sub)}` : ev.name;
 };
 
-function prizeTable(ev) {
+function prizeTable(ev, sub = 0) {
   if (ev.cat === 'local') {
     const W = ev.prizeWin, s = PRIZES.local.shares;
     return { W, F: Math.round(W * s.F / 5) * 5, SF: Math.round(W * s.SF / 5) * 5 };
   }
-  return PRIZES[fmtKey(ev)] ?? {};
+  return PRIZES[fmtKey(ev, sub)] ?? {};
 }
 
 // ---- Teilnehmerfeld (Setzliste: Bester zuerst) ----
-function seededField(state, ev, withPlayer, rng) {
+// ET: Top 16 der PDC Order of Merit sind fürs Hauptfeld gesetzt
+export function etSeeds(state, includeP) {
+  return orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => includeP || id !== 'P').slice(0, FORMATS.et.seeds);
+}
+
+function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   const y = state.date.year;
+  if (ev.cat === 'pc') {
+    let ids = orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => withPlayer || id !== 'P').slice(0, FORMATS.pc.field);
+    if (withPlayer && !ids.includes('P')) ids[ids.length - 1] = 'P';
+    return rng.shuffle(ids);                                  // PC: freie Auslosung
+  }
+  if (ev.cat === 'et') {
+    const seeds = etSeeds(state, withPlayer || !!ctx.playerIn);
+    if (sub === 0) {
+      const ids = orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => !seeds.includes(id) && (withPlayer || id !== 'P'));
+      return rng.shuffle(ids);
+    }
+    return [...seeds, ...rng.shuffle([...(ctx.qualifiers ?? [])])];
+  }
   if (ev.cat === 'local') {
     const pool = rng.shuffle(playersOfTier(state, 'local').map(p => p.id)).slice(0, FORMATS.local.field - (withPlayer ? 1 : 0));
     return rng.shuffle(withPlayer ? ['P', ...pool] : pool);
@@ -99,14 +125,16 @@ function seededField(state, ev, withPlayer, rng) {
   return ids;
 }
 
-function newInstance(state, ev, sub, withPlayer, rng) {
-  const field = seededField(state, ev, withPlayer, rng);
+function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
+  const field = seededField(state, ev, withPlayer, rng, sub, ctx);
+  const fk = fmtKey(ev, sub), fmt = FORMATS[fk];
   return {
-    eventId: ev.id, cat: ev.cat, fmt: fmtKey(ev), name: subName(ev, sub), baseName: ev.name,
+    eventId: ev.id, cat: ev.cat, fmt: fk, name: subName(ev, sub), baseName: ev.name,
     city: ev.city, country: ev.country, year: state.date.year, week: state.date.week,
-    count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomType(ev),
-    prizes: prizeTable(ev), stopAt: FORMATS[fmtKey(ev)].stopAt ?? 1, fieldSize: field.length,
-    rounds: buildRounds(field, FORMATS[fmtKey(ev)]),
+    count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomTypes(ev, sub),
+    isQualifier: !!ev.qualifier && sub === 0, cards: !!fmt.cards,
+    prizes: prizeTable(ev, sub), stopAt: fmt.stopAt ?? 1, fieldSize: field.length,
+    rounds: buildRounds(field, fmt),
     current: 0, playerAlive: withPlayer, withPlayer, done: false, place: null, prize: 0, xp: 0,
     lastMatch: null, live: null, cardWon: false, hasNext: false, survivors: null,
   };
@@ -126,7 +154,12 @@ export function enterEvent(state, eventId) {
     addNews(state, 'info', `Gemeldet: ${ev.name}`, `4 Turniertage – wer an einem Tag das Halbfinale erreicht, gewinnt eine Tourcard. Mit der Teilnahme bist du ${state.date.year} für die Challenge Tour${state.player.age <= DEV_MAX_AGE ? ' und die Development Tour' : ''} berechtigt.`);
   }
   state.week = { played: true, eventId: ev.id };
-  state.activeEvent = newInstance(state, ev, 0, true, rng);
+  if (ev.qualifier && etSeeds(state, true).includes('P')) {
+    // Gesetzt: Qualifikation läuft ohne den Spieler, direkt ins Hauptfeld
+    const q = runAITournament(state, ev, 0, { playerIn: true });
+    state.activeEvent = newInstance(state, ev, 1, true, rng, { qualifiers: q.survivors });
+    addNews(state, 'info', `${ev.name}: gesetzt`, `Als Top 16 der PDC Order of Merit (Platz ${rankOf(state, 'pdc', 'P')}) bist du direkt im Hauptfeld.`);
+  } else state.activeEvent = newInstance(state, ev, 0, true, rng);
   skipPlayerByes(state);
   return state.activeEvent;
 }
@@ -136,7 +169,7 @@ export function nextSub(state) {
   const inst = state.activeEvent;
   if (!inst?.done || !inst.hasNext) return null;
   const ev = findEvent(state, inst.eventId, inst.year, inst.week);
-  state.activeEvent = newInstance(state, ev, inst.sub + 1, true, new RNG(state.rng));
+  state.activeEvent = newInstance(state, ev, inst.sub + 1, true, new RNG(state.rng), { qualifiers: inst.survivors });
   skipPlayerByes(state);
   return state.activeEvent;
 }
@@ -305,12 +338,13 @@ function settle(state, inst) {
   for (const r of inst.rounds) for (const m of r.matches) { ids.add(m.a); if (m.b) ids.add(m.b); }
   const year = state.date.year;
   for (const id of ids) {
-    const place = survivors.includes(id) ? (inst.stopAt > 1 ? 'CARD' : 'W') : placeOf(inst.rounds, id);
+    const place = survivors.includes(id) ? (inst.cards ? 'CARD' : inst.stopAt > 1 ? 'QUAL' : 'W')
+      : inst.isQualifier ? 'NQ' : placeOf(inst.rounds, id);
     const prize = inst.prizes[place] ?? 0;
-    if (inst.oom && prize) addMoney(state, inst.oom, id, prize, year);
+    if (prize) for (const t of inst.oom) addMoney(state, t, id, prize, year);
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
-  if (inst.stopAt > 1) {                                     // Q-School: Tourcards
+  if (inst.cards) {                                          // Q-School: Tourcards
     for (const id of survivors) awardCard(state, id, year + 1, inst.baseName);
     addNews(state, 'draw', `${inst.name}: Tourcards vergeben`, survivors.map(id => getPlayer(state, id).name).join(', '));
   }
@@ -331,7 +365,7 @@ function finishEvent(state, inst) {
   inst.done = true;
   settle(state, inst);
   inst.winner = inst.stopAt === 1 ? inst.survivors[0] : null;
-  inst.hasNext = inst.sub < inst.count - 1 && inst.place !== 'CARD';
+  inst.hasNext = inst.isQualifier ? inst.place === 'QUAL' : inst.sub < inst.count - 1 && inst.place !== 'CARD';
   if (!inst.withPlayer) return;
   const place = inst.place, prize = inst.prize;
   const f = XP_FACTOR[inst.cat] ?? 1;
@@ -341,6 +375,11 @@ function finishEvent(state, inst) {
     grantXp(state, bonus);
   }
   if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
+  if (inst.isQualifier) {
+    addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, place === 'QUAL' ? 'Du stehst im Hauptfeld (Letzte 48).' : 'Kein Platz im Hauptfeld.');
+    if (place === 'NQ') state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });
+    return;
+  }
   for (const t of [state.stats.career, seasonStats(state, state.date.year)]) {
     t.events++; if (place === 'W') t.titles++; if (place === 'W' || place === 'F') t.finals++;
   }
@@ -357,14 +396,15 @@ export function closeEvent(state) {
   const inst = state.activeEvent;
   if (!inst?.done) return;
   const ev = findEvent(state, inst.eventId, inst.year, inst.week);
-  if (ev) for (let s = inst.sub + 1; s < inst.count; s++) runAITournament(state, ev, s);
+  let prev = inst;
+  if (ev) for (let s = inst.sub + 1; s < inst.count; s++) prev = runAITournament(state, ev, s, { qualifiers: prev.survivors });
   state.activeEvent = null;
 }
 
 // ---- KI-Turniere im Hintergrund ----
-export function runAITournament(state, ev, sub) {
+export function runAITournament(state, ev, sub, ctx = {}) {
   const rng = new RNG(state.rng);
-  const inst = newInstance(state, ev, sub, false, rng);
+  const inst = newInstance(state, ev, sub, false, rng, ctx);
   for (;;) {
     simRoundMatches(state, inst.rounds[inst.current], rng);
     if (inst.current === inst.rounds.length - 1) break;
@@ -381,7 +421,8 @@ export function simulateWeekAI(state) {
   const out = [];
   for (const ev of eventsInWeek(state, state.date.year, state.date.week)) {
     if (!AI_CATS.includes(ev.cat) || !ev.startsThisWeek || ev.id === state.week.eventId) continue;
-    for (let s = 0; s < (ev.count ?? 1); s++) out.push(runAITournament(state, ev, s));
+    let prev = null;
+    for (let s = 0; s < (ev.count ?? 1); s++) out.push(prev = runAITournament(state, ev, s, { qualifiers: prev?.survivors }));
   }
   return out;
 }

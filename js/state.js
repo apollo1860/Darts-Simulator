@@ -4,8 +4,9 @@ import { startAttrs } from './player.js';
 import { createWorld, WORLD_VERSION } from './world.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
+import { seedRankings } from './rankings.js';
 
-export const VERSION = 3;
+export const VERSION = 4;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -40,6 +41,7 @@ export function newCareer({ name, nation, hand, slot = 1, seed = randomSeed() })
     rankings: { years: {} },
     ended: false,
   };
+  seedRankings(state, rng, START_YEAR);
   seasonFinance(state, START_YEAR);
   seasonStats(state, START_YEAR);
   state.finance.tx.unshift({ year: START_YEAR, week: 1, text: 'Startkapital', amount: START_BUDGET, cat: 'start' });
@@ -95,6 +97,7 @@ export function migrate(s) {
     delete s.player.tourCardUntil;
     s.activeEvent = null;
   }
+  if (!s.rankings.seeded) seedRankings(s, new RNG(s.rng), START_YEAR);   // v3 → v4 (Phase 4)
   s.version = VERSION;
   return s;
 }

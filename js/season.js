@@ -22,7 +22,17 @@ export function nextWeek(state) {
 
 function weekNews(state, evs, ai) {
   const p = state.player, y = state.date.year;
+  // Pro-Tour-Sieger der Woche (ohne Qualifikationen)
+  const pro = ai.filter(i => (i.cat === 'pc' || i.cat === 'et') && i.stopAt === 1);
+  if (pro.length) {
+    addNews(state, 'result', `Pro Tour: ${pro.map(i => i.name).join(' · ')}`,
+      pro.map(i => `${i.name}: ${getPlayer(state, i.survivors[0]).name}`).join(' · '));
+  }
   // OOM-Stand nach Challenge-/Dev-Wochenenden
+  if (p.tour === 'tour' && evs.some(e => (e.cat === 'pc' || e.cat === 'et') && e.startsThisWeek)) {
+    addNews(state, 'ranking', `PDC Order of Merit: Platz ${rankOf(state, 'pdc', 'P', y)}`,
+      `Pro Tour OOM: Platz ${rankOf(state, 'protour', 'P', y)}. Top 64 der PDC OOM behalten am Saisonende eine auslaufende Tourcard.`);
+  }
   for (const type of ['challenge', 'dev']) {
     if (!evs.some(e => e.cat === type && !e.noOom && e.startsThisWeek)) continue;
     const eligible = p.tour !== 'tour' && p.qschoolYear === y && (type !== 'dev' || p.age <= DEV_MAX_AGE);

@@ -6,8 +6,8 @@ import { enterEvent, eventStatus, simulateRest, nextSub, closeEvent } from '../j
 import { raiseAttr, overall, targetAverage } from '../js/player.js';
 import { rankOf } from '../js/rankings.js';
 const s = newCareer({ name: 'Bot', nation: 'DE', hand: 'R', seed: +(process.argv[2] || 3) });
-const pref = ['qschool', 'dev', 'challenge', 'local'];
-for (let y = 0; y < 6; y++) {
+const pref = ['qschool', 'et', 'pc', 'dev', 'challenge', 'local'];
+for (let y = 0; y < 8; y++) {
   const y0 = s.date.year, m0 = s.finance.prizeTotal;
   for (let w = 0; w < 52; w++) {
     const evs = eventsInWeek(s, s.date.year, s.date.week).filter(e => eventStatus(s, e).playable)
@@ -19,5 +19,5 @@ for (let y = 0; y < 6; y++) {
     nextWeek(s);
   }
   const p = s.player;
-  console.log(`${y0}: Ø-Ziel ${targetAverage(p.attrs).toFixed(1)} OVR ${overall(p.attrs)} · Status ${p.tour}${p.cardUntil ? ' bis ' + p.cardUntil : ''} · Preisgeld ${Math.round(s.finance.prizeTotal - m0)} € · Konto ${Math.round(s.finance.balance)} € · CT-Rang ${p.qschoolYear === y0 ? rankOf(s, 'challenge', 'P', y0) ?? '-' : '-'}`);
+  console.log(`${y0}: Ø-Ziel ${targetAverage(p.attrs).toFixed(1)} OVR ${overall(p.attrs)} · Status ${p.tour}${p.cardUntil ? ' bis ' + p.cardUntil : ''} · Preisgeld ${Math.round(s.finance.prizeTotal - m0)} € · Konto ${Math.round(s.finance.balance)} € · CT-Rang ${p.qschoolYear === y0 ? rankOf(s, 'challenge', 'P', y0) ?? '-' : '-'} · PDC-Rang ${p.tour === 'tour' ? rankOf(s, 'pdc', 'P', s.date.year) : '-'}`);
 }

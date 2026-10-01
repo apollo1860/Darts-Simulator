@@ -218,4 +218,44 @@ test('Mehrere Saisons: Karten, Jahreswechsel, Welt bleibt stabil', () => {
   console.log(`   3 Saisons in ${Date.now() - t0} ms · Tour ${tour} · ohne Karte ${nonCardPros(s).length} · JSON ${(JSON.stringify(s).length / 1024).toFixed(0)} KB`);
 });
 
+test('Pro Tour: PC-Doppel + ET (Quali → Hauptfeld) + OOM', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 31 });
+  // Startwerte: PDC OOM sortiert nach Vorjahres-Preisgeld
+  const pdc0 = orderOfMerit(s, 'pdc');
+  assert.equal(pdc0[0].p.name, 'Luke Littler'); assert.ok(pdc0[63].money > 0);
+  s.player.tour = 'tour'; s.player.cardUntil = 2028;
+  Object.keys(s.player.attrs).forEach(k => { s.player.attrs[k] = 95; });
+  s.date.week = 6;
+  const pcEv = eventsInWeek(s, 2027, 6).find(e => e.cat === 'pc');
+  assert.ok(eventStatus(s, pcEv).playable);
+  enterEvent(s, pcEv.id);
+  assert.ok(s.activeEvent.fieldSize <= 128 && s.activeEvent.fieldSize >= 90);
+  closeEventAfterAll(s);
+  assert.ok(orderOfMerit(s, 'protour').filter(x => x.money > 0).length >= 64);
+  // ET: nicht gesetzt → Qualifikation
+  s.date.week = 7; s.week = { played: false, eventId: null };
+  enterEvent(s, 'et-1');
+  assert.ok(s.activeEvent.isQualifier); assert.equal(s.activeEvent.stopAt, 32);
+  simulateRest(s);
+  const q = s.activeEvent;
+  assert.ok(['QUAL', 'NQ'].includes(q.place)); assert.equal(q.survivors.length, 32);
+  if (q.hasNext) { nextSub(s); assert.equal(s.activeEvent.fieldSize, 48); simulateRest(s); }
+  closeEvent(s);
+  s.week = { played: true, eventId: 'et-1' };
+  nextWeek(s);                                                     // CT läuft im Hintergrund
+  assert.ok(s.news.some(n => n.title.startsWith('Pro Tour') || n.title.startsWith('PDC Order')));
+});
+
+test('ET: Top-16-Spieler direkt im Hauptfeld', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 32 });
+  s.player.tour = 'tour'; s.player.cardUntil = 2028;
+  s.rankings.years[2026].pdc.P = 3000000;                          // Platz 1
+  s.date.week = 7;
+  enterEvent(s, 'et-1');
+  assert.ok(!s.activeEvent.isQualifier); assert.equal(s.activeEvent.fieldSize, 48);
+  assert.ok(playerMatch(s.activeEvent) === null || s.activeEvent.current >= 1); // Freilos in Runde 1
+});
+
+function closeEventAfterAll(s) { for (;;) { simulateRest(s); if (!s.activeEvent.hasNext) break; nextSub(s); } closeEvent(s); }
+
 console.log(`\n${n} Tests ok`);

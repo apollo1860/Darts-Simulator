@@ -55,11 +55,11 @@ player: {id:'P', name, nation, hand, age, attrs:{sco,fin,con,ner,sta}, xp, xpTot
          tour:'none'|'tour', cardUntil (letzte gültige Saison), qschoolYear (→ CT/Dev-Berechtigung), avgReal, everTourcard}
 world:  {version:2, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,attrs}}}   tier: tour|challenge|dev|local
         IDs: T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, L=lokal, G=generierte Talente
-rankings:{years:{[year]:{challenge|dev|pdc|protour:{[id]:€}}}}
+rankings:{seeded, years:{[year]:{challenge|dev|pdc|protour:{[id]:€}}}}   (2025/2026 = Startwerte PDC)
 finance:{balance, tx:[{year,week,text,amount,cat}]}
 week:   {played:bool, eventId}         aktuelle Woche
 activeEvent: Turnier-Instanz oder null: {eventId, cat, sub/count (Teil-Turnier), rounds[{name,remaining,format,matches[{a,b,winner,score,bye}]}],
-         stopAt (Q-School 4), place ('W','F',…,'CARD'), hasNext, survivors, live:{m,me}|null}
+         stopAt (Q-School 4, ET-Quali 32), isQualifier, cards, oom:[Typen], place ('W','F',…,'CARD','QUAL','NQ'), hasNext, survivors, live:{m,me}|null}
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
 sponsors:{active:[], offers:[]}, ended:bool
@@ -83,6 +83,11 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - KI-Events laufen im Hintergrund (season.nextWeek → simulateWeekAI), Preisgeld → OOM.
   - Jahresende: CT-OOM Top 2 + Dev-OOM Top 2 (ohne Karte, Preisgeld > 0) → Karte bis Jahr+2. Auslaufende Karten: PDC-OOM-Rang ≤ 64 → verlängert bis Jahr+2, sonst Verlust → Challenge. Danach developWorld: Stärke nach Alter (jung +, alt −), Ruhestand ab 45, Pool ohne Karte wird mit Talenten (16–18 J.) auf 100 aufgefüllt. Neujahr: Alter +1, Dev ab 24 → Challenge.
   - Tourcard-Holder nicht auf Challenge/Dev und umgekehrt.
+- **Pro Tour (Phase 4 umgesetzt)**, nur mit Tourcard:
+  - Players Championships: 15 Doppel-Blöcke (30 Turniere), Feld = bis 128 Tour-Holder nach PDC-OOM, freie Auslosung, first to 6. Preisgeld 17.500 € Sieg … 1.150 € Letzte 64.
+  - European Tour: 14 Events als 2-teiliger Block: Qualifikation (alle Holder außer PDC-Top-16, 128er-Baum bis 32 Überlebende, kein Preisgeld) → Hauptfeld 48 (Top 16 gesetzt mit Freilos, 32 Qualifikanten), first to 6, HF 7, F 8. Preisgeld 35.000 € … 1.500 € (Letzte 48). Spieler in den Top 16 → direkt Hauptfeld (Quali läuft im Hintergrund).
+  - Preisgeld PC/ET → PDC OOM (2 Jahre) + Pro Tour OOM (1 Jahr). Startwerte: Saisons 2025/2026 vorbelegt (Top 64 ≈ 2,8 Mio. € · Rang^−0,8; übrige 2026er Holder 12–150 Tsd. €).
+  - PC/ET laufen ohne Spieler im Hintergrund (AI_CATS) → Top-64-Entscheidung am Jahresende nach echtem Preisgeld.
 - **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM.
 - **Sponsoren (Phase 6)**: erst nach erster Tourcard, max. 4, Laufzeit 1–3 Jahre, jederzeit kündbar.
 

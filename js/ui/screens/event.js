@@ -11,7 +11,8 @@ const nm = (s, id) => getPlayer(s, id).name;
 
 // Baum ab den letzten 32 (große Felder werden gekürzt)
 function bracket(s, inst) {
-  const shown = inst.rounds.filter(r => r.remaining <= 32);
+  let shown = inst.rounds.filter(r => r.remaining <= 32);
+  if (!shown.length) shown = inst.rounds.slice(-1);            // z. B. ET-Qualifikation (endet bei 32)
   return `<div class="bracket-scroll"><div class="bracket">${shown.map(r => `
     <div class="bracket-col"><h4 class="h-display">${esc(r.name)}</h4>
     ${(r.matches.length ? r.matches : Array.from({ length: r.remaining / 2 }, () => null)).map(m => {
@@ -69,16 +70,17 @@ function myPath(s, inst) {
 }
 
 function donePanel(s, inst) {
-  const win = inst.place === 'W', card = inst.place === 'CARD';
+  const win = inst.place === 'W', card = inst.place === 'CARD', qual = inst.place === 'QUAL';
   const winnerKpi = inst.winner
     ? `<div class="kpi"><div class="label">Sieger</div><div class="v" style="font-size:1.1rem">${flag(getPlayer(s, inst.winner).nation)} ${esc(nm(s, inst.winner))}</div></div>`
-    : `<div class="kpi"><div class="label">Tourcards</div><div style="font-size:.85rem;font-weight:700">${inst.survivors.map(id => esc(nm(s, id))).join(', ')}</div></div>`;
+    : inst.cards ? `<div class="kpi"><div class="label">Tourcards</div><div style="font-size:.85rem;font-weight:700">${inst.survivors.map(id => esc(nm(s, id))).join(', ')}</div></div>`
+    : `<div class="kpi"><div class="label">Hauptfeld</div><div class="v" style="font-size:1.1rem">${inst.survivors.length} Qualifikanten</div></div>`;
   const nextBtn = inst.hasNext
-    ? `<button class="btn btn-primary btn-continue" id="btn-next-sub">Weiter: ${inst.cat === 'qschool' ? `Tag ${inst.sub + 2}` : `Turnier ${inst.sub + 2}`} ▸</button>`
+    ? `<button class="btn btn-primary btn-continue" id="btn-next-sub">Weiter: ${inst.isQualifier ? 'Hauptfeld' : inst.cat === 'qschool' ? `Tag ${inst.sub + 2}` : `Turnier ${inst.sub + 2}`} ▸</button>`
     : `<button class="btn btn-primary btn-continue" id="btn-close">Zurück zum Hub ▸</button>`;
   return `<div class="panel stack center">
     <div class="label">${inst.subLabel ? `${esc(inst.subLabel)} von ${inst.count} beendet` : 'Turnier beendet'}</div>
-    <h2 class="${win || card ? 'gold' : ''}">${card ? '🎉 Tourcard gewonnen!' : win ? '🏆 Turniersieg!' : placeLabel(inst.place)}</h2>
+    <h2 class="${win || card || qual ? 'gold' : ''}">${card ? '🎉 Tourcard gewonnen!' : win ? '🏆 Turniersieg!' : qual ? '✅ Qualifiziert!' : placeLabel(inst.place)}</h2>
     ${card ? `<p>Du spielst ab sofort mit Tourcard (gültig bis Ende ${s.player.cardUntil}).</p>` : ''}
     <div class="kpi-grid" style="text-align:left">
       <div class="kpi"><div class="label">Preisgeld</div><div class="v gold num">${fmtEUR(inst.prize)}</div></div>
@@ -94,7 +96,7 @@ export function render(app) {
   const s = app.state, inst = s.activeEvent;
   if (!inst) return `${topbar({ title: 'Turnier' })}<div class="panel">Kein laufendes Turnier.</div>`;
   const body = inst.done ? donePanel(s, inst) : inst.playerAlive ? matchPanel(s, inst) : outPanel(inst);
-  const prizeTxt = inst.stopAt > 1 ? `${inst.survivors?.length ?? 4} Tourcards` : `Sieger ${fmtEUR(inst.prizes.W ?? 0)}`;
+  const prizeTxt = inst.cards ? `${inst.stopAt} Tourcards` : inst.stopAt > 1 ? `${inst.stopAt} Plätze im Hauptfeld` : `Sieger ${fmtEUR(inst.prizes.W ?? 0)}`;
   return `${topbar({ title: inst.name, sub: `${catTag(inst.cat)} ${esc(inst.city)} · ${inst.fieldSize} Spieler · ${prizeTxt}`, back: 'hub' })}
     <div class="stack">${body}${myPath(s, inst)}
     <div class="section-title"><span class="label">Turnierbaum</span></div>
