@@ -62,7 +62,8 @@ export function eventStatus(state, ev, n = null) {
   const phase = CATEGORIES[ev.cat]?.phase ?? 9;
   const elig = eligibility(state, ev);
   let playable = true, reason = '';
-  if (ev.startsThisWeek === false) { playable = false; reason = 'Läuft bereits'; }
+  if (state.week.blocked) { playable = false; reason = `Ausfall: ${state.week.blocked.label}`; }
+  else if (ev.startsThisWeek === false) { playable = false; reason = 'Läuft bereits'; }
   else if (ev.extra ? state.week.extras?.includes(ev.id) : state.week.played) {
     playable = false; reason = state.week.eventId === ev.id || ev.extra ? 'Gespielt' : 'Diese Woche schon gespielt';
   }

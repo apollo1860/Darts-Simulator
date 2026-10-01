@@ -97,6 +97,7 @@
 - Preisgelder CT/Dev (Sieg 3.000 … L64 100 €) und DDV (Sieg 350, Finale 100 €) nach Vorgabe; lokale Turniere immer best of 5; Dev Tour 4 Ø schwächer als CT; 90 schwache fiktive Spieler im CT/Dev-Pool (Migration v11).
 - Turnieranzahl bei CT/Dev wählbar (1–5, je 25 €); **Host-Nation-Qualifier** für ET-Events im eigenen Land (bis zu 4 Turniere, Sieg = ET-Hauptfeld).
 - WM-Qualifier für Q-School-Teilnehmer (KW 46, Sieger spielt die WM).
+- Zufallsereignisse (Finger eingequetscht, Schule bis 18, Zahn-/Rückenschmerzen, Erkältung, Magen-Darm): Trainingsrückschlag oder seltener eine Woche ohne Turnier.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -104,6 +105,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- Zufallsereignisse: 7 % pro Woche (≈ 3–4 im Jahr), davon 25 % Ausfall (≈ 1 Woche/Jahr ohne Turnier). Rückschlag trifft nur den Trainingsfortschritt, keine Attributpunkte.
 - WM-Qualifier Q-School: KW 46 („Mitte November“), Milton Keynes, kein Preisgeld, XP-Faktor 1,3; ein WM-Platz für den Sieger.
 - HNQ: Woche vor dem ET-Event; „bis zu 4 je Wochenende“ = bis zu 4 Qualifier-Turniere, jedes Turniersieg qualifiziert (danach endet der Block, Gebühren für nicht gespielte werden erstattet). Kein Preisgeld. Bei Auswahl spielt man immer die ersten n Turniere des Blocks.
 - Checkout-Entscheidung: Welcher Weg checkt, bestimmt die eigene Trefferchance (bester Weg = Check). Ausgang ist bewusst fest (kein Zufall), damit die Wahl zählt; Rechnen ≥ 75 verrät per ★ den Check-Weg.

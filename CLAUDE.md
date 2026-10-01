@@ -42,6 +42,7 @@ js/news.js            Nachrichten-Feed
 js/staff.js           Team: Manager (Provision in finance.book, Sponsor-/Gagen-Boni, Exhibition-Einladungen), Trainer (1 Jahr, XP-Faktor)
 js/form.js            Bühne (Erfahrung zählt in Majors/gegen Top 16) + Selbstvertrauen/Momentum
 js/rival.js           Rivale: Erzeugung, gezielt in lokale/DDV/WDF-Felder, Duelle/Bilanz, hält mit (Jahresende)
+js/mishaps.js         Zufallsereignisse (Finger, Schule ≤ 18, Zahn, Rücken, Erkältung, Magen-Darm)
 js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP + Clutch)
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
@@ -143,6 +144,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - **Selbstvertrauen** (`player.momentum` −10…10): Sieg +1 (gegen Stärkere/Top 16 +1,5), Niederlage −1 (gegen Schwächere −1,5, gegen Stärkere −0,4), lokal ×¼; Titel (nicht lokal) +3; wöchentlich −20 % und 0,3 (negativ 0,6) Richtung 0. Ab ±3: ±1,5/±3/±4 auf Scoring, Finishing, Fokus (`perf`). Anzeige im Hub-Kopf, Profil, DartConnect (🔥/🥶).
 - **Interviews** nach Majors (außer WM-Quali), PL-Play-offs, WS-Finals: Chance Sieg 100 %, Finale 80 %, HF 60 %, VF 40 %, sonst 25 %. 25 Floskeln im 5×5-Raster, 4–5 (Sieg 6) leuchten nacheinander grün auf, dann in Reihenfolge antippen; richtig → XP (12 % Level-Bedarf × Länge/5, mind. 30, × Trainer) + 3 Clutch je Floskel; ein Fehler beendet es. Anfrage verfällt nach der Woche.
 - **Rivale** (`rival.js`): beim Karrierestart ein gleichaltriges Talent gleicher Nation (Name aus Namenspool), Stärke ≈ dein Gesamtwert (+0–1,5 Ø), Tier Dev/Challenge wie alle ohne Karte (spielt CT/Dev/Q-School im Hintergrund, kann Karten gewinnen, hört nie wegen Pool-Grenze auf). Kommt gezielt ins Feld: lokal 40 %, DDV 80 %, WDF 50 % (nur ohne Karte). Duell → Bilanz, News, Selbstvertrauen +1 (Sieg) / −0,5 (Niederlage) zusätzlich; Banner „⚔️ Rivalen-Duell“ im DartConnect. Titel/Tourcard des Rivalen → News. Jahresende: zieht 50 % Richtung deines Niveaus (Ø aus Gesamtwert) ± Zufall + Saisonduell-News. Screen 'rival' (Vergleich, Duelle), Hub-Kachel.
+- **Zufallsereignisse** (`mishaps.js`, zu Wochenbeginn, 7 %): 75 % Trainingsrückschlag (Fortschritt von 1–2 Attributen −30…60 %-Punkte), 25 % Ausfall → `week.blocked`, alle Turniere der Woche gesperrt (Hinweis im Hub). „Schulische Verpflichtungen“ nur bis 18.
 - **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM, Premier-League-Tabelle.
 - **Sponsoren (Phase 6 umgesetzt)**: erst nach erster Tourcard. 4 Plätze (Darts-Ausrüster, Trikot, Getränk, Partner), je einer aktiv. Angebote alle 4 Wochen (60 %, max. 3 offen, 6 Wochen gültig). Marktwert = 250.000 € · PDC-Rang^−1,1 (+2 % je Titel, 600–400.000 €). Typen: Jahresgehalt (quartalsweise KW 1/14/27/40, erste Rate bei Unterschrift), Antrittsgeld je Profi-Turnier, Erfolgsbonus ab Halbfinale (Titel ×3). Laufzeit 1–3 Jahre (Top 16 bis 3, Top 64 bis 2), Sponsorstufe nach Rang. Kündigung jederzeit ohne Kosten.
 

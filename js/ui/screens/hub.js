@@ -103,6 +103,7 @@ export function render(app) {
     </div>
     <div class="money num">${fmtEUR(s.finance.balance)}</div>
   </header>
+  ${s.week.blocked ? `<div class="panel warn" style="margin-bottom:12px">${s.week.blocked.icon} <b>Ausfall: ${esc(s.week.blocked.label)}</b> <span class="muted">– diese Woche kein Turnier möglich.</span></div>` : ''}
   ${levelBar(s)}
   ${interviewPanel(s)}
   <div class="tile-grid">

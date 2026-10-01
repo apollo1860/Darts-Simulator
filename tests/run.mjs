@@ -12,6 +12,7 @@ import * as ST from '../js/staff.js';
 import * as FO from '../js/form.js';
 import * as IV from '../js/interviews.js';
 import * as RV from '../js/rival.js';
+import * as MH from '../js/mishaps.js';
 import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros, getPlayer } from '../js/world.js';
@@ -76,7 +77,7 @@ test('Lokales Turnier komplett + Saison', () => {
   let titles = 0, prize = 0;
   for (let w = 0; w < 60; w++) {
     const local = eventsInWeek(s, s.date.year, s.date.week).find(e => e.cat === 'local');
-    if (local) {
+    if (local && !s.week.blocked) {
       assert.ok(eventStatus(s, local).playable);
       enterEvent(s, local.id);
       assert.equal(eventStatus(s, local).playable, false);
@@ -517,7 +518,7 @@ test('Team: Manager-Provision, Sponsor-/Exhibition-Boni, Trainer 1 Jahr', () => 
   s.finance.balance = 10000;
   assert.ok(ST.hireCoach(s, 'c2')); assert.equal(s.finance.balance, 4000);
   assert.equal(ST.xpMult(s), 1.2); assert.equal(ST.hireCoach(s, 'c1'), false);   // nur einer gleichzeitig
-  { const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local'); const x0 = s.player.xpTotal;
+  { const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local'); const x0 = s.player.xpTotal; s.week.blocked = null;
     enterEvent(s, e.id); simulateRest(s); assert.equal(s.activeEvent.xp, s.player.xpTotal - x0, 'Anzeige = gutgeschriebene XP'); closeEvent(s); }
   for (let i = 0; i < 52; i++) nextWeek(s);
   assert.equal(ST.coachActive(s), null); assert.equal(ST.xpMult(s), 1);
@@ -627,7 +628,7 @@ test('Rivale: gleich alt, ähnliche Stärke, Duelle, Bilanz, hält mit, Migratio
   let met = 0, inField = 0;
   for (let w = 0; w < 30; w++) {
     const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local');
-    if (e) { enterEvent(s, e.id); if (s.activeEvent.rounds[0].matches.some(m => m.a === r.id || m.b === r.id)) inField++; simulateRest(s); closeEvent(s); }
+    if (e && !s.week.blocked) { enterEvent(s, e.id); if (s.activeEvent.rounds[0].matches.some(m => m.a === r.id || m.b === r.id)) inField++; simulateRest(s); closeEvent(s); }
     nextWeek(s);
   }
   met = s.rival.w + s.rival.l;
@@ -689,6 +690,24 @@ test('WM-Qualifier (Q-School-Teilnehmer): KW 46, nur mit Q-School, Sieger in der
   assert.ok(w && getPlayer(s, w).tier !== 'tour');
   while (s.date.week < 51) nextWeek(s);
   assert.ok(majorField(s, eventsInWeek(s, 2027, 51).find(e => e.id === 'wm'), false).includes(w));
+});
+
+test('Zufallsereignisse: Trainingsrückschlag oder Ausfall (Turniere gesperrt), Schule nur bis 18', () => {
+  let hits = 0, blocked = 0, school = 0;
+  for (let i = 0; i < 4000; i++) {
+    const s = { rng: { s: 1000 + i }, player: { age: i % 2 ? 17 : 25 }, week: {}, training: { progress: { sco: 0.9, fin: 0.9, men: 0.9, foc: 0.9, cal: 0.9 } }, news: [], date: { year: 2027, week: 5 } };
+    const m = MH.mishapWeek(s);
+    if (!m) continue;
+    hits++; if (m.blocked) { blocked++; assert.ok(s.week.blocked); } else assert.ok(Object.values(s.training.progress).some(v => v < 0.61));
+    if (m.id === 'school') { school++; assert.equal(s.player.age, 17); }
+  }
+  assert.ok(hits > 200 && hits < 400, 'Treffer ' + hits);           // ~7 %
+  assert.ok(blocked / hits > 0.15 && blocked / hits < 0.35);
+  assert.ok(school > 0);
+  const t = newCareer({ name: 'M', nation: 'DE', hand: 'R', seed: 5 });
+  t.week.blocked = { id: 'cold', label: 'Erkältung' };
+  const loc = eventsInWeek(t, 2027, 1).find(e => e.cat === 'local');
+  assert.equal(eventStatus(t, loc).playable, false);
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
