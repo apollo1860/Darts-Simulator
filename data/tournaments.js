@@ -48,7 +48,7 @@ const PL_CITIES = ['Cardiff', 'Glasgow', 'Exeter', 'Dublin', 'Belfast', 'Notting
 const PL_COUNTRY = { 0: 'WAL', 1: 'SCO', 3: 'IRL', 4: 'NIR', 8: 'DE', 10: 'NL', 14: 'SCO' };
 
 // WDF-Opens (nur ohne Tourcard): [KW, id, Name, Ort, Land, Kategorie, Europa]. KW nach den Terminen 2026.
-// Max. ein WDF-Open pro Woche (gestrichen: Tallinn Open, Canadian Open, Belgium Open – jeweils das Event mit höherer Kategorie bleibt).
+// Max. ein WDF-Open pro Woche (gestrichen: Tallinn Open, Canadian Open, Philippines Open).
 // Platinum/Gold: 128er-Feld, sonst 64. Sieg 1.000–2.500 € je nach Kategorie (jährlich zufällig im Band).
 const WDF = [
   [3, 'vegas', 'Las Vegas Open', 'Las Vegas', 'US', 'Gold', false], [6, 'dutch', 'Dutch Open', 'Assen', 'NL', 'Platinum', true],
@@ -58,7 +58,7 @@ const WDF = [
   [23, 'england', 'England Open', 'Selsey', 'ENG', 'Gold', true], [24, 'finland', 'Finnish Open', 'Helsinki', 'FI', 'Bronze', true],
   [25, 'japan', 'The Steel Masters', 'Tokio', 'JP', 'Gold', false],
   [26, 'nz', 'New Zealand Open', 'Auckland', 'NZ', 'Gold', false], [28, 'charlotte', 'Charlotte Open', 'Charlotte', 'US', 'Silver', false],
-  [30, 'pacific', 'Pacific Masters', 'Sydney', 'AU', 'Gold', false], [31, 'philippines', 'Philippines Open', 'Manila', 'PH', 'Gold', false], [33, 'italy', 'Italian Open', 'Rom', 'IT', 'Bronze', true],
+  [30, 'pacific', 'Pacific Masters', 'Sydney', 'AU', 'Gold', false], [31, 'belgium', 'Belgium Open', 'Antwerpen', 'BE', 'Silver', true], [33, 'italy', 'Italian Open', 'Rom', 'IT', 'Bronze', true],
   [35, 'wales', 'Welsh Open', 'Prestatyn', 'WAL', 'Silver', true], [47, 'czech', 'Czech Open', 'Prag', 'CZ', 'Silver', true],
 ];
 export const WDF_PRIZE_BAND = { Platinum: [2200, 2500], Gold: [1700, 2200], Silver: [1300, 1700], Bronze: [1000, 1300] };
