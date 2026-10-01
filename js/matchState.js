@@ -1,6 +1,7 @@
 // Dartgenauer Match-Zustand: 501 Double Out, Bust, Legs/Sets, Statistik (DOM-frei, serialisierbar)
 
-const newStats = () => ({ points: 0, darts: 0, s180: 0, s140: 0, s100: 0, coHit: 0, coAtt: 0, hiFinish: 0, legsWon: 0, bestLeg: 0 });
+const newStats = () => ({ points: 0, darts: 0, s180: 0, s140: 0, s100: 0, coHit: 0, coAtt: 0, hiFinish: 0, legsWon: 0, bestLeg: 0, bogey: 0 });
+const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 
 export function createMatch(format, starter = 0) {
   return {
@@ -66,6 +67,7 @@ function endVisit(m, ev, pts) {
   s.points += pts;
   s.darts += m.visit.darts.length;
   if (!ev.bust) addScoreBand(s, pts);
+  if (!ev.bust && BOGEY.has(m.rem[t])) s.bogey = (s.bogey ?? 0) + 1;
   m.last[t] = { darts: [...m.visit.darts], score: pts, bust: ev.bust };
   m.legPoints[t] += pts;
   m.legVisits[t].push({ score: pts, bust: ev.bust, checkout: ev.checkout, rem: m.rem[t] });

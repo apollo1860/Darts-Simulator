@@ -17,8 +17,9 @@ import * as settings from './ui/screens/settings.js';
 import * as careerEnd from './ui/screens/careerEnd.js';
 import * as match from './matchUI.js';
 import * as watch from './ui/screens/watch.js';
+import * as training from './ui/screens/training.js';
 
-const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, sponsors, settings, careerEnd, match, watch };
+const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, sponsors, settings, careerEnd, match, watch, training };
 const root = document.getElementById('app');
 
 const app = {

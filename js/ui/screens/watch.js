@@ -10,6 +10,7 @@ import { planDistraction, distractionDue, describe, resolveDistraction } from '.
 import { fmtPct } from '../../util.js';
 
 export const VISIT_MS = 1500;
+const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 let ui = null;
 
 export function render(app) {
@@ -133,8 +134,9 @@ function draw(ev) {
     const arrow = active === i && r === nextRow ? `<i class="dc-arrow ${side}"></i>` : '';
     if (!v) return `<div class="dc-cell ${side}">${arrow}</div>`;
     const cls = v.checkout ? 'co' : v.bust ? 'bust' : v.score >= 100 ? 'ton' : '';
+    const bogey = !v.checkout && !v.bust && BOGEY.has(v.rem) ? '<small class="dc-bogey" title="Bogey-Rest – nicht in 3 Darts checkbar">⚠</small>' : '';
     const isNew = ev?.visitEnd && ev.player === i && r === visits[i].length - 1 ? 'new' : '';
-    return `<div class="dc-cell ${side} ${cls} ${isNew}">${v.bust ? '0' : v.score}${v.checkout ? '<small>✓</small>' : ''}</div>`;
+    return `<div class="dc-cell ${side} ${cls} ${isNew}">${v.bust ? '0' : v.score}${v.checkout ? '<small>✓</small>' : ''}${bogey}</div>`;
   };
   let body = '';
   for (let r = 0; r < Math.max(rows, nextRow + 1); r++) {

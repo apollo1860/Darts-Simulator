@@ -1,6 +1,6 @@
 // Wurfmodell (DOM-frei): KI-Würfe (Gauß-Streuung um das Ziel) und Parameter fürs manuelle Zielen
-import { targetPoint, scoreAt, suggestTarget, isDoubleLabel } from './board.js';
-import { targetAverage, checkoutBase } from './player.js';
+import { targetPoint, scoreAt, suggestTarget, isDoubleLabel, labelValue, BOGEY } from './board.js';
+import { targetAverage, checkoutBase, calcError } from './player.js';
 import { wouldWinMatch, isDecider, dartsLeft, onDouble } from './matchState.js';
 import { clamp } from './util.js';
 
@@ -47,9 +47,21 @@ export function pressureFactor(m, i, target, men, exp = 0) {
 // Ausdauer: Leistungsabfall in langen Matches
 export const fatigueFactor = (m, foc) => 1 + Math.max(0, m.legIdx - 8) * 0.012 * (1 - foc / 100);
 
+// Rechnen: mit Wahrscheinlichkeit ce wird falsch gestellt (naives T20/Single) oder das falsche Doppel angespielt
+function maybeMiscalc(target, rem, ce, rng) {
+  if (rem > 230 || !rng.chance(rem <= 40 ? ce * 0.5 : ce)) return target;
+  if (isDoubleLabel(target) && target !== 'BULL') {
+    const n = +target.slice(1), w = Math.min(20, Math.max(1, n + rng.pick([-3, -2, -1, 1, 2, 3])));
+    return 'D' + w;
+  }
+  // Stell-Zone: stellt sich auf eine Bogey-Zahl (z. B. 229 → T20 → 169)
+  if (rem > 170) return ['T20', 'T19', 'T18', 'T17', 'T16'].find(t => BOGEY.has(rem - labelValue(t))) ?? 'T20';
+  return rem > 60 ? rng.pick(['T20', 'T19', 'T18']) : 'S' + rng.int(1, 20);
+}
+
 // KI-Dart: Ziel wählen + werfen. Rückgabe {target, x, y, hit}
 export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1) {
-  const target = suggestTarget(m.rem[i], dartsLeft(m));
+  const target = maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m)), m.rem[i], calcError(attrs.cal), rng);
   const p = targetPoint(target);
   const base = isDoubleLabel(target) ? sig.dbl : sig.score;
   const s = base * mult * pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);

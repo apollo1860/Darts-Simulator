@@ -20,7 +20,8 @@ js/main.js            Bootstrap + Router (app.go(screen, params)), Auto-Save
 js/rng.js             RNG (mulberry32) mit Zustand {s}
 js/util.js            Formatierung (€, Zahlen de-DE), Datum/KW, esc()
 js/state.js           Neue Karriere, Speicher-Slots (localStorage), Export/Import JSON
-js/player.js          Perzentil-Attribute (sco/fin/men/foc), Erfahrung (exp −4…+10), Average-Kurve, XP/Training
+js/player.js          Perzentil-Attribute (sco/fin/men/foc/cal), Erfahrung (exp −4…+10), Average-Kurve, XP, calcError()
+js/training.js        Wöchentliches Training (Fortschritt je Attribut) + Formverlust bei Trainingspause
 js/world.js           KI-Welt (Tiers, Tourcards), Ruhestand/Nachwuchs/Entwicklung (developWorld), updateTiers
 js/calendar.js        Wochenkalender, Events pro Woche, advanceWeek (Datum/Alter)
 js/season.js          nextWeek(): KI-Turniere der Woche, Jahresabschluss (Tourcards, Kartenverlust), News
@@ -40,7 +41,7 @@ js/news.js            Nachrichten-Feed
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
-                      stats, news, rankings, sponsors, settings, careerEnd
+                      stats, news, rankings, sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 50, Dev 50, Lokal 50
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
@@ -57,7 +58,7 @@ Start lokal: `python3 -m http.server` im Projektordner → http://localhost:8000
 ## Datenmodell (Spielstand `state`)
 ```
 version, slot, savedAt, rng:{s}, date:{year, week}
-player: {id:'P', name, nation, region (Bundesland), hand, age, attrs:{sco,fin,men,foc}, exp, clutch, xp, xpTotal, pointsEarned, points,
+player: {id:'P', name, nation, region (Bundesland), hand, age, attrs:{sco,fin,men,foc,cal}, exp, clutch, xp, xpTotal, pointsEarned, points,
          tour:'none'|'tour', cardUntil (letzte gültige Saison), qschoolYear (→ CT/Dev-Berechtigung), avgReal, everTourcard}
 world:  {version:3, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,attrs,exp}}}   tier: tour|challenge|dev|ddv|local
         IDs: T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, V=DDV-Pool (63), L=lokal, G=generierte Talente
@@ -72,6 +73,7 @@ activeEvent: Turnier-Instanz oder null: {eventId, cat, sub/count (Teil-Turnier),
          live:{m,me,mods:[{side,mult,visits}],dist:{id,atVisit,who,done}|null}|null}
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
+training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.trained = Attribut der Woche
 sponsors:{active:[{name,slot,type,amount,years,start,until,paid}], offers:[{…,expires}], total}, ended:bool
 archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pdc|challenge|dev:{rank,year,week}}}
 ```
@@ -83,9 +85,11 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Scoring (sco) → Average über Kurve `AVG_CURVE` (40→53, 60→65, 80→79, 90→89, 95→95, 99→103, 100→106 Ø).
   - Finishing (fin) → Checkout-Basis 6 % + 0,37 %·fin (60 → 28 %, 100 → 43 %).
   - Mental (men) → Druck bei Matchdarts/Entscheidungslegs. Fokus (foc) → Konstanz, Tagesform, Ausdauer, Störmomente.
-  - Gesamt = 0,4·sco + 0,3·fin + 0,15·men + 0,15·foc.
+  - Rechnen (cal) → Fehlerquote `calcError` = (100 − cal)·0,3 % (60 → 12 %): Stelldarts auf Bogey-Zahlen (159/162/163/165/166/168/169), falsches Doppel (Bust/kaputter Rest), falsche Wege (Checkout-Chance × (1 − 0,6·ce)). Dart-Modell: `maybeMiscalc` in throwModel. Stat `bogey` (Aufnahmen, die auf Bogey enden), im DartConnect mit ⚠ markiert. Rechnen 40 vs 95 ≈ 40 % Siegchance.
+  - Gesamt = 0,36·sco + 0,27·fin + 0,13·men + 0,13·foc + 0,11·cal.
 - **Erfahrung** (exp, −4 … +10): Clutch-Faktor. Matchdarts: Sim-Checkout × (… + 0,025·exp); Dart-Modell σ × (1 − 0,025·exp); Entscheidungsleg-Scoring ±0,6 %/Stufe. +10 vs −4 bei gleichen Werten ≈ 60 % Siegchance. Wächst über Clutch-Punkte (Match 2, Entscheidungsleg +3, gewonnen +3, × Kategoriefaktor); Schwellen `EXP_STEPS`. KI: nach Ebene/Alter, jährlich +1 (Chance).
 - **XP/Training**: Match 14, Sieg +22, +8 je Runde (max 6), Titel/Karte +60, **Teilnahme +75**, × Faktor (lokal 0,8, DDV 1,4, CT/Dev/Q 1, PC/ET 1,5, Majors 2). Punkt-Schwelle = 70 + 1,6·n. Kosten je Stufe: 1 (<70), 2 (70–84), 3 (85–94), 4 (≥95). Training direkt nach jedem Turnier (Panel im Turnier-Screen) oder im Profil.
+- **Training** (`training.js`): 1 Einheit pro Woche (zusätzlich zum Event, kostenlos) auf ein Attribut; Fortschritt × Qualität (0,7/1/1,3); +1 nach 5 × Attributkosten Einheiten (60 → 5, 75 → 10, 90 → 15, 95+ → 20). Ohne Training: ab 3 Wochen Pause pro Woche Risiko 15 % (+5 %/Woche, max. 40 %) auf −1 bei einem Attribut (gewichtet nach Höhe², nicht unter 50). Bot-Balancing: mit Training Tourcard nach 5–6 Saisons/Top 20 nach 8; ohne Training Stagnation bei Gesamt ~67–70.
 - **Kalender**: ISO-KW 1–52 (KW 53 wird übersprungen). Pro Woche max. ein Event. „Weiter“ → nächste Woche.
 - **Kosten**: Anmeldegebühr 25 € (Q-School, Challenge, Dev). Reise: England/UK 600 €, Deutschland 250 €, sonst 400 €. Lokal: kostenlos, keine Reise. Melden nur bei genug Budget.
 - **Lokale Turniere**: jede Woche außer KW 52, nur im eigenen Bundesland (Städte aus `data/regions.js`), 16 Spieler (fiktiv), Siegprämie zufällig 50–200 €, Finalist 40 %, Halbfinale 20 %.

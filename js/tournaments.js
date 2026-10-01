@@ -174,7 +174,7 @@ export function enterEvent(state, eventId) {
     addNews(state, 'info', `Gemeldet: ${ev.name}`, `4 Turniertage – wer an einem Tag das Halbfinale erreicht, gewinnt eine Tourcard. Mit der Teilnahme bist du ${state.date.year} für die Challenge Tour${state.player.age <= DEV_MAX_AGE ? ' und die Development Tour' : ''} berechtigt.`);
   }
   if (ev.extra) (state.week.extras ??= []).push(ev.id);
-  else state.week = { played: true, eventId: ev.id, extras: state.week.extras ?? [] };
+  else state.week = { ...state.week, played: true, eventId: ev.id, extras: state.week.extras ?? [] };   // Trainingsflag bleibt
   if (ev.qualifier && etSeeds(state, true).includes('P')) {
     // Gesetzt: Qualifikation läuft ohne den Spieler, direkt ins Hauptfeld
     const q = runAITournament(state, ev, 0, { playerIn: true });
@@ -299,7 +299,7 @@ function recordPlayerMatch(state, inst, m, res) {
     t.legsWon += res.legsTotal[me]; t.legsLost += res.legsTotal[1 - me];
     t.points += s.points; t.darts += s.darts;
     t.s180 += s.s180; t.s140 += s.s140; t.s100 += s.s100;
-    t.coHit += s.coHit; t.coAtt += s.coAtt;
+    t.coHit += s.coHit; t.coAtt += s.coAtt; t.bogey = (t.bogey ?? 0) + (s.bogey ?? 0);
     t.hiFinish = Math.max(t.hiFinish, s.hiFinish);
     if (s.bestLeg && (!t.bestLeg || s.bestLeg < t.bestLeg)) t.bestLeg = s.bestLeg;
   }

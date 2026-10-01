@@ -9,6 +9,7 @@ import { WEEKS_PER_YEAR } from './util.js';
 import { plTable, plState } from './majors.js';
 import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
 import { recordHistory, trackPeak } from './history.js';
+import { trainingWeekEnd } from './training.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -16,6 +17,7 @@ export function nextWeek(state) {
   const { year, week } = state.date;
   const evs = eventsInWeek(state, year, week);
   const ai = simulateWeekAI(state);
+  trainingWeekEnd(state);
   weekNews(state, evs, ai);
   if (week >= WEEKS_PER_YEAR) { recordHistory(state); sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);

@@ -5,6 +5,8 @@ import { nextWeek } from '../js/season.js';
 import { enterEvent, eventStatus, simulateRest, nextSub, closeEvent } from '../js/tournaments.js';
 import { raiseAttr, overall, targetAverage } from '../js/player.js';
 import { rankOf } from '../js/rankings.js';
+import { train } from '../js/training.js';
+const noTrain = process.argv[3] === 'ohne';
 const s = newCareer({ name: 'Bot', nation: 'DE', hand: 'R', seed: +(process.argv[2] || 3) });
 const pref = ['qschool', 'et', 'pc', 'ddv', 'dev', 'challenge', 'local'];
 for (let y = 0; y < 8; y++) {
@@ -15,7 +17,8 @@ for (let y = 0; y < 8; y++) {
     // Reise nur, wenn danach noch 300 € Puffer
     const ev = evs.find(e => e.cat === 'local' || s.finance.balance - eventStatus(s, e).cost.total > 300);
     if (ev) { enterEvent(s, ev.id); for (;;) { simulateRest(s); if (!s.activeEvent.hasNext) break; nextSub(s); } closeEvent(s); }
-    while (s.player.points > 0) { if (!['sco', 'fin', 'men', 'foc'].sort((a, b) => s.player.attrs[a] - s.player.attrs[b] + (a === 'sco' ? -3 : 0)).some(k => raiseAttr(s.player, k))) break; }
+    while (s.player.points > 0) { if (!['sco', 'fin', 'men', 'foc', 'cal'].sort((a, b) => s.player.attrs[a] - s.player.attrs[b] + (a === 'sco' ? -3 : 0)).some(k => raiseAttr(s.player, k))) break; }
+    if (!noTrain) train(s, ['sco', 'fin', 'men', 'foc', 'cal'].sort((a, b) => s.player.attrs[a] - s.player.attrs[b])[0]);
     nextWeek(s);
   }
   const p = s.player;

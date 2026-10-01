@@ -68,12 +68,18 @@
 - Bugfixes: Gruppen-Aus-Platzierung, Ruheständler bleiben erhalten, Bestplatzierung ignoriert Quali-Ergebnisse, automatische PL-Spieltage erscheinen in der Historie.
 - README final (Hinweis „nur private Nutzung, echte Namen“). 23 Node-Tests.
 
+## Erweiterung nach Phase 6 (Nutzerwunsch)
+- Neues Attribut **Rechnen**: niedrige Werte → öfter Bogey-Reste, falsche Doppel/Wege, Busts; in beiden Simulationen und für KI. Bogey-Reste als Statistik und ⚠ im DartConnect-Scoreboard.
+- **Wöchentliches Training** (Hub-Kachel, eigener Screen): 1 Einheit/Woche, Fortschrittsbalken je Attribut; ohne regelmäßiges Training Formverlust (Warnung ab 2 Wochen Pause).
+- Migration v6 (Rechnen: Spieler 60, KI ≈ Scoring). 25 Node-Tests.
+
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
 - Echte Spielerdaten prüfen/ergänzen (siehe „Unsichere Angaben“), echte Dev-Tour-Namen statt fiktiver.
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- **Rechnen/Training**: Formverlust widerspricht bewusst der ursprünglichen Regel „nie schlechter“ (Nutzerwunsch); Alterungsverlust gibt es weiterhin nicht. KI trainiert implizit (Entwicklung nach Alter), hat keinen Formverlust.
 - **Phase 6**: Sponsorennamen fiktiv. Jahresgehalt-Raten auch für das laufende Jahr ab Unterschrift (Antrittsrate = 1 Quartal). Premier-League-Spieltagssiege zählen nicht als Titel (nur Bestergebnis).
 - **Phase 5**: Qualifikationsregeln vereinfacht (siehe CLAUDE.md). World Grand Prix ohne Double-In. WM komplett im alten Jahr (KW 51–52), Preisgeld zählt fürs laufende Jahr. Premier-League-Spieltage brauchen keine Woche, kosten aber Reise; Bonus 12.000 € pro Tagessieg, Play-offs 300.000 € Sieg. PL-, WS- und World-Cup-Geld zählt nicht zur PDC OOM. WS-Qualifikanten = zugeloste Tour-Spieler (PDC 9–64). „International“-WM-Plätze = stärkste Spieler ohne Karte (inkl. DDV-Pool).
 - **Umbau**: Perzentil→Average-Kurve geschätzt (60 ≈ 65 Ø). Erfahrungsstufen-Schwellen, XP-Werte und Störmoment-Chancen/Effekte sind Balancing-Werte (data/distractions.js, js/player.js) – leicht anpassbar.

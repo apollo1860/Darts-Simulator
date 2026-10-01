@@ -559,3 +559,5 @@
 .celebrate { animation: celebrate 1.2s var(--ease) both; box-shadow: 0 0 40px rgba(255, 200, 61, .25); border-color: var(--gold); }
 @keyframes celebrate { 0% { transform: scale(.94); } 40% { transform: scale(1.02); } 100% { transform: scale(1); } }
 .kpi .v.gold, .tile-value { transition: color .3s; }
+.dc-bogey { color: var(--orange); font-size: .4em; margin-left: 4px; vertical-align: super; }
+.panel.warn { border-color: var(--red); box-shadow: inset 0 0 20px rgba(255, 77, 109, .15); }

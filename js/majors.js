@@ -55,7 +55,7 @@ export function wcTeams(state) {
     const id = two.some(x => x.id === 'P') ? 'P' : `W:${nat}`;
     const avg = k => Math.round((two[0].attrs[k] + two[1].attrs[k]) / 2);
     teams[id] = { id, nation: nat, name: `Team ${nationName(nat)}`, members: two.map(x => x.id), age: '–',
-      attrs: { sco: avg('sco'), fin: avg('fin'), men: avg('men'), foc: avg('foc') },
+      attrs: { sco: avg('sco'), fin: avg('fin'), men: avg('men'), foc: avg('foc'), cal: avg('cal') },
       exp: Math.round(((two[0].exp ?? 0) + (two[1].exp ?? 0)) / 2), strength: score(two[0]) + score(two[1]) };
   }
   return (q.wcTeams = teams);

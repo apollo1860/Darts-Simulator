@@ -4,6 +4,7 @@ import { flag } from '../../../data/nations.js';
 import { overall } from '../../player.js';
 import { eventsInWeek } from '../../calendar.js';
 import { nextWeek } from '../../season.js';
+import { trainingOf, trainedThisWeek, DECAY_AFTER } from '../../training.js';
 import { eventStatus } from '../../tournaments.js';
 import { unreadCount } from '../../news.js';
 import { sponsorsUnlocked } from '../../sponsors.js';
@@ -59,6 +60,13 @@ function oomLine(s) {
   return 'Order of Merit';
 }
 
+function trainingTile(s) {
+  const t = trainingOf(s), done = trainedThisWeek(s);
+  const sub = done ? '✔ Diese Woche erledigt' : t.idle >= DECAY_AFTER ? `⚠ ${t.idle} Wochen Pause – Formverlust droht` : t.idle ? `${t.idle} Woche(n) ohne Training` : '1 Einheit pro Woche';
+  const badge = done ? '' : `<span class="badge ${t.idle >= DECAY_AFTER ? '' : 'badge-green'}">!</span>`;
+  return tile('training', '🏋️', 'Training', sub, badge);
+}
+
 export function render(app) {
   const s = app.state, p = s.player;
   const unread = unreadCount(s);
@@ -73,6 +81,7 @@ export function render(app) {
   </header>
   <div class="tile-grid">
     ${heroTile(s)}
+    ${trainingTile(s)}
     ${tile('calendar', '📅', 'Kalender', `Saison ${s.date.year}`)}
     ${tile('profile', '🎯', 'Spielerprofil', `Ø ${p.avgReal ? fmtNum(p.avgReal, 1) : '–'} · OVR ${overall(p.attrs)}`,
       p.points ? `<span class="badge badge-green">+${p.points}</span>` : '')}

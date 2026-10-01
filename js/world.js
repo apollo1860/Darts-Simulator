@@ -4,7 +4,7 @@ import { NAME_POOLS, POOL_WEIGHTS } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
 
-export const WORLD_VERSION = 3;
+export const WORLD_VERSION = 3;   // Rechnen (cal) wird in state.migrate ergänzt
 export const DDV_POOL = 63;
 export const DEV_MAX_AGE = 23;
 
@@ -82,7 +82,7 @@ function changeStrength(p, delta) {
   const before = p.attrs.sco;
   p.avg = clamp(Math.round((p.avg + delta) * 10) / 10, 30, 108);
   const d = ratingForAvgExact(p.avg) - before;
-  for (const k of ['fin', 'men', 'foc']) p.attrs[k] = clamp(Math.round(p.attrs[k] + d), 1, 100);
+  for (const k of ['fin', 'men', 'foc', 'cal']) p.attrs[k] = clamp(Math.round(p.attrs[k] + d), 1, 100);
   p.attrs.sco = clamp(Math.round((before + d) * 10) / 10, 1, 100);
 }
 

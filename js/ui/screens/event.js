@@ -167,6 +167,7 @@ function resultModal(s, res, onClose) {
         ${row('Checkout', a.coPct, b.coPct, v => fmtPct(v))}
         ${row('Doppel', `${a.coHit}/${a.coAtt}`, `${b.coHit}/${b.coAtt}`, v => v, true).replace(/class="better"/g, '')}
         ${row('High Finish', a.hiFinish, b.hiFinish, v => v || '–')}
+        ${row('Bogey-Reste', a.bogey ?? 0, b.bogey ?? 0, v => v, false)}
         ${row('Bestes Leg', a.bestLeg || 99, b.bestLeg || 99, v => (v === 99 ? '–' : `${v} Darts`), false)}
       </table>
       <p class="center cyan" style="margin-top:12px;font-weight:700">+${lm.xp} XP</p>`,

@@ -1,6 +1,6 @@
 // Schnelle Match-Simulation (aufnahmebasiert). Wird für eigene Matches im Sim-Modus
 // und für alle KI-Matches genutzt. DOM-frei.
-import { targetAverage, checkoutBase } from './player.js';
+import { targetAverage, checkoutBase, calcError } from './player.js';
 import { clamp } from './util.js';
 
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
@@ -17,11 +17,12 @@ export function makeProfile(attrs, rng, mod = {}) {
     co: checkoutBase(attrs) * (mod.coMult ?? 1),
     men: attrs.men,
     foc: attrs.foc,
+    ce: calcError(attrs.cal),
     exp: attrs.exp ?? 0,
   };
 }
 
-const newStats = () => ({ points: 0, darts: 0, s180: 0, s140: 0, s100: 0, coHit: 0, coAtt: 0, hiFinish: 0, legsWon: 0, bestLeg: 0 });
+const newStats = () => ({ points: 0, darts: 0, s180: 0, s140: 0, s100: 0, coHit: 0, coAtt: 0, hiFinish: 0, legsWon: 0, bestLeg: 0, bogey: 0, calcErr: 0 });
 
 // Wahrscheinlichkeit, einen Rest 51–170 in einer Aufnahme zu checken (Basis co=0,35)
 function finishFactor(r) {
@@ -48,6 +49,13 @@ function visit(p, r, st, rng, pressure, fatigue) {
     const h = clamp(p.co * pressure, 0.03, 0.75);
     for (let d = 1; d <= 3; d++) {
       if (r === 50 || (r % 2 === 0 && r <= 40)) {
+        // Verrechnet: falsches Doppel angespielt → Rest kaputt oder Bust
+        if (rng.chance(p.ce * 0.5)) {
+          st.calcErr++;
+          if (rng.chance(0.4)) return { pts: 0, darts: 3, finished: false, bust: true };
+          r = Math.max(2, r - rng.int(1, 9));
+          continue;
+        }
         st.coAtt++;
         if (rng.chance(r === 50 ? h * 0.55 : h)) {
           st.coHit++; st.hiFinish = Math.max(st.hiFinish, start);
@@ -62,7 +70,8 @@ function visit(p, r, st, rng, pressure, fatigue) {
         // Stelldart auf ein Doppel
         let leave = LEAVES.find(L => r - L >= 1 && r - L <= 20) ?? (r % 2 ? r - 1 : r - 2);
         if (leave < 2) leave = 2;
-        if (rng.chance(0.85 + p.avg / 2000)) r = leave;
+        if (rng.chance(0.85 + p.avg / 2000 - p.ce)) r = leave;
+        else if (rng.chance(0.5)) { st.calcErr++; r -= rng.int(1, 20); if (r <= 1) return { pts: 0, darts: 3, finished: false, bust: true }; }
         else {
           r -= rng.int(1, 20);
           if (r <= 1) return { pts: 0, darts: 3, finished: false, bust: true };
@@ -73,7 +82,8 @@ function visit(p, r, st, rng, pressure, fatigue) {
   }
   // Finish-Bereich 51–170
   if (r <= 170 && !BOGEY.has(r)) {
-    const pf = clamp(finishFactor(r) * (p.co / 0.35) * pressure * (avg / targetAvgRef(p)), 0, 0.92);
+    // Falscher Weg (Rechnen) senkt die Chance, den Rest in einer Aufnahme zu checken
+    const pf = clamp(finishFactor(r) * (p.co / 0.35) * pressure * (avg / targetAvgRef(p)) * (1 - p.ce * 0.6), 0, 0.92);
     if (rng.chance(pf)) {
       st.coAtt += rng.chance(0.3) ? 2 : 1; st.coHit++;
       st.hiFinish = Math.max(st.hiFinish, r);
@@ -92,6 +102,14 @@ function visit(p, r, st, rng, pressure, fatigue) {
   const p180 = 0.058 * Math.pow(clamp((avg - 45) / 55, 0, 2), 2.5);
   let s = rng.chance(p180) ? 180 : clamp(Math.round(rng.normal(avg * SCORING_BOOST, p.sd)), 0, 177);
   if (r - s < 2) s = Math.max(0, r - rng.pick(LEAVES));
+  // Stell-Zone (171–230): gute Rechner vermeiden Bogey-Reste, schwache stellen sich drauf
+  if (r <= 230 && r - s > 0) {
+    if (rng.chance(p.ce * 1.1)) {
+      const b = rng.pick([...BOGEY].filter(x => r - x >= 0 && r - x <= 180));
+      if (b) { s = r - b; st.calcErr++; }
+    } else if (BOGEY.has(r - s)) s = Math.max(0, s - (BOGEY.has(r - s + 3) ? 2 : 3));
+  }
+  if (BOGEY.has(r - s)) st.bogey++;
   return { pts: s, darts: 3, finished: false };
 }
 const targetAvgRef = p => p.avgBase ?? p.avg;

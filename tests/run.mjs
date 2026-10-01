@@ -16,6 +16,7 @@ import { startManualMatch, liveAiDart, simulateLiveRest, liveAiVisit } from '../
 import { legAverage } from '../js/matchState.js';
 import * as D from '../js/distractions.js';
 import * as SP from '../js/sponsors.js';
+import * as TR from '../js/training.js';
 import { wave } from '../js/throwModel.js';
 
 let n = 0;
@@ -33,7 +34,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.equal(s.date.year, 2027);
   const o = overall(s.player.attrs);
   assert.equal(o, 60); assert.equal(s.player.exp, -4);
-  assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc']);
+  assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
   assert.equal(Object.keys(s.world.players).length, 128 + 50 + 50 + 50 + 63);
   // Start 2027: 64 verlängert + 28 neu 2026 + 4 CT/Dev-2026 = 96 Karten, Rest in der Q-School
@@ -367,6 +368,28 @@ test('Sponsoren: Angebote, Vertrag, Zahlungen, Kündigung, Ablauf', () => {
   while (s.date.week !== 1) nextWeek(s);
   assert.equal(s.sponsors.active.length, 0);
   assert.ok(s.archive.seasons[2027]);
+});
+
+test('Training: Fortschritt, 1×/Woche, Formverlust ohne Training', () => {
+  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 61 });
+  const r1 = TR.train(s, 'cal');
+  assert.ok(r1 && r1.gain > 0);
+  assert.equal(TR.train(s, 'cal'), null);                          // nur einmal pro Woche
+  let ups = 0;
+  for (let i = 0; i < 10; i++) { nextWeek(s); if (TR.train(s, 'cal')?.up) ups++; }
+  assert.ok(ups >= 2 && s.player.attrs.cal >= 62, 'Rechnen ' + s.player.attrs.cal);
+  const before = Object.values(s.player.attrs).reduce((a, b) => a + b, 0);
+  for (let i = 0; i < 20; i++) nextWeek(s);                         // 20 Wochen ohne Training
+  const after = Object.values(s.player.attrs).reduce((a, b) => a + b, 0);
+  assert.ok(after < before, `${before} → ${after}`);
+  assert.ok(s.news.some(n => n.title.startsWith('Formverlust')));
+});
+
+test('Rechnen: schwache Rechner stehen öfter auf Bogey-Zahlen', () => {
+  const rng = new RNG(5), A = { sco: 75, fin: 75, men: 75, foc: 75, exp: 0 };
+  let ba = 0, bb = 0;
+  for (let i = 0; i < 800; i++) { const r = simulateMatch({ ...A, cal: 40 }, { ...A, cal: 95 }, { legs: 4 }, rng); ba += r.stats[0].bogey; bb += r.stats[1].bogey; }
+  assert.ok(ba > bb * 2, `${ba} vs ${bb}`);
 });
 
 console.log(`\n${n} Tests ok`);

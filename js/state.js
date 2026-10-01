@@ -7,7 +7,7 @@ import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 5;
+export const VERSION = 6;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -110,6 +110,12 @@ export function migrate(s) {
     s.activeEvent = null;
   }
   p.region ??= p.nation === 'DE' ? DEFAULT_REGION : null;
+  // v5 → v6: Attribut Rechnen (Spieler 60, KI ≈ Scoring-Niveau), Training
+  if (p.attrs.cal === undefined) {
+    p.attrs.cal = 60;
+    const r = new RNG(s.rng);
+    for (const x of Object.values(s.world.players)) x.attrs.cal ??= Math.max(1, Math.min(100, Math.round(r.normal(x.attrs.sco, 4))));
+  }
   s.version = VERSION;
   return s;
 }

@@ -7,11 +7,12 @@ export const ATTRS = [
   { key: 'fin', label: 'Finishing', short: 'FIN', info: 'Checkout-Quote, Doppel' },
   { key: 'men', label: 'Mental', short: 'MEN', info: 'Druck: Entscheidungslegs, Matchdarts' },
   { key: 'foc', label: 'Fokus', short: 'FOK', info: 'Konstanz, Ausdauer, Ablenkungen' },
+  { key: 'cal', label: 'Rechnen', short: 'REC', info: 'Wege stellen, Bogey-Zahlen vermeiden' },
 ];
 export const START_VALUE = 60;
 export const EXP_MIN = -4, EXP_MAX = 10;
 
-export const overall = a => clamp(Math.round(a.sco * 0.4 + a.fin * 0.3 + a.men * 0.15 + a.foc * 0.15), 1, 100);
+export const overall = a => clamp(Math.round(a.sco * 0.36 + a.fin * 0.27 + a.men * 0.13 + a.foc * 0.13 + (a.cal ?? a.fin) * 0.11), 1, 100);
 
 // Perzentil → 3-Dart-Average (Stützstellen, linear interpoliert). 60 ≈ 65 Ø, 90 ≈ 89 Ø, 100 ≈ 106 Ø
 const AVG_CURVE = [[1, 25], [20, 40], [40, 53], [60, 65], [70, 71], [80, 79], [85, 84], [90, 89], [95, 95], [97, 98], [98, 100], [99, 103], [100, 106]];
@@ -38,10 +39,13 @@ export function attrsForAverage(avg, rng, spread = 7) {
   const sco = ratingForAvgExact(avg);
   const sd = spread * Math.max(0.2, 1 - sco / 125);
   const around = (base, k = 1) => clamp(Math.round(rng.normal(base, sd * k)), 1, 100);
-  return { sco, fin: around(sco - 1), men: around(sco - 2, 1.3), foc: around(sco - 1, 1.2) };
+  return { sco, fin: around(sco - 1), men: around(sco - 2, 1.3), foc: around(sco - 1, 1.2), cal: around(sco, 1.3) };
 }
 
-export const startAttrs = () => ({ sco: START_VALUE, fin: START_VALUE, men: START_VALUE, foc: START_VALUE });
+export const startAttrs = () => ({ sco: START_VALUE, fin: START_VALUE, men: START_VALUE, foc: START_VALUE, cal: START_VALUE });
+
+// Rechenfehler-Wahrscheinlichkeit je Stelldart/Finish-Entscheidung: 60 → 12 %, 80 → 6 %, 100 → 0 %
+export const calcError = cal => clamp((100 - (cal ?? 70)) * 0.003, 0, 0.3);
 
 // Leistungsdaten für die Engines (Attribute + Erfahrung)
 export const perf = p => ({ ...p.attrs, exp: p.exp ?? 0 });
