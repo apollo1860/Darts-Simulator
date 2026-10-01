@@ -583,3 +583,18 @@
 .iv-no { position: absolute; top: 1px; right: 3px; font-size: .7rem; color: var(--gold); }
 @media (min-width: 600px) { .iv-tile { font-size: .78rem; min-height: 64px; } }
 .interview-ask { margin-bottom: 12px; border-color: var(--gold); }
+/* Level-Balken (animiert) + Level-Up-Fenster */
+.lvl-box { background: var(--panel); border: 1px solid rgba(34, 228, 255, .25); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; }
+.lvl-no { font-family: var(--font-display); font-style: italic; letter-spacing: .04em; color: var(--cyan); }
+.lvl-no span { font-size: 1.25rem; }
+.lvl-xp { font-size: .8rem; color: var(--muted, #9aa6c4); }
+.lvl-bar { height: 10px; margin-top: 6px; }
+.lvl-bar i { background: linear-gradient(90deg, var(--cyan), var(--green)); box-shadow: 0 0 10px rgba(34, 228, 255, .6); }
+.lvl-box.lvl-up { animation: lvl-flash .6s ease; }
+@keyframes lvl-flash { 0% { box-shadow: 0 0 0 rgba(255, 200, 61, 0); } 40% { box-shadow: 0 0 26px rgba(255, 200, 61, .9); border-color: var(--gold); } 100% { box-shadow: 0 0 0 rgba(255, 200, 61, 0); } }
+.lvlup { text-align: center; }
+.lvlup-label { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 1.6rem; letter-spacing: .08em; color: var(--gold); animation: dc-pop .4s ease both; }
+.lvlup-no { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 5.5rem; line-height: 1; margin: 6px 0 10px;
+  background: linear-gradient(180deg, #fff, var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 18px rgba(34, 228, 255, .7)); animation: lvlup-pop .7s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes lvlup-pop { from { transform: scale(.3); opacity: 0; } }

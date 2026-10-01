@@ -6,8 +6,9 @@ import { formatLabel } from '../../matchEngine.js';
 import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../tournaments.js';
 import { MANUAL_AVAILABLE } from '../../matchUI.js';
 import { topbar, futCard, modal, catTag, playerModal, attrRows, bindRaise } from '../components.js';
-import { expLabel, xpForLevel, MAX_LEVEL } from '../../player.js';
+import { expLabel } from '../../player.js';
 import { interviewPanel, bindInterview } from '../interview.js';
+import { levelBar } from '../level.js';
 import { groupTable, GROUP_NAMES } from '../../bracket.js';
 
 // Name (World Cup: Teamname; eigenes Team mit Hinweis)
@@ -125,12 +126,11 @@ function donePanel(s, inst) {
     ${card ? `<p>Du spielst ab sofort mit Tourcard (gültig bis Ende ${s.player.cardUntil}).</p>` : ''}
     <div class="kpi-grid" style="text-align:left">
       <div class="kpi"><div class="label">Preisgeld</div><div class="v gold num">${fmtEUR(inst.prize)}</div></div>
-      <div class="kpi"><div class="label">XP · Level ${s.player.level ?? 1}</div><div class="v cyan num">+${inst.xp} XP</div>
-        ${(s.player.level ?? 1) < MAX_LEVEL ? `<div class="xp-bar" style="margin-top:6px"><i style="width:${Math.min(100, s.player.xp / xpForLevel(s.player.level ?? 1) * 100)}%"></i></div>
-        <div class="muted" style="font-size:.72rem;margin-top:3px">${fmtNum(s.player.xp)} / ${fmtNum(xpForLevel(s.player.level ?? 1))} bis Level ${(s.player.level ?? 1) + 1}</div>` : ''}</div>
+      <div class="kpi"><div class="label">XP</div><div class="v cyan num">+${inst.xp} XP</div></div>
       ${winnerKpi}
       <div class="kpi"><div class="label">Kontostand</div><div class="v num">${fmtEUR(s.finance.balance)}</div></div>
     </div>
+    <div style="text-align:left">${levelBar(s)}</div>
     ${nextBtn}
   </div>
   ${interviewPanel(s)}

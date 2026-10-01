@@ -566,6 +566,9 @@ test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
   for (const p of Object.values(old.world.players)) if (p.tier === 'local') p.avg += 6;
   migrate(old); migrate(old);
   assert.deepEqual(playersOfTier(old, 'local').map(p => p.avg), loc);
+  assert.ok(playersOfTier(s, 'local').every(p => p.nation === 'DE'));               // nur Deutsche
+  const v8 = JSON.parse(JSON.stringify(s)); v8.version = 8; v8.world.players.L21.name = 'Ralf Steiner'; v8.world.players.L21.nation = 'AT';
+  migrate(v8); assert.equal(v8.world.players.L21.nation, 'DE'); assert.equal(v8.world.players.L21.avg, s.world.players.L21.avg);
 });
 
 console.log(`\n${n} Tests ok`);

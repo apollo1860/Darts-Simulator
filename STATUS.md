@@ -84,6 +84,7 @@
 - Lokale Gegner schwächer (Nutzerwunsch): −6 Ø (jetzt 54–74 statt 60–80). Frischer Spieler ohne Training: Turniersiege lokal ~3 % → ~18 %, Aus in Runde 1 50 % → 36 %. Migration v8 für bestehende Spielstände.
 - **Training aufgewertet** (Empfehlung umgesetzt): jede Einheit gibt XP (3 % des Level-Bedarfs, wächst mit) + Turniervorbereitung +3 auf das trainierte Attribut für diese und nächste Woche; Formverlust milder (ab 4 Wochen, 10–30 %). Exhibition-XP skaliert ebenfalls (5 %). Bot: Training ≈ +25–30 % XP (2030: 52k statt 40k), Level 64 statt 54 nach 8 Saisons.
 - **Großes Paket (Nutzerwunsch)**: Team-Screen mit Manager (3 Stufen, Provision 10–20 %, mehr/bessere Sponsoren, Exhibition-Einladungen als Klick-Event) und Trainer (Einmalzahlung, 1 Jahr, +10–30 % XP); Erfahrung zählt auf der großen Bühne (Majors, gegen Top 16); Selbstvertrauen/Momentum mit Anzeige; Gegner-Matchdarts Wurf für Wurf auf der Dartscheibe; Interviews nach Majors (Floskel-Memory). 34 Node-Tests.
+- Lokale Turniere nur noch deutsche Spieler (20 Namen ersetzt, Migration v9). Turnier-XP gesenkt (lokaler Sieg ~120 statt ~260 XP, frühes Aus ~30 statt ~70). **Level-Up-Fenster** (großes „LEVEL UP! N“, +Punkte, „Punkte verteilen“) und **animierter Level-Balken** im Hub und am Turnierende (füllt sich, läuft bei Aufstieg über).
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -91,6 +92,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- XP gesenkt: Basis Match 10/Sieg 15/Runde 6/Titel 40/Teilnahme 45, lokal ×0,55. Bot (spielt aus Geldmangel fast nur lokal) erreicht nach 8 Saisons Level ~47 / OVR ~92, noch ohne Tourcard – wer CT/DDV spielt, steigt schneller. Level-Up-Fenster im laufenden Turnier erst nach Turnierende.
 - Manager-Provision 10/15/20 % (übliche Spanne im Sport); Freischaltung nach Tourcard/Top 64/Top 16. Exhibition-Einladungen kommen zusätzlich zum Wochenplan (Ermüdung +15). Trainerpreise 1.500/6.000/18.000 €.
 - Bühnen-Effekt symmetrisch um Erfahrung +3 (typischer Tour-Profi): Neuling (−4) auf großer Bühne ≈ −5 Punkte, Veteran (+10) ≈ +5. Momentum lokal nur ¼, damit Kneipenturniere keinen Dauer-Lauf erzeugen (Bot: meist „Normal“, Phasen mit Selbstvertrauen).
 - Matchdart-Scheibe erscheint für die ganze Aufnahme, sobald der Gegner auf einem Match-Finish steht (auch wenn zuerst gestellt wird).

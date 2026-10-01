@@ -115,5 +115,5 @@ export function addClutch(p, pts) {
 export const expLabel = e => (e > 0 ? `+${e}` : `${e}`);
 
 // XP-/Clutch-Faktor je Event-Kategorie
-export const XP_FACTOR = { local: 0.8, ddv: 1.4, qschool: 1, challenge: 1, dev: 1, pc: 1.5, et: 1.5, ws: 2, major: 2, pl: 2 };
-export const XP_BASE = { match: 14, win: 22, title: 60, perRound: 8, event: 75 };
+export const XP_FACTOR = { local: 0.55, ddv: 1.4, qschool: 1, challenge: 1, dev: 1, pc: 1.5, et: 1.5, ws: 2, major: 2, pl: 2 };
+export const XP_BASE = { match: 10, win: 15, title: 40, perRound: 6, event: 45 };

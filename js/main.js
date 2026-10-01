@@ -14,6 +14,7 @@ import * as news from './ui/screens/news.js';
 import * as rankings from './ui/screens/rankings.js';
 import * as tour from './ui/screens/tour.js';
 import * as team from './ui/screens/team.js';
+import { afterMount } from './ui/level.js';
 import * as sponsors from './ui/screens/sponsors.js';
 import * as settings from './ui/screens/settings.js';
 import * as careerEnd from './ui/screens/careerEnd.js';
@@ -36,6 +37,7 @@ const app = {
     app.screen = name; app.params = params;
     root.innerHTML = `<div class="screen">${SCREENS[name].render(app, params)}</div>`;
     SCREENS[name].mount?.(root, app, params);
+    afterMount(root, app);
     window.scrollTo({ top: 0 });
   },
   refresh() { // gleichen Screen neu zeichnen, Scrollposition behalten
@@ -43,6 +45,7 @@ const app = {
     SCREENS[app.screen]?.unmount?.();
     root.innerHTML = `<div class="screen" style="animation:none">${SCREENS[app.screen].render(app, app.params)}</div>`;
     SCREENS[app.screen].mount?.(root, app, app.params);
+    afterMount(root, app);
     window.scrollTo({ top: y });
   },
   save(silent = true) {

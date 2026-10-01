@@ -2,12 +2,13 @@
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT } from './world.js';
+import { LOCAL_PLAYERS } from '../data/players.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 8;
+export const VERSION = 9;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -124,6 +125,11 @@ export function migrate(s) {
     const r = new RNG(s.rng);
     for (const x of Object.values(s.world.players)) if (x.tier === 'local') { x.avg -= LOCAL_SHIFT; x.attrs = attrsForAverage(x.avg, r); }
   }
+  // v8 → v9: lokale Gegner nur noch Deutsche (Namen/Nation aus der Liste, Stärke bleibt)
+  if ((s.version ?? 1) < 9) LOCAL_PLAYERS.forEach(([name, nation], i) => {
+    const x = s.world.players[`L${i + 1}`];
+    if (x) { x.name = name; x.nation = nation; }
+  });
   s.version = VERSION;
   return s;
 }

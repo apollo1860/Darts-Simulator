@@ -46,6 +46,7 @@ js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chance
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
 js/ui/boardSvg.js     Dartscheibe als SVG (matchUI + Matchdart-Anzeige in watch)
 js/ui/interview.js    Interview-Minispiel (Panel im Turnier-Screen und Hub)
+js/ui/level.js        Level-Balken (animiert, Hub + Turnierende) und Level-Up-Fenster (afterMount im Router)
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
                       stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
@@ -83,7 +84,7 @@ champions:{[year]:[{week,eventId,name,cat,id,who,nation}]}  Sieger aller Turnier
 news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,prize}]
 stats:  {career:{...}, seasons:{[year]:{...}}}
 training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.activity = train|rest|sponsor|exhibition, week.trained = Attribut
-player.fatigue 0–100, player.momentum −10…10, player.prep {key,bonus,weeks}, state.lastTrained;  live.route = {start, darts} (gewählter Checkout-Weg), live.coDec = {left, asked}
+player.levelSeen (zuletzt gefeiertes Level), player.fatigue 0–100, player.momentum −10…10, player.prep {key,bonus,weeks}, state.lastTrained;  live.route = {start, darts} (gewählter Checkout-Weg), live.coDec = {left, asked}
 staff:{manager:{…,cut,since,paid}|null, coach:{…,xp,until}|null, gigs:[{id,kind,city,fee,until}]}, interview:{event,place,tiles,seq}|null
 sponsors:{active:[{name,slot,type,amount,years,start,until,paid}], offers:[{…,expires}], total}, ended:bool
 archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pdc|challenge|dev:{rank,year,week}}}
@@ -99,14 +100,14 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Rechnen (cal) → Fehlerquote `calcError` = (100 − cal)·0,3 % (60 → 12 %): Stelldarts auf Bogey-Zahlen (159/162/163/165/166/168/169), falsches Doppel (Bust/kaputter Rest), falsche Wege (Checkout-Chance × (1 − 0,6·ce)). Dart-Modell: `maybeMiscalc` in throwModel. Stat `bogey` (Aufnahmen, die auf Bogey enden), im DartConnect mit ⚠ markiert. Rechnen 40 vs 95 ≈ 40 % Siegchance.
   - Gesamt = 0,36·sco + 0,27·fin + 0,13·men + 0,13·foc + 0,11·cal.
 - **Erfahrung** (exp, −4 … +10): Clutch-Faktor. Matchdarts: Sim-Checkout × (… + 0,025·exp); Dart-Modell σ × (1 − 0,025·exp); Entscheidungsleg-Scoring ±0,6 %/Stufe. +10 vs −4 bei gleichen Werten ≈ 60 % Siegchance. Wächst über Clutch-Punkte (Match 2, Entscheidungsleg +3, gewonnen +3, × Kategoriefaktor); Schwellen `EXP_STEPS`. KI: nach Ebene/Alter, jährlich +1 (Chance).
-- **XP/Training**: Match 14, Sieg +22, +8 je Runde (max 6), Titel/Karte +60, **Teilnahme +75**, × Faktor (lokal 0,8, DDV 1,4, CT/Dev/Q 1, PC/ET 1,5, Majors 2). **Level 1–100** (Start Level 1, 0 XP): Aufstieg L → L+1 kostet `xpForLevel(L)` = 50·L·(1 + 2·((L−1)/99)²) XP (gerundet auf 10: 50, 100, 150 … L50 ≈ 3.750, L99 = 14.650; Summe bis L100 ≈ 491 Tsd.), je Aufstieg **5 Attributpunkte**, max. 495. Kosten je Stufe: 1 (<70), 2 (70–84), 3 (85–94), 4 (≥95). Training direkt nach jedem Turnier (Panel im Turnier-Screen) oder im Profil.
+- **XP/Training**: Match 10, Sieg +15, +6 je Runde (max 6), Titel/Karte +40, **Teilnahme +45**, × Faktor (lokal 0,55, DDV 1,4, CT/Dev/Q 1, PC/ET 1,5, Majors 2). **Level 1–100** (Start Level 1, 0 XP): Aufstieg L → L+1 kostet `xpForLevel(L)` = 50·L·(1 + 2·((L−1)/99)²) XP (gerundet auf 10: 50, 100, 150 … L50 ≈ 3.750, L99 = 14.650; Summe bis L100 ≈ 491 Tsd.), je Aufstieg **5 Attributpunkte**, max. 495. Kosten je Stufe: 1 (<70), 2 (70–84), 3 (85–94), 4 (≥95). Training direkt nach jedem Turnier (Panel im Turnier-Screen) oder im Profil.
 - **Training** (`training.js`): 1 Einheit pro Woche (zusätzlich zum Event, kostenlos) auf ein Attribut. Bringt (a) **XP** = 3 % von `xpForLevel(level)` × Qualität (0,7/1/1,3), mind. 10 (`trainingXp`); (b) **Turniervorbereitung** `player.prep = {key, bonus:3, weeks:2}` → +3 auf das Attribut in `perf` für Turniere dieser + nächster Woche; (c) langsamen Dauer-Fortschritt: +1 nach 5 × Attributkosten Einheiten (60 → 5, 75 → 10, 90 → 15, 95+ → 20). Ohne Training: ab 4 Wochen Pause pro Woche Risiko 10 % (+5 %/Woche, max. 30 %) auf −1 bei einem Attribut (gewichtet nach Höhe², nicht unter 50). Bot-Balancing: mit Training Tourcard nach 5–6 Saisons/Top 20 nach 8; ohne Training Stagnation bei Gesamt ~67–70.
 - **Wochenplan**: genau EINE Aktivität pro Woche (zusätzlich zum Turnier): Training · Ruhetag (Ermüdung −30) · Sponsortermin (nur mit aktivem Vertrag; je Sponsor 4 % Jahresgehalt / 60 % Antrittsgeld / 30 % Bonus, mind. 150 €) · Exhibition (mit Karte 500 € + 2 % Marktwert, sonst 200 €, ±20 %; XP = 5 % des Level-Bedarfs, +3 Clutch, Ermüdung +20).
 - **Ermüdung** (player.fatigue 0–100): +4 je gespieltem Match +4 Reise (nicht lokal), −10 pro Woche. Über 30 %: Leistung sinkt linear bis 100 % (−6 Scoring, −8 Fokus, −4 Finishing; nur in `perf`).
 - **Sprung** „⏭ Nächstes Event“ (`jumpToNextEvent`): überspringt Wochen bis zu einem spielbaren Nicht-Lokal-Event (max. 20), trainiert dabei automatisch (zuletzt trainiertes bzw. schwächstes Attribut); 0 Wochen, wenn diese Woche schon eins ansteht.
 - **Kalender**: ISO-KW 1–52 (KW 53 wird übersprungen). Pro Woche max. ein Event. „Weiter“ → nächste Woche.
 - **Kosten**: Anmeldegebühr 25 € (Q-School, Challenge, Dev). Reise: England/UK 600 €, Deutschland 250 €, sonst 400 €. Lokal: kostenlos, keine Reise. Melden nur bei genug Budget.
-- **Lokale Turniere**: jede Woche außer KW 52, nur im eigenen Bundesland (Städte aus `data/regions.js`), 16 Spieler (fiktiv, Listenwert − `LOCAL_SHIFT` 6 → Ø 54–74), Siegprämie zufällig 50–200 €, Finalist 40 %, Halbfinale 20 %.
+- **Lokale Turniere**: jede Woche außer KW 52, nur im eigenen Bundesland (Städte aus `data/regions.js`), 16 Spieler (fiktiv, nur Deutsche, Listenwert − `LOCAL_SHIFT` 6 → Ø 54–74), Siegprämie zufällig 50–200 €, Finalist 40 %, Halbfinale 20 %.
 - **DDV-Ranglistenturniere**: 4 pro Jahr (KW 9, 20, 33, 44), nur ohne Tourcard, 64 Spieler (DDV-Pool ~66–88 Ø), Gebühr 25 € + Reise DE 250 €, Preisgeld 1.000 € Sieg, XP-Faktor 1,4.
 - **Tour-Struktur (Phase 3 umgesetzt)**:
   - Tourcard gilt 2 Jahre. Am Saisonende: PDC-OOM Top 64 → `cardUntil = max(cardUntil, Jahr+1)` (+1 Jahr); auslaufend und außerhalb Top 64 → Verlust.
