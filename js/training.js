@@ -6,7 +6,7 @@ import { ATTRS, attrCost } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { addNews } from './news.js';
 import { clamp, fmtEUR } from './util.js';
-import { book } from './finance.js';
+import { book, levelPrice } from './finance.js';
 import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
 import { xpMult } from './staff.js';
 import { momentumDecay } from './form.js';
@@ -90,7 +90,7 @@ export const RECOVERY = {
   massage: { label: 'Massage', icon: '💆', fatigue: 15 },
 };
 export const recoveryPrice = (state, type) =>
-  50 + Math.round(new RNG(hashSeed(state.seed ?? 0, state.date.year, state.date.week, type)).next() * 10) * 5;
+  levelPrice(50 + Math.round(new RNG(hashSeed(state.seed ?? 0, state.date.year, state.date.week, type)).next() * 10) * 5, state.player.level ?? 1);
 export function canRecover(state, type) {
   if ((state.week.recovery ?? []).includes(type)) return { ok: false, reason: 'Diese Woche schon' };
   if (!(state.player.fatigue > 0)) return { ok: false, reason: 'Du bist ausgeruht' };

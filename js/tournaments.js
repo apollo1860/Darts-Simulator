@@ -7,7 +7,7 @@ import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch } from './matchState.js';
 import { BOGEY } from './board.js';
 import { aiDart, aiSigma } from './throwModel.js';
-import { eventCost, canAfford, book, ENTRY_FEE } from './finance.js';
+import { eventCost, canAfford, book, ENTRY_FEE, levelPrice } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, POINTS_PER_LEVEL } from './player.js';
 import { addNews } from './news.js';
@@ -59,7 +59,7 @@ export function eligibility(state, ev) {
 
 // Gesamtstatus für die UI
 export function eventStatus(state, ev, n = null) {
-  const cost = eventCost(ev, ev.pick ? n ?? 1 : null);
+  const cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1);
   const phase = CATEGORIES[ev.cat]?.phase ?? 9;
   const elig = eligibility(state, ev);
   let playable = true, reason = '';
@@ -524,7 +524,7 @@ function finishEvent(state, inst) {
     const ev = findEvent(state, inst.eventId, inst.year, inst.week), left = plays - 1 - inst.sub;
     state.hnq = { etId: ev.etId, year: inst.year };
     inst.hasNext = false;
-    if (left > 0) book(state, ENTRY_FEE * left, `Rückerstattung ${left} Turnier${left > 1 ? 'e' : ''} (${inst.baseName})`, 'fee');
+    if (left > 0) book(state, levelPrice(ENTRY_FEE, state.player.level ?? 1) * left, `Rückerstattung ${left} Turnier${left > 1 ? 'e' : ''} (${inst.baseName})`, 'fee');
     const et = findEvent(state, ev.etId, inst.year, ev.week + 1) ?? { name: 'das ET-Event' };
     addNews(state, 'result', `🎟️ Qualifiziert für ${et.name}!`, 'Über den Host-Nation-Qualifier stehst du nächste Woche im Hauptfeld – melde dich in der Wochenansicht.');
   }

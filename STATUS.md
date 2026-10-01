@@ -101,6 +101,7 @@
 - Exhibitions nur noch auf Angebot (ab Tourcard), Gage steigt mit dem Level.
 - **Meilensteine** mit Extra-XP (16 Stück, Liste im Profil). Alte Spielstände bekommen sie ab jetzt (keine rückwirkende Vergabe).
 - Formverlust neu (Nutzerwunsch): jedes Attribut muss mindestens alle 6 Wochen trainiert werden, sonst Rückgang bei diesem Attribut; Anzeige „zuletzt vor X Wo.“ je Attribut. Alte Spielstände starten mit höchstens 4 Wochen (Schonfrist).
+- Preisniveau steigt mit dem Level (+1 % je Level) für Reise, Gebühren, Sauna/Massage. Bot-Karriere trainiert jetzt wie ein echter Spieler reihum (`mostOverdue`): Tourcard nach 6 Saisons, Level ~50 nach 8.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -108,6 +109,7 @@
 - Mehr Störmoment-Situationen, Interviews/Pressekonferenzen, Rivalitäten.
 
 ## Annahmen
+- Preisniveau +1 % je Level (Level 50 ≈ +49 %); Preisgelder, Trainer-/Managerkosten bleiben unverändert.
 - Zufallsereignisse: 7 % pro Woche (≈ 3–4 im Jahr), davon 25 % Ausfall (≈ 1 Woche/Jahr ohne Turnier). Rückschlag trifft nur den Trainingsfortschritt, keine Attributpunkte.
 - WM-Qualifier Q-School: KW 46 („Mitte November“), Milton Keynes, kein Preisgeld, XP-Faktor 1,3; ein WM-Platz für den Sieger.
 - HNQ: Woche vor dem ET-Event; „bis zu 4 je Wochenende“ = bis zu 4 Qualifier-Turniere, jedes Turniersieg qualifiziert (danach endet der Block, Gebühren für nicht gespielte werden erstattet). Kein Preisgeld. Bei Auswahl spielt man immer die ersten n Turniere des Blocks.

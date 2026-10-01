@@ -66,6 +66,10 @@ test('Kosten', () => {
   assert.equal(eventCost({ cat: 'et', country: 'DE' }).total, 250);
   assert.equal(eventCost({ cat: 'et', country: 'AT' }).total, 400);
   assert.equal(eventCost({ cat: 'local' }).total, 0);
+  // Preisniveau: +1 % je Level über 1
+  assert.deepEqual(eventCost({ cat: 'challenge', country: 'ENG', count: 2 }, null, 51), { fee: 2 * 40, travel: 900, total: 980 });
+  assert.equal(eventCost({ cat: 'wdf', europe: false }, null, 21).total, 1200);
+  assert.equal(eventCost({ cat: 'local' }, null, 80).total, 0);
 });
 
 test('Simulation: Satzformat', () => {
