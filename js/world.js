@@ -7,6 +7,7 @@ import { clamp } from './util.js';
 export const WORLD_VERSION = 3;   // Rechnen (cal) wird in state.migrate ergänzt
 export const DDV_POOL = 63;
 export const DEV_MAX_AGE = 23;
+export const LOCAL_SHIFT = 6;   // lokale Gegner etwas schwächer als die Listenwerte
 const POOL_MAX = 200;          // Spieler ohne Karte (Challenge + Dev)
 
 // tier: tour | challenge | dev | local ; cardUntil = letzte Saison mit gültiger Tourcard
@@ -21,7 +22,7 @@ export function createWorld(rng, startYear = 2027) {
   add(TOUR_NEW_2026, 'N', 'tour', startYear);           // 2-Jahres-Karte 2026/2027
   add(CHALLENGE_PLAYERS, 'C', 'challenge', null);
   add(DEV_PLAYERS, 'D', 'dev', null);
-  add(LOCAL_PLAYERS, 'L', 'local', null);
+  add(LOCAL_PLAYERS.map(([n, nat, a, avg]) => [n, nat, a, avg - LOCAL_SHIFT]), 'L', 'local', null);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   addDdvPool(world, rng);
   // Challenge-/Dev-Tour 2026: je Top 2 der Nutzerliste (Listenplatz 1–2) erhalten eine Karte bis Ende 2028

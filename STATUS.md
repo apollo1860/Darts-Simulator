@@ -81,6 +81,7 @@
 - **Tour-Seite** (🎫 im Hub): Tourcard-Holder mit „Karte bis“ + Herkunft (Filter: läuft aus, Top 64, Q-School, CT/Dev) und Titelträger (aktueller Sieger je Major/WS/PL/Youth-WM + Siegerliste aller Turniere je Saison). Startalter 16.
 - **Level-System** (Nutzerwunsch): Level 1–100, 50 XP für Level 2, 100 für Level 3 …, Kurve wird zum Ende steiler (bis 14.650 XP je Level); je Level 5 Attributpunkte. Profil zeigt Level + Fortschritt, Turnierende XP-Balken, News „⬆️ Level N“. Migration v7: Level aus Gesamt-XP, schon verdiente Punkte bleiben. Bot: Level 17 nach Saison 1, ~51 nach 8 Saisons.
 - Fix: Dev-Pool lief nach ~7 Saisons leer (Absturz in Dev-Turnieren), weil der große Pool ohne Karte keine Talente mehr bekam → jährlicher Nachwuchs + Obergrenze 200.
+- Lokale Gegner schwächer (Nutzerwunsch): −6 Ø (jetzt 54–74 statt 60–80). Frischer Spieler ohne Training: Turniersiege lokal ~3 % → ~18 %, Aus in Runde 1 50 % → 36 %. Migration v8 für bestehende Spielstände.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.

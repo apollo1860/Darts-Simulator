@@ -468,4 +468,14 @@ test('Level: 50/100 XP, steigende Kosten, 5 Punkte je Level, Max 100, Migration'
   migrate(old); assert.equal(old.player.level, 4); assert.equal(old.player.points, 7);   // verdiente Punkte bleiben
 });
 
+test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
+  const s = newCareer({ name: 'L', nation: 'DE', hand: 'R', seed: 4 });
+  const loc = playersOfTier(s, 'local').map(p => p.avg);
+  assert.equal(Math.min(...loc), 54); assert.equal(Math.max(...loc), 74);
+  const old = JSON.parse(JSON.stringify(s)); old.version = 7;
+  for (const p of Object.values(old.world.players)) if (p.tier === 'local') p.avg += 6;
+  migrate(old); migrate(old);
+  assert.deepEqual(playersOfTier(old, 'local').map(p => p.avg), loc);
+});
+
 console.log(`\n${n} Tests ok`);

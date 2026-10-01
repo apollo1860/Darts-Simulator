@@ -1,13 +1,13 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
-import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION } from './world.js';
+import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage } from './player.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT } from './world.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 7;
+export const VERSION = 8;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -92,7 +92,8 @@ export function validate(obj) {
 
 export function migrate(s) {
   // v1/v2 → v3 (Phase 3): echte Spielerwelt, neue Ranglisten-Struktur. Lokale IDs bleiben gleich.
-  if ((s.world?.version ?? 1) < 2) {
+  const freshWorld = (s.world?.version ?? 1) < 2;
+  if (freshWorld) {
     s.world = createWorld(new RNG(s.rng), s.date.year);
     s.rankings = { years: {} };
     s.player.cardUntil ??= null; s.player.qschoolYear ??= null;
@@ -118,6 +119,11 @@ export function migrate(s) {
   }
   // v6 → v7: Level-System (Level aus Gesamt-XP; bereits verdiente Punkte bleiben)
   if (p.level === undefined) Object.assign(p, levelFromXp(p.xpTotal ?? 0));
+  // v7 → v8: lokale Gegner um LOCAL_SHIFT Ø schwächer
+  if ((s.version ?? 1) < 8 && !freshWorld) {
+    const r = new RNG(s.rng);
+    for (const x of Object.values(s.world.players)) if (x.tier === 'local') { x.avg -= LOCAL_SHIFT; x.attrs = attrsForAverage(x.avg, r); }
+  }
   s.version = VERSION;
   return s;
 }
