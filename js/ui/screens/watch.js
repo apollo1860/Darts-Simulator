@@ -12,6 +12,7 @@ import { checkoutDecisionDue, chooseRoute } from '../../decisions.js';
 import { fieldName } from '../../board.js';
 import { fmtPct } from '../../util.js';
 import { stageFactor, stageDelta, momentumState } from '../../form.js';
+import { isRival } from '../../rival.js';
 
 export const VISIT_MS = 1500;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
@@ -235,6 +236,8 @@ function draw(ev) {
 function formLine() {
   const s = ui.s, inst = s.activeEvent, f = stageFactor(inst, ui.ids[0], ui.ids[1]);
   const parts = [];
+  const oppId = ui.ids[1 - ui.me];
+  if (isRival(s, oppId)) parts.push(`<span class="neg" style="font-weight:900">⚔️ RIVALEN-DUELL · Bilanz ${s.rival.w}–${s.rival.l}</span>`);
   const ms = momentumState(s.player);
   if (ms.bonus) parts.push(`<span class="${ms.bonus > 0 ? 'pos' : 'neg'}">${ms.icon} ${ms.label} ${ms.bonus > 0 ? '+' : ''}${ms.bonus}</span>`);
   if (f) {

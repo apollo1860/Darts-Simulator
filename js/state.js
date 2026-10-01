@@ -3,12 +3,13 @@ import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT } from './world.js';
 import { LOCAL_PLAYERS } from '../data/players.js';
+import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 9;
+export const VERSION = 10;
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
 const KEY = n => `dartsCareer.slot.${n}`;
@@ -45,6 +46,7 @@ export function newCareer({ name, nation, hand, region = DEFAULT_REGION, bonus =
     ended: false,
   };
   seedRankings(state, rng, START_YEAR);
+  createRival(state, rng);
   seasonFinance(state, START_YEAR);
   seasonStats(state, START_YEAR);
   state.finance.tx.unshift({ year: START_YEAR, week: 1, text: 'Startkapital', amount: START_BUDGET, cat: 'start' });
@@ -130,6 +132,8 @@ export function migrate(s) {
     const x = s.world.players[`L${i + 1}`];
     if (x) { x.name = name; x.nation = nation; }
   });
+  // v9 → v10: Rivale
+  if (!s.rival) createRival(s);
   s.version = VERSION;
   return s;
 }

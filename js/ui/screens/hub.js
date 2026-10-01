@@ -6,6 +6,7 @@ import { staffOf, coachActive } from '../../staff.js';
 import { momentumState } from '../../form.js';
 import { interviewPanel, bindInterview } from '../interview.js';
 import { levelBar } from '../level.js';
+import { rivalOf } from '../../rival.js';
 import { eventsInWeek } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
 import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
@@ -78,6 +79,12 @@ function momentumTag(p) {
   return ms.bonus ? ` · <b class="${ms.bonus > 0 ? 'pos' : 'neg'}" title="${ms.bonus > 0 ? '+' : ''}${ms.bonus} auf Scoring, Finishing, Fokus">${ms.icon} ${ms.label}</b>` : '';
 }
 
+function rivalTile(s) {
+  const r = rivalOf(s);
+  if (!r) return '';
+  return tile('rival', '⚔️', 'Rivale', `${esc(r.name)} · OVR ${overall(r.attrs)}<br>Bilanz ${s.rival.w}–${s.rival.l}`);
+}
+
 function teamTile(s) {
   const st = staffOf(s), c = coachActive(s);
   const sub = [st.manager ? `👔 ${st.manager.name.split(' ')[0]}` : 'Kein Manager', c ? `🧑‍🏫 +${Math.round(c.xp * 100)} % XP` : 'Kein Trainer'].join(' · ');
@@ -106,6 +113,7 @@ export function render(app) {
       p.points ? `<span class="badge badge-green">+${p.points}</span>` : '')}
     ${tile('rankings', '🏆', 'Ranglisten', oomLine(s))}
     ${tile('tour', '🎫', 'Tour & Titel', `${playersOfTier(s, 'tour').length + (p.tour === 'tour' ? 1 : 0)} Holder · Titelträger`)}
+    ${rivalTile(s)}
     ${teamTile(s)}
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}
     ${tile('news', '📰', 'Neuigkeiten', esc(lastNews?.title ?? 'Keine Meldungen'), unread ? `<span class="badge">${unread}</span>` : '')}

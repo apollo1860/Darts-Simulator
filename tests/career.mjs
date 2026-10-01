@@ -24,5 +24,5 @@ for (let y = 0; y < 8; y++) {
     nextWeek(s);
   }
   const p = s.player;
-  console.log(`${y0}: Mom ${JSON.stringify(momHist)} XP ${p.xpTotal} Lv ${p.level ?? "-"} Pkt ${p.pointsEarned} · Ø-Ziel ${targetAverage(p.attrs).toFixed(1)} OVR ${overall(p.attrs)} [${Object.values(p.attrs).join('/')}] ERF ${p.exp} · Status ${p.tour}${p.cardUntil ? ' bis ' + p.cardUntil : ''} · Preisgeld ${Math.round(s.finance.prizeTotal - m0)} € · Konto ${Math.round(s.finance.balance)} € · CT-Rang ${p.qschoolYear === y0 ? rankOf(s, 'challenge', 'P', y0) ?? '-' : '-'} · PDC-Rang ${p.tour === 'tour' ? rankOf(s, 'pdc', 'P', s.date.year) : '-'}`);
+  console.log(`${y0}: Rivale ${s.rival.w}-${s.rival.l} OVR ${overall(s.world.players.R1.attrs)} ${s.world.players.R1.tier} · Mom ${JSON.stringify(momHist)} XP ${p.xpTotal} Lv ${p.level ?? "-"} Pkt ${p.pointsEarned} · Ø-Ziel ${targetAverage(p.attrs).toFixed(1)} OVR ${overall(p.attrs)} [${Object.values(p.attrs).join('/')}] ERF ${p.exp} · Status ${p.tour}${p.cardUntil ? ' bis ' + p.cardUntil : ''} · Preisgeld ${Math.round(s.finance.prizeTotal - m0)} € · Konto ${Math.round(s.finance.balance)} € · CT-Rang ${p.qschoolYear === y0 ? rankOf(s, 'challenge', 'P', y0) ?? '-' : '-'} · PDC-Rang ${p.tour === 'tour' ? rankOf(s, 'pdc', 'P', s.date.year) : '-'}`);
 }

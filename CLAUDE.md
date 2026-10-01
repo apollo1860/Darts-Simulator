@@ -41,6 +41,7 @@ js/history.js         Statistik-Archiv: Saisonbilanzen, Titel, Bestergebnisse, H
 js/news.js            Nachrichten-Feed
 js/staff.js           Team: Manager (Provision in finance.book, Sponsor-/Gagen-Boni, Exhibition-Einladungen), Trainer (1 Jahr, XP-Faktor)
 js/form.js            Bühne (Erfahrung zählt in Majors/gegen Top 16) + Selbstvertrauen/Momentum
+js/rival.js           Rivale: Erzeugung, gezielt in lokale/DDV/WDF-Felder, Duelle/Bilanz, hält mit (Jahresende)
 js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP + Clutch)
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
@@ -48,7 +49,7 @@ js/ui/boardSvg.js     Dartscheibe als SVG (matchUI + Matchdart-Anzeige in watch)
 js/ui/interview.js    Interview-Minispiel (Panel im Turnier-Screen und Hub)
 js/ui/level.js        Level-Balken (animiert, Hub + Turnierende) und Level-Up-Fenster (afterMount im Router)
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
-                      stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), sponsors, settings, careerEnd, training
+                      stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), rival, sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
@@ -70,7 +71,7 @@ version, slot, savedAt, rng:{s}, date:{year, week}
 player: {id:'P', name, nation, region (Bundesland), hand, age, attrs:{sco,fin,men,foc,cal}, exp, clutch, level (1–100), xp (Rest im Level), xpTotal, pointsEarned, points,
          tour:'none'|'tour', cardUntil (letzte gültige Saison), qschoolYear (→ CT/Dev-Berechtigung), avgReal, everTourcard}
 world:  {version:3, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,cardVia,attrs,exp}}}   cardVia = Herkunft der Karte (auch player.cardVia)   tier: tour|challenge|dev|ddv|local
-        IDs: T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, V=DDV-Pool (63), L=lokal, G=generierte Talente
+        IDs: R1=Rivale (rival:true), T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, V=DDV-Pool (63), L=lokal, G=generierte Talente
 rankings:{seeded, years:{[year]:{challenge|dev|pdc|protour|eto|ws:{[id]:€}}}}   (2025/2026 = Startwerte PDC; eto/ws versteckt)
 qual:   {[year]:{[eventId]:[Feld], wmAuto, wmqSurvivors, wcTeams}}   Felder ab Event-Woche fixiert
 pl:     {[year]:{players:[8], points, legs, nights}}
@@ -85,6 +86,7 @@ news:[{year,week,type,title,text}], results:[{year,week,eventId,name,cat,place,p
 stats:  {career:{...}, seasons:{[year]:{...}}}
 training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.activity = train|rest|sponsor|exhibition, week.trained = Attribut
 player.levelSeen (zuletzt gefeiertes Level), player.fatigue 0–100, player.momentum −10…10, player.prep {key,bonus,weeks}, state.lastTrained;  live.route = {start, darts} (gewählter Checkout-Weg), live.coDec = {left, asked}
+rival:{id,w,l,meetings:[{year,week,event,round,won,score}]}
 staff:{manager:{…,cut,since,paid}|null, coach:{…,xp,until}|null, gigs:[{id,kind,city,fee,until}]}, interview:{event,place,tiles,seq}|null
 sponsors:{active:[{name,slot,type,amount,years,start,until,paid}], offers:[{…,expires}], total}, ended:bool
 archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pdc|challenge|dev:{rank,year,week}}}
@@ -137,6 +139,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - **Bühne** (`form.js`): in Majors/WS/PL (Faktor 1, ab Viertelfinale 1,5) und gegen PDC-Top-16 (0,7) zählt Erfahrung: ±0,5 × Faktor je Stufe über/unter +3 auf Scoring, Finishing, Mental (beide Seiten, in `attrsOf`). Anzeige „🎭“ im DartConnect.
 - **Selbstvertrauen** (`player.momentum` −10…10): Sieg +1 (gegen Stärkere/Top 16 +1,5), Niederlage −1 (gegen Schwächere −1,5, gegen Stärkere −0,4), lokal ×¼; Titel (nicht lokal) +3; wöchentlich −20 % und 0,3 (negativ 0,6) Richtung 0. Ab ±3: ±1,5/±3/±4 auf Scoring, Finishing, Fokus (`perf`). Anzeige im Hub-Kopf, Profil, DartConnect (🔥/🥶).
 - **Interviews** nach Majors (außer WM-Quali), PL-Play-offs, WS-Finals: Chance Sieg 100 %, Finale 80 %, HF 60 %, VF 40 %, sonst 25 %. 25 Floskeln im 5×5-Raster, 4–5 (Sieg 6) leuchten nacheinander grün auf, dann in Reihenfolge antippen; richtig → XP (12 % Level-Bedarf × Länge/5, mind. 30, × Trainer) + 3 Clutch je Floskel; ein Fehler beendet es. Anfrage verfällt nach der Woche.
+- **Rivale** (`rival.js`): beim Karrierestart ein gleichaltriges Talent gleicher Nation (Name aus Namenspool), Stärke ≈ dein Gesamtwert (+0–1,5 Ø), Tier Dev/Challenge wie alle ohne Karte (spielt CT/Dev/Q-School im Hintergrund, kann Karten gewinnen, hört nie wegen Pool-Grenze auf). Kommt gezielt ins Feld: lokal 40 %, DDV 80 %, WDF 50 % (nur ohne Karte). Duell → Bilanz, News, Selbstvertrauen +1 (Sieg) / −0,5 (Niederlage) zusätzlich; Banner „⚔️ Rivalen-Duell“ im DartConnect. Titel/Tourcard des Rivalen → News. Jahresende: zieht 50 % Richtung deines Niveaus (Ø aus Gesamtwert) ± Zufall + Saisonduell-News. Screen 'rival' (Vergleich, Duelle), Hub-Kachel.
 - **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM, Premier-League-Tabelle.
 - **Sponsoren (Phase 6 umgesetzt)**: erst nach erster Tourcard. 4 Plätze (Darts-Ausrüster, Trikot, Getränk, Partner), je einer aktiv. Angebote alle 4 Wochen (60 %, max. 3 offen, 6 Wochen gültig). Marktwert = 250.000 € · PDC-Rang^−1,1 (+2 % je Titel, 600–400.000 €). Typen: Jahresgehalt (quartalsweise KW 1/14/27/40, erste Rate bei Unterschrift), Antrittsgeld je Profi-Turnier, Erfolgsbonus ab Halbfinale (Titel ×3). Laufzeit 1–3 Jahre (Top 16 bis 3, Top 64 bis 2), Sponsorstufe nach Rang. Kündigung jederzeit ohne Kosten.
 

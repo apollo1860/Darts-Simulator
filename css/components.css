@@ -599,3 +599,11 @@
   filter: drop-shadow(0 0 18px rgba(34, 228, 255, .7)); animation: lvlup-pop .7s cubic-bezier(.2, 1.6, .4, 1) both; }
 @keyframes lvlup-pop { from { transform: scale(.3); opacity: 0; } }
 .tag-wdf { color: #7fe3ff; background: rgba(0, 0, 0, .25); border-color: #1e88e5; }
+/* Rivale */
+.rival-head { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; margin-bottom: 12px; }
+.rival-head .fut-card { margin: 0 auto; zoom: .72; }
+@media (min-width: 600px) { .rival-head .fut-card { zoom: 1; } }
+.rival-vs { text-align: center; }
+.rival-score { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 2.6rem; line-height: 1; color: var(--gold); }
+.rival-score span { color: var(--muted, #8aa); margin: 0 4px; }
+.rival-cmp td { padding: 6px 8px; }

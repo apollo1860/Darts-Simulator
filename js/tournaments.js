@@ -23,6 +23,7 @@ import { addEventFatigue } from './training.js';
 import { trackTitle, recordChampion } from './history.js';
 import { xpMult } from './staff.js';
 import { maybeInterview } from './interviews.js';
+import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -125,17 +126,20 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return [...seeds, ...rng.shuffle([...(ctx.qualifiers ?? [])])];
   }
   if (ev.cat === 'local') {
-    const pool = rng.shuffle(playersOfTier(state, 'local').map(p => p.id)).slice(0, FORMATS.local.field - (withPlayer ? 1 : 0));
+    let pool = rng.shuffle(playersOfTier(state, 'local').map(p => p.id)).slice(0, FORMATS.local.field - (withPlayer ? 1 : 0));
+    if (withPlayer) pool = addRivalToField(state, 'local', pool, rng);
     return rng.shuffle(withPlayer ? ['P', ...pool] : pool);
   }
   let ids;
   if (ev.cat === 'wdf') {                    // offene Auslosung: Spieler ohne Karte + DDV-Pool, keine Setzliste
     const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'ddv')].map(p => p.id));
     ids = pool.slice(0, (ev.field ?? FORMATS.wdf.field) - (withPlayer ? 1 : 0));
+    if (withPlayer) ids = addRivalToField(state, 'wdf', ids, rng);
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'ddv') {
     ids = playersOfTier(state, 'ddv').map(p => p.id).slice(0, FORMATS.ddv.field - (withPlayer ? 1 : 0));
+    if (withPlayer) ids = addRivalToField(state, 'ddv', ids, rng);
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'qschool') {
@@ -362,8 +366,9 @@ function recordPlayerMatch(state, inst, m, res) {
   const cp = Math.round((2 + (decider ? 3 : 0) + (decider && won ? 3 : 0)) * f);
   inst.clutch = (inst.clutch ?? 0) + cp;
   const up = addClutch(state.player, cp);
-  // Selbstvertrauen
+  // Selbstvertrauen (+ Rivalen-Duell)
   const oppId = me === 0 ? m.b : m.a;
+  if (isRival(state, oppId)) rivalMeeting(state, inst, won, `${sc[me]}:${sc[1 - me]}`);
   const step = updateMomentum(state.player, { won, opp: inst.teams?.[oppId] ?? getPlayer(state, oppId), cat: inst.cat, big: inst.big?.includes(oppId) });
   if (step) addNews(state, 'xp', `${step.icon || '😐'} Selbstvertrauen: ${step.label}`, step.bonus > 0 ? `Du bist im Flow: +${step.bonus} auf Scoring, Finishing und Fokus.`
     : step.bonus < 0 ? `Die Zweifel nagen: ${step.bonus} auf Scoring, Finishing und Fokus. Siege helfen raus.` : 'Dein Selbstvertrauen ist wieder im Normalbereich.');
@@ -451,7 +456,10 @@ function settle(state, inst) {
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
-  if (survivors.length === 1 && !inst.isQualifier && !inst.cards && inst.cat !== 'local' && inst.fmt !== 'pln') recordChampion(state, inst, survivors[0]);
+  if (survivors.length === 1 && !inst.isQualifier && !inst.cards && inst.cat !== 'local' && inst.fmt !== 'pln') {
+    recordChampion(state, inst, survivors[0]);
+    rivalTitle(state, inst, survivors[0]);
+  }
   if (inst.fmt === 'pln') scorePlNight(state, inst);
   if (inst.cards) {                                          // Q-School: Tourcards
     for (const id of survivors) awardCard(state, id, year + 1, `${inst.baseName} ${year}`);
@@ -466,7 +474,7 @@ export function awardCard(state, id, until, via) {
     addNews(state, 'result', '🎉 TOURCARD GEWONNEN!', `Über ${via} – gültig bis Ende ${until}. Ab ${state.date.week >= 50 ? state.date.year + 1 : 'sofort'} spielst du auf der PDC Pro Tour (ab Phase 4 spielbar).`);
   } else {
     const p = state.world.players[id];
-    if (p) { p.tier = 'tour'; p.cardUntil = until; p.cardVia = via; }
+    if (p) { p.tier = 'tour'; p.cardUntil = until; p.cardVia = via; rivalCard(state, id, until); }
   }
 }
 

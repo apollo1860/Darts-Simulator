@@ -10,6 +10,7 @@ import { liveDartStep, oppMatchDartVisit } from '../js/tournaments.js';
 import * as ST from '../js/staff.js';
 import * as FO from '../js/form.js';
 import * as IV from '../js/interviews.js';
+import * as RV from '../js/rival.js';
 import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
@@ -46,7 +47,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63);
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63 + 1);   // + Rivale
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -601,6 +602,30 @@ test('WDF-Opens: nur ohne Karte, Reise 400/1.000 €, Preisgeld, kompletter Abla
   const boosts = new Set();
   for (let i = 0; i < 12; i++) { const t = newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 60 + i }); t.date.week = 6; enterEvent(t, 'wdf-dutch'); boosts.add(t.activeEvent.xpBoost); }
   assert.ok(boosts.size >= 3);                                                                      // Boost zufällig
+});
+
+test('Rivale: gleich alt, ähnliche Stärke, Duelle, Bilanz, hält mit, Migration', () => {
+  const s = newCareer({ name: 'R', nation: 'DE', hand: 'R', seed: 71, bonus: { sco: 25 } });
+  const r = RV.rivalOf(s);
+  assert.ok(r && r.age === 16 && r.nation === 'DE' && r.tier === 'dev' && r.name !== 'R');
+  assert.ok(Math.abs(overall(r.attrs) - overall(s.player.attrs)) <= 6, `${overall(r.attrs)} vs ${overall(s.player.attrs)}`);
+  let met = 0, inField = 0;
+  for (let w = 0; w < 30; w++) {
+    const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local');
+    if (e) { enterEvent(s, e.id); if (s.activeEvent.rounds[0].matches.some(m => m.a === r.id || m.b === r.id)) inField++; simulateRest(s); closeEvent(s); }
+    nextWeek(s);
+  }
+  met = s.rival.w + s.rival.l;
+  assert.ok(inField >= 6 && inField <= 20, 'im Feld ' + inField);
+  assert.equal(s.rival.meetings.length, met);
+  if (met) assert.ok(s.news.some(n => n.title.includes('Rivale')));
+  // Jahresende: Rivale zieht Richtung Spielerniveau
+  s.player.attrs = { sco: 90, fin: 90, men: 90, foc: 90, cal: 90 };
+  const before = r.avg;
+  RV.rivalYearEnd(s, new RNG(3), 2027);
+  assert.ok(r.avg > before + 4, `${before} → ${r.avg}`);
+  const old = JSON.parse(JSON.stringify(s)); delete old.rival; delete old.world.players.R1; old.version = 9;
+  migrate(old); assert.ok(old.rival && RV.rivalOf(old));
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

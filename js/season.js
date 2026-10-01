@@ -10,6 +10,7 @@ import { plTable, plState } from './majors.js';
 import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
 import { staffWeek } from './staff.js';
 import { interviewWeekEnd } from './interviews.js';
+import { rivalYearEnd } from './rival.js';
 import { recordHistory, trackPeak } from './history.js';
 import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
 import { eventStatus } from './tournaments.js';
@@ -101,6 +102,7 @@ export function yearEnd(state) {
   }
   // 3) KI-Welt entwickelt sich weiter
   const dev = developWorld(state, rng, y);
+  rivalYearEnd(state, rng, y);
   addNews(state, 'info', `Saisonbilanz ${y}`,
     `Neue Tourcards: ${lines.join(', ') || '–'}. Karte verloren: ${lost.length} Spieler. Rücktritte: ${dev.retired.length}${dev.retired.length ? ` (u. a. ${dev.retired.slice(0, 3).join(', ')})` : ''}. Neue Talente: ${dev.talents.length}.`);
 }

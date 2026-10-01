@@ -85,7 +85,7 @@ export function upgradeWorld(world, rng) {
   world.version = WORLD_VERSION;
 }
 
-function changeStrength(p, delta) {
+export function changeStrength(p, delta) {
   const before = p.attrs.sco;
   p.avg = clamp(Math.round((p.avg + delta) * 10) / 10, 30, 108);
   const d = ratingForAvgExact(p.avg) - before;
@@ -125,7 +125,7 @@ export function developWorld(state, rng, year) {
   while ((report.talents.length < 12 || devNext() < 90) && report.talents.length < 40) report.talents.push(newTalent(state, rng, year).name);
   // Pool ohne Karte auf 200 begrenzen: die schwächsten Challenge-Spieler ab 26 hören auf
   const pool = nonCardPros(state);
-  if (pool.length > POOL_MAX) pool.filter(p => p.age >= 26).sort((x, y) => x.avg - y.avg)
+  if (pool.length > POOL_MAX) pool.filter(p => p.age >= 26 && !p.rival).sort((x, y) => x.avg - y.avg)
     .slice(0, pool.length - POOL_MAX).forEach(p => { p.tier = 'retired'; report.quit = (report.quit ?? 0) + 1; });
   return report;
 }
