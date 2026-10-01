@@ -1,6 +1,6 @@
 // Order of Merits (DOM-frei). Preisgeld wird je Jahr/Typ/Spieler aggregiert:
 // state.rankings.years[year][type][id] = Betrag
-import { playersOfTier, nonCardPros } from './world.js';
+import { playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
 import { overall } from './player.js';
 
 export const OOM_TYPES = {
@@ -27,10 +27,15 @@ function members(state, type, year) {
     if (p.tour === 'tour') list.push(p);
     return list;
   }
-  const list = type === 'dev' ? playersOfTier(state, 'dev') : nonCardPros(state);
-  const eligible = p.tour !== 'tour' && p.qschoolYear === year && (type !== 'dev' || p.age <= 23);
+  const list = type === 'dev' ? [...playersOfTier(state, 'dev'), ...devHolders(state, year)] : nonCardPros(state);
+  const eligible = p.tour !== 'tour' && p.qschoolYear === year && (type !== 'dev' || p.age <= DEV_MAX_AGE);
   if (eligible) list.push(p);
   return list;
+}
+
+// Tourcard-Holder bis 23 außerhalb der PDC-Top-64 dürfen zusätzlich Dev Tour spielen (inkl. Spieler)
+export function devHolders(state, year = state.date.year) {
+  return orderOfMerit(state, 'pdc', year).filter(x => x.rank > 64 && x.p.age <= DEV_MAX_AGE).map(x => x.p);
 }
 
 export function moneyOf(state, type, id, year = state.date.year) {

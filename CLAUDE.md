@@ -44,7 +44,7 @@ js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
                       stats, news, rankings, sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
-data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 50, Dev 50, Lokal 50
+data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=127), Challenge 50, Dev 98 (Nutzerliste), Lokal 50
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
 data/regions.js       16 Bundesländer mit Städten (lokale Turniere)
 data/distractions.js  Störmoment-Situationen mit je 2 Optionen
@@ -105,7 +105,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - Challenge Tour: 12 Wochenenden × 2 Turniere, Feld = alle ohne Karte (Challenge+Dev) + Spieler, Setzliste nach CT-OOM, Freilose. Dev Tour analog nur ≤ 23. Youth-WM (KW 45) zählt nicht zur OOM.
   - KI-Events laufen im Hintergrund (season.nextWeek → simulateWeekAI), Preisgeld → OOM.
   - Jahresende: CT-OOM Top 2 + Dev-OOM Top 2 (ohne Karte, Preisgeld > 0) → Karte bis Jahr+2. Auslaufende Karten: PDC-OOM-Rang ≤ 64 → verlängert bis Jahr+2, sonst Verlust → Challenge. Danach developWorld: Stärke nach Alter (jung +, alt −), Ruhestand ab 45 (tier 'retired', bleibt für Historie), Pool ohne Karte wird mit Talenten (16–18 J.) auf 100 aufgefüllt. Neujahr: Alter +1, Dev ab 24 → Challenge.
-  - Tourcard-Holder nicht auf Challenge/Dev und umgekehrt.
+  - Tourcard-Holder nicht auf Challenge; Dev Tour nur Holder ≤ 23 außerhalb der PDC-Top-64 (`devHolders`, auch du – ohne Q-School-Pflicht). Dev-OOM-Karten gehen nur an Spieler ohne Karte.
 - **Pro Tour (Phase 4 umgesetzt)**, nur mit Tourcard:
   - Players Championships: 15 Doppel-Blöcke (30 Turniere), Feld = bis 128 Tour-Holder nach PDC-OOM, freie Auslosung, first to 6. Preisgeld 17.500 € Sieg … 1.150 € Letzte 64.
   - European Tour: 14 Events als 2-teiliger Block: Qualifikation (alle Holder außer PDC-Top-16, 128er-Baum bis 32 Überlebende, kein Preisgeld) → Hauptfeld 48 (Top 16 gesetzt mit Freilos, 32 Qualifikanten), first to 6, HF 7, F 8. Preisgeld 35.000 € … 1.500 € (Letzte 48). Spieler in den Top 16 → direkt Hauptfeld (Quali läuft im Hintergrund).

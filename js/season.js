@@ -2,7 +2,7 @@
 import { RNG } from './rng.js';
 import { advanceWeek, eventsInWeek } from './calendar.js';
 import { simulateWeekAI, awardCard } from './tournaments.js';
-import { orderOfMerit, OOM_TYPES, rankOf } from './rankings.js';
+import { orderOfMerit, OOM_TYPES, rankOf, devHolders } from './rankings.js';
 import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
 import { WEEKS_PER_YEAR } from './util.js';
@@ -60,7 +60,8 @@ function weekNews(state, evs, ai) {
   }
   for (const type of ['challenge', 'dev']) {
     if (!evs.some(e => e.cat === type && !e.noOom && e.startsThisWeek)) continue;
-    const eligible = p.tour !== 'tour' && p.qschoolYear === y && (type !== 'dev' || p.age <= DEV_MAX_AGE);
+    const eligible = p.tour !== 'tour' ? p.qschoolYear === y && (type !== 'dev' || p.age <= DEV_MAX_AGE)
+      : type === 'dev' && devHolders(state, y).includes(p);
     const list = orderOfMerit(state, type, y);
     const lead = list[0];
     const r = eligible ? rankOf(state, type, 'P', y) : null;

@@ -14,7 +14,7 @@ import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek } from './calendar.js';
 import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace } from './bracket.js';
 import { MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare } from './majors.js';
-import { addMoney, orderOfMerit, rankOf } from './rankings.js';
+import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
 import { routeTarget } from './decisions.js';
@@ -36,8 +36,8 @@ export function eligibility(state, ev) {
       if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
       return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
     case 'dev':
-      if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
       if (p.age > DEV_MAX_AGE) return { ok: false, reason: 'Nur bis 23 Jahre' };
+      if (card) return devHolders(state, y).includes(p) ? { ok: true } : { ok: false, reason: 'Holder nur außerhalb der PDC-Top-64' };
       return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
     case 'et': return card ? { ok: true } : { ok: false, reason: 'Tourcard + Qualifikation nötig' };

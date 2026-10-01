@@ -5,7 +5,7 @@ import { overall } from '../js/player.js';
 import { eventsInWeek } from '../js/calendar.js';
 import { nextWeek, jumpToNextEvent } from '../js/season.js';
 import { perf } from '../js/player.js';
-import { orderOfMerit } from '../js/rankings.js';
+import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
 import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub, simulateRoundAI } from '../js/tournaments.js';
 import { eventCost } from '../js/finance.js';
@@ -40,10 +40,14 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 127 + 50 + 50 + 50 + 63);
+  assert.equal(Object.keys(s.world.players).length, 127 + 50 + 98 + 50 + 63);
   // Start 2027: 63 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 100 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 100);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
+  // Holder ≤ 23 außerhalb der PDC-Top-64 spielen zusätzlich Dev Tour
+  const devIds = new Set(orderOfMerit(s, 'dev').map(x => x.p.id));
+  const holders = playersOfTier(s, 'tour').filter(p => devIds.has(p.id));
+  assert.ok(holders.length >= 5 && holders.every(p => p.age <= 23 && rankOf(s, 'pdc', p.id) > 64));
 });
 
 test('Kosten', () => {
