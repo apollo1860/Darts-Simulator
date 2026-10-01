@@ -9,6 +9,7 @@ import { clamp, fmtEUR } from './util.js';
 import { book } from './finance.js';
 import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
 import { marketValue } from './sponsors.js';
+import { xpMult } from './staff.js';
 
 export const DECAY_AFTER = 4;           // Wochen ohne Training bis zum ersten Risiko
 export const PREP_BONUS = 3, PREP_WEEKS = 2;   // Turniervorbereitung: +3 auf das trainierte Attribut (diese + nächste Woche)
@@ -30,17 +31,18 @@ export function train(state, key) {
   const need = sessionsFor(v);
   const quality = rng.pick([0.7, 1, 1, 1, 1.3]);              // Tagesform im Training
   const labels = { 0.7: 'Zähe Einheit', 1: 'Solides Training', 1.3: 'Starke Einheit' };
-  t.progress[key] = (t.progress[key] ?? 0) + quality / need;
+  const boost = xpMult(state);                                 // Trainer: schnellerer Fortschritt
+  t.progress[key] = (t.progress[key] ?? 0) + quality * boost / need;
   let up = false;
   if (t.progress[key] >= 1 && v < 100) { p.attrs[key] = v + 1; t.progress[key] -= 1; up = true; }
   state.week.trained = key; state.week.activity = 'train'; state.lastTrained = key;
   t.idle = 0; t.sessions++;
   p.prep = { key, bonus: PREP_BONUS, weeks: PREP_WEEKS };
-  const xp = trainingXp(p, quality), ups = addXp(p, xp);
+  const xp = Math.round(trainingXp(p, quality) * boost), ups = addXp(p, xp);
   const label = ATTRS.find(a => a.key === key).label;
   if (up) addNews(state, 'xp', `Training: ${label} steigt auf ${p.attrs[key]}`, 'Regelmäßiges Training zahlt sich aus.');
   if (ups) addNews(state, 'xp', `⬆️ Level ${p.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Durch Training aufgestiegen – verteile die Punkte im Spielerprofil.');
-  return { gain: quality / need, up, text: labels[quality], progress: clamp(t.progress[key], 0, 1), need, xp, ups };
+  return { gain: quality * boost / need, up, text: labels[quality], progress: clamp(t.progress[key], 0, 1), need, xp, ups };
 }
 
 // Am Wochenende (vor dem Wechsel): Trainingspause zählen, ggf. Formverlust
@@ -83,8 +85,8 @@ export function canDo(state, type) {
 // Geldbetrag eines Sponsortermins bzw. einer Exhibition (für Anzeige + Auszahlung)
 export const sponsorGigValue = state => state.sponsors.active.reduce((sum, c) =>
   sum + Math.max(150, Math.round((c.type === 'annual' ? c.amount * 0.04 : c.type === 'event' ? c.amount * 0.6 : c.amount * 0.3) / 10) * 10), 0);
-export const exhibitionValue = state => (state.player.tour === 'tour'
-  ? Math.round((500 + marketValue(state) * 0.02) / 50) * 50 : 200);
+export const exhibitionValue = state => Math.round((state.player.tour === 'tour'
+  ? (500 + marketValue(state) * 0.02) : 200) * (state.staff?.manager?.gigFee ?? 1) / 50) * 50;
 
 export function doActivity(state, type) {
   const st = canDo(state, type);
@@ -105,7 +107,7 @@ export function doActivity(state, type) {
   if (type === 'exhibition') {
     const v = Math.round(exhibitionValue(state) * rng.float(0.8, 1.2) / 10) * 10;
     book(state, v, 'Exhibition', 'prize');
-    const xp = exhibitionXp(p), ups = addXp(p, xp); addClutch(p, 3);
+    const xp = Math.round(exhibitionXp(p) * xpMult(state)), ups = addXp(p, xp); addClutch(p, 3);
     p.fatigue = Math.min(100, p.fatigue + 20);
     return { ok: true, text: `Showkampf vor Publikum: ${fmtEUR(v)}, +${xp} XP${ups ? ` – Level ${p.level}!` : ''}. Ermüdung jetzt ${p.fatigue} %.` };
   }

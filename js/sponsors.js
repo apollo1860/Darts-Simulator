@@ -33,7 +33,7 @@ function makeOffer(state, rng) {
   const sp = rng.pick(pool);
   const type = rng.pick(['annual', 'annual', 'event', 'bonus']);
   const years = rng.int(1, maxTier);
-  const v = value * rng.float(0.7, 1.3) * (0.7 + sp.tier * 0.15);
+  const v = value * rng.float(0.7, 1.3) * (0.7 + sp.tier * 0.15) * (state.staff?.manager?.amount ?? 1);
   const offer = { id: `S${y}-${state.date.week}-${rng.int(100, 999)}`, name: sp.name, slot: sp.slot, type, years,
     expires: { year: y, week: state.date.week + OFFER_WEEKS } };
   if (type === 'annual') offer.amount = round50(v);
@@ -56,9 +56,10 @@ export function sponsorWeek(state) {
   if ([1, 14, 27, 40].includes(week)) {
     for (const c of s.active.filter(c => c.type === 'annual')) pay(state, c, Math.round(c.amount / 4), 'Quartalsrate');
   }
-  if (week % 4 === 0 && s.offers.length < 3) {
+  const m = state.staff?.manager;
+  if (week % 4 === 0 && s.offers.length < (m?.maxOffers ?? 3)) {
     const rng = new RNG(state.rng);
-    const n = rng.chance(0.6) ? 1 : 0;
+    const n = rng.chance(m?.offer ?? 0.6) ? (m?.tier === 3 && rng.chance(0.4) ? 2 : 1) : 0;
     for (let i = 0; i < n; i++) {
       const o = makeOffer(state, rng);
       if (!o) break;

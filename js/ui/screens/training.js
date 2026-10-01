@@ -3,6 +3,7 @@ import { esc, fmtPct, fmtEUR } from '../../util.js';
 import { ATTRS } from '../../player.js';
 import { train, trainingOf, sessionsFor, DECAY_AFTER, ACTIVITIES, canDo, doActivity, weekActivity, sponsorGigValue, exhibitionValue, trainingXp, exhibitionXp, PREP_BONUS } from '../../training.js';
 import { topbar, modal } from '../components.js';
+import { staffOf, acceptGig, declineGig } from '../../staff.js';
 
 export function fatigueBar(p) {
   const f = p.fatigue ?? 0;
@@ -17,6 +18,17 @@ export function prepLine(p) {
   if (!p.prep) return '<span class="muted">Keine Turniervorbereitung aktiv.</span>';
   const a = ATTRS.find(x => x.key === p.prep.key);
   return `<b class="gold">🎯 Vorbereitung aktiv: ${esc(a.label)} +${p.prep.bonus}</b> <span class="muted">(${p.prep.weeks > 1 ? 'diese und nächste Woche' : 'noch diese Woche'})</span>`;
+}
+
+// Exhibition-Einladungen vom Manager (zusätzlich zum Wochenplan, nur Klick-Event)
+function gigs(s) {
+  const g = staffOf(s).gigs ?? [];
+  if (!g.length) return '';
+  return `<div class="section-title"><span class="label">🎪 Einladungen vom Manager</span></div>
+  <div class="stack" style="margin-bottom:12px">${g.map(x => `<div class="panel row-between">
+    <div><b>${esc(x.kind)}</b> · ${esc(x.city)}<div class="muted" style="font-size:.8rem">Gage ${fmtEUR(x.fee)} (vor Provision) · Ermüdung +15 · gültig bis KW ${x.until.week}</div></div>
+    <div class="row" style="gap:6px"><button class="btn btn-sm btn-primary" data-gig="${x.id}">Annehmen</button><button class="btn btn-sm btn-ghost" data-nogig="${x.id}">✕</button></div>
+  </div>`).join('')}</div>`;
 }
 
 export function render(app) {
@@ -37,6 +49,7 @@ export function render(app) {
     ${t.idle && act !== 'train' ? `<div class="${warn ? 'neg' : 'muted'}" style="font-size:.82rem;margin-top:4px">${t.idle} Woche${t.idle > 1 ? 'n' : ''} ohne Training – ab ${DECAY_AFTER} Wochen droht Formverlust.</div>` : ''}
   </div>
   <div class="panel" style="margin-bottom:12px">${fatigueBar(p)}</div>
+  ${gigs(s)}
   <div class="section-title"><span class="label">🏋️ Training</span></div>
   <div class="panel" style="margin-bottom:10px;font-size:.84rem">
     ${prepLine(p)}
@@ -72,6 +85,13 @@ export function mount(root, app) {
       `${r.up ? `Durchbruch – ${esc(label)} steigt auf <b>${app.state.player.attrs[b.dataset.train]}</b>.` : `${esc(label)}: Fortschritt jetzt ${fmtPct(r.progress, 0)} (${r.need} Einheiten für +1).`}
       <br><b class="cyan">+${r.xp} XP</b>${r.ups ? ` – <b class="gold">Level ${app.state.player.level}!</b>` : ''} · <b class="gold">${esc(label)} +${PREP_BONUS}</b> für Turniere dieser und nächster Woche.`);
   });
+  root.querySelectorAll('[data-gig]').forEach(b => b.onclick = () => {
+    const r = acceptGig(app.state, b.dataset.gig);
+    if (!r) return;
+    app.save();
+    done('🎪 Exhibition', `${esc(r.text)}${r.ups ? ` <b class="gold">Level ${app.state.player.level}!</b>` : ''}`);
+  });
+  root.querySelectorAll('[data-nogig]').forEach(b => b.onclick = () => { declineGig(app.state, b.dataset.nogig); app.save(); app.refresh(); });
   root.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
     const r = doActivity(app.state, b.dataset.act);
     if (!r.ok) return;

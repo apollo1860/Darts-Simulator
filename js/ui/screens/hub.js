@@ -2,6 +2,7 @@
 import { esc, fmtEUR, weekLabel, fmtNum } from '../../util.js';
 import { flag } from '../../../data/nations.js';
 import { overall, ATTRS } from '../../player.js';
+import { staffOf, coachActive } from '../../staff.js';
 import { eventsInWeek } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
 import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER } from '../../training.js';
@@ -68,6 +69,12 @@ function trainingTile(s) {
   return tile('training', '📋', 'Wochenplan', `${sub}<br>Ermüdung ${f} %${f > 30 ? ' ⚠' : ''}${prep}`, badge);
 }
 
+function teamTile(s) {
+  const st = staffOf(s), c = coachActive(s);
+  const sub = [st.manager ? `👔 ${st.manager.name.split(' ')[0]}` : 'Kein Manager', c ? `🧑‍🏫 +${Math.round(c.xp * 100)} % XP` : 'Kein Trainer'].join(' · ');
+  return tile('team', '👥', 'Team', sub, st.gigs?.length ? `<span class="badge">${st.gigs.length}</span>` : '');
+}
+
 export function render(app) {
   const s = app.state, p = s.player;
   const unread = unreadCount(s);
@@ -88,6 +95,7 @@ export function render(app) {
       p.points ? `<span class="badge badge-green">+${p.points}</span>` : '')}
     ${tile('rankings', '🏆', 'Ranglisten', oomLine(s))}
     ${tile('tour', '🎫', 'Tour & Titel', `${playersOfTier(s, 'tour').length + (p.tour === 'tour' ? 1 : 0)} Holder · Titelträger`)}
+    ${teamTile(s)}
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}
     ${tile('news', '📰', 'Neuigkeiten', esc(lastNews?.title ?? 'Keine Meldungen'), unread ? `<span class="badge">${unread}</span>` : '')}
     ${tile('stats', '📊', 'Statistiken', `${s.stats.career.wins}–${s.stats.career.matches - s.stats.career.wins} · ${s.stats.career.titles} Titel`)}

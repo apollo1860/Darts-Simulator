@@ -20,6 +20,7 @@ import { sponsorEventPayout } from './sponsors.js';
 import { routeTarget } from './decisions.js';
 import { addEventFatigue } from './training.js';
 import { trackTitle, recordChampion } from './history.js';
+import { xpMult } from './staff.js';
 
 export const IMPLEMENTED_PHASE = 5;
 export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl'];   // laufen ohne Spieler im Hintergrund
@@ -294,7 +295,7 @@ function applyResult(m, res) {
 }
 
 function grantXp(state, xp) {
-  const ups = addXp(state.player, xp);
+  const ups = addXp(state.player, Math.round(xp * xpMult(state)));
   if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Verteile sie im Spielerprofil oder direkt nach dem Turnier.');
 }
 

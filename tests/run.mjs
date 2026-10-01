@@ -6,6 +6,8 @@ import { eventsInWeek } from '../js/calendar.js';
 import { nextWeek, jumpToNextEvent } from '../js/season.js';
 import { perf, xpForLevel, addXp, levelFromXp, MAX_LEVEL } from '../js/player.js';
 import { migrate } from '../js/state.js';
+import * as ST from '../js/staff.js';
+import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros } from '../js/world.js';
 import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub, simulateRoundAI } from '../js/tournaments.js';
@@ -478,6 +480,26 @@ test('Training: XP + Turniervorbereitung (+3, 2 Wochen), schwächerer Formverlus
   nextWeek(s); assert.equal(p.prep, undefined); assert.equal(perf(p).fin, p.attrs.fin);
   p.level = 30; assert.ok(TR.trainingXp(p) > 40);                   // wächst mit dem Level
   assert.equal(TR.DECAY_AFTER, 4);
+});
+
+test('Team: Manager-Provision, Sponsor-/Exhibition-Boni, Trainer 1 Jahr', () => {
+  const s = newCareer({ name: 'T', nation: 'DE', hand: 'R', seed: 12 });
+  assert.equal(ST.hireManager(s, 'm1'), false);                     // erst ab Tourcard
+  s.player.tour = 'tour'; s.player.cardUntil = 2028; s.player.everTourcard = true;
+  assert.equal(ST.hireManager(s, 'm3'), false);                     // Top 16 nötig
+  assert.ok(ST.hireManager(s, 'm1'));
+  const b0 = s.finance.balance;
+  book(s, 1000, 'Preisgeld Test', 'prize');
+  assert.equal(s.finance.balance, b0 + 900);                        // 10 % Provision
+  book(s, -50, 'Reise', 'travel'); assert.equal(s.finance.balance, b0 + 850);   // Ausgaben ohne Provision
+  let gigs = 0;
+  for (let i = 0; i < 30; i++) { nextWeek(s); gigs += ST.staffOf(s).gigs.length ? 1 : 0; const g = ST.staffOf(s).gigs[0]; if (g) assert.ok(ST.acceptGig(s, g.id).fee > 0); }
+  assert.ok(gigs >= 2, 'Einladungen ' + gigs);
+  s.finance.balance = 10000;
+  assert.ok(ST.hireCoach(s, 'c2')); assert.equal(s.finance.balance, 4000);
+  assert.equal(ST.xpMult(s), 1.2); assert.equal(ST.hireCoach(s, 'c1'), false);   // nur einer gleichzeitig
+  for (let i = 0; i < 52; i++) nextWeek(s);
+  assert.equal(ST.coachActive(s), null); assert.equal(ST.xpMult(s), 1);
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

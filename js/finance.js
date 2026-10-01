@@ -25,6 +25,12 @@ export function book(state, amount, text, cat) {
   const s = seasonFinance(state, state.date.year);
   if (amount >= 0) s.income += amount; else s.expenses += -amount;
   if (cat === 'prize') { s.prize += amount; state.finance.prizeTotal += amount; }
+  // Manager-Provision auf alle Einnahmen (Preisgeld, Sponsoren, Exhibitions)
+  const m = state.staff?.manager;
+  if (m && amount > 0 && (cat === 'prize' || cat === 'sponsor')) {
+    const c = Math.round(amount * m.cut);
+    if (c) { m.paid = (m.paid ?? 0) + c; book(state, -c, `Provision ${m.name} (${Math.round(m.cut * 100)} %)`, 'staff'); }
+  }
 }
 
 export function seasonFinance(state, year) {
