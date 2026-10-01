@@ -109,12 +109,13 @@ function computeField(state, ev) {
       const q = qualOf(state);
       wmAuto(state).forEach(id => used.add(id));
       const quali = take(q.wmqSurvivors ?? pdc.slice(80, 96), 16, used);
+      const qs = q.wmQsWinner ? take([q.wmQsWinner], 1, used) : [];          // Sieger WM-Qualifier (Q-School)
       const ct = take(idsOf(orderOfMerit(state, 'challenge')), 4, used);
       const dev = take(idsOf(orderOfMerit(state, 'dev')), 4, used);
       const p = state.player;
       const intl = [...playersOfTier(state, 'challenge', 'dev', 'ddv'), ...(p.tour !== 'tour' ? [p] : [])]
         .sort((a, b) => overall(b.attrs) - overall(a.attrs)).map(x => x.id);
-      return [...wmAuto(state), ...quali, ...ct, ...dev, ...take(intl, 128 - used.size, used)];
+      return [...wmAuto(state), ...quali, ...qs, ...ct, ...dev, ...take(intl, 128 - used.size, used)];
     }
     case 'pln': return rng.shuffle([...plState(state).players]);
     case 'plf': return plTable(state).slice(0, 4).map(x => x.id);

@@ -7,6 +7,7 @@ export const CATEGORIES = {
   ddv:       { label: 'DDV-Ranglistenturnier', short: 'DDV', phase: 1 },
   wdf:       { label: 'WDF Open', short: 'WDF', phase: 1 },
   hnq:       { label: 'Host-Nation-Qualifier', short: 'HNQ', phase: 1 },
+  wmqs:      { label: 'WM-Qualifier (Q-School)', short: 'WM-Q', phase: 1 },
   qschool:   { label: 'Q-School',          short: 'Q-SCHOOL', phase: 3 },
   challenge: { label: 'Challenge Tour',    short: 'CT', phase: 3 },
   dev:       { label: 'Development Tour',  short: 'DEV', phase: 3 },
@@ -94,6 +95,8 @@ export const CALENDAR = [
   { id: 'youth-wm', cat: 'dev', fmt: 'youth', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24 · zählt nicht zur Dev-OOM', noOom: true },
   { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '32 Spieler · Gruppenphase + K.-o.' },
   { id: 'pcf', cat: 'major', fmt: 'pcf', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG', note: 'Top 64 Pro Tour OOM' },
+  { id: 'wm-qs', cat: 'wmqs', name: 'WM-Qualifier (Q-School-Teilnehmer)', week: 46, city: 'Milton Keynes', country: 'ENG',
+    note: 'alle Q-School-Teilnehmer des Jahres ohne Tourcard · Sieger spielt die WM' },
   { id: 'wm-quali', cat: 'major', fmt: 'wmq', name: 'WM-Qualifikation', week: 49, city: 'Milton Keynes', country: 'ENG', noOom: true, note: 'Tourcard-Holder ohne WM-Platz · 16 Tickets' },
   { id: 'wm', cat: 'major', fmt: 'wm', name: 'Weltmeisterschaft', week: 51, weeks: 2, city: 'London', country: 'ENG', note: '128 Spieler · Sätze' },
   ...pcWeeks.map((w, i) => ({
@@ -137,6 +140,7 @@ export const LOCAL_CITIES = {
 export const FORMATS = {
   local: { field: 16, default: { legs: 3 } },          // immer best of 5 (first to 3), auch im Finale
   ddv: { field: 64, default: { legs: 4 }, byRemaining: { 4: { legs: 5 }, 2: { legs: 6 } } },
+  wmqs: { default: { legs: 5 }, byRemaining: { 4: { legs: 6 }, 2: { legs: 6 } } },
   hnq: { field: 64, default: { legs: 4 }, byRemaining: { 2: { legs: 5 } } },
   wdf: { field: 64, default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 6 } } },
   qschool: { default: { legs: 5 }, stopAt: 4, cards: true },

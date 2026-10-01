@@ -609,3 +609,5 @@
 .rival-cmp td { padding: 6px 8px; }
 .tile-action { display: inline-block; margin-top: 6px; padding: 3px 9px; border: 1px solid var(--cyan); border-radius: 999px; font-size: .74rem; font-weight: 700; color: var(--cyan); cursor: pointer; }
 .tile-action:hover { background: rgba(34, 228, 255, .12); }
+.tag-wmqs { color: #ff8a5e; background: rgba(0, 0, 0, .25); }
+.tag-hnq { color: #9be37f; background: rgba(0, 0, 0, .25); }

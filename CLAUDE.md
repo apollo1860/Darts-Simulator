@@ -132,6 +132,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
   - World Matchplay (KW 29) & World Grand Prix (KW 40, Sätze; Double-In vereinfacht weggelassen): Top 16 PDC + Top 16 Pro Tour.
   - European Championship (KW 42): Top 32 der ET-Wertung (Preisgeld ET-Hauptfelder). PC Finals (KW 48): Top 64 Pro Tour.
   - Grand Slam (KW 46): Top 16 PDC + 8 Pro Tour + Top 2 CT + Top 2 Dev + 4 Pro Tour; 4 Töpfe → 8 Gruppen à 4 (first to 5), Top 2 → Achtelfinale (A1–B2 …). G3/G4 Preisgeld.
+  - **WM-Qualifier Q-School** (`wm-qs`, Kategorie `wmqs`, KW 46): alle Q-School-Teilnehmer des Jahres ohne Tourcard (KI: Pool ohne Karte), K.-o. ohne Setzliste, first to 5, ab HF 6, kein Preisgeld; Sieger (`qual.wmQsWinner`) bekommt einen WM-Platz (vor den International-Plätzen). Läuft auch im Hintergrund.
   - WM-Quali (KW 49): Holder ohne direkten WM-Platz, 16 Tickets. WM (KW 51–52, Sätze): Top 40 PDC + 40 Pro Tour + 16 Quali + CT Top 4 + Dev Top 4 + 24 International (stärkste ohne Karte, auch du) = 128.
   - World Cup (KW 24): je Nation die 2 Besten (Tour + Challenge), Team-Werte = Durchschnitt, Preisgeld je Team (dein Anteil 50 %), keine OOM.
   - World Series (8 Events): Top 8 PDC + 8 Qualifikanten (PDC 9–64 zugelost); Finals: Top 24 WS-Wertung. Keine PDC-OOM.

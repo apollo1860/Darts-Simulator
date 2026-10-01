@@ -15,6 +15,7 @@ import * as RV from '../js/rival.js';
 import { book } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros, getPlayer } from '../js/world.js';
+import { majorField } from '../js/majors.js';
 import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent, playerMatch, nextSub, simulateRoundAI } from '../js/tournaments.js';
 import { eventCost } from '../js/finance.js';
 import { RNG } from '../js/rng.js';
@@ -672,6 +673,22 @@ test('Auswahl Turnieranzahl (CT) + Host-Nation-Qualifier → ET-Hauptfeld', () =
   assert.equal(s.activeEvent.sub, 1);                               // direkt Hauptfeld
   assert.ok(s.activeEvent.rounds[0].matches.some(m => m.a === 'P' || m.b === 'P'));
   assert.equal(s.activeEvent.fieldSize, 48);
+});
+
+test('WM-Qualifier (Q-School-Teilnehmer): KW 46, nur mit Q-School, Sieger in der WM', () => {
+  const s = newCareer({ name: 'Q', nation: 'DE', hand: 'R', seed: 93 });
+  s.date.week = 46;
+  const ev = eventsInWeek(s, 2027, 46).find(e => e.id === 'wm-qs');
+  assert.ok(ev);
+  assert.equal(eventStatus(s, ev).playable, false);                 // ohne Q-School
+  s.player.qschoolYear = 2027;
+  assert.ok(eventStatus(s, ev).playable);
+  s.week = { played: true, eventId: 'x' };
+  nextWeek(s);                                                      // läuft im Hintergrund
+  const w = s.qual[2027].wmQsWinner;
+  assert.ok(w && getPlayer(s, w).tier !== 'tour');
+  while (s.date.week < 51) nextWeek(s);
+  assert.ok(majorField(s, eventsInWeek(s, 2027, 51).find(e => e.id === 'wm'), false).includes(w));
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

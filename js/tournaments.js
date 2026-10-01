@@ -27,7 +27,7 @@ import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from '.
 import { stageFactor, applyStage, updateMomentum, titleMomentum } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
-export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl', 'wdf'];   // laufen ohne Spieler im Hintergrund
+export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs'];   // laufen ohne Spieler im Hintergrund
 
 // Inhaltliche Berechtigung
 export function eligibility(state, ev) {
@@ -36,6 +36,9 @@ export function eligibility(state, ev) {
   switch (ev.cat) {
     case 'local': return { ok: true };
     case 'ddv': case 'wdf': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
+    case 'wmqs':
+      if (card) return { ok: false, reason: 'Nur ohne Tourcard' };
+      return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Nur für Q-School-Teilnehmer' };
     case 'hnq':
       if (card) return { ok: false, reason: 'Nur ohne Tourcard' };
       return p.nation === ev.country ? { ok: true } : { ok: false, reason: `Nur Spieler aus ${ev.country}` };
@@ -134,6 +137,10 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(withPlayer ? ['P', ...pool] : pool);
   }
   let ids;
+  if (ev.cat === 'wmqs') {                   // alle Q-School-Teilnehmer ohne Karte (KI: Pool ohne Karte), keine Setzliste
+    ids = rng.shuffle(nonCardPros(state).map(p => p.id));
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
+  }
   if (ev.cat === 'hnq') {                    // Gastgebernation: Spieler ohne Karte, DDV/lokal – keine Setzliste
     const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local')].filter(p => p.nation === ev.country).map(p => p.id));
     ids = pool.slice(0, FORMATS.hnq.field - (withPlayer ? 1 : 0));
@@ -476,6 +483,12 @@ function settle(state, inst) {
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
+  if (inst.cat === 'wmqs') {                                   // Q-School-WM-Qualifier: Sieger spielt die WM
+    qualOf(state).wmQsWinner = survivors[0];
+    const w = getPlayer(state, survivors[0]);
+    addNews(state, survivors[0] === 'P' ? 'result' : 'info', survivors[0] === 'P' ? '🎟️ Du spielst die Weltmeisterschaft!' : `WM-Qualifier: ${w?.name ?? '?'} löst das WM-Ticket`,
+      'Sieger des WM-Qualifiers der Q-School-Teilnehmer – Startplatz bei der WM im Dezember.');
+  }
   if (survivors.length === 1 && !inst.isQualifier && !inst.cards && inst.cat !== 'local' && inst.fmt !== 'pln') {
     recordChampion(state, inst, survivors[0]);
     rivalTitle(state, inst, survivors[0]);
