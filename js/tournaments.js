@@ -4,7 +4,8 @@ import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS } from '../data/tournaments.js'
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
-import { createMatch, throwDart, matchResult } from './matchState.js';
+import { createMatch, throwDart, matchResult, wouldWinMatch } from './matchState.js';
+import { BOGEY } from './board.js';
 import { aiDart, aiSigma } from './throwModel.js';
 import { eventCost, canAfford, book } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
@@ -259,6 +260,25 @@ export function liveAiVisit(state) {
   if (mine) live.route = null;
   tickMods(inst.live, side);
   return ev;
+}
+
+// Ein einzelner Dart im Live-Match (für die Scheiben-Anzeige bei Gegner-Matchdarts)
+export function liveDartStep(state) {
+  const inst = state.activeEvent, pm = playerMatch(inst), live = inst.live, lm = live.m;
+  const side = lm.turn, a = attrsOf(state, side === 0 ? pm.a : pm.b), mine = side === live.me;
+  const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
+  const dart = aiDart(lm, side, a, new RNG(state.rng), aiSigma(a), modMult(live, side), forced);
+  const ev = throwDart(lm, dart.hit);
+  const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
+  if (visitOver) { if (mine) live.route = null; tickMods(live, side); }
+  return { ev, dart, side, visitOver };
+}
+// Gegner steht zu Beginn seiner Aufnahme auf einem Finish, das das Match beenden würde
+export function oppMatchDartVisit(state) {
+  const inst = state.activeEvent, live = inst?.live, lm = live?.m;
+  if (!lm || lm.done || lm.turn === live.me || lm.visit.darts.length) return false;
+  const r = lm.rem[lm.turn];
+  return wouldWinMatch(lm, lm.turn) && r <= 170 && !BOGEY.has(r);
 }
 
 // Temporäre Leistungs-Modifikatoren (Ablenkungen): Multiplikator auf die Streuung, gilt für n Aufnahmen

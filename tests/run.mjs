@@ -6,6 +6,7 @@ import { eventsInWeek } from '../js/calendar.js';
 import { nextWeek, jumpToNextEvent } from '../js/season.js';
 import { perf, xpForLevel, addXp, levelFromXp, MAX_LEVEL } from '../js/player.js';
 import { migrate } from '../js/state.js';
+import { liveDartStep, oppMatchDartVisit } from '../js/tournaments.js';
 import * as ST from '../js/staff.js';
 import * as FO from '../js/form.js';
 import { book } from '../js/finance.js';
@@ -522,6 +523,22 @@ test('Bühne: Erfahrung zählt in Majors/gegen große Namen; Selbstvertrauen', (
   for (let i = 0; i < 20; i++) FO.momentumDecay(p);
   assert.equal(p.momentum, 0);
   FO.updateMomentum(p, { won: true, opp: null, cat: 'local' }); assert.equal(p.momentum, 0.3);   // lokal zählt wenig
+});
+
+test('Gegner-Matchdarts: Erkennung + dartweiser Wurf', () => {
+  const s = newCareer({ name: 'T', nation: 'DE', hand: 'R', seed: 21 });
+  const ev = eventsInWeek(s, s.date.year, s.date.week).find(e => e.cat === 'local');
+  enterEvent(s, ev.id);
+  const live = startManualMatch(s), lm = live.m, op = 1 - live.me;
+  assert.equal(oppMatchDartVisit(s), false);                        // Start: kein Matchdart
+  lm.turn = op; lm.legs[op] = lm.format.legs - 1; lm.rem[op] = 40; lm.visit = { start: 40, darts: [] };
+  assert.ok(oppMatchDartVisit(s));
+  lm.rem[op] = 169; lm.visit.start = 169; assert.equal(oppMatchDartVisit(s), false);   // Bogey
+  lm.rem[op] = 40; lm.visit.start = 40;
+  let r, n = 0;
+  do { r = liveDartStep(s); n++; assert.ok(r.dart.target && Number.isFinite(r.dart.x)); } while (!r.visitOver);
+  assert.ok(n >= 1 && n <= 3);
+  assert.ok(lm.done || lm.turn === live.me);
 });
 
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {

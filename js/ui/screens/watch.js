@@ -4,7 +4,8 @@ import { esc, fmtNum } from '../../util.js';
 import { getPlayer } from '../../world.js';
 import { formatLabel } from '../../matchEngine.js';
 import { legAverage, liveAverage } from '../../matchState.js';
-import { playerMatch, startManualMatch, liveAiVisit, finishManualMatch, simulateLiveRest, nextRound } from '../../tournaments.js';
+import { playerMatch, startManualMatch, liveAiVisit, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, oppMatchDartVisit } from '../../tournaments.js';
+import { boardSvg, regionPath } from '../boardSvg.js';
 import { confirmDialog, modal } from '../components.js';
 import { planDistraction, distractionDue, describe, resolveDistraction } from '../../distractions.js';
 import { checkoutDecisionDue, chooseRoute } from '../../decisions.js';
@@ -26,6 +27,7 @@ export function render(app) {
       <div class="title"><h2>${esc(round.name)}</h2><div class="sub">${esc(inst.name)} · ${formatLabel(round.format)}</div></div>
     </header>
     <div class="dc" id="dc"></div>
+    <div class="dc-board hidden" id="dc-board"></div>
     <div class="watch-controls">
       <button class="btn btn-sm" id="w-pause">Pause</button>
       <button class="btn btn-sm btn-ghost" id="w-end">Sofort beenden</button>
@@ -39,7 +41,8 @@ export function mount(root, app) {
   planDistraction(s);
   app.save();
   const pm = playerMatch(s.activeEvent);
-  ui = { app, s, live, me: live.me, ids: [pm.a, pm.b], timer: 0, paused: false, showLast: false, el: root.querySelector('#dc') };
+  ui = { app, s, live, me: live.me, ids: [pm.a, pm.b], timer: 0, paused: false, showLast: false, el: root.querySelector('#dc'),
+    boardEl: root.querySelector('#dc-board'), board: null };
   root.querySelector('#w-pause').onclick = e => {
     ui.paused = !ui.paused;
     e.target.textContent = ui.paused ? 'Weiter' : 'Pause';
@@ -65,17 +68,61 @@ function schedule(ms) {
 function step() {
   if (!ui || ui.paused) return;
   const m = ui.live.m;
+  if (ui.board) return boardDart();
   if (m.done) return finish();
   ui.showLast = false;
   if (distractionDue(ui.s)) return askDistraction();
   const co = checkoutDecisionDue(ui.s);
   if (co) { ui.app.save(); return askCheckout(co); }
+  if (oppMatchDartVisit(ui.s)) return startBoard();
   const ev = liveAiVisit(ui.s);
   ui.app.save();
   if (ev?.legEnd) ui.showLast = true;   // abgeschlossenes Leg noch kurz zeigen
   draw(ev);
   if (m.done) { ui.timer = setTimeout(() => ui && finish(), VISIT_MS * 1.5); return; }
   schedule(ev?.legEnd ? VISIT_MS * 1.6 : VISIT_MS);
+}
+
+// ---- Gegner-Matchdarts: Wurf für Wurf auf der Scheibe ----
+const BOARD_DART_MS = 1100;
+function startBoard() {
+  const m = ui.live.m, op = m.turn, name = getPlayer(ui.s, ui.ids[op]).name;
+  ui.board = { side: op, start: m.rem[op], n: 0, lines: [] };
+  ui.boardEl.classList.remove('hidden');
+  ui.boardEl.innerHTML = `<div class="dc-bd-head">⚠️ MATCHDARTS · ${esc(shortName(name))} steht auf <b>${m.rem[op]}</b></div>
+    <div class="dc-bd-stage"><svg viewBox="-200 -200 400 400" aria-label="Dartscheibe">${boardSvg()}
+      <path class="target-region" id="bd-region" d=""/><g id="bd-marks"></g></svg>
+      <div class="board-banner" id="bd-banner"></div></div>
+    <div class="dc-bd-log" id="bd-log"></div>`;
+  schedule(900);
+}
+function boardDart() {
+  const b = ui.board, root = ui.boardEl;
+  const r = liveDartStep(ui.s);
+  ui.app.save();
+  b.n++;
+  const { dart, ev } = r;
+  root.querySelector('#bd-region').setAttribute('d', dart.target === 'OUT' ? '' : regionPath(dart.target));
+  const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
+  g.setAttribute('class', 'dart-mark opp');
+  g.setAttribute('transform', `translate(${dart.x.toFixed(1)} ${dart.y.toFixed(1)})`);
+  g.innerHTML = '<circle r="6"/><circle r="2" class="core"/>';
+  root.querySelector('#bd-marks').appendChild(g);
+  const hitTxt = ev.checkout ? '<b class="neg">CHECK!</b>' : ev.bust ? '<b class="pos">Überworfen!</b>' : `${fieldName(dart.hit.label)}${dart.hit.mult > 1 ? ` (${dart.hit.score})` : ''}`;
+  root.querySelector('#bd-log').insertAdjacentHTML('beforeend', `<div>Dart ${b.n}: Ziel <b>${fieldName(dart.target)}</b> → ${hitTxt}</div>`);
+  draw(r.visitOver ? ev : null);
+  if (!r.visitOver) return schedule(BOARD_DART_MS);
+  const bn = root.querySelector('#bd-banner');
+  bn.textContent = ev.checkout ? 'Matchdart verwandelt' : 'Überstanden!';
+  bn.className = `board-banner show ${ev.checkout ? 'bust' : 'leg'}`;
+  ui.timer = setTimeout(() => {
+    if (!ui) return;
+    ui.board = null; ui.boardEl.classList.add('hidden'); ui.boardEl.innerHTML = '';
+    if (ev?.legEnd) ui.showLast = true;
+    draw(ev);
+    if (ui.live.m.done) { ui.timer = setTimeout(() => ui && finish(), VISIT_MS); return; }
+    schedule(VISIT_MS);
+  }, 1800);
 }
 
 // Störmoment: Spiel pausiert, 2 Optionen mit Erfolgschance
