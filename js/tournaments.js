@@ -26,6 +26,7 @@ import { maybeInterview } from './interviews.js';
 import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
+import { slumpAfterMatch, slumpTitle } from './slump.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -487,6 +488,7 @@ function recordPlayerMatch(state, inst, m, res) {
     if (before < 60 && p.proMatches >= 60) addNews(state, 'xp', '😌 Lampenfieber verflogen', 'Nach 60 Profi-Matches fühlst du dich auf der Tour zuhause – keine Nervosität mehr.');
   }
   const step = updateMomentum(state.player, { won, opp: inst.teams?.[oppId] ?? getPlayer(state, oppId), cat: inst.cat, big: inst.big?.includes(oppId) });
+  slumpAfterMatch(state, inst, won, inst.teams?.[oppId] ?? getPlayer(state, oppId));
   if (step) addNews(state, 'xp', `${step.icon || '😐'} Selbstvertrauen: ${step.label}`, step.bonus > 0 ? `Du bist im Flow: +${step.bonus} auf Scoring, Finishing und Fokus.`
     : step.bonus < 0 ? `Die Zweifel nagen: ${step.bonus} auf Scoring, Finishing und Fokus. Siege helfen raus.` : 'Dein Selbstvertrauen ist wieder im Normalbereich.');
   if (up > 0) addNews(state, 'xp', `Erfahrung steigt auf ${expLabel(state.player.exp)}`, 'Du bleibst in engen Momenten ruhiger – Matchdarts und Entscheidungslegs gelingen dir besser.');
@@ -629,7 +631,7 @@ function finishEvent(state, inst) {
   const f = xpFactor(inst);
   // Teilnahme-Bonus: nach jedem Turnier kann trainiert werden
   inst.xp += grantXp(state, Math.round(XP_BASE.event * f));
-  if (place === 'W') titleMomentum(state.player, inst.cat);
+  if (place === 'W') { titleMomentum(state.player, inst.cat); slumpTitle(state, inst.cat); }
   if (place === 'W' || place === 'CARD') {
     inst.xp += grantXp(state, Math.round(XP_BASE.title * f));
   }

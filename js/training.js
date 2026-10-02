@@ -11,6 +11,7 @@ import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
 import { xpMult } from './staff.js';
 import { momentumDecay } from './form.js';
 import { homeWeekly } from './home.js';
+import { slumpRest } from './slump.js';
 
 export const DECAY_AFTER = 6;           // Wochen ohne Training eines Attributs bis zum ersten Risiko (je Attribut)
 export const PREP_BONUS = 3, PREP_WEEKS = 2;   // Turniervorbereitung: +3 auf das trainierte Attribut (diese + nächste Woche)
@@ -111,7 +112,7 @@ export function buyRecovery(state, type) {
 export function canDo(state, type) {
   if (weekActivity(state)) return { ok: false, reason: 'Diese Woche schon verplant' };
   if (type === 'sponsor' && !state.sponsors.active.length) return { ok: false, reason: 'Kein aktiver Sponsor' };
-  if (type === 'rest' && !(state.player.fatigue > 0)) return { ok: false, reason: 'Du bist ausgeruht' };
+  if (type === 'rest' && !(state.player.fatigue > 0) && !(state.player.slump?.weeks > 0)) return { ok: false, reason: 'Du bist ausgeruht' };
   if (type === 'exhibition' && !exOffer(state)) return { ok: false, reason: state.player.tour === 'tour' ? 'Kein Angebot' : 'Ab Tourcard' };
   return { ok: true };
 }
@@ -149,7 +150,8 @@ export function doActivity(state, type) {
   state.week.activity = type;
   if (type === 'rest') {
     p.fatigue = Math.max(0, p.fatigue - 30);
-    return { ok: true, text: `Erholt – Ermüdung jetzt ${p.fatigue} %.` };
+    slumpRest(p);                    // Ruhetag verkürzt ein Formtief
+    return { ok: true, text: `Erholt – Ermüdung jetzt ${p.fatigue} %.${p.slump?.weeks > 0 ? ` Formtief noch ${p.slump.weeks} Wo.` : ''}` };
   }
   if (type === 'sponsor') {
     const v = sponsorGigValue(state);

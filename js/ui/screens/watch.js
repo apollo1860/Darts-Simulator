@@ -266,6 +266,7 @@ function formLine() {
   if (isRival(s, oppId)) parts.push(`<span class="neg" style="font-weight:900">⚔️ RIVALEN-DUELL · Bilanz ${s.rival.w}–${s.rival.l}</span>`);
   const ms = momentumState(s.player);
   if (ms.bonus) parts.push(`<span class="${ms.bonus > 0 ? 'pos' : 'neg'}">${ms.icon} ${ms.label} ${ms.bonus > 0 ? '+' : ''}${ms.bonus}</span>`);
+  if (s.player.slump?.weeks > 0) parts.push(`<span class="neg">${s.player.slump.icon} Formtief −${fmtNum(s.player.slump.malus, 1)}</span>`);
   const nv = nervesFor(inst, s.player);
   if (nv > 0.05) parts.push(`<span class="neg" title="Neu auf der Tour: baut sich über die ersten 60 Profi-Matches ab">😰 Lampenfieber −${fmtNum(nv, 1)}</span>`);
   if (f) {

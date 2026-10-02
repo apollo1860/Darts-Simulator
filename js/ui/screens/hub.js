@@ -111,6 +111,7 @@ export function render(app) {
     </div>
     <div class="money num">${fmtEUR(s.finance.balance)}</div>
   </header>
+  ${p.slump?.weeks > 0 ? `<div class="panel warn" style="margin-bottom:12px">${p.slump.icon} <b>Formtief: ${esc(p.slump.label)}</b> <span class="muted">−${fmtNum(p.slump.malus, 1)} auf Scoring, Finishing, Fokus · noch ${p.slump.weeks} Wo. · Ruhetag verkürzt, Titel beendet es</span></div>` : ''}
   ${s.week.blocked ? `<div class="panel warn" style="margin-bottom:12px">${s.week.blocked.icon} <b>Ausfall: ${esc(s.week.blocked.label)}</b> <span class="muted">– diese Woche kein Turnier möglich.</span></div>` : ''}
   ${moveDue(s) ? '<button class="panel warn" data-go="home" style="margin-bottom:12px;width:100%;text-align:left">📦 <b>Du musst ausziehen!</b> <span class="muted">Jetzt Wohnung wählen ▸</span></button>' : ''}
   ${levelBar(s)}

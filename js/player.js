@@ -67,6 +67,8 @@ export const perf = p => {
   const mb = momentumBonus(p);
   if (mb) { a.sco += mb; a.fin += mb; a.foc += mb; }
   // Turniervorbereitung (Training): Bonus auf das trainierte Attribut
+  // Formtief: −malus auf Scoring, Finishing, Fokus
+  if (p.slump?.weeks > 0) { a.sco -= p.slump.malus; a.fin -= p.slump.malus; a.foc -= p.slump.malus; }
   // Studentenwohnheim: leichtes Minus bei allem
   if (p.home?.id === 'dorm') for (const k of ['sco', 'fin', 'men', 'foc', 'cal']) a[k] -= 1;
   if (p.prep) a[p.prep.key] = Math.min(100, a[p.prep.key] + p.prep.bonus);

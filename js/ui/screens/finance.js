@@ -3,7 +3,7 @@ import { esc, fmtEUR } from '../../util.js';
 import { seasonFinance, priceFactor } from '../../finance.js';
 import { topbar } from '../components.js';
 
-const CAT = { prize: 'Preisgeld', fee: 'Gebühr', travel: 'Reise', start: 'Start', sponsor: 'Sponsor', staff: 'Team', recovery: 'Erholung', living: 'Wohnen', car: 'Auto' };
+const CAT = { prize: 'Preisgeld', fee: 'Gebühr', travel: 'Reise', start: 'Start', sponsor: 'Sponsor', staff: 'Team', recovery: 'Erholung', living: 'Wohnen', car: 'Auto', misc: 'Sonstiges' };
 
 export function render(app) {
   const s = app.state, f = s.finance, y = s.date.year;

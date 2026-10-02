@@ -872,4 +872,39 @@ test('Qualifier: fehlende Spieler → fiktive Amateure (nicht zu stark)', async 
   assert.equal(e.region.length, 2); assert.equal(Object.values(e).flat().length, 48);
 });
 
+test('Formtiefs: Serie, Blamage, Ruhetag, Titel, Auslöser', async () => {
+  const SL = await import('../js/slump.js');
+  const s = newCareer({ name: 'F', nation: 'DE', hand: 'R', seed: 61 }), p = s.player;
+  const inst = { cat: 'challenge' }, opp = { attrs: { ...p.attrs } };
+  for (let i = 0; i < 3; i++) SL.slumpAfterMatch(s, inst, false, opp);
+  assert.ok(!p.slump);
+  SL.slumpAfterMatch(s, { cat: 'local' }, false, opp); assert.ok(!p.slump);        // lokal zählt nicht
+  SL.slumpAfterMatch(s, inst, false, opp);
+  assert.equal(p.slump.id, 'streak'); assert.equal(p.lossStreak, 0);
+  const base = perf({ ...p, slump: null }), low = perf(p);
+  assert.equal(low.sco, base.sco - 2); assert.equal(low.foc, base.foc - 2); assert.equal(low.cal, base.cal);
+  SL.slumpRest(p); assert.equal(p.slump.weeks, 2);
+  SL.slumpTitle(s, 'local'); assert.ok(p.slump);                                    // lokaler Titel hilft nicht
+  SL.slumpTitle(s, 'challenge'); assert.equal(p.slump, null);
+  // Auslöser: ausgebrannt (Ermüdung) – Häufigkeit
+  let n = 0;
+  for (let i = 0; i < 400; i++) { p.slump = null; p.fatigue = 90; p.momentum = 0; if (SL.slumpWeek(s)?.id === 'burnout') n++; }
+  assert.ok(n > 60 && n < 150, `burnout ${n}`);
+  p.slump = { id: 'sleep', weeks: 1, malus: 2 }; SL.slumpWeek(s); assert.equal(p.slump, null);   // läuft ab
+});
+
+test('Einmalige Kosten bei hohem Vermögen', async () => {
+  const EX = await import('../js/expenses.js');
+  assert.equal(EX.expenseChance(9000), 0);
+  assert.ok(Math.abs(EX.expenseChance(100000) - 0.06) < 1e-9 && EX.expenseChance(1e9) === 0.12);
+  const s = newCareer({ name: 'E', nation: 'DE', hand: 'R', seed: 62 });
+  s.finance.balance = 5000; for (let i = 0; i < 100; i++) assert.equal(EX.expenseWeek(s), null);
+  let hits = 0, maxShare = 0;
+  for (let i = 0; i < 2000; i++) {
+    s.finance.balance = 500000; const e = EX.expenseWeek(s);
+    if (e) { hits++; maxShare = Math.max(maxShare, e.amount / 500000); assert.ok(!e.needCar && !e.needHome); }
+  }
+  assert.ok(hits > 60 && hits < 200, `hits ${hits}`); assert.ok(maxShare <= 0.12 && maxShare > 0.03);
+});
+
 console.log(`\n${n} Tests ok`);
