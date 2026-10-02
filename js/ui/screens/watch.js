@@ -4,7 +4,7 @@ import { esc, fmtNum } from '../../util.js';
 import { getPlayer } from '../../world.js';
 import { formatLabel } from '../../matchEngine.js';
 import { legAverage, liveAverage } from '../../matchState.js';
-import { playerMatch, startManualMatch, liveAiVisit, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, oppMatchDartVisit } from '../../tournaments.js';
+import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall, isBigTreble } from '../../tournaments.js';
 import { boardSvg, regionPath } from '../boardSvg.js';
 import { confirmDialog, modal } from '../components.js';
 import { planDistraction, distractionDue, describe, resolveDistraction } from '../../distractions.js';
@@ -75,8 +75,16 @@ function step() {
   if (distractionDue(ui.s)) return askDistraction();
   const co = checkoutDecisionDue(ui.s);
   if (co) { ui.app.save(); return askCheckout(co); }
-  if (oppMatchDartVisit(ui.s)) return startBoard();
-  const ev = liveAiVisit(ui.s);
+  const call = boardCall(ui.s);
+  if (call) return startBoard(call);
+  // Aufnahme dartweise; nach 2 großen Triples Schaltung ans Board für den 180er-Dart
+  const pre = [];
+  let r;
+  do {
+    r = liveDartStep(ui.s); pre.push(r.dart);
+    if (!r.visitOver && pre.length === 2 && pre.every(d => isBigTreble(d.hit))) { ui.app.save(); draw(); return startBoard('180', pre); }
+  } while (!r.visitOver);
+  const ev = r.ev;
   ui.app.save();
   if (ev?.legEnd) ui.showLast = true;   // abgeschlossenes Leg noch kurz zeigen
   draw(ev);
@@ -84,38 +92,55 @@ function step() {
   schedule(ev?.legEnd ? VISIT_MS * 1.6 : VISIT_MS);
 }
 
-// ---- Gegner-Matchdarts: Wurf für Wurf auf der Scheibe ----
+// ---- Schaltung ans Board: Matchdarts, große Checks, 180er – Wurf für Wurf auf der Scheibe ----
 const BOARD_DART_MS = 1100;
-function startBoard() {
-  const m = ui.live.m, op = m.turn, name = getPlayer(ui.s, ui.ids[op]).name;
-  ui.board = { side: op, start: m.rem[op], n: 0, lines: [] };
+function startBoard(kind, pre = []) {
+  const m = ui.live.m, side = m.turn, mine = side === ui.me;
+  const name = mine ? 'Du' : esc(shortName(getPlayer(ui.s, ui.ids[side]).name));
+  const start = m.visit?.start ?? m.rem[side];
+  ui.board = { kind, side, mine, start, n: 0, sum: 0 };
+  const head = kind === 'match' ? `${mine ? '🎯' : '⚠️'} MATCHDARTS · ${name} ${mine ? 'stehst' : 'steht'} auf <b>${start}</b>`
+    : kind === 'finish' ? `🎯 CHECK-CHANCE · ${name} ${mine ? 'stehst' : 'steht'} auf <b>${start}</b>`
+    : `🔥 180 IM ANFLUG? · ${name}`;
   ui.boardEl.classList.remove('hidden');
-  ui.boardEl.innerHTML = `<div class="dc-bd-head">⚠️ MATCHDARTS · ${esc(shortName(name))} steht auf <b>${m.rem[op]}</b></div>
+  ui.boardEl.innerHTML = `<div class="dc-bd-head ${mine ? 'me' : ''}">${head}</div>
     <div class="dc-bd-stage"><svg viewBox="-200 -200 400 400" aria-label="Dartscheibe">${boardSvg()}
       <path class="target-region" id="bd-region" d=""/><g id="bd-marks"></g></svg>
       <div class="board-banner" id="bd-banner"></div></div>
     <div class="dc-bd-log" id="bd-log"></div>`;
-  schedule(900);
+  for (const d of pre) showDart(d, null);
+  schedule(pre.length ? 1200 : 900);
+}
+function showDart(dart, ev) {
+  const b = ui.board, root = ui.boardEl;
+  b.n++; b.sum += dart.hit.score;
+  root.querySelector('#bd-region').setAttribute('d', dart.target === 'OUT' ? '' : regionPath(dart.target));
+  const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
+  g.setAttribute('class', `dart-mark ${b.mine ? 'me' : 'opp'}`);
+  g.setAttribute('transform', `translate(${dart.x.toFixed(1)} ${dart.y.toFixed(1)})`);
+  g.innerHTML = '<circle r="6"/><circle r="2" class="core"/>';
+  root.querySelector('#bd-marks').appendChild(g);
+  const good = b.mine ? 'pos' : 'neg', bad = b.mine ? 'neg' : 'pos';
+  const hitTxt = ev?.checkout ? `<b class="${good}">CHECK!</b>` : ev?.bust ? `<b class="${bad}">Überworfen!</b>` : `${fieldName(dart.hit.label)}${dart.hit.mult > 1 ? ` (${dart.hit.score})` : ''}`;
+  root.querySelector('#bd-log').insertAdjacentHTML('beforeend', `<div>Dart ${b.n}: Ziel <b>${fieldName(dart.target)}</b> → ${hitTxt}</div>`);
 }
 function boardDart() {
   const b = ui.board, root = ui.boardEl;
   const r = liveDartStep(ui.s);
   ui.app.save();
-  b.n++;
   const { dart, ev } = r;
-  root.querySelector('#bd-region').setAttribute('d', dart.target === 'OUT' ? '' : regionPath(dart.target));
-  const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
-  g.setAttribute('class', 'dart-mark opp');
-  g.setAttribute('transform', `translate(${dart.x.toFixed(1)} ${dart.y.toFixed(1)})`);
-  g.innerHTML = '<circle r="6"/><circle r="2" class="core"/>';
-  root.querySelector('#bd-marks').appendChild(g);
-  const hitTxt = ev.checkout ? '<b class="neg">CHECK!</b>' : ev.bust ? '<b class="pos">Überworfen!</b>' : `${fieldName(dart.hit.label)}${dart.hit.mult > 1 ? ` (${dart.hit.score})` : ''}`;
-  root.querySelector('#bd-log').insertAdjacentHTML('beforeend', `<div>Dart ${b.n}: Ziel <b>${fieldName(dart.target)}</b> → ${hitTxt}</div>`);
+  showDart(dart, ev);
   draw(r.visitOver ? ev : null);
   if (!r.visitOver) return schedule(BOARD_DART_MS);
+  const ok = ev?.checkout || (b.kind === '180' && b.sum === 180 && !ev?.bust);
+  const txt = ev?.checkout ? (b.kind === 'match' ? 'Matchdart verwandelt!' : `${b.start} gecheckt!`)
+    : b.kind === '180' ? (b.sum === 180 ? 'ONE HUNDRED AND EIGHTY!' : `Knapp – ${b.sum}`)
+    : ev?.bust ? 'Überworfen!' : b.kind === 'match' && !b.mine ? 'Überstanden!' : 'Nicht gecheckt';
+  // Farbe: gut für dich = gold, gut für den Gegner = rot
+  const forMe = ok === b.mine;
   const bn = root.querySelector('#bd-banner');
-  bn.textContent = ev.checkout ? 'Matchdart verwandelt' : 'Überstanden!';
-  bn.className = `board-banner show ${ev.checkout ? 'bust' : 'leg'}`;
+  bn.textContent = txt;
+  bn.className = `board-banner show ${forMe ? 'leg' : 'bust'}`;
   ui.timer = setTimeout(() => {
     if (!ui) return;
     ui.board = null; ui.boardEl.classList.add('hidden'); ui.boardEl.innerHTML = '';
@@ -123,7 +148,7 @@ function boardDart() {
     draw(ev);
     if (ui.live.m.done) { ui.timer = setTimeout(() => ui && finish(), VISIT_MS); return; }
     schedule(VISIT_MS);
-  }, 1800);
+  }, ok ? 2000 : 1500);
 }
 
 // Störmoment: Spiel pausiert, 2 Optionen mit Erfolgschance

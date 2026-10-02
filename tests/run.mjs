@@ -7,7 +7,7 @@ import { CALENDAR } from '../data/tournaments.js';
 import { nextWeek, jumpToNextEvent } from '../js/season.js';
 import { perf, xpForLevel, addXp, levelFromXp, MAX_LEVEL } from '../js/player.js';
 import { migrate } from '../js/state.js';
-import { liveDartStep, oppMatchDartVisit } from '../js/tournaments.js';
+import { liveDartStep, oppMatchDartVisit, boardCall, isBigTreble } from '../js/tournaments.js';
 import * as ST from '../js/staff.js';
 import * as FO from '../js/form.js';
 import * as IV from '../js/interviews.js';
@@ -571,6 +571,17 @@ test('Gegner-Matchdarts: Erkennung + dartweiser Wurf', () => {
   do { r = liveDartStep(s); n++; assert.ok(r.dart.target && Number.isFinite(r.dart.x)); } while (!r.visitOver);
   assert.ok(n >= 1 && n <= 3);
   assert.ok(lm.done || lm.turn === live.me);
+  // Schaltung ans Board: Matchdarts beider Seiten immer, große Finishes mit Chance, nie über 170/Bogey
+  if (!lm.done) {
+    const me = live.me;
+    lm.turn = me; lm.legs[me] = lm.format.legs - 1; lm.rem[me] = 32; lm.visit = { start: 32, darts: [] };
+    assert.equal(boardCall(s), 'match');
+    lm.legs[me] = 0; lm.rem[me] = 200; lm.visit.start = 200; assert.equal(boardCall(s), null);
+    lm.rem[me] = 40; lm.visit.start = 40; assert.equal(boardCall(s), null);          // kleines Finish ohne Matchdart
+    let hits = 0; for (let i = 0; i < 200; i++) { lm.rem[me] = 121; lm.visit.start = 121; if (boardCall(s) === 'finish') hits++; }
+    assert.ok(hits > 40 && hits < 100, `finish ${hits}`);
+  }
+  assert.ok(isBigTreble({ mult: 3, score: 57 }) && !isBigTreble({ mult: 3, score: 51 }) && !isBigTreble({ mult: 1, score: 20 }));
 });
 
 test('Interview nach Major: 25 Floskeln, 4–6 Reihenfolge, Belohnung', () => {

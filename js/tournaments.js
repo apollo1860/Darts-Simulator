@@ -326,6 +326,20 @@ export function oppMatchDartVisit(state) {
   return wouldWinMatch(lm, lm.turn) && r <= 170 && !BOGEY.has(r);
 }
 
+// Schaltung ans Board (DartConnect), zu Beginn einer Aufnahme: jeder Matchdart (beide Seiten), eigener gewählter
+// Checkout-Weg, sonst große Finishes (61–170, kein Bogey) mit 35 %. 180er-Schaltung macht der Screen nach 2 Triples.
+export const BOARD_FINISH_CHANCE = 0.35;
+export function boardCall(state) {
+  const live = state.activeEvent?.live, lm = live?.m;
+  if (!lm || lm.done || lm.visit.darts.length) return null;
+  const side = lm.turn, r = lm.rem[side];
+  if (r > 170 || BOGEY.has(r)) return null;
+  if (wouldWinMatch(lm, side)) return 'match';
+  if (side === live.me && live.route) return 'finish';
+  return r > 60 && new RNG(state.rng).chance(BOARD_FINISH_CHANCE) ? 'finish' : null;
+}
+export const isBigTreble = hit => hit?.mult === 3 && hit.score >= 54;   // T18/T19/T20
+
 // Temporäre Leistungs-Modifikatoren (Ablenkungen): Multiplikator auf die Streuung, gilt für n Aufnahmen
 export function addMod(live, side, mult, visits) {
   (live.mods ??= []).push({ side, mult, visits });
