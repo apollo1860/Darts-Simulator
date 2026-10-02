@@ -8,7 +8,7 @@ import { createMatch, throwDart, matchResult, wouldWinMatch } from './matchState
 import { BOGEY } from './board.js';
 import { aiDart, aiSigma } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
-import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
+import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE } from './world.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, POINTS_PER_LEVEL } from './player.js';
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
@@ -134,9 +134,13 @@ export function etDirect(state) {
   return [...seeds, ...pt];
 }
 // Regionaler Qualifier (Hintergrund): Spieler ohne Karte der Region, Stärkere gewinnen öfter (fest je Event/Jahr)
+export const REGION_MIN = 8;
 function regionQualifier(state, ev, key) {
-  const pool = nonCardPros(state).filter(p => ET_REGIONS[key].nations.includes(p.nation)).sort((a, b) => b.avg - a.avg).slice(0, 8);
-  if (!pool.length) return null;
+  const nations = ET_REGIONS[key].nations;
+  const cands = () => [...nonCardPros(state), ...playersOfTier(state, 'amateur')].filter(p => nations.includes(p.nation));
+  let all = cands();
+  for (let i = 0; all.length < REGION_MIN; i++) { addAmateurs(state, nations[i % nations.length], 1); all = cands(); }   // fiktive Amateure
+  const pool = all.sort((a, b) => b.avg - a.avg).slice(0, 8);
   const rng = new RNG({ s: hashSeed(`${ev.id}|${key}|${state.date.year}`) }), w = pool.map(p => Math.max(1, p.avg - 55) ** 2);
   let r = rng.float(0, w.reduce((a, b) => a + b, 0));
   return pool.find((p, i) => (r -= w[i]) <= 0)?.id ?? pool[0].id;
@@ -156,12 +160,17 @@ export function etEntrants(state, ev, withPlayer) {
   return { seeds, pt, tchq, hnq, region, fill };
 }
 // HNQ-Pool: Spieler ohne Karte, DDV/lokal der Gastgebernation (HNQ-Sieger sind schon qualifiziert)
+// Zu wenige Spieler der Nation → fiktive Amateure auffüllen (mind. HNQ_MIN Teilnehmer + bisherige Sieger)
+export const HNQ_MIN = 32;
 function hnqPool(state, ev) {
   const won = new Set(etStore(state, ev.etId).hnq ?? []);
-  return [...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local')].filter(p => p.nation === ev.country && !won.has(p.id)).map(p => p.id);
+  const all = () => [...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local', 'amateur')].filter(p => p.nation === ev.country);
+  let base = all();
+  if (base.length < HNQ_MIN + 4) { addAmateurs(state, ev.country, HNQ_MIN + 4 - base.length); base = all(); }
+  return base.filter(p => !won.has(p.id)).map(p => p.id);
 }
 // Hintergrund-Turnier überhaupt möglich? (z. B. kein HNQ ohne mind. 2 Spieler der Nation)
-const aiRunnable = (state, ev) => ev.cat !== 'hnq' || hnqPool(state, ev).length >= 2;
+const aiRunnable = (state, ev) => ev.cat !== 'hnq' || hnqPool(state, ev).length >= 2;   // mit Amateuren praktisch immer
 export const etQualified = (state, ev) => Object.values(etEntrants(state, ev, true)).some(l => l.includes('P'));
 
 function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {

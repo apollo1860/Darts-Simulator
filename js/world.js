@@ -3,6 +3,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYER
 import { NAME_POOLS, POOL_WEIGHTS } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
+import { RNG, hashSeed } from './rng.js';
 
 export const WORLD_VERSION = 3;   // Rechnen (cal) wird in state.migrate ergänzt
 export const DDV_POOL = 63;
@@ -106,6 +107,26 @@ export function upgradeWorld(world, rng) {
   world.version = WORLD_VERSION;
 }
 
+// Fiktive Amateure (tier 'amateur', IDs A…) für Qualifier mit zu wenigen Spielern (HNQ, Nordic & Baltic, Osteuropa):
+// bewusst nicht zu stark (Ø 58–72), spielen nur diese Qualifier; Zufall fest je Nation + Zähler (verändert state.rng nicht)
+export const AMATEUR_AVG = [58, 72];
+export function addAmateurs(state, nation, n) {
+  const w = state.world, key = ['DE', 'AT', 'CH'].includes(nation) ? 'DE' : ['NL', 'BE'].includes(nation) ? 'NL'
+    : ['ENG', 'SCO', 'WAL', 'NIR', 'IRL', 'AU', 'US'].includes(nation) ? 'EN' : 'EU';
+  const pool = NAME_POOLS[key], used = new Set(Object.values(w.players).map(p => p.name)), out = [];
+  for (let i = 0; i < n; i++) {
+    const no = (w.nextAmateur ??= 1), rng = new RNG({ s: hashSeed(`amateur|${nation}|${no}`) });
+    w.nextAmateur++;
+    let name;
+    for (let k = 0; k < 30 && (!name || used.has(name)); k++) name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`;
+    used.add(name);
+    const avg = Math.round(rng.float(...AMATEUR_AVG) * 10) / 10, age = rng.int(18, 50);
+    w.players[`A${no}`] = { id: `A${no}`, name, nation, age, avg, tier: 'amateur', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('ddv', age, rng) };
+    out.push(w.players[`A${no}`]);
+  }
+  return out;
+}
+
 export function changeStrength(p, delta) {
   const before = p.attrs.sco;
   p.avg = clamp(Math.round((p.avg + delta) * 10) / 10, 30, 108);
@@ -132,7 +153,7 @@ function newTalent(state, rng, year) {
 export function developWorld(state, rng, year) {
   const report = { retired: [], talents: [] };
   for (const p of Object.values(state.world.players)) {
-    if (p.tier === 'local' || p.tier === 'ddv' || p.tier === 'retired') continue;
+    if (p.tier === 'local' || p.tier === 'ddv' || p.tier === 'amateur' || p.tier === 'retired') continue;
     const a = p.age;
     if (a < 38 && rng.chance(p.tier === 'tour' ? 0.45 : 0.3)) p.exp = Math.min(EXP_MAX, (p.exp ?? 0) + 1);
     const mean = a <= 20 ? 2.2 : a <= 23 ? 1.4 : a <= 28 ? 0.5 : a <= 34 ? 0 : a <= 40 ? -0.4 : -1;

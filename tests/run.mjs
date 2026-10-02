@@ -851,4 +851,20 @@ test('Wohnen & Auto: Auszug mit 18, Jahresmiete, Effekte, Auto-Rabatt', async ()
   assert.equal(s.player.home.id, 'wg'); assert.equal(s.finance.balance, 1000 - 600 - 600);
 });
 
+test('Qualifier: fehlende Spieler → fiktive Amateure (nicht zu stark)', async () => {
+  const W = await import('../js/world.js');
+  const s = newCareer({ name: 'A', nation: 'DE', hand: 'R', seed: 77 });
+  s.date.week = 38;
+  const hnq = eventsInWeek(s, 2027, 38).find(e => e.cat === 'hnq' && e.country === 'CH');
+  const inst = ET.runAITournament(s, hnq, 0);
+  const ids = inst.rounds[0].matches.flatMap(m => [m.a, m.b]).filter(Boolean);
+  assert.ok(ids.length >= 32 && ids.every(id => getPlayer(s, id).nation === 'CH'));
+  const am = playersOfTier(s, 'amateur');
+  assert.ok(am.length > 0 && am.every(p => p.avg >= 58 && p.avg <= 72 && p.id.startsWith('A')));
+  ET.runAITournament(s, hnq, 1); assert.ok(playersOfTier(s, 'amateur').length <= am.length + 1);   // kein Dauer-Nachschub
+  s.date.week = 39;
+  const e = ET.etEntrants(s, eventsInWeek(s, 2027, 39).find(x => x.cat === 'et'), false);
+  assert.equal(e.region.length, 2); assert.equal(Object.values(e).flat().length, 48);
+});
+
 console.log(`\n${n} Tests ok`);

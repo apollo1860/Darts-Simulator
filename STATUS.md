@@ -152,7 +152,7 @@
 - Checkout-% zählt jeden Dart mit Rest ≤ 40 (gerade) bzw. 50 als Doppelversuch.
 - Wohnen: Effekte als Ermüdung −X/Woche und Selbstvertrauen +X/Woche (Villa +6/+0,6); Wohnheim zusätzlich −1 auf alle Attribute. Ohne Wahl nach 2 Wochen → Wohnheim. Alte Spielstände (≥ 18): Auszugsmeldung in den nächsten Wochen. Auto-Rabatt gilt für alle Reisen (auch Flüge). Kontostand darf durch Pflichtzahlungen (Miete/Wartung) ins Minus fallen.
 - Lampenfieber −5 (Fokus −3) abgebaut über 60 Profi-Matches (PC/ET/Majors/WS/PL), zählt auch ohne Karte (UK Open).
-- ET-Qualifikation: TCHQ in der Woche des letzten PC-Blocks vor dem ET-Event (KW 23 → TCHQ KW 21). 10 Sektionen ohne Setzliste. Nordic & Baltic (DK/SE/NO/FI/EE/LV/LT) und Osteuropa (PL/CZ/HU/HR/SI) nur im Hintergrund, gewichtete Auswahl der 8 Stärksten ohne Karte. Zu wenige HNQ-Spieler (z. B. Schweiz) → Restplätze über die Pro-Tour-Rangliste.
+- ET-Qualifikation: TCHQ in der Woche des letzten PC-Blocks vor dem ET-Event (KW 23 → TCHQ KW 21). 10 Sektionen ohne Setzliste. Nordic & Baltic (DK/SE/NO/FI/EE/LV/LT) und Osteuropa (PL/CZ/HU/HR/SI) nur im Hintergrund, gewichtete Auswahl der 8 Stärksten ohne Karte. Zu wenige Spieler für HNQ/Regional-Qualifier (z. B. Schweiz) → fiktive Amateure (Ø 58–72) werden einmalig angelegt.
 
 ## Unsichere Angaben (bei echten Daten prüfen)
 - **Tourcard-Holder 2026: vom Nutzer geliefert** inkl. Herkunft: Top 64 (inkl. Michael Mansell auf 46), 31 im zweiten Kartenjahr (laufen Ende 2026 aus → Q-School), 4 CT/Dev 2025 + 29 Q-School 2026 (Karte bis 2027). Nationen, Alter, Averages geschätzt.
