@@ -161,11 +161,11 @@ export const FORMATS = {
   hnq: { field: 64, default: { legs: 4 }, byRemaining: { 2: { legs: 5 } } },
   wdf: { field: 64, default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 6 } } },
   qschool: { default: { legs: 5 }, stopAt: 4, cards: true },
-  pc: { field: 128, default: { legs: 6 } },
+  pc: { field: 128, default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } } },   // Bo11, HF Bo13, F Bo15
   etq: { default: { legs: 6 }, stopAt: 10, sections: 10 },         // Tour-Card-Holder-Qualifier: 10 Sektionen → 10 Qualifikanten
   et: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } }, seeds: 16 },
-  challenge: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
-  dev: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
+  challenge: { default: { legs: 5 } },                               // durchgehend Bo9
+  dev: { default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 5 } } },   // Bo7, ab VF Bo9
   youth: { default: { legs: 5 }, byRemaining: { 8: { legs: 6 }, 4: { legs: 6 }, 2: { legs: 7 } } },
   // Majors & Events (Phase 5)
   masters: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
