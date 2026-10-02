@@ -12,17 +12,19 @@ export function travelCost(country) {
 }
 
 // Preisniveau steigt mit dem Level: +1 % je Level über 1 (Level 10 → +9 %, Level 50 → +49 %, Level 100 → +99 %)
-// gilt für Reise, Startgebühren und Erholung (Sauna/Massage); Beträge auf 5 € gerundet
+// gilt für Reise, Erholung, Wohnung, Auto – Startgebühren bleiben immer 25 €; Beträge auf 5 € gerundet
 export const priceFactor = (level = 1) => 1 + 0.01 * Math.max(0, level - 1);
 export const levelPrice = (amount, level = 1) => (amount ? Math.max(5, Math.round(amount * priceFactor(level) / 5) * 5) : 0);
 
 // Gebühr gilt je Turnier im Block (z. B. CT-Wochenende = 5 × 25 €, Q-School 4 Tage = 4 × 25 €)
-// n = Anzahl gewählter Turniere bei Blöcken mit Auswahl (CT/Dev/HNQ), sonst alle; level = Spielerlevel (Preisniveau)
-export function eventCost(ev, n = null, level = 1) {
+// n = Anzahl gewählter Turniere bei Blöcken mit Auswahl (CT/Dev/HNQ), sonst alle; level = Spielerlevel (Preisniveau Reise),
+// travelMult = Rabatt durch eigenes Auto (z. B. 0,9). Pro Tour, European Tour und Majors: keine Startgebühr, nur Reise.
+export function eventCost(ev, n = null, level = 1, travelMult = 1) {
   if (ev.cat === 'local') return { fee: 0, travel: 0, total: 0 };
-  if (ev.cat === 'wdf') { const travel = levelPrice(ev.europe ? 400 : 1000, level); return { fee: 0, travel, total: travel }; }   // WDF: Europa 400 €, Übersee 1.000 €
-  const fee = FEE_CATS.has(ev.cat) ? levelPrice(ENTRY_FEE, level) * (n ?? ev.count ?? 1) : 0;
-  const travel = levelPrice(travelCost(ev.country), level);
+  const trip = base => Math.round(levelPrice(base, level) * travelMult / 5) * 5;
+  if (ev.cat === 'wdf') { const travel = trip(ev.europe ? 400 : 1000); return { fee: 0, travel, total: travel }; }   // WDF: Europa 400 €, Übersee 1.000 €
+  const fee = FEE_CATS.has(ev.cat) ? ENTRY_FEE * (n ?? ev.count ?? 1) : 0;
+  const travel = trip(travelCost(ev.country));
   return { fee, travel, total: fee + travel };
 }
 

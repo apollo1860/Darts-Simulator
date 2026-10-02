@@ -11,7 +11,7 @@ import { planDistraction, distractionDue, describe, resolveDistraction } from '.
 import { checkoutDecisionDue, chooseRoute } from '../../decisions.js';
 import { fieldName } from '../../board.js';
 import { fmtPct } from '../../util.js';
-import { stageFactor, stageDelta, momentumState } from '../../form.js';
+import { stageFactor, stageDelta, momentumState, nervesFor } from '../../form.js';
 import { isRival } from '../../rival.js';
 
 export const VISIT_MS = 1500;
@@ -241,6 +241,8 @@ function formLine() {
   if (isRival(s, oppId)) parts.push(`<span class="neg" style="font-weight:900">⚔️ RIVALEN-DUELL · Bilanz ${s.rival.w}–${s.rival.l}</span>`);
   const ms = momentumState(s.player);
   if (ms.bonus) parts.push(`<span class="${ms.bonus > 0 ? 'pos' : 'neg'}">${ms.icon} ${ms.label} ${ms.bonus > 0 ? '+' : ''}${ms.bonus}</span>`);
+  const nv = nervesFor(inst, s.player);
+  if (nv > 0.05) parts.push(`<span class="neg" title="Neu auf der Tour: baut sich über die ersten 60 Profi-Matches ab">😰 Lampenfieber −${fmtNum(nv, 1)}</span>`);
   if (f) {
     const exp = i => (inst.teams?.[ui.ids[i]] ?? getPlayer(s, ui.ids[i])).exp ?? 0;
     const d = i => { const v = stageDelta(exp(i), f); return `${v >= 0 ? '+' : ''}${fmtNum(v, 1)}`; };

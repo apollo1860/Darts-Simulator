@@ -10,7 +10,7 @@ export function render(app) {
   const sf = seasonFinance(s, y);
   const years = Object.keys(f.seasons).sort((a, b) => b - a);
   return `${topbar({ title: 'Finanzen', sub: `Saison ${y}`, money: f.balance })}
-  <div class="panel muted" style="margin-bottom:12px;font-size:.84rem">💸 Preisniveau: <b class="${(app.state.player.level ?? 1) > 1 ? 'gold' : ''}">+${Math.round((priceFactor(app.state.player.level ?? 1) - 1) * 100)} %</b> (Level ${app.state.player.level ?? 1}) auf Reisekosten, Startgebühren, Sauna und Massage – mit jedem Level +1 %.</div>
+  <div class="panel muted" style="margin-bottom:12px;font-size:.84rem">💸 Preisniveau: <b class="${(app.state.player.level ?? 1) > 1 ? 'gold' : ''}">+${Math.round((priceFactor(app.state.player.level ?? 1) - 1) * 100)} %</b> (Level ${app.state.player.level ?? 1}) auf Reisekosten, Sauna, Massage, Wohnung und Auto – mit jedem Level +1 %. Startgebühren bleiben gleich.</div>
   <div class="kpi-grid">
     <div class="kpi"><div class="label">Kontostand</div><div class="v num ${f.balance >= 0 ? 'pos' : 'neg'}">${fmtEUR(f.balance)}</div></div>
     <div class="kpi"><div class="label">Einnahmen ${y}</div><div class="v num pos">${fmtEUR(sf.income)}</div></div>

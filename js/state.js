@@ -32,7 +32,7 @@ export function newCareer({ name, nation, hand, region = DEFAULT_REGION, bonus =
       region: nation === 'DE' ? region : null,
       attrs: startAttrs(bonus), exp: EXP_MIN, clutch: 0,
       level: 1, xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
-      tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false,
+      tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false, proMatches: 0,
     },
     world: createWorld(rng),
     finance: { balance: START_BUDGET, tx: [], seasons: {}, prizeTotal: 0 },

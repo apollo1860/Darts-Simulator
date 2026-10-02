@@ -7,7 +7,7 @@ import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch } from './matchState.js';
 import { BOGEY } from './board.js';
 import { aiDart, aiSigma } from './throwModel.js';
-import { eventCost, canAfford, book, ENTRY_FEE, levelPrice } from './finance.js';
+import { eventCost, canAfford, book, ENTRY_FEE } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, POINTS_PER_LEVEL } from './player.js';
 import { addNews } from './news.js';
@@ -25,7 +25,7 @@ import { xpMult } from './staff.js';
 import { maybeInterview } from './interviews.js';
 import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
-import { stageFactor, applyStage, updateMomentum, titleMomentum } from './form.js';
+import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
 export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs'];   // laufen ohne Spieler im Hintergrund
@@ -249,7 +249,8 @@ const attrsOf = (state, id, inst = state.activeEvent) => {
   const t = inst?.teams?.[id];
   const base = t ? { ...t.attrs, exp: t.exp } : perf(getPlayer(state, id));
   const m = inst?.rounds?.[inst.current]?.matches.find(x => x.a === id || x.b === id);
-  return applyStage(base, stageFactor(inst, m?.a, m?.b));
+  const staged = applyStage(base, stageFactor(inst, m?.a, m?.b));
+  return id === 'P' ? applyNerves(staged, nervesFor(inst, state.player)) : staged;   // Lampenfieber (erste Pro-Tour-Zeit)
 };
 
 // Eigenes Match simulieren (Ergebnis wird gespeichert und zurückgegeben)
@@ -399,6 +400,11 @@ function recordPlayerMatch(state, inst, m, res) {
   const oppId = me === 0 ? m.b : m.a;
   if (isRival(state, oppId)) rivalMeeting(state, inst, won, `${sc[me]}:${sc[1 - me]}`);
   matchMilestones(state, s, won);
+  if (PRO_CATS.includes(inst.cat)) {
+    const p = state.player, before = proMatchesOf(p);
+    p.proMatches = before + 1;
+    if (before < 60 && p.proMatches >= 60) addNews(state, 'xp', '😌 Lampenfieber verflogen', 'Nach 60 Profi-Matches fühlst du dich auf der Tour zuhause – keine Nervosität mehr.');
+  }
   const step = updateMomentum(state.player, { won, opp: inst.teams?.[oppId] ?? getPlayer(state, oppId), cat: inst.cat, big: inst.big?.includes(oppId) });
   if (step) addNews(state, 'xp', `${step.icon || '😐'} Selbstvertrauen: ${step.label}`, step.bonus > 0 ? `Du bist im Flow: +${step.bonus} auf Scoring, Finishing und Fokus.`
     : step.bonus < 0 ? `Die Zweifel nagen: ${step.bonus} auf Scoring, Finishing und Fokus. Siege helfen raus.` : 'Dein Selbstvertrauen ist wieder im Normalbereich.');
@@ -506,6 +512,7 @@ function settle(state, inst) {
 export function awardCard(state, id, until, via) {
   if (id === 'P') {
     const p = state.player;
+    if (!p.everTourcard) p.proMatches ??= 0;
     p.tour = 'tour'; p.cardUntil = until; p.everTourcard = true; p.cardVia = via;
     addNews(state, 'result', '🎉 TOURCARD GEWONNEN!', `Über ${via} – gültig bis Ende ${until}. Ab ${state.date.week >= 50 ? state.date.year + 1 : 'sofort'} spielst du auf der PDC Pro Tour (ab Phase 4 spielbar).`);
   } else {
@@ -524,7 +531,7 @@ function finishEvent(state, inst) {
     const ev = findEvent(state, inst.eventId, inst.year, inst.week), left = plays - 1 - inst.sub;
     state.hnq = { etId: ev.etId, year: inst.year };
     inst.hasNext = false;
-    if (left > 0) book(state, levelPrice(ENTRY_FEE, state.player.level ?? 1) * left, `Rückerstattung ${left} Turnier${left > 1 ? 'e' : ''} (${inst.baseName})`, 'fee');
+    if (left > 0) book(state, ENTRY_FEE * left, `Rückerstattung ${left} Turnier${left > 1 ? 'e' : ''} (${inst.baseName})`, 'fee');
     const et = findEvent(state, ev.etId, inst.year, ev.week + 1) ?? { name: 'das ET-Event' };
     addNews(state, 'result', `🎟️ Qualifiziert für ${et.name}!`, 'Über den Host-Nation-Qualifier stehst du nächste Woche im Hauptfeld – melde dich in der Wochenansicht.');
   }

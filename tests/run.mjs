@@ -67,7 +67,8 @@ test('Kosten', () => {
   assert.equal(eventCost({ cat: 'et', country: 'AT' }).total, 400);
   assert.equal(eventCost({ cat: 'local' }).total, 0);
   // Preisniveau: +1 % je Level über 1
-  assert.deepEqual(eventCost({ cat: 'challenge', country: 'ENG', count: 2 }, null, 51), { fee: 2 * 40, travel: 900, total: 980 });
+  assert.deepEqual(eventCost({ cat: 'challenge', country: 'ENG', count: 2 }, null, 51), { fee: 50, travel: 900, total: 950 });   // Gebühr bleibt 25 €
+  assert.equal(eventCost({ cat: 'pc', country: 'ENG' }).fee, 0); assert.equal(eventCost({ cat: 'major', country: 'ENG' }).fee, 0);
   assert.equal(eventCost({ cat: 'wdf', europe: false }, null, 21).total, 1200);
   assert.equal(eventCost({ cat: 'local' }, null, 80).total, 0);
 });
@@ -774,6 +775,16 @@ test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
   assert.ok(playersOfTier(s, 'local').every(p => p.nation === 'DE'));               // nur Deutsche
   const v8 = JSON.parse(JSON.stringify(s)); v8.version = 8; v8.world.players.L21.name = 'Ralf Steiner'; v8.world.players.L21.nation = 'AT';
   migrate(v8); assert.equal(v8.world.players.L21.nation, 'DE'); assert.equal(v8.world.players.L21.avg, s.world.players.L21.avg);
+});
+
+test('Lampenfieber: nur Profi-Events, baut sich über 60 Profi-Matches ab', () => {
+  const p = { proMatches: 0 }, a = { sco: 70, fin: 70, men: 70, foc: 70, cal: 70 };
+  assert.equal(FO.nervesFor({ cat: 'challenge' }, p), 0);
+  assert.equal(FO.nervesFor({ cat: 'pc' }, p), 5);
+  assert.equal(FO.nervesFor({ cat: 'major' }, { proMatches: 30 }), 2.5);
+  assert.equal(FO.nervesFor({ cat: 'et' }, { proMatches: 80 }), 0);
+  assert.equal(FO.nervesLevel({ everTourcard: true }), 0);                 // alte Spielstände: kein Lampenfieber
+  assert.deepEqual(FO.applyNerves(a, 5), { sco: 65, fin: 65, men: 65, foc: 67, cal: 70 });
 });
 
 console.log(`\n${n} Tests ok`);
