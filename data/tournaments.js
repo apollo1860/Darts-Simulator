@@ -8,6 +8,7 @@ export const CATEGORIES = {
   wdf:       { label: 'WDF Open', short: 'WDF', phase: 1 },
   hnq:       { label: 'Host-Nation-Qualifier', short: 'HNQ', phase: 1 },
   wmqs:      { label: 'WM-Qualifier (Q-School)', short: 'WM-Q', phase: 1 },
+  wmreg:     { label: 'WM-Qualifier (International)', short: 'WM-INT', phase: 1 },
   qschool:   { label: 'Q-School',          short: 'Q-SCHOOL', phase: 3 },
   challenge: { label: 'Challenge Tour',    short: 'CT', phase: 3 },
   dev:       { label: 'Development Tour',  short: 'DEV', phase: 3 },
@@ -44,6 +45,27 @@ export const ET_REGIONS = {
   nb: { label: 'Nordic & Baltic', nations: ['DK', 'SE', 'NO', 'FI', 'EE', 'LV', 'LT'] },
   ee: { label: 'Osteuropa', nations: ['PL', 'CZ', 'HU', 'HR', 'SI'] },
 };
+
+// Internationale WM-Qualifier (48 Plätze minus TCHQ): Europa 10, Asien & Ozeanien 14, Amerika & Afrika 7, Frauen 4
+export const WM_QUALIFIERS = [
+  { key: 'esl', name: 'PDC Europe Super League', nations: ['DE', 'AT', 'CH'], slots: 1, city: 'Hildesheim', country: 'DE' },
+  { key: 'west', name: 'WM-Qualifier Westeuropa', nations: ['NL', 'BE'], slots: 1, city: 'Rotterdam', country: 'NL' },
+  { key: 'med', name: 'WM-Qualifier Mittelmeer', nations: ['FR', 'GI', 'IT', 'PT', 'ES'], slots: 1, city: 'Barcelona', country: 'ES' },
+  { key: 'see', name: 'WM-Qualifier Südosteuropa', nations: ['HR', 'SI', 'GR', 'RS', 'RO', 'BG'], slots: 1, city: 'Zagreb', country: 'HR' },
+  { key: 'cz', name: 'WM-Qualifier Osteuropa (Tschechien)', nations: ['CZ', 'SK'], slots: 1, city: 'Prag', country: 'CZ' },
+  { key: 'pl', name: 'WM-Qualifier Osteuropa (Polen)', nations: ['PL'], slots: 1, city: 'Warschau', country: 'PL' },
+  { key: 'hu', name: 'Ungarn Superleague-Qualifier', nations: ['HU'], slots: 1, city: 'Budapest', country: 'HU' },
+  { key: 'nb', name: 'Nordic & Baltic Tour', nations: ['DK', 'SE', 'NO', 'FI', 'EE', 'LV', 'LT'], slots: 3, city: 'Kopenhagen', country: 'DK' },
+  { key: 'asia', name: 'PDC Asian Tour & Asian Championship', nations: ['JP', 'PH', 'CN', 'IN', 'HK', 'SG'], slots: 7, city: 'Manila', country: 'PH', overseas: true },
+  { key: 'jp', name: 'WM-Qualifier Japan', nations: ['JP'], slots: 1, city: 'Tokio', country: 'JP', overseas: true },
+  { key: 'cn', name: 'WM-Qualifier China', nations: ['CN'], slots: 1, city: 'Shanghai', country: 'CN', overseas: true },
+  { key: 'in', name: 'WM-Qualifier Indien', nations: ['IN'], slots: 1, city: 'Mumbai', country: 'IN', overseas: true },
+  { key: 'oce', name: 'DPA/DPNZ/ADA Tour & AC Premier League', nations: ['AU', 'NZ'], slots: 4, city: 'Sydney', country: 'AU', overseas: true },
+  { key: 'cdc', name: 'CDC (North American Championship, Continental Cup, Rangliste)', nations: ['US', 'CA'], slots: 4, city: 'Las Vegas', country: 'US', overseas: true },
+  { key: 'cdlc', name: 'CDLC-Qualifier (Mittel-/Südamerika)', nations: ['MX', 'BR', 'AR'], slots: 1, city: 'Mexiko-Stadt', country: 'MX', overseas: true },
+  { key: 'africa', name: 'WM-Qualifier Afrika', nations: ['ZA', 'KE', 'NG'], slots: 2, city: 'Johannesburg', country: 'ZA', overseas: true },
+  { key: 'women', name: "Women's Series & Women's World Matchplay", nations: ['ENG', 'NL', 'DE', 'SE'], slots: 4, city: 'Wigan', country: 'ENG', women: true, week: 44 },
+];
 
 // DDV (Deutscher Dartverband): 4 Ranglistenturniere pro Jahr, nur ohne Tourcard
 const DDV = [[9, 'Gelsenkirchen'], [20, 'Bad Nauheim'], [33, 'Hamburg'], [44, 'München']];
@@ -104,7 +126,11 @@ export const CALENDAR = [
   { id: 'pcf', cat: 'major', fmt: 'pcf', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG', note: 'Top 64 Pro Tour OOM' },
   { id: 'wm-qs', cat: 'wmqs', name: 'WM-Qualifier (Q-School-Teilnehmer)', week: 46, city: 'Milton Keynes', country: 'ENG',
     note: 'alle Q-School-Teilnehmer des Jahres ohne Tourcard · Sieger spielt die WM' },
-  { id: 'wm-quali', cat: 'major', fmt: 'wmq', name: 'WM-Qualifikation', week: 49, city: 'Milton Keynes', country: 'ENG', noOom: true, note: 'Tourcard-Holder ohne WM-Platz · 16 Tickets' },
+  { id: 'wm-quali', cat: 'major', fmt: 'wmq', name: 'WM Tour Card Holder Qualifier', week: 49, city: 'Milton Keynes', country: 'ENG', noOom: true, note: 'Last Chance: Tourcard-Holder ohne WM-Platz · alle Restplätze (mind. 2)' },
+  // Internationale WM-Qualifier (je Region, nur ohne Tourcard; laufen sonst im Hintergrund)
+  ...WM_QUALIFIERS.map(q => ({ id: `wmq-${q.key}`, cat: 'wmreg', name: q.name, week: q.week ?? 47, city: q.city, country: q.country,
+    nations: q.nations, slots: q.slots, overseas: !!q.overseas, aiOnly: !!q.women, women: !!q.women, noOom: true, qualifier: true, key: q.key,
+    note: `${q.slots} ${q.slots > 1 ? 'WM-Plätze' : 'WM-Platz'} · ${q.women ? 'nur Spielerinnen' : `nur ohne Tourcard aus ${q.nations.join('/')}`}` })),
   { id: 'wm', cat: 'major', fmt: 'wm', name: 'Weltmeisterschaft', week: 51, weeks: 2, city: 'London', country: 'ENG', note: '128 Spieler · Sätze' },
   ...pcWeeks.map((w, i) => ({
     id: `pc-${i + 1}`, cat: 'pc', name: `Players Championship ${i * 2 + 1} & ${i * 2 + 2}`,
@@ -175,7 +201,8 @@ export const FORMATS = {
   ec: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   gsod: { group: { legs: 5 }, default: { legs: 10 }, byRemaining: { 8: { legs: 16 }, 4: { legs: 16 }, 2: { legs: 16 } } },
   pcf: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
-  wmq: { default: { legs: 6 }, stopAt: 16 },
+  wmq: { default: { legs: 6 }, stopAt: 16 },                         // Plätze dynamisch (Sektionen = Restplätze)
+  wmreg: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },  // Plätze je Qualifier (Sektionen)
   wm: { default: { sets: 3, legs: 3 }, byRemaining: { 32: { sets: 4, legs: 3 }, 16: { sets: 4, legs: 3 }, 8: { sets: 5, legs: 3 }, 4: { sets: 6, legs: 3 }, 2: { sets: 7, legs: 3 } } },
   ws: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } } },
   wsf: { default: { legs: 6 }, byRemaining: { 4: { legs: 10 }, 2: { legs: 11 } } },

@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026 } from '../data/players.js';
-import { NAME_POOLS, POOL_WEIGHTS } from '../data/names.js';
+import { NAME_POOLS, POOL_WEIGHTS, WOMEN_FIRST, poolKeyOf } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
 import { RNG, hashSeed } from './rng.js';
@@ -110,18 +110,19 @@ export function upgradeWorld(world, rng) {
 // Fiktive Amateure (tier 'amateur', IDs A…) für Qualifier mit zu wenigen Spielern (HNQ, Nordic & Baltic, Osteuropa):
 // bewusst nicht zu stark (Ø 58–72), spielen nur diese Qualifier; Zufall fest je Nation + Zähler (verändert state.rng nicht)
 export const AMATEUR_AVG = [58, 72];
-export function addAmateurs(state, nation, n) {
-  const w = state.world, key = ['DE', 'AT', 'CH'].includes(nation) ? 'DE' : ['NL', 'BE'].includes(nation) ? 'NL'
-    : ['ENG', 'SCO', 'WAL', 'NIR', 'IRL', 'AU', 'US'].includes(nation) ? 'EN' : 'EU';
-  const pool = NAME_POOLS[key], used = new Set(Object.values(w.players).map(p => p.name)), out = [];
+// woman = true: fiktive Spielerin (Women's Series), nur im Frauen-Qualifier
+export function addAmateurs(state, nation, n, woman = false) {
+  const w = state.world, key = poolKeyOf(nation);
+  const pool = { ...NAME_POOLS[key], first: woman ? WOMEN_FIRST[key] ?? WOMEN_FIRST.EU : NAME_POOLS[key].first };
+  const used = new Set(Object.values(w.players).map(p => p.name)), out = [];
   for (let i = 0; i < n; i++) {
-    const no = (w.nextAmateur ??= 1), rng = new RNG({ s: hashSeed(`amateur|${nation}|${no}`) });
+    const no = (w.nextAmateur ??= 1), rng = new RNG({ s: hashSeed(`amateur|${nation}|${no}|${woman}`) });
     w.nextAmateur++;
     let name;
     for (let k = 0; k < 30 && (!name || used.has(name)); k++) name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`;
     used.add(name);
     const avg = Math.round(rng.float(...AMATEUR_AVG) * 10) / 10, age = rng.int(18, 50);
-    w.players[`A${no}`] = { id: `A${no}`, name, nation, age, avg, tier: 'amateur', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('ddv', age, rng) };
+    w.players[`A${no}`] = { id: `A${no}`, name, nation, age, avg, tier: 'amateur', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('ddv', age, rng), ...(woman ? { woman: true } : {}) };
     out.push(w.players[`A${no}`]);
   }
   return out;

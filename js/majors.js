@@ -5,17 +5,18 @@ import { playersOfTier, getPlayer } from './world.js';
 import { overall } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { nationName } from '../data/nations.js';
+import { WM_QUALIFIERS } from '../data/tournaments.js';
 import { clamp } from './util.js';
 
 export const MAJOR_CATS = ['major', 'ws', 'pl'];
 // Anzahl gesetzter Spieler (Rest wird zugelost)
-const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 40, ws: 8, wsf: 8, wcod: 8, plf: 4, wmq: 0, pln: 0, gsod: 32 };
+const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 8, plf: 4, wmq: 0, pln: 0, gsod: 32 };
 
 export const RULE_TEXT = {
   masters: 'Top 24 der PDC Order of Merit', ukopen: 'Tourcard oder Top 32 der Challenge-Tour-OOM',
   matchplay: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM', wgp: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM',
   ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Pro Tour OOM', gsod: 'Top 16 PDC, Top 12 Pro Tour oder Top 2 CT/Dev',
-  wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, WM-Quali, CT/Dev Top 4 oder International',
+  wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, CT/Dev Top 3, Jugend-Weltmeister, internationaler Qualifier oder TCHQ',
   ws: 'Einladung: Top 8 PDC OOM (+ 8 Qualifikanten)', wsf: 'Top 24 der World-Series-Wertung',
   pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten deiner Nation',
 };
@@ -38,6 +39,20 @@ function wmAuto(state) {
   }
   return q.wmAuto;
 }
+
+// WM: alle Plätze außer dem Tour Card Holder Qualifier – Top 40 PDC + 40 Pro Tour (rücken nach), Jugend-Weltmeister,
+// Top 3 Dev/CT-OOM, Q-School-WM-Qualifier, internationale Qualifier. Doppelt Qualifizierte rücken NICHT nach → mehr TCHQ-Plätze.
+export function wmDirect(state) {
+  const q = qualOf(state), used = new Set(wmAuto(state)), out = [...used];
+  const add = ids => { for (const id of ids) if (id && !used.has(id)) { used.add(id); out.push(id); } };
+  add([q.wmYouth]);
+  add(idsOf(orderOfMerit(state, 'dev')).slice(0, 3));
+  add(idsOf(orderOfMerit(state, 'challenge')).slice(0, 3));
+  add([q.wmQsWinner]);
+  for (const x of WM_QUALIFIERS) add(q.wmReg?.[x.key] ?? []);
+  return out.slice(0, 126);
+}
+export const wmTchqSlots = state => 128 - wmDirect(state).length;
 
 // ---- World Cup: Zweierteams ----
 export function wcTeams(state) {
@@ -104,18 +119,15 @@ function computeField(state, ev) {
     }
     case 'gsod': return [...take(pdc, 16, used), ...take(pt, 8, used),
       ...take(idsOf(orderOfMerit(state, 'challenge')), 2, used), ...take(idsOf(orderOfMerit(state, 'dev')), 2, used), ...take(pt, 4, used)];
-    case 'wmq': { const auto = new Set(wmAuto(state)); return pdc.filter(id => !auto.has(id)); }
+    case 'wmq': {                            // Last Chance: alle Holder ohne WM-Platz
+      const direct = new Set(wmDirect(state));
+      return pdc.filter(id => !direct.has(id) && (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
+    }
     case 'wm': {
-      const q = qualOf(state);
-      wmAuto(state).forEach(id => used.add(id));
-      const quali = take(q.wmqSurvivors ?? pdc.slice(80, 96), 16, used);
-      const qs = q.wmQsWinner ? take([q.wmQsWinner], 1, used) : [];          // Sieger WM-Qualifier (Q-School)
-      const ct = take(idsOf(orderOfMerit(state, 'challenge')), 4, used);
-      const dev = take(idsOf(orderOfMerit(state, 'dev')), 4, used);
-      const p = state.player;
-      const intl = [...playersOfTier(state, 'challenge', 'dev', 'ddv'), ...(p.tour !== 'tour' ? [p] : [])]
-        .sort((a, b) => overall(b.attrs) - overall(a.attrs)).map(x => x.id);
-      return [...wmAuto(state), ...quali, ...qs, ...ct, ...dev, ...take(intl, 128 - used.size, used)];
+      const q = qualOf(state), direct = wmDirect(state);
+      direct.forEach(id => used.add(id));
+      const tchq = take(q.wmqSurvivors ?? [], 128 - used.size, used);
+      return [...direct, ...tchq, ...take(pdc, 128 - used.size, used)];       // fehlende Plätze: PDC-Rangliste
     }
     case 'pln': return rng.shuffle([...plState(state).players]);
     case 'plf': return plTable(state).slice(0, 4).map(x => x.id);

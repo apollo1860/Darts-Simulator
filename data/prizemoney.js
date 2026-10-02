@@ -4,7 +4,8 @@ export const PRIZES = {
   // Lokal: Sieger zufällig 50–200 €, Rest anteilig
   local: { winMin: 50, winMax: 200, shares: { F: 0.4, SF: 0.2 } },
   ddv:       { W: 350, F: 100 },
-  wmqs:      {},                                    // kein Preisgeld, Sieg = WM-Platz
+  wmqs:      {},
+  wmreg:     {},                                    // kein Preisgeld, Sieg = WM-Platz
   hnq:       {},                                    // kein Preisgeld, Sieg = Platz im ET-Hauptfeld
   wdf:       { F: 500, SF: 250, QF: 100 },          // Sieg 1.000–2.500 € je nach Kategorie (WDF_PRIZE_BAND)
   // Challenge/Development Tour je Turnier (Nutzervorgabe, beide gleich)

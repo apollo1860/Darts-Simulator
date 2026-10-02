@@ -7,7 +7,7 @@ import { momentumState } from '../../form.js';
 import { interviewPanel, bindInterview } from '../interview.js';
 import { levelBar } from '../level.js';
 import { rivalOf } from '../../rival.js';
-import { eventsInWeek } from '../../calendar.js';
+import { eventsInWeek, shownTo } from '../../calendar.js';
 import { nextWeek, jumpToNextEvent } from '../../season.js';
 import { trainingOf, weekActivity, ACTIVITIES, DECAY_AFTER, idleOf, mostOverdue } from '../../training.js';
 import { eventStatus } from '../../tournaments.js';
@@ -20,7 +20,7 @@ import { catTag } from '../components.js';
 
 function heroTile(state) {
   const { year, week } = state.date;
-  const evs = eventsInWeek(state, year, week);
+  const evs = eventsInWeek(state, year, week).filter(e => shownTo(state, e));
   const ae = state.activeEvent;
   let title, sub, cta;
   if (ae) {

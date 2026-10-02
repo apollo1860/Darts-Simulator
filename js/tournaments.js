@@ -14,7 +14,7 @@ import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek } from './calendar.js';
 import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace } from './bracket.js';
-import { MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare } from './majors.js';
+import { MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots } from './majors.js';
 import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
@@ -29,7 +29,7 @@ import { travelMult } from './home.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
-export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'etq', 'hnq', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs'];   // laufen ohne Spieler im Hintergrund
+export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'etq', 'hnq', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs', 'wmreg'];   // laufen ohne Spieler im Hintergrund
 
 // Inhaltliche Berechtigung
 export function eligibility(state, ev) {
@@ -45,6 +45,10 @@ export function eligibility(state, ev) {
       if (card) return { ok: false, reason: 'Nur ohne Tourcard' };
       return p.nation === ev.country ? { ok: true } : { ok: false, reason: `Nur Spieler aus ${ev.country}` };
     case 'qschool': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };
+    case 'wmreg':
+      if (ev.women) return { ok: false, reason: 'Nur für Spielerinnen' };
+      if (card) return { ok: false, reason: 'Nur ohne Tourcard' };
+      return ev.nations.includes(p.nation) ? { ok: true } : { ok: false, reason: `Nur Spieler aus ${ev.nations.join('/')}` };
     case 'challenge':
       if (card) return { ok: false, reason: 'Tourcard-Holder sind ausgeschlossen' };
       return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
@@ -171,6 +175,15 @@ function hnqPool(state, ev) {
 }
 // Hintergrund-Turnier überhaupt möglich? (z. B. kein HNQ ohne mind. 2 Spieler der Nation)
 const aiRunnable = (state, ev) => ev.cat !== 'hnq' || hnqPool(state, ev).length >= 2;   // mit Amateuren praktisch immer
+// Pool eines internationalen WM-Qualifiers; zu wenige Spieler → fiktive Amateure (Frauen-Qualifier: nur Spielerinnen)
+function wmRegPool(state, ev) {
+  const min = Math.max(16, ev.slots * 6);
+  const cands = () => (ev.women ? playersOfTier(state, 'amateur').filter(p => p.woman)
+    : [...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local', 'amateur')].filter(p => !p.woman && ev.nations.includes(p.nation)));
+  let all = cands();
+  for (let i = 0; all.length < min; i++) { addAmateurs(state, ev.nations[i % ev.nations.length], 1, ev.women); all = cands(); }
+  return all.map(p => p.id);
+}
 export const etQualified = (state, ev) => Object.values(etEntrants(state, ev, true)).some(l => l.includes('P'));
 
 function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
@@ -198,6 +211,10 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   let ids;
   if (ev.cat === 'wmqs') {                   // alle Q-School-Teilnehmer ohne Karte (KI: Pool ohne Karte), keine Setzliste
     ids = rng.shuffle(nonCardPros(state).map(p => p.id));
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
+  }
+  if (ev.cat === 'wmreg') {                  // Internationaler WM-Qualifier: Spieler ohne Karte der Region (+ fiktive Amateure)
+    ids = rng.shuffle(wmRegPool(state, ev));
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'hnq') {                    // Gastgebernation: Spieler ohne Karte, DDV/lokal – keine Setzliste
@@ -230,7 +247,9 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
 
 function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
   const field = seededField(state, ev, withPlayer, rng, sub, ctx);
-  const fk = fmtKey(ev, sub), fmt = FORMATS[fk];
+  const fk = fmtKey(ev, sub);
+  const slots = ev.fmt === 'wmq' ? wmTchqSlots(state) : ev.slots;          // Qualifier mit n Plätzen → n Sektionen
+  const fmt = slots > 1 ? { ...FORMATS[fk], stopAt: slots, sections: slots } : FORMATS[fk];
   let groups = null, rounds;
   if (ev.groups) {        // Grand Slam: 4 Töpfe à 8 → 8 Gruppen
     const pots = [0, 1, 2, 3].map(k => rng.shuffle(field.slice(k * 8, k * 8 + 8)));
@@ -554,6 +573,8 @@ function settle(state, inst) {
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
+  if (inst.cat === 'wmreg') (qualOf(state).wmReg ??= {})[inst.eventId.slice(4)] = survivors;
+  if (inst.eventId === 'youth-wm') qualOf(state).wmYouth = survivors[0];
   if (inst.cat === 'etq') etStore(state, inst.eventId.replace('etq', 'et')).tchq = survivors;
   if (inst.cat === 'hnq') {                                    // HNQ: je Turnier ein Platz (max. 4)
     const st = etStore(state, inst.eventId.replace('hnq', 'et'));
@@ -618,6 +639,12 @@ function finishEvent(state, inst) {
   titleMilestones(state, inst);
   addEventFatigue(state, inst);
   if (inst.isQualifier) {
+    if (inst.cat === 'wmreg') {
+      const ok = place === 'QUAL' || place === 'W';
+      addNews(state, 'result', ok ? `🎟️ WM-Ticket! ${inst.name}` : `${inst.name}: nicht qualifiziert`, ok ? 'Du spielst im Dezember die Weltmeisterschaft im Ally Pally.' : 'Kein WM-Platz – nächstes Jahr wieder.');
+      if (!ok) state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });
+      return;
+    }
     const et = findEvent(state, inst.eventId.replace('etq', 'et'), inst.year, inst.week + 1) ?? findEvent(state, inst.eventId.replace('etq', 'et'), inst.year, inst.week + 2);
     addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, place === 'QUAL' ? `Du stehst im Hauptfeld von ${et?.name ?? 'dem ET-Event'} (Letzte 48) – melde dich in der Event-Woche.` : 'Kein Platz im Hauptfeld.');
     if (place === 'NQ') state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });

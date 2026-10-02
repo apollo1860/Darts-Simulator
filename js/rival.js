@@ -2,7 +2,7 @@
 // Taucht in lokalen Turnieren (40 %), DDV (80 %) und WDF (50 %) gezielt im Feld auf, sonst über CT/Dev/Q-School/Tour.
 // Kopf-an-Kopf-Bilanz in state.rival {id, w, l, meetings[]}; Duelle wirken extra aufs Selbstvertrauen.
 import { RNG } from './rng.js';
-import { NAME_POOLS } from '../data/names.js';
+import { NAME_POOLS, poolKeyOf as poolKey } from '../data/names.js';
 import { attrsForAverage, avgForRating, overall } from './player.js';
 import { aiExp, changeStrength, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
@@ -10,8 +10,6 @@ import { clamp } from './util.js';
 
 export const RIVAL_ID = 'R1';
 export const RIVAL_CHANCE = { local: 0.4, ddv: 0.8, wdf: 0.5 };
-const poolKey = n => (['DE', 'AT', 'CH'].includes(n) ? 'DE' : ['NL', 'BE'].includes(n) ? 'NL'
-  : ['ENG', 'SCO', 'WAL', 'NIR', 'IRL', 'AU', 'NZ', 'US', 'CA'].includes(n) ? 'EN' : 'EU');
 
 // Niveau des Spielers als Average (aus dem Gesamtwert, nicht nur Scoring)
 const levelAvg = p => avgForRating(overall(p.attrs));

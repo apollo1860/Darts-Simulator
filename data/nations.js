@@ -37,6 +37,19 @@ export const NATIONS = {
   SI: { name: 'Slowenien', flag: '🇸🇮' },
   GI: { name: 'Gibraltar', flag: '🇬🇮' },
   BH: { name: 'Bahrain', flag: '🇧🇭' },
+  SK: { name: 'Slowakei', flag: '🇸🇰' },
+  RS: { name: 'Serbien', flag: '🇷🇸' },
+  RO: { name: 'Rumänien', flag: '🇷🇴' },
+  BG: { name: 'Bulgarien', flag: '🇧🇬' },
+  CN: { name: 'China', flag: '🇨🇳' },
+  IN: { name: 'Indien', flag: '🇮🇳' },
+  HK: { name: 'Hongkong', flag: '🇭🇰' },
+  SG: { name: 'Singapur', flag: '🇸🇬' },
+  BR: { name: 'Brasilien', flag: '🇧🇷' },
+  MX: { name: 'Mexiko', flag: '🇲🇽' },
+  AR: { name: 'Argentinien', flag: '🇦🇷' },
+  KE: { name: 'Kenia', flag: '🇰🇪' },
+  NG: { name: 'Nigeria', flag: '🇳🇬' },
 };
 export const nationName = c => NATIONS[c]?.name ?? c;
 export const flag = c => NATIONS[c]?.flag ?? '🏳️';

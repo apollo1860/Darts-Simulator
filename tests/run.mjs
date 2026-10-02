@@ -357,7 +357,12 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   const q = s.qual[2027];
   assert.equal(q.masters.length, 24); assert.equal(q.matchplay.length, 32); assert.equal(q.pcf.length, 64);
   assert.equal(q.wm.length, 128); assert.equal(new Set(q.wm).size, 128);
-  assert.equal(q.wmqSurvivors.length, 16); assert.ok(q.wmqSurvivors.every(id => q.wm.includes(id)));
+  assert.ok(q.wmqSurvivors.length >= 2 && q.wmqSurvivors.every(id => q.wm.includes(id)));      // TCHQ: Restplätze, mind. 2
+  assert.equal(Object.keys(q.wmReg).length, 17);                                            // 17 internationale Qualifier
+  assert.equal(Object.values(q.wmReg).flat().length, 35); assert.ok(q.wmYouth);           // Europa 10, Asien/Ozeanien 14, Amerika/Afrika 7, Frauen 4
+  assert.ok(q.wmReg.women.every(id => getPlayer(s, id).woman));
+  assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
+  assert.ok(q.wm.slice(0, 32).every((id, i) => id === q.wmAuto[i]));                       // Top 32 PDC gesetzt
   assert.equal(q.gsod.length, 32); assert.ok(Object.keys(q.wcTeams).length >= 8);
   const pl = s.pl[2027]; assert.equal(pl.nights, 16);
   assert.equal(Object.values(pl.points).reduce((a, b) => a + b, 0), 16 * (5 + 3 + 2 + 2));

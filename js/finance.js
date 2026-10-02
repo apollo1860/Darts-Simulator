@@ -4,7 +4,7 @@ import { UK } from '../data/nations.js';
 export const START_BUDGET = 5000;
 export const ENTRY_FEE = 25;
 export const ETQ_NIGHT = 150;           // TCHQ direkt nach dem Pro-Tour-Block: eine Übernachtung extra (× Preisniveau)
-const FEE_CATS = new Set(['qschool', 'challenge', 'dev', 'ddv', 'hnq']);
+const FEE_CATS = new Set(['qschool', 'challenge', 'dev', 'ddv', 'hnq', 'wmreg']);
 
 export function travelCost(country) {
   if (UK.has(country)) return 600;
@@ -25,7 +25,7 @@ export function eventCost(ev, n = null, level = 1, travelMult = 1) {
   const trip = base => Math.round(levelPrice(base, level) * travelMult / 5) * 5;
   if (ev.cat === 'wdf') { const travel = trip(ev.europe ? 400 : 1000); return { fee: 0, travel, total: travel }; }   // WDF: Europa 400 €, Übersee 1.000 €
   const fee = FEE_CATS.has(ev.cat) ? ENTRY_FEE * (n ?? ev.count ?? 1) : 0;
-  const travel = trip(travelCost(ev.country));
+  const travel = trip(ev.overseas ? 1000 : travelCost(ev.country));   // Übersee 1.000 €
   return { fee, travel, total: fee + travel };
 }
 

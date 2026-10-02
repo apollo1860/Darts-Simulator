@@ -1,7 +1,7 @@
 // Jahreskalender (Monatsgruppen, aktuelle Woche markiert)
 import { esc, MONTHS, monthOfWeek, weekRange } from '../../util.js';
 import { CATEGORIES } from '../../../data/tournaments.js';
-import { yearSchedule } from '../../calendar.js';
+import { yearSchedule, shownTo } from '../../calendar.js';
 import { eventStatus } from '../../tournaments.js';
 import { flag } from '../../../data/nations.js';
 import { topbar, catTag } from '../components.js';
@@ -13,7 +13,7 @@ export function render(app, params) {
   const year = params.year ?? s.date.year;
   const sched = yearSchedule(s, year);
   const show = ev => (filter === 'all' ? true : filter === 'me' ? eventStatus(s, ev).eligible : ev.cat === filter)
-    && (ev.startsThisWeek !== false);
+    && (ev.startsThisWeek !== false) && (filter === 'wmreg' || shownTo(s, ev));
   const months = {};
   for (const w of sched) (months[monthOfWeek(year, w.week)] ??= []).push(w);
   const chips = [['all', 'Alle'], ['me', 'Für mich'], ...Object.entries(CATEGORIES).map(([k, c]) => [k, c.short])];

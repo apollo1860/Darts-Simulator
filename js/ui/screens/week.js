@@ -2,7 +2,7 @@
 import { esc, fmtEUR, weekLabel } from '../../util.js';
 import { flag, nationName } from '../../../data/nations.js';
 import { CATEGORIES } from '../../../data/tournaments.js';
-import { eventsInWeek } from '../../calendar.js';
+import { eventsInWeek, shownTo } from '../../calendar.js';
 import { eventStatus, enterEvent } from '../../tournaments.js';
 import { topbar, catTag, modal, toast } from '../components.js';
 
@@ -24,7 +24,7 @@ function costLine(ev, st) {
 
 export function render(app) {
   const s = app.state, { year, week } = s.date;
-  const evs = eventsInWeek(s, year, week);
+  const evs = eventsInWeek(s, year, week).filter(e => shownTo(s, e));
   return `${topbar({ title: 'Diese Woche', sub: weekLabel(year, week), money: s.finance.balance })}
   ${s.week.played ? '<div class="panel" style="margin-bottom:12px"><b>Diese Woche bist du bereits gemeldet.</b> <span class="muted">Pro Woche ist nur ein Event möglich.</span></div>' : ''}
   <div class="stack">

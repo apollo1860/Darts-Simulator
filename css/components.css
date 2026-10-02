@@ -613,6 +613,7 @@
 .tile-action:hover { background: rgba(34, 228, 255, .12); }
 .tag-wmqs { color: #ff8a5e; background: rgba(0, 0, 0, .25); }
 .tag-hnq { color: #9be37f; background: rgba(0, 0, 0, .25); }
+.tag-wmreg { color: #ffc35e; background: rgba(0, 0, 0, .25); }
 /* Meilensteine */
 .ms-row { display: grid; grid-template-columns: 24px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); font-size: .88rem; opacity: .55; }
 .ms-row.done { opacity: 1; }
