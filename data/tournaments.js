@@ -13,6 +13,7 @@ export const CATEGORIES = {
   dev:       { label: 'Development Tour',  short: 'DEV', phase: 3 },
   pc:        { label: 'Players Championship', short: 'PC', phase: 4 },
   et:        { label: 'European Tour',     short: 'ET', phase: 4 },
+  etq:       { label: 'ET-Qualifier (Tour Card Holder)', short: 'TCHQ', phase: 4 },
   ws:        { label: 'World Series',      short: 'WS', phase: 5 },
   major:     { label: 'Major',             short: 'MAJOR', phase: 5 },
   pl:        { label: 'Premier League',    short: 'PL', phase: 5 },
@@ -37,6 +38,12 @@ const ET = [
   [32, 'Flanders Darts Trophy', 'Antwerpen', 'BE'], [34, 'Hungarian Darts Trophy', 'Budapest', 'HU'],
   [36, 'German Darts Championship', 'Hildesheim', 'DE'], [39, 'Swiss Darts Trophy', 'Basel', 'CH'],
 ];
+
+// Regionale ET-Qualifier (je 1 Platz, nur Spieler ohne Tourcard, laufen im Hintergrund)
+export const ET_REGIONS = {
+  nb: { label: 'Nordic & Baltic', nations: ['DK', 'SE', 'NO', 'FI', 'EE', 'LV', 'LT'] },
+  ee: { label: 'Osteuropa', nations: ['PL', 'CZ', 'HU', 'HR', 'SI'] },
+};
 
 // DDV (Deutscher Dartverband): 4 Ranglistenturniere pro Jahr, nur ohne Tourcard
 const DDV = [[9, 'Gelsenkirchen'], [20, 'Bad Nauheim'], [33, 'Hamburg'], [44, 'München']];
@@ -109,10 +116,20 @@ export const CALENDAR = [
     id: `hnq-${i + 1}`, cat: 'hnq', name: `Host-Nation-Qualifier ${name}`, week: w - 1, city, country, count: 4, pick: true,
     etId: `et-${i + 1}`, note: `nur ohne Tourcard aus ${country} · Turniersieg = Platz im Hauptfeld`,
   })),
+  // European Tour: 48er-Feld = Top 16 PDC (gesetzt, Runde 2) + Top 16 Pro Tour + 10 TCHQ + 4 HNQ + Nordic & Baltic + Osteuropa
   ...ET.map(([w, name, city, country], i) => ({
-    id: `et-${i + 1}`, cat: 'et', name, week: w, city, country, count: 2, qualifier: true,
-    subs: ['Qualifikation', 'Hauptfeld'], subFmts: ['etq', 'et'], note: 'Top 16 PDC gesetzt · Rest: Qualifikation (32 Plätze)',
+    id: `et-${i + 1}`, cat: 'et', name, week: w, city, country,
+    note: 'Top 16 PDC (gesetzt) · Top 16 Pro Tour · 10 TCHQ · 4 Host Nation · Nordic & Baltic · Osteuropa',
   })),
+  // Tour Card Holder Qualifier: direkt nach dem letzten Pro-Tour-Block vor dem ET-Event (Zusatz-Event, kein Preisgeld,
+  // nach dem PC-Block nur eine Übernachtung extra), 10 Plätze im Hauptfeld
+  ...ET.map(([w, name], i) => {
+    const k = pcWeeks.findLastIndex(x => x < w);
+    return {
+      id: `etq-${i + 1}`, cat: 'etq', name: `TCHQ ${name}`, week: pcWeeks[k], city: pcCities[k], country: cityCountry(pcCities[k]),
+      extra: true, qualifier: true, etId: `et-${i + 1}`, note: 'Tour Card Holder Qualifier · 10 Plätze im Hauptfeld · kein Preisgeld',
+    };
+  }),
   ...ctWeeks.map((w, i) => ({
     id: `ct-${i + 1}`, cat: 'challenge', name: `Challenge Tour ${i * 5 + 1}–${i * 5 + 5}`,
     week: w, city: tourCities[i % 4], country: cityCountry(tourCities[i % 4]), count: TOUR_WEEKEND_EVENTS, pick: true,
@@ -145,7 +162,7 @@ export const FORMATS = {
   wdf: { field: 64, default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 6 } } },
   qschool: { default: { legs: 5 }, stopAt: 4, cards: true },
   pc: { field: 128, default: { legs: 6 } },
-  etq: { default: { legs: 6 }, stopAt: 32 },                       // Tour-Card-Holder-Qualifier
+  etq: { default: { legs: 6 }, stopAt: 10, sections: 10 },         // Tour-Card-Holder-Qualifier: 10 Sektionen → 10 Qualifikanten
   et: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } }, seeds: 16 },
   challenge: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },
   dev: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },

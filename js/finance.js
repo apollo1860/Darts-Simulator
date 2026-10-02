@@ -3,6 +3,7 @@ import { UK } from '../data/nations.js';
 
 export const START_BUDGET = 5000;
 export const ENTRY_FEE = 25;
+export const ETQ_NIGHT = 150;           // TCHQ direkt nach dem Pro-Tour-Block: eine Übernachtung extra (× Preisniveau)
 const FEE_CATS = new Set(['qschool', 'challenge', 'dev', 'ddv', 'hnq']);
 
 export function travelCost(country) {

@@ -101,7 +101,7 @@
 - Exhibitions nur noch auf Angebot (ab Tourcard), Gage steigt mit dem Level.
 - **Meilensteine** mit Extra-XP (16 Stück, Liste im Profil). Alte Spielstände bekommen sie ab jetzt (keine rückwirkende Vergabe).
 - Formverlust neu (Nutzerwunsch): jedes Attribut muss mindestens alle 6 Wochen trainiert werden, sonst Rückgang bei diesem Attribut; Anzeige „zuletzt vor X Wo.“ je Attribut. Alte Spielstände starten mit höchstens 4 Wochen (Schonfrist).
-- Preisniveau steigt mit dem Level (+1 % je Level) für Reise, Sauna/Massage (Startgebühren fix 25 €, PC/ET/Majors ohne Gebühr). Lampenfieber in den ersten 60 Profi-Matches. Mehr Schaltungen ans Board (Matchdarts beider Seiten, große Checks, 180er). Wohnen & Auto: Auszug mit 18 (5 Wohnungen, Jahresmiete, Erholung/Selbstvertrauen), Auto-Shop (3 Autos, Reiserabatt, Wartung). Bot-Karriere trainiert jetzt wie ein echter Spieler reihum (`mostOverdue`): Tourcard nach 6 Saisons, Level ~50 nach 8.
+- Preisniveau steigt mit dem Level (+1 % je Level) für Reise, Sauna/Massage (Startgebühren fix 25 €, PC/ET/Majors ohne Gebühr). Lampenfieber in den ersten 60 Profi-Matches. Mehr Schaltungen ans Board (Matchdarts beider Seiten, große Checks, 180er). Wohnen & Auto: Auszug mit 18 (5 Wohnungen, Jahresmiete, Erholung/Selbstvertrauen), Auto-Shop (3 Autos, Reiserabatt, Wartung). European-Tour-Qualifikation nach PDC-Modell (Top 16 PDC, Top 16 Pro Tour, 10 TCHQ nach dem PC-Block, 4 HNQ, Nordic & Baltic, Osteuropa). Bot-Karriere trainiert jetzt wie ein echter Spieler reihum (`mostOverdue`): Tourcard nach 6 Saisons, Level ~50 nach 8.
 
 ## Mögliche nächste Schritte
 - Manuellen Modus auf Perzentil-Attribute kalibrieren und wieder freischalten.
@@ -152,6 +152,7 @@
 - Checkout-% zählt jeden Dart mit Rest ≤ 40 (gerade) bzw. 50 als Doppelversuch.
 - Wohnen: Effekte als Ermüdung −X/Woche und Selbstvertrauen +X/Woche (Villa +6/+0,6); Wohnheim zusätzlich −1 auf alle Attribute. Ohne Wahl nach 2 Wochen → Wohnheim. Alte Spielstände (≥ 18): Auszugsmeldung in den nächsten Wochen. Auto-Rabatt gilt für alle Reisen (auch Flüge). Kontostand darf durch Pflichtzahlungen (Miete/Wartung) ins Minus fallen.
 - Lampenfieber −5 (Fokus −3) abgebaut über 60 Profi-Matches (PC/ET/Majors/WS/PL), zählt auch ohne Karte (UK Open).
+- ET-Qualifikation: TCHQ in der Woche des letzten PC-Blocks vor dem ET-Event (KW 23 → TCHQ KW 21). 10 Sektionen ohne Setzliste. Nordic & Baltic (DK/SE/NO/FI/EE/LV/LT) und Osteuropa (PL/CZ/HU/HR/SI) nur im Hintergrund, gewichtete Auswahl der 8 Stärksten ohne Karte. Zu wenige HNQ-Spieler (z. B. Schweiz) → Restplätze über die Pro-Tour-Rangliste.
 
 ## Unsichere Angaben (bei echten Daten prüfen)
 - **Tourcard-Holder 2026: vom Nutzer geliefert** inkl. Herkunft: Top 64 (inkl. Michael Mansell auf 46), 31 im zweiten Kartenjahr (laufen Ende 2026 aus → Q-School), 4 CT/Dev 2025 + 29 Q-School 2026 (Karte bis 2027). Nationen, Alter, Averages geschätzt.

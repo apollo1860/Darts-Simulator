@@ -10,6 +10,7 @@ import { migrate } from '../js/state.js';
 import { liveDartStep, oppMatchDartVisit, boardCall, isBigTreble } from '../js/tournaments.js';
 import * as ST from '../js/staff.js';
 import * as FO from '../js/form.js';
+import * as ET from '../js/tournaments.js';
 import * as IV from '../js/interviews.js';
 import * as RV from '../js/rival.js';
 import * as MH from '../js/mishaps.js';
@@ -268,15 +269,34 @@ test('Pro Tour: PC-Doppel + ET (Quali → Hauptfeld) + OOM', () => {
   assert.ok(s.activeEvent.fieldSize <= 128 && s.activeEvent.fieldSize >= 90);
   closeEventAfterAll(s);
   assert.ok(orderOfMerit(s, 'protour').filter(x => x.money > 0).length >= 64);
-  // ET: nicht gesetzt → Qualifikation
+  // TCHQ direkt nach dem PC-Block: nur Übernachtung extra, 10 Qualifikanten, kein Preisgeld
+  const tq = eventsInWeek(s, 2027, 6).find(e => e.id === 'etq-1');
+  assert.ok(tq && tq.extra && tq.etId === 'et-1');
+  const direct = ET.etDirect(s);
+  if (direct.includes('P')) assert.equal(eventStatus(s, tq).playable, false);
+  else {
+    const st = eventStatus(s, tq);
+    assert.ok(st.playable && st.cost.addOn && st.cost.total >= 150 && st.cost.total < 200 && st.cost.fee === 0);   // 150 € × Preisniveau
+    enterEvent(s, 'etq-1');
+    assert.ok(s.activeEvent.isQualifier && s.activeEvent.stopAt === 10);
+    assert.ok(!s.activeEvent.rounds[0].matches.some(m => direct.includes(m.a) || direct.includes(m.b)));
+    simulateRest(s);
+    assert.ok(['QUAL', 'NQ'].includes(s.activeEvent.place) && !s.activeEvent.hasNext && !s.activeEvent.prize);
+    closeEvent(s);
+  }
+  assert.equal(new Set(ET.etStore(s, 'et-1').tchq).size, 10);
+  // ET-Hauptfeld: 48 = 16 gesetzt + 16 Pro Tour + 10 TCHQ + 4 HNQ + 2 Regionen (Rest aufgefüllt)
   s.date.week = 7; s.week = { played: false, eventId: null };
-  enterEvent(s, 'et-1');
-  assert.ok(s.activeEvent.isQualifier); assert.equal(s.activeEvent.stopAt, 32);
-  simulateRest(s);
-  const q = s.activeEvent;
-  assert.ok(['QUAL', 'NQ'].includes(q.place)); assert.equal(q.survivors.length, 32);
-  if (q.hasNext) { nextSub(s); assert.equal(s.activeEvent.fieldSize, 48); simulateRest(s); }
-  closeEvent(s);
+  const etEv = eventsInWeek(s, 2027, 7).find(e => e.id === 'et-1');
+  const e = ET.etEntrants(s, etEv, true), all = Object.values(e).flat();
+  assert.equal(all.length, 48); assert.equal(new Set(all).size, 48);
+  assert.equal(e.seeds.length, 16); assert.equal(e.pt.length, 16); assert.equal(e.tchq.length, 10);
+  assert.equal(eventStatus(s, etEv).playable, ET.etQualified(s, etEv));
+  if (ET.etQualified(s, etEv)) {
+    enterEvent(s, 'et-1');
+    assert.equal(s.activeEvent.fieldSize, 48); assert.ok(!s.activeEvent.isQualifier);
+    simulateRest(s); closeEvent(s);
+  }
   s.week = { played: true, eventId: 'et-1' };
   nextWeek(s);                                                     // CT läuft im Hintergrund
   assert.ok(s.news.some(n => n.title.startsWith('Pro Tour') || n.title.startsWith('PDC Order')));
@@ -287,6 +307,7 @@ test('ET: Top-16-Spieler direkt im Hauptfeld', () => {
   s.player.tour = 'tour'; s.player.cardUntil = 2028;
   s.rankings.years[2026].pdc.P = 3000000;                          // Platz 1
   s.date.week = 7;
+  assert.equal(eventStatus(s, eventsInWeek(s, 2027, 6).find(e => e.id === 'etq-1')).playable, false);   // kein TCHQ nötig
   enterEvent(s, 'et-1');
   assert.ok(!s.activeEvent.isQualifier); assert.equal(s.activeEvent.fieldSize, 48);
   assert.ok(playerMatch(s.activeEvent) === null || s.activeEvent.current >= 1); // Freilos in Runde 1
@@ -687,14 +708,17 @@ test('Auswahl Turnieranzahl (CT) + Host-Nation-Qualifier → ET-Hauptfeld', () =
   assert.ok(s.activeEvent.rounds[0].matches.every(m => [m.a, m.b].filter(Boolean).every(id => id === 'P' || getPlayer(s, id).nation === 'DE')));
   for (;;) { simulateRest(s); if (!s.activeEvent.hasNext) break; nextSub(s); }
   const won = s.activeEvent.place === 'W';
-  closeEvent(s);
+  closeEvent(s);                                                    // restliche HNQ-Turniere im Hintergrund
+  const hw = ET.etStore(s, 'et-2').hnq;
+  assert.equal(hw.length, 4); assert.equal(new Set(hw).size, 4);    // 4 Plätze für die Gastgebernation
+  assert.equal(hw.includes('P'), won);
   // ET-Hauptfeld über HNQ (erzwingen, falls nicht gewonnen)
-  if (!won) s.hnq = { etId: 'et-2', year: 2027 };
+  if (!won) hw[3] = 'P';
   s.week = { played: false }; s.date.week = 9;
   const et = eventsInWeek(s, 2027, 9).find(e => e.id === 'et-2');
   assert.ok(eventStatus(s, et).playable);
   enterEvent(s, 'et-2');
-  assert.equal(s.activeEvent.sub, 1);                               // direkt Hauptfeld
+  assert.ok(ET.etEntrants(s, et, true).hnq.includes('P'));
   assert.ok(s.activeEvent.rounds[0].matches.some(m => m.a === 'P' || m.b === 'P'));
   assert.equal(s.activeEvent.fieldSize, 48);
 });

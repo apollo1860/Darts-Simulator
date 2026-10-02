@@ -59,7 +59,7 @@ export function momentumDecay(p) {
 // ---- Lampenfieber ----
 // Neu auf der Pro Tour: in Profi-Events (PC/ET/Majors/WS/PL) −5 auf Scoring, Finishing, Mental und −3 Fokus,
 // baut sich linear über die ersten 60 Profi-Matches ab (≈ erstes Tourcard-Jahr). player.proMatches zählt mit.
-export const PRO_CATS = ['pc', 'et', 'major', 'ws', 'pl'];
+export const PRO_CATS = ['pc', 'et', 'etq', 'major', 'ws', 'pl'];
 export const NERVES_MATCHES = 60, NERVES_MAX = 5;
 export const proMatchesOf = p => p.proMatches ?? (p.everTourcard ? NERVES_MATCHES : 0);
 export const nervesLevel = p => NERVES_MAX * Math.max(0, 1 - proMatchesOf(p) / NERVES_MATCHES);

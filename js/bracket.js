@@ -15,9 +15,16 @@ function seedOrder(size) {
 
 // fmt: {stopAt, default:{legs}, byRemaining:{n:{...}}} ; seeded = IDs nach Setzliste (Bester zuerst)
 export function buildRounds(seeded, fmt) {
-  const size = nextPow2(Math.max(seeded.length, (fmt.stopAt ?? 1) * 2));
-  const order = seedOrder(size);
-  const slot = order.map(s => seeded[s - 1] ?? null);       // null = Freilos
+  let size, slot;
+  if (fmt.sections) {                                        // n Sektionen ohne Setzliste (z. B. TCHQ: 10 Sieger)
+    const per = nextPow2(Math.max(2, Math.ceil(seeded.length / fmt.sections)));
+    size = per * fmt.sections;
+    slot = Array(size).fill(null);                           // erst je Paarung ein Spieler, dann die zweiten → keine leeren Paarungen
+    seeded.forEach((id, i) => { slot[i < size / 2 ? i * 2 : (i - size / 2) * 2 + 1] = id; });
+  } else {
+    size = nextPow2(Math.max(seeded.length, (fmt.stopAt ?? 1) * 2));
+    slot = seedOrder(size).map(s => seeded[s - 1] ?? null);  // null = Freilos
+  }
   const first = [];
   for (let i = 0; i < size; i += 2) {
     const a = slot[i], b = slot[i + 1];
@@ -26,7 +33,7 @@ export function buildRounds(seeded, fmt) {
   }
   const rounds = [];
   for (let rem = size; rem > (fmt.stopAt ?? 1); rem /= 2) {
-    rounds.push({ name: ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
+    rounds.push({ name: fmt.sections ? (rem / 2 === fmt.stopAt ? 'Entscheidungsspiel' : `Runde ${rounds.length + 1}`) : ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
   }
   rounds[0].matches = first;
   return rounds;
@@ -64,7 +71,7 @@ export function buildGroupRounds(groups, fmt) {
     matches: groups.flatMap((g, gi) => day.map(([x, y]) => ({ a: g[x], b: g[y], winner: null, score: null, group: gi }))),
   }));
   for (let rem = groups.length * 2; rem > 1; rem /= 2) {
-    rounds.push({ name: ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
+    rounds.push({ name: fmt.sections ? (rem / 2 === fmt.stopAt ? 'Entscheidungsspiel' : `Runde ${rounds.length + 1}`) : ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
   }
   return rounds;
 }

@@ -15,7 +15,8 @@ function costLine(ev, st) {
     if (ev.pick) parts.push(`<span>Gebühr <b>${fmtEUR(c.fee)}</b> je Turnier</span>`, `<span>Reise <b>${fmtEUR(c.travel)}</b></span>`);
     else {
       if (c.fee) parts.push(`<span>Gebühr <b>${fmtEUR(c.fee)}</b></span>`);
-      parts.push(`<span>Reise <b>${fmtEUR(c.travel)}</b></span>`, `<span>Gesamt <b>${fmtEUR(c.total)}</b></span>`);
+      if (c.addOn) parts.push(`<span>Übernachtung extra <b>${fmtEUR(c.travel)}</b></span>`, '<span class="muted">nach dem Pro-Tour-Block</span>');
+      else parts.push(`<span>Reise <b>${fmtEUR(c.travel)}</b></span>`, `<span>Gesamt <b>${fmtEUR(c.total)}</b></span>`);
     }
   }
   return `<div class="cost-list">${parts.join('')}</div>`;

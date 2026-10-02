@@ -151,6 +151,7 @@
 .tag-dev { color: #ff7ad9; }
 .tag-pc { color: var(--cyan); }
 .tag-et { color: #6ea8ff; }
+.tag-etq { color: #9bbcf0; }
 .tag-ws { color: var(--violet); }
 .tag-major { color: var(--gold); background: rgba(255, 200, 61, .12); }
 .tag-pl { color: #c7a6ff; }

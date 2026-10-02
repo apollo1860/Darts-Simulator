@@ -1,13 +1,13 @@
 // Turniere: Berechtigung, Meldung, Feld/Auslosung, Runden, Platzierungen, Preisgeld/OOM,
 // Mehrfach-Events (z. B. CT-Wochenende mit 5 Turnieren, 4 Q-School-Tage) und KI-Hintergrund-Turniere (DOM-frei)
-import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS } from '../data/tournaments.js';
+import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS, ET_REGIONS } from '../data/tournaments.js';
 import { PRIZES } from '../data/prizemoney.js';
-import { RNG } from './rng.js';
+import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch } from './matchState.js';
 import { BOGEY } from './board.js';
 import { aiDart, aiSigma } from './throwModel.js';
-import { eventCost, canAfford, book, ENTRY_FEE } from './finance.js';
+import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, POINTS_PER_LEVEL } from './player.js';
 import { addNews } from './news.js';
@@ -29,7 +29,7 @@ import { travelMult } from './home.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
-export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs'];   // laufen ohne Spieler im Hintergrund
+export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'etq', 'hnq', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs'];   // laufen ohne Spieler im Hintergrund
 
 // Inhaltliche Berechtigung
 export function eligibility(state, ev) {
@@ -53,14 +53,21 @@ export function eligibility(state, ev) {
       if (card) return devHolders(state, y).includes(p) ? { ok: true } : { ok: false, reason: 'Holder nur außerhalb der PDC-Top-64' };
       return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
-    case 'et': return card || hnqQualified(state, ev) ? { ok: true } : { ok: false, reason: 'Tourcard oder Host-Nation-Qualifier nötig' };
+    case 'et': return etQualified(state, ev) ? { ok: true } : { ok: false, reason: card ? 'Nicht qualifiziert (TCHQ verpasst?)' : 'Tourcard oder Host-Nation-Qualifier nötig' };
+    case 'etq':
+      if (!card) return { ok: false, reason: 'Tourcard nötig' };
+      return etDirect(state).includes('P') ? { ok: false, reason: 'Schon direkt qualifiziert' } : { ok: true };
     default: return MAJOR_CATS.includes(ev.cat) ? majorEligibility(state, ev) : { ok: false, reason: 'Qualifikation nötig' };
   }
 }
 
 // Gesamtstatus für die UI
 export function eventStatus(state, ev, n = null) {
-  const cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1, travelMult(state.player));
+  let cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1, travelMult(state.player));
+  if (ev.cat === 'etq' && findEvent(state, state.week.eventId)?.cat === 'pc') {   // direkt nach dem PC-Block: nur eine Übernachtung extra
+    const travel = Math.round(levelPrice(ETQ_NIGHT, state.player.level ?? 1) * travelMult(state.player) / 5) * 5;
+    cost = { fee: 0, travel, total: travel, addOn: true };
+  }
   const phase = CATEGORIES[ev.cat]?.phase ?? 9;
   const elig = eligibility(state, ev);
   let playable = true, reason = '';
@@ -88,7 +95,7 @@ const oomTypes = (ev, sub) => {
   if (ev.cat === 'ws' && ev.fmt === 'ws') return ['ws'];                // World-Series-Wertung (für die Finals)
   if (ev.noOom || FORMATS[fmtKey(ev, sub)].stopAt > 1) return [];
   if (ev.cat === 'major') return ['pdc'];
-  if (ev.cat === 'et' && sub === 1) return ['pdc', 'protour', 'eto'];
+  if (ev.cat === 'et') return ['pdc', 'protour', 'eto'];
   if (ev.cat === 'challenge' || ev.cat === 'dev') return [ev.cat];
   if (ev.cat === 'pc' || ev.cat === 'et') return ['pdc', 'protour'];
   return [];
@@ -113,10 +120,49 @@ function prizeTable(ev, sub = 0) {
 }
 
 // ---- Teilnehmerfeld (Setzliste: Bester zuerst) ----
-// ET: Top 16 der PDC Order of Merit sind fürs Hauptfeld gesetzt
+// European Tour (48): Top 16 PDC (gesetzt) + Top 16 Pro Tour (ohne die Gesetzten) + 10 TCHQ + 4 HNQ + Nordic & Baltic + Osteuropa.
+// Fehlende Qualifikanten werden über die Pro-Tour-Rangliste aufgefüllt. Ergebnisse der Qualifier: qual[year].et[etId].
+const isHolder = (state, id) => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour');
+export const etStore = (state, etId) => ((qualOf(state).et ??= {})[etId] ??= {});
 export function etSeeds(state, includeP) {
-  return orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => includeP || id !== 'P').slice(0, FORMATS.et.seeds);
+  return orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => (includeP || id !== 'P') && isHolder(state, id)).slice(0, FORMATS.et.seeds);
 }
+// Direkt qualifiziert (Top 16 PDC + Top 16 Pro Tour) – diese spielen keinen TCHQ
+export function etDirect(state) {
+  const seeds = etSeeds(state, true);
+  const pt = orderOfMerit(state, 'protour').map(x => x.p.id).filter(id => isHolder(state, id) && !seeds.includes(id)).slice(0, 16);
+  return [...seeds, ...pt];
+}
+// Regionaler Qualifier (Hintergrund): Spieler ohne Karte der Region, Stärkere gewinnen öfter (fest je Event/Jahr)
+function regionQualifier(state, ev, key) {
+  const pool = nonCardPros(state).filter(p => ET_REGIONS[key].nations.includes(p.nation)).sort((a, b) => b.avg - a.avg).slice(0, 8);
+  if (!pool.length) return null;
+  const rng = new RNG({ s: hashSeed(`${ev.id}|${key}|${state.date.year}`) }), w = pool.map(p => Math.max(1, p.avg - 55) ** 2);
+  let r = rng.float(0, w.reduce((a, b) => a + b, 0));
+  return pool.find((p, i) => (r -= w[i]) <= 0)?.id ?? pool[0].id;
+}
+export function etEntrants(state, ev, withPlayer) {
+  const st = etStore(state, ev.id), ok = id => !!id && (id !== 'P' || withPlayer);
+  const seeds = etSeeds(state, withPlayer), taken = new Set(seeds);
+  const take = (ids, n) => {
+    const out = [];
+    for (const id of ids) { if (out.length >= n) break; if (ok(id) && !taken.has(id)) { taken.add(id); out.push(id); } }
+    return out;
+  };
+  const ptOrder = orderOfMerit(state, 'protour').map(x => x.p.id).filter(id => isHolder(state, id));
+  const pt = take(ptOrder, 16), tchq = take(st.tchq ?? [], 10), hnq = take(st.hnq ?? [], 4);
+  const region = take(Object.keys(ET_REGIONS).map(k => st[k] ?? regionQualifier(state, ev, k)), 2);
+  const fill = take([...ptOrder, ...orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => isHolder(state, id))], 48 - taken.size);
+  return { seeds, pt, tchq, hnq, region, fill };
+}
+// HNQ-Pool: Spieler ohne Karte, DDV/lokal der Gastgebernation (HNQ-Sieger sind schon qualifiziert)
+function hnqPool(state, ev) {
+  const won = new Set(etStore(state, ev.etId).hnq ?? []);
+  return [...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local')].filter(p => p.nation === ev.country && !won.has(p.id)).map(p => p.id);
+}
+// Hintergrund-Turnier überhaupt möglich? (z. B. kein HNQ ohne mind. 2 Spieler der Nation)
+const aiRunnable = (state, ev) => ev.cat !== 'hnq' || hnqPool(state, ev).length >= 2;
+export const etQualified = (state, ev) => Object.values(etEntrants(state, ev, true)).some(l => l.includes('P'));
 
 function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   const y = state.date.year;
@@ -127,12 +173,13 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(ids);                                  // PC: freie Auslosung
   }
   if (ev.cat === 'et') {
-    const seeds = etSeeds(state, withPlayer || !!ctx.playerIn);
-    if (sub === 0) {
-      const ids = orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => !seeds.includes(id) && (withPlayer || id !== 'P'));
-      return rng.shuffle(ids);
-    }
-    return [...seeds, ...rng.shuffle([...(ctx.qualifiers ?? [])])];
+    const e = etEntrants(state, ev, withPlayer);
+    return [...e.seeds, ...rng.shuffle([...e.pt, ...e.tchq, ...e.hnq, ...e.region, ...e.fill])];
+  }
+  if (ev.cat === 'etq') {                    // alle Holder ohne direktes Ticket, freie Auslosung
+    const direct = new Set(etDirect(state));
+    const ids = playersOfTier(state, 'tour').map(p => p.id).filter(id => !direct.has(id));
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'local') {
     let pool = rng.shuffle(playersOfTier(state, 'local').map(p => p.id)).slice(0, FORMATS.local.field - (withPlayer ? 1 : 0));
@@ -145,7 +192,7 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'hnq') {                    // Gastgebernation: Spieler ohne Karte, DDV/lokal – keine Setzliste
-    const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local')].filter(p => p.nation === ev.country).map(p => p.id));
+    const pool = rng.shuffle(hnqPool(state, ev));
     ids = pool.slice(0, FORMATS.hnq.field - (withPlayer ? 1 : 0));
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
@@ -198,7 +245,7 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
 
 // Melden: Kosten buchen, Feld auslosen, Instanz anlegen
 // Über den Host-Nation-Qualifier fürs ET-Hauptfeld qualifiziert?
-export const hnqQualified = (state, ev) => state.hnq?.etId === ev.id && state.hnq.year === state.date.year;
+export const hnqQualified = (state, ev) => (etStore(state, ev.id).hnq ?? []).includes('P') || (state.hnq?.etId === ev.id && state.hnq.year === state.date.year);
 
 // opts.count: bei Blöcken mit Auswahl (CT/Dev/HNQ) Anzahl der selbst gespielten Turniere (Rest läuft im Hintergrund)
 export function enterEvent(state, eventId, opts = {}) {
@@ -216,16 +263,7 @@ export function enterEvent(state, eventId, opts = {}) {
   }
   if (ev.extra) (state.week.extras ??= []).push(ev.id);
   else state.week = { ...state.week, played: true, eventId: ev.id, extras: state.week.extras ?? [], playCount: n };   // Trainingsflag bleibt
-  if (ev.qualifier && hnqQualified(state, ev) && !etSeeds(state, true).includes('P')) {
-    // Host-Nation-Qualifier gewonnen: ET-Qualifikation läuft ohne den Spieler, er ersetzt einen der 32 Qualifikanten
-    const q = runAITournament(state, ev, 0);
-    state.activeEvent = newInstance(state, ev, 1, true, rng, { qualifiers: [...q.survivors.slice(0, -1), 'P'] });
-  } else if (ev.qualifier && etSeeds(state, true).includes('P')) {
-    // Gesetzt: Qualifikation läuft ohne den Spieler, direkt ins Hauptfeld
-    const q = runAITournament(state, ev, 0, { playerIn: true });
-    state.activeEvent = newInstance(state, ev, 1, true, rng, { qualifiers: q.survivors });
-    addNews(state, 'info', `${ev.name}: gesetzt`, `Als Top 16 der PDC Order of Merit (Platz ${rankOf(state, 'pdc', 'P')}) bist du direkt im Hauptfeld.`);
-  } else state.activeEvent = newInstance(state, ev, 0, true, rng);
+  state.activeEvent = newInstance(state, ev, 0, true, rng);
   skipPlayerByes(state);
   return state.activeEvent;
 }
@@ -507,6 +545,12 @@ function settle(state, inst) {
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
+  if (inst.cat === 'etq') etStore(state, inst.eventId.replace('etq', 'et')).tchq = survivors;
+  if (inst.cat === 'hnq') {                                    // HNQ: je Turnier ein Platz (max. 4)
+    const st = etStore(state, inst.eventId.replace('hnq', 'et'));
+    st.hnq ??= [];
+    if (st.hnq.length < 4 && !st.hnq.includes(survivors[0])) st.hnq.push(survivors[0]);
+  }
   if (inst.cat === 'wmqs') {                                   // Q-School-WM-Qualifier: Sieger spielt die WM
     qualOf(state).wmQsWinner = survivors[0];
     const w = getPlayer(state, survivors[0]);
@@ -541,7 +585,7 @@ function finishEvent(state, inst) {
   settle(state, inst);
   inst.winner = inst.stopAt === 1 ? inst.survivors[0] : null;
   const plays = inst.withPlayer ? state.week.playCount ?? inst.count : inst.count;
-  inst.hasNext = inst.isQualifier ? inst.place === 'QUAL' : inst.sub < plays - 1 && inst.place !== 'CARD';
+  inst.hasNext = !inst.isQualifier && inst.sub < plays - 1 && inst.place !== 'CARD';
   if (inst.cat === 'hnq' && inst.withPlayer && inst.place === 'W') {          // Host-Nation-Qualifier gewonnen
     const ev = findEvent(state, inst.eventId, inst.year, inst.week), left = plays - 1 - inst.sub;
     state.hnq = { etId: ev.etId, year: inst.year };
@@ -565,7 +609,8 @@ function finishEvent(state, inst) {
   titleMilestones(state, inst);
   addEventFatigue(state, inst);
   if (inst.isQualifier) {
-    addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, place === 'QUAL' ? 'Du stehst im Hauptfeld (Letzte 48).' : 'Kein Platz im Hauptfeld.');
+    const et = findEvent(state, inst.eventId.replace('etq', 'et'), inst.year, inst.week + 1) ?? findEvent(state, inst.eventId.replace('etq', 'et'), inst.year, inst.week + 2);
+    addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, place === 'QUAL' ? `Du stehst im Hauptfeld von ${et?.name ?? 'dem ET-Event'} (Letzte 48) – melde dich in der Event-Woche.` : 'Kein Platz im Hauptfeld.');
     if (place === 'NQ') state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });
     return;
   }
@@ -587,7 +632,7 @@ export function closeEvent(state) {
   if (!inst?.done) return;
   const ev = findEvent(state, inst.eventId, inst.year, inst.week);
   let prev = inst;
-  if (ev && ev.cat !== 'hnq') for (let s = inst.sub + 1; s < inst.count; s++) prev = runAITournament(state, ev, s, { qualifiers: prev.survivors });
+  if (ev) for (let s = inst.sub + 1; s < inst.count && aiRunnable(state, ev); s++) prev = runAITournament(state, ev, s, { qualifiers: prev.survivors });
   state.activeEvent = null;
 }
 
@@ -623,7 +668,7 @@ export function simulateWeekAI(state) {
     if (!AI_CATS.includes(ev.cat) || !ev.startsThisWeek || ev.id === state.week.eventId || state.week.extras?.includes(ev.id)) continue;
     const auto = MAJOR_CATS.includes(ev.cat) && autoPlayer(state, ev);
     let prev = null;
-    for (let s = 0; s < (ev.count ?? 1); s++) out.push(prev = runAITournament(state, ev, s, { qualifiers: prev?.survivors, auto }));
+    for (let s = 0; s < (ev.count ?? 1) && aiRunnable(state, ev); s++) out.push(prev = runAITournament(state, ev, s, { qualifiers: prev?.survivors, auto }));
   }
   return out;
 }
