@@ -22,8 +22,9 @@ import * as careerEnd from './ui/screens/careerEnd.js';
 import * as match from './matchUI.js';
 import * as watch from './ui/screens/watch.js';
 import * as training from './ui/screens/training.js';
+import * as home from './ui/screens/home.js';
 
-const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, tour, team, rival, sponsors, settings, careerEnd, match, watch, training };
+const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, tour, team, rival, sponsors, settings, careerEnd, match, watch, training, home };
 const root = document.getElementById('app');
 
 const app = {

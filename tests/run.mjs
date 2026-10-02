@@ -798,4 +798,33 @@ test('Lampenfieber: nur Profi-Events, baut sich über 60 Profi-Matches ab', () =
   assert.deepEqual(FO.applyNerves(a, 5), { sco: 65, fin: 65, men: 65, foc: 67, cal: 70 });
 });
 
+test('Wohnen & Auto: Auszug mit 18, Jahresmiete, Effekte, Auto-Rabatt', async () => {
+  const H = await import('../js/home.js');
+  const { weeklyRecovery } = await import('../js/training.js');
+  const s = newCareer({ name: 'W', nation: 'DE', hand: 'R', seed: 41 });
+  assert.equal(H.chooseHome(s, 'wg').ok, false);                         // mit 16 noch bei den Eltern
+  assert.equal(H.buyCar(s, 'small').ok, false);
+  s.player.age = 18; s.finance.balance = 100000; H.homeWeek(s);
+  assert.ok(s.moveOut && s.moveOut.week >= 2 && s.moveOut.week <= 50 && !H.moveDue(s));
+  s.date.week = s.moveOut.week; H.homeWeek(s); assert.ok(H.moveDue(s));
+  s.date.week += 2; H.homeWeek(s);                                        // keine Wahl → Wohnheim
+  assert.equal(s.player.home.id, 'dorm'); assert.equal(s.finance.balance, 100000 - 200);
+  const a0 = perf({ ...s.player, home: null }), a1 = perf(s.player);
+  assert.equal(a1.sco, a0.sco - 1); assert.equal(a1.cal, a0.cal - 1);    // Wohnheim: leichtes Minus
+  s.player.level = 51;
+  assert.equal(H.rentOf(H.HOMES[0], 51), 200); assert.equal(H.rentOf(H.HOMES[4], 51), 75000);   // Preise steigen, Wohnheim nicht
+  const b = s.finance.balance; assert.ok(H.chooseHome(s, 'villa').ok); assert.equal(s.finance.balance, b - 75000);
+  s.player.fatigue = 50; s.player.momentum = 0; weeklyRecovery(s);
+  assert.equal(s.player.fatigue, 34); assert.equal(s.player.momentum, 0.6);
+  // Auto: Reiserabatt, Wechsel mit 30 % Inzahlungnahme, Wartung in KW 1
+  const ev = { cat: 'challenge', country: 'ENG', count: 1 };
+  assert.equal(H.buyCar(s, 'mid').ok, true); assert.equal(s.player.car.paid, 22500);
+  assert.equal(eventCost(ev, null, 51, H.travelMult(s.player)).travel, 810);
+  const b2 = s.finance.balance; assert.ok(H.buyCar(s, 'small').ok); assert.equal(s.finance.balance, b2 + 6750 - 6000);
+  s.finance.balance = 200000; s.date.year++; s.date.week = 1; const b3 = s.finance.balance; H.homeWeek(s);
+  assert.equal(s.finance.balance, b3 - 75000 - 600);                      // Villa-Miete + Wartung Kleinwagen
+  s.finance.balance = 1000; s.date.year++; H.homeWeek(s);                 // Villa zu teuer → günstigere Wohnung
+  assert.equal(s.player.home.id, 'wg'); assert.equal(s.finance.balance, 1000 - 600 - 600);
+});
+
 console.log(`\n${n} Tests ok`);

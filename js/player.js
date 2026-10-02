@@ -67,6 +67,8 @@ export const perf = p => {
   const mb = momentumBonus(p);
   if (mb) { a.sco += mb; a.fin += mb; a.foc += mb; }
   // Turniervorbereitung (Training): Bonus auf das trainierte Attribut
+  // Studentenwohnheim: leichtes Minus bei allem
+  if (p.home?.id === 'dorm') for (const k of ['sco', 'fin', 'men', 'foc', 'cal']) a[k] -= 1;
   if (p.prep) a[p.prep.key] = Math.min(100, a[p.prep.key] + p.prep.bonus);
   return a;
 };

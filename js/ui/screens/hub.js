@@ -15,6 +15,7 @@ import { unreadCount, markAllRead } from '../../news.js';
 import { sponsorsUnlocked } from '../../sponsors.js';
 import { tourStatus, DEV_MAX_AGE, playersOfTier } from '../../world.js';
 import { rankOf } from '../../rankings.js';
+import { homeOf, carOf, moveDue } from '../../home.js';
 import { catTag } from '../components.js';
 
 function heroTile(state) {
@@ -92,6 +93,12 @@ function teamTile(s) {
   return tile('team', '👥', 'Team', sub, st.gigs?.length ? `<span class="badge">${st.gigs.length}</span>` : '');
 }
 
+// Wohnen & Auto
+function homeTile(s) {
+  const p = s.player, h = homeOf(p), c = carOf(p);
+  return tile('home', h?.icon ?? '🏡', 'Wohnen & Auto', `${h ? esc(h.label) : 'Elternhaus'}<br>${c ? `${c.icon} ${esc(c.label)}` : 'Kein Auto'}`, moveDue(s) ? '<span class="badge">!</span>' : '');
+}
+
 export function render(app) {
   const s = app.state, p = s.player;
   const unread = unreadCount(s);
@@ -105,6 +112,7 @@ export function render(app) {
     <div class="money num">${fmtEUR(s.finance.balance)}</div>
   </header>
   ${s.week.blocked ? `<div class="panel warn" style="margin-bottom:12px">${s.week.blocked.icon} <b>Ausfall: ${esc(s.week.blocked.label)}</b> <span class="muted">– diese Woche kein Turnier möglich.</span></div>` : ''}
+  ${moveDue(s) ? '<button class="panel warn" data-go="home" style="margin-bottom:12px;width:100%;text-align:left">📦 <b>Du musst ausziehen!</b> <span class="muted">Jetzt Wohnung wählen ▸</span></button>' : ''}
   ${levelBar(s)}
   ${interviewPanel(s)}
   <div class="tile-grid">
@@ -117,6 +125,7 @@ export function render(app) {
     ${tile('tour', '🎫', 'Tour & Titel', `${playersOfTier(s, 'tour').length + (p.tour === 'tour' ? 1 : 0)} Holder · Titelträger`)}
     ${rivalTile(s)}
     ${teamTile(s)}
+    ${homeTile(s)}
     ${tile('finance', '💶', 'Finanzen', fmtEUR(s.finance.balance))}
     ${tile('news', '📰', 'Neuigkeiten', `${esc(lastNews?.title ?? 'Keine Meldungen')}${unread ? '<br><span class="tile-action" role="button" tabindex="0" data-readall>✓ Alle gelesen</span>' : ''}`, unread ? `<span class="badge">${unread}</span>` : '')}
     ${tile('stats', '📊', 'Statistiken', `${s.stats.career.wins}–${s.stats.career.matches - s.stats.career.wins} · ${s.stats.career.titles} Titel`)}

@@ -25,6 +25,7 @@ import { xpMult } from './staff.js';
 import { maybeInterview } from './interviews.js';
 import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
+import { travelMult } from './home.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -59,7 +60,7 @@ export function eligibility(state, ev) {
 
 // Gesamtstatus für die UI
 export function eventStatus(state, ev, n = null) {
-  const cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1);
+  const cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1, travelMult(state.player));
   const phase = CATEGORIES[ev.cat]?.phase ?? 9;
   const elig = eligibility(state, ev);
   let playable = true, reason = '';

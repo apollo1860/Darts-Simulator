@@ -45,13 +45,14 @@ js/rival.js           Rivale: Erzeugung, gezielt in lokale/DDV/WDF-Felder, Duell
 js/mishaps.js         Zufallsereignisse (Finger, Schule ≤ 18, Zahn, Rücken, Erkältung, Magen-Darm)
 js/milestones.js      Meilensteine (einmalig, Extra-XP; Match-, Titel- und Ranglisten-Meilensteine)
 js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP + Clutch)
+js/home.js            Wohnen & Auto: Auszug mit 18, Jahresmiete, Wohnungs-Effekte, Auto (Reiserabatt, Wartung)
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
 js/ui/boardSvg.js     Dartscheibe als SVG (matchUI + Matchdart-Anzeige in watch)
 js/ui/interview.js    Interview-Minispiel (Panel im Turnier-Screen und Hub)
 js/ui/level.js        Level-Balken (animiert, Hub + Turnierende) und Level-Up-Fenster (afterMount im Router)
 js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
-                      stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), rival, sponsors, settings, careerEnd, training
+                      stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), rival, home (Wohnen & Auto), sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
 data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
@@ -90,6 +91,7 @@ training:{progress:{[attr]:0..1}, idle, sessions, lost}   week.activity = train|
 player.levelSeen (zuletzt gefeiertes Level), player.fatigue 0–100, player.momentum −10…10, player.prep {key,bonus,weeks}, state.lastTrained;  live.route = {start, darts} (gewählter Checkout-Weg), live.coDec = {left, asked}
 milestones:{[id]:{year,week}}, exOffer:{fee,city,until}|null, week.blocked (Ausfall), week.playCount (gewählte Turnieranzahl), hnq:{etId,year}
 rival:{id,w,l,meetings:[{year,week,event,round,won,score}]}
+player.home {id,year,week}|null (null = Elternhaus), player.car {id,paid,year}|null, player.proMatches (Lampenfieber), moveOut:{year,week,notified}
 staff:{manager:{…,cut,since,paid}|null, coach:{…,xp,until}|null, gigs:[{id,kind,city,fee,until}]}, interview:{event,place,tiles,seq}|null
 sponsors:{active:[{name,slot,type,amount,years,start,until,paid}], offers:[{…,expires}], total}, ended:bool
 archive:{seasons:{[year]:{…}}, titles:[], bests:{[key]:{place,year}}, peak:{pdc|challenge|dev:{rank,year,week}}}
@@ -147,6 +149,7 @@ Speicher: `localStorage['dartsCareer.slot.N']` (N=1..3), Auto-Save nach jeder Wo
 - **Selbstvertrauen** (`player.momentum` −10…10): Sieg +1 (gegen Stärkere/Top 16 +1,5), Niederlage −1 (gegen Schwächere −1,5, gegen Stärkere −0,4), lokal ×¼; Titel (nicht lokal) +3; wöchentlich −20 % und 0,3 (negativ 0,6) Richtung 0. Ab ±3: ±1,5/±3/±4 auf Scoring, Finishing, Fokus (`perf`). Anzeige im Hub-Kopf, Profil, DartConnect (🔥/🥶).
 - **Interviews** nach Majors (außer WM-Quali), PL-Play-offs, WS-Finals: Chance Sieg 100 %, Finale 80 %, HF 60 %, VF 40 %, sonst 25 %. 25 Floskeln im 5×5-Raster, 4–5 (Sieg 6) leuchten nacheinander grün auf, dann in Reihenfolge antippen; richtig → XP (12 % Level-Bedarf × Länge/5, mind. 30, × Trainer) + 3 Clutch je Floskel; ein Fehler beendet es. Anfrage verfällt nach der Woche.
 - **Rivale** (`rival.js`): beim Karrierestart ein gleichaltriges Talent gleicher Nation (Name aus Namenspool), Stärke ≈ dein Gesamtwert (+0–1,5 Ø), Tier Dev/Challenge wie alle ohne Karte (spielt CT/Dev/Q-School im Hintergrund, kann Karten gewinnen, hört nie wegen Pool-Grenze auf). Kommt gezielt ins Feld: lokal 40 %, DDV 80 %, WDF 50 % (nur ohne Karte). Duell → Bilanz, News, Selbstvertrauen +1 (Sieg) / −0,5 (Niederlage) zusätzlich; Banner „⚔️ Rivalen-Duell“ im DartConnect. Titel/Tourcard des Rivalen → News. Jahresende: zieht 50 % Richtung deines Niveaus (Ø aus Gesamtwert) ± Zufall + Saisonduell-News. Screen 'rival' (Vergleich, Duelle), Hub-Kachel.
+- **Wohnen & Auto** (`home.js`, Screen 'home', Hub-Kachel): Mit 18 Auszug – zufällige Woche im Jahr (`state.moveOut`) → News + Hub-Hinweis, 2 Wochen Zeit, sonst automatisch Studentenwohnheim. Jahresmiete komplett bei Einzug und jedes Jahr in KW 1 (zu teuer → günstigste bezahlbare Wohnung): Wohnheim 200 € (fix; Erholung −2/Woche, Selbstvertrauen −0,2/Woche, −1 auf alle Attribute in `perf`), WG 400 € (neutral), 1-Zimmer 1.000 € (+2 / +0,2), Haus 15.000 € (+4 / +0,4), Villa 50.000 € (+6 / +0,6); außer Wohnheim × Preisniveau. Umziehen jederzeit (keine Erstattung). **Auto** ab 18: Kleinwagen 4.000 € (Reise −5 %, Wartung 400 €/Jahr), Mittelklasse 15.000 € (−10 %, 900 €), Oberklasse 45.000 € (−15 %, 2.000 €), Preise/Wartung × Preisniveau, Wartung in KW 1; Wechsel → altes Auto für 30 % des Kaufpreises in Zahlung. Rabatt über `travelMult` → `eventCost`.
 - **Zufallsereignisse** (`mishaps.js`, zu Wochenbeginn, 7 %): 75 % Trainingsrückschlag (Fortschritt von 1–2 Attributen −30…60 %-Punkte), 25 % Ausfall → `week.blocked`, alle Turniere der Woche gesperrt (Hinweis im Hub). „Schulische Verpflichtungen“ nur bis 18.
 - **Meilensteine** (`milestones.js`, je einmal, XP × Trainer): Erster Sieg 30, erste 180 50, erster lokaler Titel 80, 12-/11-/10-Darter 120/250/500, Match mit 100er/110er Ø 300/800, erster WDF-/Dev-/CT-Titel 300/350/400, erstmals PDC Top 64/32/16 600/1.000/1.600, erster Pro-Tour-Titel 1.200, erster Major-Titel 3.000. Liste im Profil.
 - **Rankings**: PDC OOM (rollierend 2 Jahre), Pro Tour OOM, Challenge OOM, Dev OOM, Premier-League-Tabelle.

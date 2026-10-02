@@ -17,6 +17,7 @@ import { exhibitionWeek, mostOverdue } from './training.js';
 import { recordHistory, trackPeak } from './history.js';
 import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
 import { eventStatus } from './tournaments.js';
+import { homeWeek } from './home.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -30,6 +31,7 @@ export function nextWeek(state) {
   weekNews(state, evs, ai);
   if (week >= WEEKS_PER_YEAR) { recordHistory(state); sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);
+  homeWeek(state);
   mishapWeek(state);
   exhibitionWeek(state);
   sponsorWeek(state);

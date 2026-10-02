@@ -10,6 +10,7 @@ import { book, levelPrice } from './finance.js';
 import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
 import { xpMult } from './staff.js';
 import { momentumDecay } from './form.js';
+import { homeWeekly } from './home.js';
 
 export const DECAY_AFTER = 6;           // Wochen ohne Training eines Attributs bis zum ersten Risiko (je Attribut)
 export const PREP_BONUS = 3, PREP_WEEKS = 2;   // Turniervorbereitung: +3 auf das trainierte Attribut (diese + nächste Woche)
@@ -178,4 +179,5 @@ export function weeklyRecovery(state) {
   const p = state.player;
   p.fatigue = Math.max(0, (p.fatigue ?? 0) - 10);
   momentumDecay(p);
+  homeWeekly(p);                     // Wohnung: Erholung + Selbstvertrauen
 }
