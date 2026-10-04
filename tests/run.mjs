@@ -512,16 +512,19 @@ test('Wochenplan: 1 Aktivität, Ruhetag, Sponsortermin, Exhibition, Ermüdung, S
   assert.equal(jumpToNextEvent(s), 0);                              // jetzt steht ein Event an → kein Sprung
 });
 
-test('Level: 50/100 XP, steigende Kosten, 5 Punkte je Level, Max 100, Migration', () => {
+test('Level: 50/100 XP, steigende Kosten, Punkte je Level steigend (1 → 7), Max 100, Migration', async () => {
   assert.equal(xpForLevel(1), 50); assert.equal(xpForLevel(2), 100);
   for (let L = 2; L < MAX_LEVEL; L++) assert.ok(xpForLevel(L) - xpForLevel(L - 1) >= xpForLevel(2) - xpForLevel(1) - 10, 'Zuwachs ' + L);
   assert.ok(xpForLevel(99) - xpForLevel(98) > 3 * (xpForLevel(3) - xpForLevel(2)));   // am Ende deutlich schwerer
   const s = newCareer({ name: 'L', nation: 'DE', hand: 'R', seed: 2 }), p = s.player;
   assert.equal(p.level, 1); assert.equal(p.xp, 0);
   assert.equal(addXp(p, 49), 0); assert.equal(addXp(p, 1), 1);
-  assert.equal(p.level, 2); assert.equal(p.points, 5); assert.equal(p.xp, 0);
-  assert.equal(addXp(p, 100 + 150), 2); assert.equal(p.level, 4); assert.equal(p.points, 15);
-  addXp(p, 10_000_000); assert.equal(p.level, MAX_LEVEL); assert.equal(p.pointsEarned, 5 * (MAX_LEVEL - 1));
+  assert.equal(p.level, 2); assert.equal(p.points, 1); assert.equal(p.xp, 0);       // anfangs 1 Punkt je Level
+  assert.equal(addXp(p, 100 + 150), 2); assert.equal(p.level, 4); assert.equal(p.points, 3);
+  addXp(p, 10_000_000); assert.equal(p.level, MAX_LEVEL); assert.equal(p.pointsEarned, 548);
+  const PL = await import('../js/player.js');
+  assert.deepEqual([2, 4, 5, 8, 9, 15, 26, 41, 61, 100].map(PL.pointsForLevel), [1, 1, 2, 2, 3, 4, 5, 6, 7, 7]);
+  assert.equal(PL.pointsGained(10, 3), 2 + 3 + 3);
   assert.deepEqual(levelFromXp(50 + 100 + 30), { level: 3, xp: 30 });
   const old = newCareer({ name: 'M', nation: 'DE', hand: 'R', seed: 3 });
   delete old.player.level; old.player.xpTotal = 300; old.player.points = 7;
@@ -905,6 +908,16 @@ test('Einmalige Kosten bei hohem Vermögen', async () => {
     if (e) { hits++; maxShare = Math.max(maxShare, e.amount / 500000); assert.ok(!e.needCar && !e.needHome); }
   }
   assert.ok(hits > 60 && hits < 200, `hits ${hits}`); assert.ok(maxShare <= 0.12 && maxShare > 0.03);
+});
+
+test('Startalter wählbar: Erfahrung, Rivale, Dev-Tour', async () => {
+  const PL = await import('../js/player.js');
+  const a = newCareer({ name: 'A', nation: 'DE', hand: 'R', seed: 70, age: 24 });
+  assert.equal(a.player.age, 24); assert.equal(a.player.exp, PL.startExp(24)); assert.equal(PL.startExp(24), 0);
+  assert.equal(PL.startExp(16), -4); assert.equal(PL.startExp(30), 3);
+  assert.equal(a.world.players.R1.age, 24); assert.equal(a.world.players.R1.tier, 'challenge');
+  assert.equal(newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 70, age: 99 }).player.age, 30);   // begrenzt
+  assert.equal(newCareer({ name: 'C', nation: 'DE', hand: 'R', seed: 70 }).player.age, 16);
 });
 
 console.log(`\n${n} Tests ok`);

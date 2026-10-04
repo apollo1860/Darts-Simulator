@@ -6,7 +6,7 @@ import { RNG } from './rng.js';
 import { book } from './finance.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
-import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
+import { addXp, addClutch, xpForLevel, pointsGained } from './player.js';
 import { fmtEUR } from './util.js';
 
 export const GIG_WEEKS = 2;            // Einladung gilt 2 Wochen
@@ -86,7 +86,7 @@ export function acceptGig(state, id) {
   const xp = Math.round(Math.max(20, xpForLevel(p.level ?? 1) * 0.05) * xpMult(state));
   const ups = addXp(p, xp); addClutch(p, 2);
   p.fatigue = Math.min(100, (p.fatigue ?? 0) + 15);
-  if (ups) addNews(state, 'xp', `⬆️ Level ${p.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Verteile sie im Spielerprofil.');
+  if (ups) addNews(state, 'xp', `⬆️ Level ${p.level}! +${pointsGained(p.level, ups)} Attributpunkte`, 'Verteile sie im Spielerprofil.');
   return { fee: g.fee, xp, ups, text: `${g.kind} in ${g.city}: volle Halle, Selfies, ein 180er zum Abschluss. Gage ${fmtEUR(g.fee)}, +${xp} XP, Ermüdung jetzt ${p.fatigue} %.` };
 }
 export const declineGig = (state, id) => { const st = staffOf(state); st.gigs = st.gigs.filter(g => g.id !== id); };

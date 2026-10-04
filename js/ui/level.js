@@ -1,6 +1,6 @@
 // Level-Balken mit animiertem XP-Fortschritt (füllt sich, läuft bei Level-Aufstieg über) + Level-Up-Fenster.
 // Zuletzt angezeigter Stand liegt nur im Speicher (Sitzung); player.levelSeen merkt sich das zuletzt gefeierte Level.
-import { xpForLevel, MAX_LEVEL, POINTS_PER_LEVEL } from '../player.js';
+import { xpForLevel, MAX_LEVEL, pointsGained, pointsForLevel } from '../player.js';
 import { fmtNum } from '../util.js';
 import { modal } from './components.js';
 
@@ -74,7 +74,7 @@ export function checkLevelUp(app) {
   if (!p) return;
   if (p.levelSeen === undefined) { p.levelSeen = p.level ?? 1; return; }
   if ((p.level ?? 1) <= p.levelSeen) return;
-  const ups = p.level - p.levelSeen;
+  const ups = p.level - p.levelSeen, gain = pointsGained(p.level, ups);
   p.levelSeen = p.level;
   app.save();
   modal({
@@ -82,8 +82,8 @@ export function checkLevelUp(app) {
     body: `<div class="lvlup">
       <div class="lvlup-label">LEVEL UP!</div>
       <div class="lvlup-no">${p.level}</div>
-      <p>${ups > 1 ? `${ups} Level auf einmal! ` : ''}Du hast <b class="gold">+${ups * POINTS_PER_LEVEL} Attributpunkte</b> bekommen${p.points > ups * POINTS_PER_LEVEL ? ` (insgesamt ${p.points} frei)` : ''}.</p>
-      ${p.level < MAX_LEVEL ? `<p class="muted" style="font-size:.8rem">Nächstes Level: ${fmtNum(xpForLevel(p.level))} XP</p>` : '<p class="gold">Maximales Level erreicht!</p>'}
+      <p>${ups > 1 ? `${ups} Level auf einmal! ` : ''}Du hast <b class="gold">+${gain} Attributpunkt${gain > 1 ? 'e' : ''}</b> bekommen${p.points > gain ? ` (insgesamt ${p.points} frei)` : ''}.</p>
+      ${p.level < MAX_LEVEL ? `<p class="muted" style="font-size:.8rem">Nächstes Level: ${fmtNum(xpForLevel(p.level))} XP · dann +${pointsForLevel(p.level + 1)} Punkt${pointsForLevel(p.level + 1) > 1 ? 'e' : ''}</p>` : '<p class="gold">Maximales Level erreicht!</p>'}
     </div>`,
     actions: [
       { label: 'Später', cls: 'btn-ghost' },

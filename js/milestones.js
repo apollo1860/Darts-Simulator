@@ -1,5 +1,5 @@
 // Meilensteine (DOM-frei): einmalige Erfolge mit Extra-XP. state.milestones = {[id]: {year, week}}
-import { addXp, POINTS_PER_LEVEL } from './player.js';
+import { addXp, pointsGained } from './player.js';
 import { addNews } from './news.js';
 import { xpMult } from './staff.js';
 import { rankOf } from './rankings.js';
@@ -32,7 +32,7 @@ export function unlock(state, id) {
   (state.milestones ??= {})[id] = { year: state.date.year, week: state.date.week };
   const xp = Math.round(ms.xp * xpMult(state)), ups = addXp(state.player, xp);
   addNews(state, 'xp', `🏅 Meilenstein: ${ms.label}`, `${ms.icon} +${xp} XP Bonus.`);
-  if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Verteile sie im Spielerprofil.');
+  if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${pointsGained(state.player.level, ups)} Attributpunkte`, 'Verteile sie im Spielerprofil.');
   return { ...ms, xp };
 }
 

@@ -78,7 +78,17 @@ export const perf = p => {
 // ---- Level (1–100): XP → Level-Aufstieg → 5 Attributpunkte ----
 // XP von Level L nach L+1 = 50·L·(1 + 2·((L−1)/99)²), auf 10 gerundet: 50, 100, 150 … L50 ≈ 3.750, L99 = 14.650
 // Summe bis Level 50 ≈ 76 Tsd. XP, bis Level 100 ≈ 491 Tsd. XP
-export const MAX_LEVEL = 100, POINTS_PER_LEVEL = 5;
+// Startalter 16–30 wählbar; ältere Starter bringen etwas Erfahrung mit (+1 je 2 Jahre über 16, max. +3)
+export const START_AGES = [16, 30];
+export const startExp = (age = 16) => Math.min(EXP_MIN + Math.floor((age - 16) / 2), EXP_MIN + 7);
+
+export const MAX_LEVEL = 100;
+// Attributpunkte je Aufstieg steigen mit dem Level: Level 2–4: 1, 5–8: 2, 9–14: 3, 15–25: 4, 26–40: 5, 41–60: 6, 61–100: 7
+// (Summe bis Level 20 = 53, bis Level 50 = 208, bis Level 100 = 548)
+export const LEVEL_POINTS = [[4, 1], [8, 2], [14, 3], [25, 4], [40, 5], [60, 6], [100, 7]];
+export const pointsForLevel = L => LEVEL_POINTS.find(([max]) => L <= max)[1];
+// Punkte für die letzten `ups` Aufstiege bis `level`
+export const pointsGained = (level, ups) => Array.from({ length: ups }, (_, i) => pointsForLevel(level - i)).reduce((a, b) => a + b, 0);
 export const xpForLevel = L => Math.round(50 * L * (1 + 2 * ((L - 1) / 99) ** 2) / 10) * 10;
 // Level + Rest-XP aus Gesamt-XP (Migration)
 export function levelFromXp(total) {
@@ -86,13 +96,14 @@ export function levelFromXp(total) {
   while (L < MAX_LEVEL && rest >= xpForLevel(L)) { rest -= xpForLevel(L); L++; }
   return { level: L, xp: rest };
 }
-// Gibt die Zahl der Level-Aufstiege zurück (je Aufstieg POINTS_PER_LEVEL Punkte)
+// Gibt die Zahl der Level-Aufstiege zurück (je Aufstieg pointsForLevel(neues Level) Punkte)
 export function addXp(p, xp) {
   p.xp += xp; p.xpTotal += xp; p.level ??= 1;
   let ups = 0;
   while (p.level < MAX_LEVEL && p.xp >= xpForLevel(p.level)) {
     p.xp -= xpForLevel(p.level); p.level++; ups++;
-    p.pointsEarned += POINTS_PER_LEVEL; p.points += POINTS_PER_LEVEL;
+    const pts = pointsForLevel(p.level);
+    p.pointsEarned += pts; p.points += pts;
   }
   return ups;
 }

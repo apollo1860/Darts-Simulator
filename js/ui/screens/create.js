@@ -2,19 +2,20 @@
 import { newCareer, listSlots, saveGame } from '../../state.js';
 import { NATIONS } from '../../../data/nations.js';
 import { RNG, randomSeed } from '../../rng.js';
-import { startAttrs, EXP_MIN, ATTRS, START_VALUE, CREATION_POINTS } from '../../player.js';
+import { startAttrs, ATTRS, START_VALUE, CREATION_POINTS, START_AGES, startExp, expLabel } from '../../player.js';
+import { DEV_MAX_AGE } from '../../world.js';
 import { REGIONS, DEFAULT_REGION } from '../../../data/regions.js';
 import { esc } from '../../util.js';
 import { topbar, futCard, toast, confirmDialog } from '../components.js';
 
-const form = { name: '', nation: 'DE', region: DEFAULT_REGION, hand: 'R', slot: 1, seed: randomSeed(), bonus: {} };
+const form = { name: '', nation: 'DE', region: DEFAULT_REGION, hand: 'R', age: 16, slot: 1, seed: randomSeed(), bonus: {} };
 const spent = () => Object.values(form.bonus).reduce((a, b) => a + b, 0);
 const left = () => CREATION_POINTS - spent();
 
 function previewPlayer() {
   return {
-    id: 'P', name: form.name.trim() || 'Dein Name', nation: form.nation, age: 16, tour: 'none',
-    attrs: startAttrs(form.bonus), exp: EXP_MIN,
+    id: 'P', name: form.name.trim() || 'Dein Name', nation: form.nation, age: form.age, tour: 'none',
+    attrs: startAttrs(form.bonus), exp: startExp(form.age),
   };
 }
 
@@ -23,7 +24,7 @@ function attrPanel() {
   const l = left();
   return `<div class="row-between"><span class="label">Attribute · Bonuspunkte</span>
       <span class="badge ${l ? 'badge-green' : ''}">${l} / ${CREATION_POINTS} übrig</span></div>
-    <p class="muted" style="font-size:.78rem;margin:0">Alle Werte starten bei ${START_VALUE} (stärker als ${START_VALUE} von 100 Dartspielern). Verteile ${CREATION_POINTS} Bonuspunkte frei – auch alle auf ein Attribut. Erfahrung startet bei −4.</p>
+    <p class="muted" style="font-size:.78rem;margin:0">Alle Werte starten bei ${START_VALUE} (stärker als ${START_VALUE} von 100 Dartspielern). Verteile ${CREATION_POINTS} Bonuspunkte frei – auch alle auf ein Attribut. Erfahrung startet bei ${startExp(form.age)} (je nach Alter).</p>
     ${ATTRS.map(a => {
       const b = form.bonus[a.key] ?? 0;
       return `<div class="attr-row" style="grid-template-columns:1fr auto auto auto">
@@ -37,11 +38,19 @@ function attrPanel() {
     <div class="row"><button class="btn btn-sm btn-ghost" id="b-even">Gleichmäßig (je 5)</button><button class="btn btn-sm btn-ghost" id="b-reset">Zurücksetzen</button></div>`;
 }
 
+// Was das Startalter bedeutet
+function ageInfo() {
+  const a = form.age, dev = DEV_MAX_AGE - a + 1;
+  return [`Erfahrung ${expLabel(startExp(a))}`,
+    dev > 0 ? `Development Tour noch ${dev} Saison${dev > 1 ? 'en' : ''} (bis ${DEV_MAX_AGE})` : 'keine Development Tour (nur bis 23)',
+    a < 18 ? 'mit 18 Auszug von zu Hause' : 'Auszug im ersten Jahr', 'Rivale gleich alt'].join(' · ');
+}
+
 export function render() {
   const slots = listSlots();
   // Standard: erster freier Slot (bis der Nutzer selbst wählt)
   if (!form.slotTouched) form.slot = slots.find(s => s.empty)?.slot ?? 1;
-  return `${topbar({ title: 'Neue Karriere', sub: 'Start: Januar 2027 · 16 Jahre · 5.000 €', back: 'menu' })}
+  return `${topbar({ title: 'Neue Karriere', sub: `Start: Januar 2027 · ${form.age} Jahre · 5.000 €`, back: 'menu' })}
   <div class="two-col card-left">
     <div class="card-stage" id="preview">${futCard(previewPlayer(), { me: true })}</div>
     <div class="panel stack">
@@ -54,6 +63,10 @@ export function render() {
         <select class="select" id="f-region">${Object.entries(REGIONS).map(([c, r]) =>
           `<option value="${c}" ${c === form.region ? 'selected' : ''}>${r.name}</option>`).join('')}</select>
         <span class="muted" style="font-size:.78rem">Lokale Turniere gibt es nur in deinem Bundesland.</span></div>
+      <div class="field"><label class="label" for="f-age">Alter beim Start</label>
+        <select class="select" id="f-age">${Array.from({ length: START_AGES[1] - START_AGES[0] + 1 }, (_, i) => START_AGES[0] + i).map(a =>
+          `<option value="${a}" ${a === form.age ? 'selected' : ''}>${a} Jahre</option>`).join('')}</select>
+        <span class="muted" style="font-size:.78rem" id="f-age-info">${ageInfo()}</span></div>
       <div class="field"><span class="label">Wurfhand</span>
         <div class="segmented" id="f-hand">
           <button data-h="R" class="${form.hand === 'R' ? 'active' : ''}">Rechts</button>
@@ -75,6 +88,12 @@ export function mount(root, app) {
   name.oninput = () => { form.name = name.value; upd(); };
   root.querySelector('#f-nation').onchange = e => { form.nation = e.target.value; root.querySelector('#f-region-field').classList.toggle('hidden', form.nation !== 'DE'); upd(); };
   root.querySelector('#f-region').onchange = e => { form.region = e.target.value; };
+  root.querySelector('#f-age').onchange = e => {
+    form.age = +e.target.value; upd();
+    root.querySelector('#f-age-info').textContent = ageInfo();
+    root.querySelector('#f-attrs').innerHTML = attrPanel();
+    root.querySelector('.topbar .sub').textContent = `Start: Januar 2027 · ${form.age} Jahre · 5.000 €`;
+  };
   const attrs = root.querySelector('#f-attrs');
   attrs.onclick = e => {
     const inc = e.target.closest('[data-inc]'), dec = e.target.closest('[data-dec]');
@@ -104,7 +123,7 @@ export function mount(root, app) {
     if (occupied && !await confirmDialog('Slot überschreiben?', `In Slot ${form.slot} liegt bereits ein Spielstand.`, 'Überschreiben', 'btn-danger')) return;
     app.state = newCareer({ ...form, name: n });
     saveGame(app.state);
-    form.name = ''; form.seed = randomSeed(); form.slotTouched = false; form.bonus = {};
+    form.name = ''; form.seed = randomSeed(); form.slotTouched = false; form.bonus = {}; form.age = 16;
     app.go('hub');
   };
 }

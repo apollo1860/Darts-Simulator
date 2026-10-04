@@ -9,7 +9,7 @@ import { BOGEY } from './board.js';
 import { aiDart, aiSigma } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE } from './world.js';
-import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, POINTS_PER_LEVEL } from './player.js';
+import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, pointsGained } from './player.js';
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek } from './calendar.js';
@@ -450,7 +450,7 @@ function applyResult(m, res) {
 function grantXp(state, xp) {
   const got = Math.round(xp * xpMult(state));
   const ups = addXp(state.player, got);
-  if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Verteile sie im Spielerprofil oder direkt nach dem Turnier.');
+  if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${pointsGained(state.player.level, ups)} Attributpunkte`, 'Verteile sie im Spielerprofil oder direkt nach dem Turnier.');
   return got;
 }
 

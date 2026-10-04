@@ -7,7 +7,7 @@ import { RNG, hashSeed } from './rng.js';
 import { addNews } from './news.js';
 import { clamp, fmtEUR } from './util.js';
 import { book, levelPrice } from './finance.js';
-import { addXp, addClutch, xpForLevel, POINTS_PER_LEVEL } from './player.js';
+import { addXp, addClutch, xpForLevel, pointsGained } from './player.js';
 import { xpMult } from './staff.js';
 import { momentumDecay } from './form.js';
 import { homeWeekly } from './home.js';
@@ -55,7 +55,7 @@ export function train(state, key) {
   const xp = Math.round(trainingXp(p, quality) * boost), ups = addXp(p, xp);
   const label = ATTRS.find(a => a.key === key).label;
   if (up) addNews(state, 'xp', `Training: ${label} steigt auf ${p.attrs[key]}`, 'Regelmäßiges Training zahlt sich aus.');
-  if (ups) addNews(state, 'xp', `⬆️ Level ${p.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Durch Training aufgestiegen – verteile die Punkte im Spielerprofil.');
+  if (ups) addNews(state, 'xp', `⬆️ Level ${p.level}! +${pointsGained(p.level, ups)} Attributpunkte`, 'Durch Training aufgestiegen – verteile die Punkte im Spielerprofil.');
   return { gain: quality * boost / need, up, text: labels[quality], progress: clamp(t.progress[key], 0, 1), need, xp, ups };
 }
 

@@ -1,6 +1,6 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
-import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage } from './player.js';
+import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength } from './world.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL } from '../data/players.js';
 import { createRival } from './rival.js';
@@ -20,7 +20,8 @@ export const emptyStats = () => ({
   events: 0, titles: 0, finals: 0,
 });
 
-export function newCareer({ name, nation, hand, region = DEFAULT_REGION, bonus = {}, slot = 1, seed = randomSeed() }) {
+export function newCareer({ name, nation, hand, age = 16, region = DEFAULT_REGION, bonus = {}, slot = 1, seed = randomSeed() }) {
+  age = Math.max(START_AGES[0], Math.min(START_AGES[1], Math.round(age)));
   const rngState = { s: seed >>> 0 };
   const rng = new RNG(rngState);
   const state = {
@@ -28,9 +29,9 @@ export function newCareer({ name, nation, hand, region = DEFAULT_REGION, bonus =
     rng: rngState,
     date: { year: START_YEAR, week: 1 },
     player: {
-      id: 'P', name, nation, hand, age: 16,
+      id: 'P', name, nation, hand, age,
       region: nation === 'DE' ? region : null,
-      attrs: startAttrs(bonus), exp: EXP_MIN, clutch: 0,
+      attrs: startAttrs(bonus), exp: startExp(age), clutch: 0,
       level: 1, xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
       tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false, proMatches: 0,
     },

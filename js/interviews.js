@@ -2,7 +2,7 @@
 // danach in richtiger Reihenfolge antippen → Bonus-XP + Clutch-Punkte (Erfahrung). Ein Fehler beendet das Interview.
 import { PHRASES } from '../data/interviews.js';
 import { RNG } from './rng.js';
-import { addXp, addClutch, xpForLevel, expLabel, POINTS_PER_LEVEL } from './player.js';
+import { addXp, addClutch, xpForLevel, expLabel, pointsGained } from './player.js';
 import { addNews } from './news.js';
 import { xpMult } from './staff.js';
 
@@ -42,7 +42,7 @@ export function resolveInterview(state, picks) {
   const r = interviewReward(state, iv.seq.length), p = state.player;
   const ups = addXp(p, r.xp), expUp = addClutch(p, r.clutch);
   addNews(state, 'xp', `🎤 Starkes Interview nach ${iv.event}`, `+${r.xp} XP, +${r.clutch} Clutch-Punkte.${expUp > 0 ? ` Erfahrung jetzt ${expLabel(p.exp)}.` : ''}`);
-  if (ups) addNews(state, 'xp', `⬆️ Level ${p.level}! +${ups * POINTS_PER_LEVEL} Attributpunkte`, 'Verteile sie im Spielerprofil.');
+  if (ups) addNews(state, 'xp', `⬆️ Level ${p.level}! +${pointsGained(p.level, ups)} Attributpunkte`, 'Verteile sie im Spielerprofil.');
   return { ok: true, ...r, ups, expUp };
 }
 export const skipInterview = state => { state.interview = null; };

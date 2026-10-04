@@ -2,7 +2,7 @@
 import { esc, fmtNum, fmtPct } from '../../util.js';
 import { nationName } from '../../../data/nations.js';
 import { REGIONS } from '../../../data/regions.js';
-import { overall, checkoutBase, xpForLevel, expLabel, expNext, EXP_MAX, MAX_LEVEL, POINTS_PER_LEVEL } from '../../player.js';
+import { overall, checkoutBase, xpForLevel, expLabel, expNext, EXP_MAX, MAX_LEVEL, pointsForLevel } from '../../player.js';
 import { tourStatus } from '../../world.js';
 import { momentumState } from '../../form.js';
 import { MILESTONES, reached } from '../../milestones.js';
@@ -29,7 +29,7 @@ export function render(app) {
       <div class="panel stack">
         <div class="row-between"><span class="label">Level</span><span class="v cyan" style="font-family:var(--font-display);font-style:italic;font-weight:800;font-size:1.6rem">${lv}<span class="muted" style="font-size:.9rem"> / ${MAX_LEVEL}</span></span></div>
         <div class="xp-bar"><i style="width:${max ? 100 : Math.min(100, p.xp / need * 100)}%"></i></div>
-        <div class="row-between muted" style="font-size:.8rem"><span>${max ? 'Maximales Level erreicht' : `${fmtNum(p.xp)} / ${fmtNum(need)} XP bis Level ${lv + 1} (+${POINTS_PER_LEVEL} Punkte)`}</span><span>Gesamt ${fmtNum(p.xpTotal)} XP</span></div>
+        <div class="row-between muted" style="font-size:.8rem"><span>${max ? 'Maximales Level erreicht' : `${fmtNum(p.xp)} / ${fmtNum(need)} XP bis Level ${lv + 1} (+${pointsForLevel(lv + 1)} Punkt${pointsForLevel(lv + 1) > 1 ? 'e' : ''})`}</span><span>Gesamt ${fmtNum(p.xpTotal)} XP</span></div>
       </div>
       <div class="panel stack">
         <div class="row-between"><span class="label">Selbstvertrauen</span><b class="${ms.bonus > 0 ? 'pos' : ms.bonus < 0 ? 'neg' : 'muted'}">${ms.icon} ${ms.label}${ms.bonus ? ` (${ms.bonus > 0 ? '+' : ''}${ms.bonus})` : ''}</b></div>
