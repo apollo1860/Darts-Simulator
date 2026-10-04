@@ -15,7 +15,7 @@ import * as IV from '../js/interviews.js';
 import * as RV from '../js/rival.js';
 import * as MH from '../js/mishaps.js';
 import * as MS from '../js/milestones.js';
-import { book } from '../js/finance.js';
+import { book, levelPrice } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros, getPlayer } from '../js/world.js';
 import { majorField } from '../js/majors.js';
@@ -328,7 +328,7 @@ test('Lokal: 16er-Feld im eigenen Bundesland, DDV-Turnier', () => {
   assert.ok(eventStatus(s, ddv).playable);
   const bal = s.finance.balance;
   enterEvent(s, ddv.id);
-  assert.equal(bal - s.finance.balance, 25 + 250);
+  assert.equal(bal - s.finance.balance, 25 + levelPrice(250, s.player.level));     // Gebühr fix, Reise × Preisniveau
   assert.equal(s.activeEvent.fieldSize, 64);
   simulateRest(s); closeEvent(s);
 });
@@ -918,6 +918,25 @@ test('Startalter wählbar: Erfahrung, Rivale, Dev-Tour', async () => {
   assert.equal(a.world.players.R1.age, 24); assert.equal(a.world.players.R1.tier, 'challenge');
   assert.equal(newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 70, age: 99 }).player.age, 30);   // begrenzt
   assert.equal(newCareer({ name: 'C', nation: 'DE', hand: 'R', seed: 70 }).player.age, 16);
+});
+
+test('Fiktive Spieler: Namen je Karriere neu zusammengesetzt, echte Spieler unverändert', async () => {
+  const { NAME_POOLS } = await import('../data/names.js');
+  const a = newCareer({ name: 'A', nation: 'DE', hand: 'R', seed: 101 }), b = newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 202 });
+  const names = (s, pre) => Object.values(s.world.players).filter(p => p.id[0] === pre).map(p => p.name);
+  for (const pre of ['L', 'V', 'F']) {
+    const na = names(a, pre), nb = names(b, pre);
+    assert.ok(na.filter((x, i) => x !== nb[i]).length > na.length * 0.8, pre);         // überwiegend andere Namen
+  }
+  assert.deepEqual(names(a, 'T'), names(b, 'T'));                                     // echte Tour-Spieler bleiben
+  assert.equal(a.world.players.C1.name, b.world.players.C1.name);
+  assert.notEqual(a.world.players.C92.name, b.world.players.C92.name);                // fiktive CT-Spieler neu
+  const de = NAME_POOLS.DE;
+  assert.ok(names(a, 'L').every(n => de.first.some(f => n.startsWith(f + ' ')) && de.last.some(l => n.endsWith(' ' + l))));
+  const all = Object.values(a.world.players).map(p => p.name);
+  assert.equal(new Set(all).size, all.length);                                        // keine Doppelten
+  const sw = Object.values(a.world.players).find(p => p.id[0] === 'F' && ['SE', 'DK', 'NO', 'FI'].includes(p.nation));
+  if (sw) assert.ok(NAME_POOLS.NORD.last.some(l => sw.name.endsWith(' ' + l)));      // Name passt zur Nation
 });
 
 console.log(`\n${n} Tests ok`);

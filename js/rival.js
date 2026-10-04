@@ -2,7 +2,7 @@
 // Taucht in lokalen Turnieren (40 %), DDV (80 %) und WDF (50 %) gezielt im Feld auf, sonst über CT/Dev/Q-School/Tour.
 // Kopf-an-Kopf-Bilanz in state.rival {id, w, l, meetings[]}; Duelle wirken extra aufs Selbstvertrauen.
 import { RNG } from './rng.js';
-import { NAME_POOLS, poolKeyOf as poolKey } from '../data/names.js';
+import { randomName } from '../data/names.js';
 import { attrsForAverage, avgForRating, overall } from './player.js';
 import { aiExp, changeStrength, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
@@ -20,10 +20,8 @@ export const rivalHasCard = state => rivalOf(state)?.tier === 'tour';
 
 // Beim Karrierestart (oder Migration): Rivale anlegen – gleiches Alter, ähnliche Stärke
 export function createRival(state, rng = new RNG(state.rng)) {
-  const p = state.player, pool = NAME_POOLS[poolKey(p.nation)];
-  const used = new Set(Object.values(state.world.players).map(x => x.name).concat(p.name));
-  let name;
-  for (let i = 0; i < 50 && (!name || used.has(name)); i++) name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`;
+  const p = state.player;
+  const name = randomName(rng, p.nation, new Set(Object.values(state.world.players).map(x => x.name).concat(p.name)));
   const avg = Math.round((levelAvg(p) + rng.float(0, 1.5)) * 10) / 10;
   state.world.players[RIVAL_ID] = {
     id: RIVAL_ID, name, nation: p.nation, age: p.age, avg, tier: p.age <= DEV_MAX_AGE ? 'dev' : 'challenge', cardUntil: null,

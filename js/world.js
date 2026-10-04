@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026 } from '../data/players.js';
-import { NAME_POOLS, POOL_WEIGHTS, WOMEN_FIRST, poolKeyOf } from '../data/names.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL } from '../data/players.js';
+import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
 import { RNG, hashSeed } from './rng.js';
@@ -25,6 +25,12 @@ export function createWorld(rng, startYear = 2027) {
   add(DEV_PLAYERS, 'D', 'dev', null);
   add(LOCAL_PLAYERS.map(([n, nat, a, avg]) => [n, nat, a, avg - LOCAL_SHIFT]), 'L', 'local', null);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
+  // Fiktive Spieler (lokale Amateure, fiktive CT-Spieler): Namen je Karriere zufällig aus Vor-/Nachnamen der Nation
+  const used = new Set(Object.values(players).filter(p => p.id[0] !== 'L').map(p => p.name));
+  const fictional = [...Object.values(players).filter(p => p.id[0] === 'L'),
+    ...Array.from({ length: CT_FICTIONAL }, (_, i) => players[`C${CHALLENGE_PLAYERS.length - CT_FICTIONAL + i + 1}`])];
+  for (const p of fictional) used.delete(p.name);
+  for (const p of fictional) p.name = randomName(rng, p.nation, used);
   addDdvPool(world, rng);
   addWeakPool(world, rng);
   // Challenge-/Dev-Tour 2026: je Top 2 der Nutzerliste (Listenplatz 1–2) erhalten eine Karte bis Ende 2028
@@ -69,11 +75,9 @@ export function aiExp(tier, age, rng) {
 
 // 63 fiktive Spieler der DDV-Ranglistenturniere (Deutschland, ~66–88 Ø)
 function addDdvPool(world, rng) {
-  const pool = NAME_POOLS.DE, used = new Set(Object.values(world.players).map(p => p.name));
+  const used = new Set(Object.values(world.players).map(p => p.name));
   for (let i = 1; i <= DDV_POOL; i++) {
-    let name;
-    do name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`; while (used.has(name));
-    used.add(name);
+    const name = randomName(rng, 'DE', used);
     const avg = Math.round(rng.float(66, 88)), age = rng.int(19, 52);
     world.players[`V${i}`] = { id: `V${i}`, name, nation: 'DE', age, avg, tier: 'ddv', cardUntil: null,
       attrs: attrsForAverage(avg, rng), exp: aiExp('ddv', age, rng) };
@@ -87,15 +91,10 @@ export function addWeakPool(world, rng) {
   const used = new Set(Object.values(world.players).map(p => p.name));
   for (let i = 1; i <= WEAK_DEV + WEAK_CT; i++) {
     const dev = i <= WEAK_DEV;
-    let r = rng.next(), key = 'EN';
-    for (const [k, w] of POOL_WEIGHTS) { if (r < w) { key = k; break; } r -= w; }
-    const pool = NAME_POOLS[key];
-    let name;
-    do name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`; while (used.has(name));
-    used.add(name);
+    const nation = randomNation(rng), name = randomName(rng, nation, used);
     const avg = Math.round(dev ? rng.float(64, 72) : rng.float(68, 75)), age = dev ? rng.int(16, 22) : rng.int(24, 48);
     const tier = dev ? 'dev' : 'challenge';
-    world.players[`F${i}`] = { id: `F${i}`, name, nation: rng.pick(pool.nations), age, avg, tier, cardUntil: null,
+    world.players[`F${i}`] = { id: `F${i}`, name, nation, age, avg, tier, cardUntil: null,
       attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
   }
 }
@@ -112,20 +111,23 @@ export function upgradeWorld(world, rng) {
 export const AMATEUR_AVG = [58, 72];
 // woman = true: fiktive Spielerin (Women's Series), nur im Frauen-Qualifier
 export function addAmateurs(state, nation, n, woman = false) {
-  const w = state.world, key = poolKeyOf(nation);
-  const pool = { ...NAME_POOLS[key], first: woman ? WOMEN_FIRST[key] ?? WOMEN_FIRST.EU : NAME_POOLS[key].first };
-  const used = new Set(Object.values(w.players).map(p => p.name)), out = [];
+  const w = state.world, used = new Set(Object.values(w.players).map(p => p.name)), out = [];
   for (let i = 0; i < n; i++) {
-    const no = (w.nextAmateur ??= 1), rng = new RNG({ s: hashSeed(`amateur|${nation}|${no}|${woman}`) });
+    const no = (w.nextAmateur ??= 1), rng = new RNG({ s: hashSeed(`amateur|${state.seed}|${nation}|${no}|${woman}`) });   // je Karriere anders
     w.nextAmateur++;
-    let name;
-    for (let k = 0; k < 30 && (!name || used.has(name)); k++) name = `${rng.pick(pool.first)} ${rng.pick(pool.last)}`;
-    used.add(name);
+    const name = randomName(rng, nation, used, woman);
     const avg = Math.round(rng.float(...AMATEUR_AVG) * 10) / 10, age = rng.int(18, 50);
     w.players[`A${no}`] = { id: `A${no}`, name, nation, age, avg, tier: 'amateur', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('ddv', age, rng), ...(woman ? { woman: true } : {}) };
     out.push(w.players[`A${no}`]);
   }
   return out;
+}
+
+// Nation für generierte Spieler: Namensraum nach Gewicht (EN 45 %, NL 22 %, DE 18 %, Rest Europa), dann Nation daraus
+function randomNation(rng) {
+  let r = rng.next(), key = 'EN';
+  for (const [k, w] of POOL_WEIGHTS) { if (r < w) { key = k; break; } r -= w; }
+  return rng.pick(NAME_POOLS[key].nations);
 }
 
 export function changeStrength(p, delta) {
@@ -137,13 +139,11 @@ export function changeStrength(p, delta) {
 }
 
 function newTalent(state, rng, year) {
-  let r = rng.next(), key = 'EN';
-  for (const [k, w] of POOL_WEIGHTS) { if (r < w) { key = k; break; } r -= w; }
-  const pool = NAME_POOLS[key];
+  const nation = randomNation(rng), used = new Set(Object.values(state.world.players).map(p => p.name));
   const id = `G${state.world.nextId++}`;
   const avg = Math.round(rng.float(70, 82));          // Dev-Niveau (unter der Challenge Tour)
   const p = {
-    id, name: `${rng.pick(pool.first)} ${rng.pick(pool.last)}`, nation: rng.pick(pool.nations),
+    id, name: randomName(rng, nation, used), nation,
     age: rng.int(16, 18), avg, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 17, rng), generated: year,
   };
   state.world.players[id] = p;

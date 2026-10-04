@@ -57,7 +57,7 @@ js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, 
                       stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), rival, home (Wohnen & Auto), sponsors, settings, careerEnd, training
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
-data/names.js         Namensbausteine für generierte Talente und den DDV-Pool
+data/names.js         Vor-/Nachnamen je Namensraum (DE, NL, EN, PL, CZ, HU, NORD, BALT, FR, IB, IT, GR, BALK, JP, CN, IN, PH, LA, AF), randomName(rng, nation)
 data/regions.js       16 Bundesländer mit Städten (lokale Turniere)
 data/distractions.js  Störmoment-Situationen mit je 2 Optionen
 data/staff.js         Manager (3 Stufen) und Trainer (3 Stufen), Exhibition-Orte
@@ -76,6 +76,7 @@ version, slot, savedAt, rng:{s}, date:{year, week}
 player: {id:'P', name, nation, region (Bundesland), hand, age, attrs:{sco,fin,men,foc,cal}, exp, clutch, level (1–100), xp (Rest im Level), xpTotal, pointsEarned, points,
          tour:'none'|'tour', cardUntil (letzte gültige Saison), qschoolYear (→ CT/Dev-Berechtigung), avgReal, everTourcard}
 world:  {version:3, nextId, players:{id:{id,name,nation,age,avg,tier,cardUntil,cardVia,attrs,exp}}}   cardVia = Herkunft der Karte (auch player.cardVia)   tier: tour|challenge|dev|ddv|local
+        Fiktive Spieler (L, V, F, G, A, letzte 30 C = CT_FICTIONAL, Rivale) bekommen bei jeder neuen Karriere zufällige, zur Nation passende Namen (`randomName`); echte Spieler (T, X, N, C, D) bleiben.
         IDs: A=fiktive Amateure für Qualifier (tier amateur), R1=Rivale (rival:true), F=schwacher fiktiver CT/Dev-Pool, T=Top64, X=Karte Ende 2026 verloren, N=neu 2026, C=Challenge, D=Dev, V=DDV-Pool (63), L=lokal, G=generierte Talente
 rankings:{seeded, years:{[year]:{challenge|dev|pdc|protour|eto|ws:{[id]:€}}}}   (2025/2026 = Startwerte PDC; eto/ws versteckt)
 qual:   {[year]:{[eventId]:[Feld], wmAuto, wmqSurvivors, wcTeams}}   Felder ab Event-Woche fixiert
