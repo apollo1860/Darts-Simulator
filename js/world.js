@@ -59,8 +59,8 @@ export const hasCard = (p, year) => p.tier === 'tour' || (p.id === 'P' && p.tour
 export function tourStatus(p, year = p.qschoolYear) {
   if (p.id === 'P') {
     if (p.tour === 'tour') return `Tourcard${p.cardUntil ? ` bis ${p.cardUntil}` : ''}`;
-    if (year && p.qschoolYear === year) return p.age <= DEV_MAX_AGE ? 'Challenge + Dev Tour' : 'Challenge Tour';
-    return 'Amateur';
+    const ct = year && p.qschoolYear === year, dev = p.age <= DEV_MAX_AGE;
+    return ct ? (dev ? 'Challenge + Dev Tour' : 'Challenge Tour') : dev ? 'Development Tour' : 'Amateur';
   }
   return { tour: 'Tourcard', top: 'Tourcard', challenge: 'Challenge Tour', dev: 'Development Tour', ddv: 'DDV-Rangliste', local: 'Amateur' }[p.tier];
 }

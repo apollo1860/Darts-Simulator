@@ -56,7 +56,7 @@ export function eligibility(state, ev) {
     case 'dev':
       if (p.age > DEV_MAX_AGE) return { ok: false, reason: 'Nur bis 23 Jahre' };
       if (card) return devHolders(state, y).includes(p) ? { ok: true } : { ok: false, reason: 'Holder nur außerhalb der PDC-Top-64' };
-      return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
+      return { ok: true };                                 // Dev Tour: offen für alle bis 23, keine Q-School nötig
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
     case 'et': return etQualified(state, ev) ? { ok: true } : { ok: false, reason: card ? 'Nicht qualifiziert (TCHQ verpasst?)' : 'Tourcard oder Host-Nation-Qualifier nötig' };
     case 'etq':
@@ -288,7 +288,7 @@ export function enterEvent(state, eventId, opts = {}) {
   if (st.cost.travel) book(state, -st.cost.travel, `Reise ${ev.city}`, 'travel');
   if (ev.cat === 'qschool') {
     state.player.qschoolYear = state.date.year;
-    addNews(state, 'info', `Gemeldet: ${ev.name}`, `4 Turniertage – wer an einem Tag das Halbfinale erreicht, gewinnt eine Tourcard. Mit der Teilnahme bist du ${state.date.year} für die Challenge Tour${state.player.age <= DEV_MAX_AGE ? ' und die Development Tour' : ''} berechtigt.`);
+    addNews(state, 'info', `Gemeldet: ${ev.name}`, `4 Turniertage – wer an einem Tag das Halbfinale erreicht, gewinnt eine Tourcard. Mit der Teilnahme bist du ${state.date.year} für die Challenge Tour berechtigt.`);
   }
   if (ev.extra) (state.week.extras ??= []).push(ev.id);
   else state.week = { ...state.week, played: true, eventId: ev.id, extras: state.week.extras ?? [], playCount: n };   // Trainingsflag bleibt

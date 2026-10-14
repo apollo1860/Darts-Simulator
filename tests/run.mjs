@@ -939,4 +939,19 @@ test('Fiktive Spieler: Namen je Karriere neu zusammengesetzt, echte Spieler unve
   if (sw) assert.ok(NAME_POOLS.NORD.last.some(l => sw.name.endsWith(' ' + l)));      // Name passt zur Nation
 });
 
+test('Dev Tour ohne Q-School (bis 23), Challenge Tour weiter nur mit Q-School', () => {
+  const s = newCareer({ name: 'D', nation: 'DE', hand: 'R', seed: 81 });
+  s.date.week = 14;
+  const dev = eventsInWeek(s, 2027, 14).find(e => e.cat === 'dev');
+  assert.equal(s.player.qschoolYear, null);
+  assert.ok(eventStatus(s, dev).playable);
+  enterEvent(s, dev.id, { count: 1 }); simulateRest(s); closeEvent(s);
+  assert.ok(orderOfMerit(s, 'dev').some(x => x.p.id === 'P'));                     // in der Dev-OOM
+  s.date.week = 11; s.week = { played: false, eventId: null };
+  const ct = eventsInWeek(s, 2027, 11).find(e => e.cat === 'challenge');
+  assert.equal(eventStatus(s, ct).reason, 'Q-School-Teilnahme nötig');
+  const old = newCareer({ name: 'O', nation: 'DE', hand: 'R', seed: 81, age: 24 }); old.date.week = 14;
+  assert.equal(eventStatus(old, eventsInWeek(old, 2027, 14).find(e => e.cat === 'dev')).reason, 'Nur bis 23 Jahre');
+});
+
 console.log(`\n${n} Tests ok`);

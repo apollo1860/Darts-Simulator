@@ -36,7 +36,7 @@ export function trackPeak(state) {
   };
   check('pdc', p.tour === 'tour');
   check('challenge', p.tour !== 'tour' && p.qschoolYear === state.date.year);
-  check('dev', p.tour !== 'tour' && p.qschoolYear === state.date.year && p.age <= 23);
+  check('dev', p.tour !== 'tour' && p.age <= 23);
 }
 
 // Jahresende: Saison archivieren

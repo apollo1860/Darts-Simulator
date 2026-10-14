@@ -58,11 +58,10 @@ const tile = (go, icon, title, sub, extra = '', cls = '') =>
 function oomLine(s) {
   const p = s.player, y = s.date.year;
   if (p.tour === 'tour') return `PDC OOM: Platz ${rankOf(s, 'pdc', 'P', y)}`;
-  if (p.qschoolYear === y) {
-    const parts = [`CT ${rankOf(s, 'challenge', 'P', y)}.`];
-    if (p.age <= DEV_MAX_AGE) parts.push(`Dev ${rankOf(s, 'dev', 'P', y)}.`);
-    return parts.join(' · ');
-  }
+  const parts = [];
+  if (p.qschoolYear === y) parts.push(`CT ${rankOf(s, 'challenge', 'P', y)}.`);
+  if (p.age <= DEV_MAX_AGE) parts.push(`Dev ${rankOf(s, 'dev', 'P', y)}.`);
+  if (parts.length) return parts.join(' · ');
   return 'Order of Merit';
 }
 

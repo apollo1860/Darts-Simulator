@@ -28,7 +28,7 @@ function members(state, type, year) {
     return list;
   }
   const list = type === 'dev' ? [...playersOfTier(state, 'dev'), ...devHolders(state, year)] : nonCardPros(state);
-  const eligible = p.tour !== 'tour' && p.qschoolYear === year && (type !== 'dev' || p.age <= DEV_MAX_AGE);
+  const eligible = p.tour !== 'tour' && (type === 'dev' ? p.age <= DEV_MAX_AGE : p.qschoolYear === year);   // Dev ohne Q-School
   if (eligible) list.push(p);
   return list;
 }

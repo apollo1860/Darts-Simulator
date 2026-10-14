@@ -77,7 +77,7 @@ function weekNews(state, evs, ai) {
   }
   for (const type of ['challenge', 'dev']) {
     if (!evs.some(e => e.cat === type && !e.noOom && e.startsThisWeek)) continue;
-    const eligible = p.tour !== 'tour' ? p.qschoolYear === y && (type !== 'dev' || p.age <= DEV_MAX_AGE)
+    const eligible = p.tour !== 'tour' ? (type === 'dev' ? p.age <= DEV_MAX_AGE : p.qschoolYear === y)
       : type === 'dev' && devHolders(state, y).includes(p);
     const list = orderOfMerit(state, type, y);
     const lead = list[0];
@@ -122,7 +122,7 @@ export function yearEnd(state) {
 function newSeasonNews(state) {
   const p = state.player, y = state.date.year;
   if (p.tour === 'tour') addNews(state, 'info', `Saison ${y}: Tourcard bis ${p.cardUntil}`, 'Q-School, Challenge und Development Tour sind für dich gesperrt.');
-  else addNews(state, 'info', `Saison ${y}: Q-School in KW 2`, `Melde dich für die Q-School UK oder Europa an – sonst keine Challenge-/Dev-Tour-Berechtigung in ${y}.`);
+  else addNews(state, 'info', `Saison ${y}: Q-School in KW 2`, `Melde dich für die Q-School UK oder Europa an – sonst keine Challenge-Tour-Berechtigung in ${y}.${p.age <= DEV_MAX_AGE ? ' Die Development Tour (bis 23) kannst du auch ohne Q-School spielen.' : ''}`);
 }
 
 // „Zum nächsten Event springen“: Wochen ohne spielbares Event (außer lokal) überspringen.
