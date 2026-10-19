@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 11**: WM-Plätze neu: Top 40 PDC + Top 40 Pro Tour, CT/Dev Top 2 (ohne Karte) + Jugend-Weltmeister, Frauen 2 (Women's Series) + 2 (Women's World Matchplay), Affiliate-Touren direkt über die Tour-OOM (Asien 6, CDC 4, Nordic & Baltic 3, DPA 2, DPNZ 1), Qualifier Super League, Benelux, Süd-, Ost-, Mitteleuropa, Japan, China, Indien, CDLC, Afrika (2); Rest PDPA Qualifier (meist ~14). Q-School-WM-Qualifier entfernt.
 - [x] **Version 10**: UK Open mit gestaffeltem Einstieg (Runde 1: ab Platz 97 + 8 CT + 8 Dev + Riley's-Amateure, Runde 2: 65–96, Runde 3: 33–64, Runde 4: Top 32) und offener Auslosung ab Runde 4; Grand Slam nach TV-Finalisten (12 Monate), Pro-Tour-Titeln, Nebentouren und neuem Tour Card Holder Qualifier (KW 45); PC Finals über eigene Players-Championship-OOM.
 - [x] **Version 9**: Eigene Spielerpools für die Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa; je Top 8 der Vorjahres-OOM, Ø nach Platz) – genutzt in Masters-Vorrunde, Grand Slam (2 Plätze Women's Series), WM- und ET-Regionalqualifiern.
 - [x] **Version 8**: Winmau World Masters mit echter Vorrunde (Gruppenphase, K.-o. gegen Platz 25–56, 8 Qualifikanten, Best of 5 Sets); Version steigt ab jetzt mit jedem Push.
@@ -15,6 +16,10 @@
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Version 11
+- WM-Setzliste bleibt wie gehabt: 128er-Feld, Top 32 gesetzt, **alle spielen ab Runde 1** (wie bei der echten 128er-WM seit 2024/25). „Top 32 erst ab Runde 2“ passt rechnerisch nicht zu 128 Spielern (galt im alten 96er-Format).
+- Platzzahlen je Affiliate-Tour und die Japan/China/Indien/CDLC-Qualifier selbst gewählt (in der Nutzerliste nicht beziffert). Die Women's World Matchplay (2 Plätze) läuft in KW 29 im Hintergrund, die Top 2 der Women's Series sind dort nicht dabei.
 
 ### Annahmen Version 10
 - UK Open: Die Nutzerbeschreibung ergibt 176 Spieler (32 + 3×16 in Runde 1); umgesetzt wie real mit 160: Runde 1 = Holder ab Platz 97 + Top 8 CT-OOM + Top 8 Dev-OOM (Vorjahr, ohne Karte) + 16 Riley's-Amateure (fiktiv, UK/IRL) = 64. Gibt es mehr als 128 Holder, spielen alle, es gibt entsprechend weniger Amateure. Runde 2/3: Neueinsteiger gegen Sieger der Vorrunde (zugelost), ab Runde 4 nach jeder Runde komplett frei gelost. Plätze: Runde 1/2/3 = L160/L128/L96.

@@ -360,8 +360,10 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   assert.equal(q.masters.length, 24); assert.equal(q.matchplay.length, 32); assert.equal(q.pcf.length, 64);
   assert.equal(q.wm.length, 128); assert.equal(new Set(q.wm).size, 128);
   assert.ok(q.wmqSurvivors.length >= 2 && q.wmqSurvivors.every(id => q.wm.includes(id)));      // TCHQ: Restplätze, mind. 2
-  assert.equal(Object.keys(q.wmReg).length, 17);                                            // 17 internationale Qualifier
-  assert.equal(Object.values(q.wmReg).flat().length, 35); assert.ok(q.wmYouth);           // Europa 10, Asien/Ozeanien 14, Amerika/Afrika 7, Frauen 4
+  assert.equal(Object.keys(q.wmReg).length, 11);                                            // 11 internationale Qualifier
+  assert.equal(Object.values(q.wmReg).flat().length, 13); assert.ok(q.wmYouth);           // Europa 5, Asien 3, Amerika/Afrika 3, Frauen 2
+  for (const [c, n] of Object.entries({ asia: 6, cdc: 4, nb: 3, dpa: 2, dpnz: 1 })) assert.equal(q.wm.filter(id => getPlayer(s, id)?.circuit === c).length, n);
+  assert.equal(q.wm.filter(id => getPlayer(s, id)?.woman).length, 4);                    // 2 Women's Series + 2 Women's World Matchplay
   assert.ok(q.wmReg.women.every(id => getPlayer(s, id).woman));
   assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wm.slice(0, 32).every((id, i) => id === q.wmAuto[i]));                       // Top 32 PDC gesetzt
@@ -731,22 +733,6 @@ test('Auswahl Turnieranzahl (CT) + Host-Nation-Qualifier → ET-Hauptfeld', () =
   assert.ok(ET.etEntrants(s, et, true).hnq.includes('P'));
   assert.ok(s.activeEvent.rounds[0].matches.some(m => m.a === 'P' || m.b === 'P'));
   assert.equal(s.activeEvent.fieldSize, 48);
-});
-
-test('WM-Qualifier (Q-School-Teilnehmer): KW 46, nur mit Q-School, Sieger in der WM', () => {
-  const s = newCareer({ name: 'Q', nation: 'DE', hand: 'R', seed: 93 });
-  s.date.week = 46;
-  const ev = eventsInWeek(s, 2027, 46).find(e => e.id === 'wm-qs');
-  assert.ok(ev);
-  assert.equal(eventStatus(s, ev).playable, false);                 // ohne Q-School
-  s.player.qschoolYear = 2027;
-  assert.ok(eventStatus(s, ev).playable);
-  s.week = { played: true, eventId: 'x' };
-  nextWeek(s);                                                      // läuft im Hintergrund
-  const w = s.qual[2027].wmQsWinner;
-  assert.ok(w && getPlayer(s, w).tier !== 'tour');
-  while (s.date.week < 51) nextWeek(s);
-  assert.ok(majorField(s, eventsInWeek(s, 2027, 51).find(e => e.id === 'wm'), false).includes(w));
 });
 
 test('Zufallsereignisse: Trainingsrückschlag oder Ausfall (Turniere gesperrt), Schule nur bis 18', () => {
@@ -1275,9 +1261,10 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   assert.equal(gs.length, 32); assert.equal(gs.filter(id => s.world.players[id]?.woman).length, 2);
   // WM-Qualifier: Frauen aus der Women's Series, Asien mit Asian-Tour-Spielern
   s.date.week = 44;
-  const wq = ET.runAITournament(s, eventsInWeek(s, 2026, 44).find(e => e.id === 'wmq-women'));
-  assert.ok(wq.survivors.length === 4 && wq.survivors.every(id => s.world.players[id].woman));
-  assert.ok(wq.survivors.filter(id => s.world.players[id].tier === 'secondary').length >= 2);
+  s.date.week = 29;
+  const wq = ET.runAITournament(s, eventsInWeek(s, 2026, 29).find(e => e.id === 'wmq-women'));
+  assert.ok(wq.survivors.length === 2 && wq.survivors.every(id => s.world.players[id].woman));
+  assert.ok(!wq.survivors.some(id => secondaryOrder(s, 'women').slice(0, 2).includes(id)));   // Top 2 Women's Series direkt
 });
 
 test('New Star Darts v10: UK Open (gestaffelter Einstieg, offene Auslosung), Grand Slam (TV-Finalisten, Titel, Nebentouren, Qualifier), PC Finals', async () => {
