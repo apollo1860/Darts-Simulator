@@ -1,4 +1,4 @@
-// Dartscheibe als SVG-String (Koordinaten in mm wie board.js, viewBox -200…200) – genutzt von matchUI und watch
+// Dartscheibe als SVG-String (Koordinaten in mm wie board.js, viewBox -200…200) – Liveticker und Minispiele
 import { ORDER, R, segAngle } from '../board.js';
 
 // ---------- Scheibe (SVG, einmal erzeugt) ----------

@@ -427,3 +427,22 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-hl-btns .nsd-btn { min-height: 48px; padding: 0 16px; }
 .nsd-result-row.mine { background: rgba(255,222,59,.35); }
 .nsd-life .opts .nsd-btn .lb { white-space: normal; text-align: center; line-height: 1.2; padding: 6px 4px; }
+
+/* ===== Etappe 6: Liga ===== */
+.nsd-sched { display: grid; grid-template-columns: 52px 1fr; gap: 8px; padding: 8px 10px; border-bottom: 2px solid rgba(255,255,255,.12); text-shadow: var(--nsd-shadow); }
+.nsd-sched.past { opacity: .6; }
+.nsd-sched.cur { background: rgba(255,222,59,.22); box-shadow: inset 4px 0 0 #ffde3b; }
+.nsd-sched .kw { display: flex; flex-direction: column; align-items: center; font-size: .75rem; font-weight: 700; }
+.nsd-sched .kw b { font-size: 1.4rem; line-height: 1; }
+.nsd-sched .evs { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nsd-sched .ev { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-weight: 700; }
+.nsd-sched .ev .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsd-sched .st { flex: none; font-size: .75rem; padding: 2px 8px; border-radius: 10px; background: rgba(0,0,0,.35); color: #ccc; }
+.nsd-sched .st.ok { background: #12c800; color: #fff; }
+.nsd-sched .res { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; color: #ffde3b; }
+.nsd-title-pager { background: linear-gradient(#e9e9e9, #bdbdbd); }
+.nsd-title-pager b, .nsd-title-pager button { color: #fff; font-size: 1.4rem; text-shadow: var(--nsd-shadow); }
+.nsd-stats-t { color: #111; text-shadow: none; font-size: .92rem; }
+.nsd-stats-t th { color: #fff; text-shadow: var(--nsd-shadow); }
+.nsd-pager { gap: 6px; }
+.nsd-pager button { font-size: 1rem; }

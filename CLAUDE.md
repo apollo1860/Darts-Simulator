@@ -13,7 +13,10 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 3. **Fähigkeit** ✅ – Trainings-Minispiele + Einstufung, Getränke-Shop, Darts-Shop.
 4. **Leben** ✅ – Beziehungen, Lebens-Ereignisse (Karten), Lifestyle-Shop (Kauf), Erfolge.
 5. **Karriere-Rahmen** ✅ – Star-Status-Fortschritt, Ziele, wöchentliches Update, Manager/Fitnesstrainer, Sponsor-Verhandlung (Höher/Niedriger), Interview, Saisonbericht, Auszeichnungen.
-6. **Liga** – Ranglisten in ★, Spielplan, Kartenverlust/„Last Chance“, alte Screens entfernen.
+6. **Liga** ✅ – Ranglisten in ★, Spielplan, Kartenverlust/„Last Chance“, alte Screens entfernen.
+   - Liga: PDC-/Pro-Tour-OOM in ★ + Premier-League-Tabelle; Spielplan (`calendar` = schedule.js: alle Wochen mit offen/nicht qualifiziert/Ergebnis), Titelträger (`tour` = titles.js, nur Tour-Turniere), Statistik (`stats` = nstats.js).
+   - Kartenverlust (`yearEnd`): `state.lastChance = {year}` → Q-School in KW 2 ist dann sichtbar/spielbar (`nsdBlocked` in calendar.js); nach KW 2 ohne Karte (`lastChanceCheck`) → `state.ended` → Screen `careerEnd` (= nend.js).
+   - Alte Darts-Career-UI (js/ui/screens, matchUI, level, interview) entfernt; alte Logikmodule bleiben für die Hintergrund-Simulation/Tests.
 
 ### Festgelegte Regeln
 - **Start**: Profil (Vorname, Nachname, Nation, Alter 16–30, Wurfhand; nur männlich, keine Bonuspunkte). Direkt **mit Tourcard** (2 Jahre), nominell einer der Schwächsten. Kein Lokal/DDV/WDF/Q-School/CT/Dev/HNQ/WM-Regional (`NSD_BLOCKED`, `state.mode = 'nsd'`).
@@ -57,7 +60,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 ### Oberfläche (js/ui/nsd/)
 - `frame.js`: Rahmen (Glasdach, Pixel-Zuschauer oben/unten aus `crowd.js` per Canvas, Geländer), `titleBand`, `darkBar`, `meter` (grüne/rote/graue Glanzbalken mit Icon), `header` (✖ Menü · Name · ? Hilfe), `bar` (untere Leiste, 4 Spalten, `wide` = 2), `card` (Vollbild-Text + ✔), Icons `starIcon`/`heartIcon`/`coin`, `bindHead`.
 - `css/nsd.css`: Schrift Jost (Logo Anton), graue Glanz-Buttons, dunkle Leisten, grüner Rasen (`bg-green`), Tabellen (`.nsd-table`, Zone blau, eigene Zeile grün), Modals im NSD-Look (`body.nsd-on`). Max. 480 px breit (Handy-Hochformat).
-- Router: Screen-Module mit `export const nsd = true` werden randlos gerendert (`.nsd-root`). Screens: `title` (= `menu`), `slots`, `options`, `welcome`, `newprofile`, `intro`, `hub` (= Status), `skills`, `life`, `league`, `week` (= `tourweek.js`: Turniere der Woche, Melden, Weiter), `event` (= `tourevent.js`: Lobby VS, Spielen/Simulieren, Ausgeschieden, Ergebnis), `live` (DartConnect-Liveticker + Zielmechanik), `matchstats` (Spielbericht, Note), `news` (= `newsfeed.js`, Darts News; `{flash:true}` = Schlagzeile als Browser-Karte, nach Titeln), `trainlevels` ({key}), `minigame` ({key, level, mode: train|placement|practice, step}), `placement` ({step}), `practice`, `drinks`, `darts`, `lifestyle`, `lifeevent` ({back} bzw. {result}), `achievements`. Alte Screens (watch, calendar, …) laufen bis zu ihrem Umbau im alten Look weiter.
+- Router: Screen-Module mit `export const nsd = true` werden randlos gerendert (`.nsd-root`). Screens: `title` (= `menu`), `slots`, `options`, `welcome`, `newprofile`, `intro`, `hub` (= Status), `skills`, `life`, `league`, `week` (= `tourweek.js`: Turniere der Woche, Melden, Weiter), `event` (= `tourevent.js`: Lobby VS, Spielen/Simulieren, Ausgeschieden, Ergebnis), `live` (DartConnect-Liveticker + Zielmechanik), `matchstats` (Spielbericht, Note), `news` (= `newsfeed.js`, Darts News; `{flash:true}` = Schlagzeile als Browser-Karte, nach Titeln), `trainlevels` ({key}), `minigame` ({key, level, mode: train|placement|practice, step}), `placement` ({step}), `practice`, `drinks`, `darts`, `lifestyle`, `lifeevent` ({back} bzw. {result}), `achievements`, `goals`, `weekly`, `season`, `interview`, `team`, `sponsors`, `calendar`, `tour`, `stats`, `careerEnd`. Es gibt nur noch NSD-Screens.
 - Speicher-Schlüssel `newStarDarts.slot.N` (alte Darts-Career-Stände werden nicht übernommen).
 
 ## Arbeitsregeln
@@ -90,7 +93,6 @@ js/matchEngine.js     Schnelle Simulation (Aufnahme-basiert), für Sim-Modus + a
 js/board.js           Scheibengeometrie (mm), scoreAt(), targetPoint(), Checkout-Wege, suggestTarget()
 js/matchState.js      Dartgenauer Match-Zustand (Bust, Double-Out, Legs/Sets, Stats) – serialisierbar
 js/throwModel.js      KI-Dart (Gauß um Ziel, σ aus Attributen), Parameter fürs manuelle Zielen, wave()
-js/matchUI.js         Screen 'match' (manuelles Spiel) – VORERST DEAKTIVIERT (MANUAL_AVAILABLE = false)
 js/rankings.js        Order of Merits: addMoney(), orderOfMerit(), rankOf()
 js/finance.js         Kontostand, Buchungen, Kosten pro Event
 js/sponsors.js        Sponsoren: Angebote (alle 4 Wochen), Verträge, Zahlungen, Kündigung, Ablauf
@@ -116,11 +118,7 @@ js/slump.js           Formtiefs: Auslöser (Niederlagenserie, Blamage, Abheben, 
 js/expenses.js        Einmalige Kosten bei hohem Vermögen (Chance steigt mit dem Kontostand)
 js/distractions.js    Störmomente in der DartConnect-Simulation (planen, Chancen, auswerten)
 js/ui/components.js   Toast, Modal, Spielerkarte, Tabelle, Header
-js/ui/boardSvg.js     Dartscheibe als SVG (matchUI + Matchdart-Anzeige in watch)
-js/ui/interview.js    Interview-Minispiel (Panel im Turnier-Screen und Hub)
-js/ui/level.js        Level-Balken (animiert, Hub + Turnierende) und Level-Up-Fenster (afterMount im Router)
-js/ui/screens/*.js    Screens: menu, create, hub, week, calendar, event, watch, finance, profile,
-                      stats, news, rankings, tour (Holder + Titelträger), team (Manager/Trainer), rival, home (Wohnen & Auto), sponsors, settings, careerEnd, training
+js/ui/boardSvg.js     Dartscheibe als SVG (Liveticker, Minispiele)
 data/nations.js       Nationen + Flaggen
 data/players.js       Spielerlisten: TOUR_TOP64 / TOUR_EXPIRING / TOUR_NEW_2026 (=128), Challenge 92 (62 Nutzerliste + 30 fiktiv), Dev 98 (Nutzerliste), Lokal 50
 data/names.js         Vor-/Nachnamen je Namensraum (DE, NL, EN, PL, CZ, HU, NORD, BALT, FR, IB, IT, GR, BALK, JP, CN, IN, PH, LA, AF), randomName(rng, nation)

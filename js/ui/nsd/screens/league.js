@@ -1,19 +1,22 @@
-// Liga: Ranglisten im NSS-Tabellenlook (PDC- und Pro-Tour-Rangliste), eigene Zeile grün, Tourcard-Zone blau
+// Liga: Ranglisten im NSS-Tabellenlook (PDC-, Pro-Tour-Rangliste in ★, Premier-League-Tabelle), eigene Zeile grün, Zone blau
 import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { frame, bar } from '../frame.js';
 import { starShow } from '../../../nsd.js';
+import { plTable } from '../../../majors.js';
+import { getPlayer } from '../../../world.js';
 
 export const nsd = true;
-const LISTS = [['pdc', 'PDC Order of Merit', 64], ['protour', 'Pro Tour Order of Merit', 0]];
+const LISTS = [['pdc', 'PDC Order of Merit', 64], ['protour', 'Pro Tour Order of Merit', 0], ['pl', 'Premier League', 4]];
 let idx = 0;
 // Ranglisten in ★: Basiswerte × dein Status-Faktor (als hätten alle deinen Status)
 const money = (v, lvl) => fmtStars(starShow(v, lvl));
 const fmtStars = v => v.toLocaleString('de-DE');
 
 export function render(app) {
-  const [type, label, zone] = LISTS[idx], list = orderOfMerit(app.state, type).slice(0, 128);
+  const [type, label, zone] = LISTS[idx], s = app.state, pl = type === 'pl';
+  const list = pl ? plTable(s).map((x, i) => ({ rank: i + 1, p: getPlayer(s, x.id), money: x.pts })) : orderOfMerit(s, type).slice(0, 128);
   return frame({
     cls: 'fixed', bg: 'grey',
     body: `<div class="nsd-title" style="justify-content:space-between;gap:10px">
@@ -21,9 +24,9 @@ export function render(app) {
         <span style="display:flex;flex-direction:column;gap:6px"><button class="nsd-sq green" data-l="-1">▲</button><button class="nsd-sq green" data-l="1">▼</button></span>
       </div>
       <div class="nsd-scroll" id="lg-scroll"><table class="nsd-table">
-        <tr><th>Pos</th><th style="text-align:left">Name</th><th class="alt num">Preisgeld ★</th></tr>
+        <tr><th>Pos</th><th style="text-align:left">Name</th><th class="alt num">${pl ? 'Punkte' : 'Preisgeld ★'}</th></tr>
         ${list.map(x => `<tr class="${x.p.id === 'P' ? 'me' : x.rank <= zone ? 'zone' : ''}" ${x.p.id === 'P' ? 'id="lg-me"' : ''}>
-          <td class="c">${x.rank}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td><td class="num">${money(x.money, app.state.player.star.level)}</td></tr>`).join('')}
+          <td class="c">${x.rank}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td><td class="num">${pl ? x.money : money(x.money, s.player.star.level)}</td></tr>`).join('')}
       </table></div>`,
     bottom: bar([
       { go: 'hub', icon: '🏠', label: 'Start' },

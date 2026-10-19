@@ -1,28 +1,6 @@
 // Bootstrap & Router
 import { saveGame } from './state.js';
 import { toast, modal } from './ui/components.js';
-import * as menu from './ui/screens/menu.js';
-import * as create from './ui/screens/create.js';
-import * as hub from './ui/screens/hub.js';
-import * as week from './ui/screens/week.js';
-import * as calendar from './ui/screens/calendar.js';
-import * as event from './ui/screens/event.js';
-import * as finance from './ui/screens/finance.js';
-import * as profile from './ui/screens/profile.js';
-import * as stats from './ui/screens/stats.js';
-import * as news from './ui/screens/news.js';
-import * as rankings from './ui/screens/rankings.js';
-import * as tour from './ui/screens/tour.js';
-import * as team from './ui/screens/team.js';
-import * as rival from './ui/screens/rival.js';
-import { afterMount } from './ui/level.js';
-import * as sponsors from './ui/screens/sponsors.js';
-import * as settings from './ui/screens/settings.js';
-import * as careerEnd from './ui/screens/careerEnd.js';
-import * as match from './matchUI.js';
-import * as watch from './ui/screens/watch.js';
-import * as training from './ui/screens/training.js';
-import * as home from './ui/screens/home.js';
 // New Star Darts
 import * as title from './ui/nsd/screens/title.js';
 import * as slots from './ui/nsd/screens/slots.js';
@@ -54,11 +32,14 @@ import * as goals from './ui/nsd/screens/goals.js';
 import * as weekly from './ui/nsd/screens/weekly.js';
 import * as season from './ui/nsd/screens/season.js';
 import * as interview from './ui/nsd/screens/interview.js';
+import * as schedule from './ui/nsd/screens/schedule.js';
+import * as titles from './ui/nsd/screens/titles.js';
+import * as nstats from './ui/nsd/screens/nstats.js';
+import * as nend from './ui/nsd/screens/nend.js';
 
-// Alte Darts-Career-Screens (menu/create/hub) sind durch die New-Star-Darts-Screens ersetzt; übrige werden schrittweise umgebaut
-void menu; void create; void hub; void week; void event; void news; void team; void sponsors;
 const SCREENS = { title, menu: title, slots, options, welcome, newprofile, intro, hub: status, skills, life, league,
-  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, lifestyle, lifeevent, achievements, goals, weekly, season, interview, calendar, finance, profile, stats, rankings, tour, team: nteam, rival, sponsors: nsponsors, settings, careerEnd, match, watch, training, home };
+  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, lifestyle, lifeevent,
+  achievements, goals, weekly, season, interview, calendar: schedule, tour: titles, stats: nstats, careerEnd: nend, team: nteam, sponsors: nsponsors };
 const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile', 'practice', 'minigame'];
 // Container je Screen: NSD-Screens randlos, alte Screens im bisherigen Layout
 const wrap = (scr, html, style = '') => {
@@ -79,7 +60,6 @@ const app = {
     app.screen = name; app.params = params;
     root.innerHTML = wrap(SCREENS[name], SCREENS[name].render(app, params));
     SCREENS[name].mount?.(root, app, params);
-    afterMount(root, app);
     window.scrollTo({ top: 0 });
   },
   refresh() { // gleichen Screen neu zeichnen, Scrollposition behalten
@@ -87,7 +67,6 @@ const app = {
     SCREENS[app.screen]?.unmount?.();
     root.innerHTML = wrap(SCREENS[app.screen], SCREENS[app.screen].render(app, app.params), 'style="animation:none"');
     SCREENS[app.screen].mount?.(root, app, app.params);
-    afterMount(root, app);
     window.scrollTo({ top: y });
   },
   save(silent = true) {

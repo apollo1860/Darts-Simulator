@@ -6,7 +6,12 @@
 - [x] **Etappe 3 – Fähigkeit**: 4 Minispiele (Scoring, Finishing mit Linien + Kreis, Fokus-Memory mit 3 Herzen, Rechnen auf Schema-Scheibe mit Zeitlimit), 20 Level × 3 Sterne je Fähigkeit, Training 55 % Energie, Einstufung nach Profilerstellung, freies Training im Titelmenü, Formverlust mit Vorwarnung, Getränke-Shop (Bier/Schnaps/Wodka, Rausch), Darts-Shop (5 Sets mit Bonus).
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
-- [ ] Etappe 6 – Liga (★-Ranglisten, Spielplan, Last Chance, Aufräumen)
+- [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Etappe 6
+- „Last Chance“ = die normale Q-School (UK oder Europa) in KW 2 des Folgejahres: Halbfinale an einem der 4 Tage → Tourcard bis Ende Folgejahr. Wer nicht spielt oder scheitert, beendet die Karriere (Spielstand bleibt als „Karriereende“ im Slot).
+- Titelträger zeigt nur Tour-Turniere (keine Challenge/Dev/Qualifier). Statistik ohne alte €-/XP-Werte.
+- Alte Logikmodule (home, slump, staff, sponsors alt …) bleiben im Code, weil Tests und Nicht-NSD-Zweige sie nutzen; im Tour-Modus ruhen sie.
 
 ### Annahmen Etappe 5
 - Star-Status-Zahlen unverändert (Sieg ≈ 12 Punkte, Balken +3 %/Stufe); neue Quellen: Interview (bis 27), Saisonziele (10 je Ziel), Auszeichnungen (30), Titel (25 × Gewicht).

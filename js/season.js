@@ -41,6 +41,7 @@ export function nextWeek(state) {
     addEnergy(state.player, weeklyEnergy(state.player)); soberUp(state.player); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng));
     state.weekly = { ...c, energy: state.player.energy - e0 };
     if (state.date.week === 1) setGoals(state);
+    lastChanceCheck(state);
   }
   else {
     homeWeek(state);
@@ -99,6 +100,19 @@ function weekNews(state, evs, ai) {
   }
 }
 
+// New Star Darts: Nach der Q-School-Woche ohne neue Karte → Karriereende
+export function lastChanceCheck(state) {
+  const lc = state.lastChance;
+  if (!lc || state.date.year !== lc.year || state.date.week <= 2) return;
+  state.lastChance = null;
+  if (state.player.tour === 'tour') {
+    addNews(state, 'result', '🎉 Zurück auf der Tour!', 'Die Last Chance genutzt – deine neue Tourcard gilt bis Ende ' + state.player.cardUntil + '.');
+    return;
+  }
+  state.ended = true;
+  addNews(state, 'info', '🏁 Karriereende', 'Ohne Tourcard ist deine Profikarriere vorbei.');
+}
+
 // Jahresabschluss (vor dem Jahreswechsel)
 export function yearEnd(state) {
   const y = state.date.year, p = state.player, rng = new RNG(state.rng);
@@ -121,7 +135,10 @@ export function yearEnd(state) {
     lost.push(pl.name);
     if (pl.id === 'P') {
       p.tour = 'none'; p.cardUntil = null;
-      addNews(state, 'ranking', 'Tourcard verloren', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). Zurück zur Q-School.`);
+      if (state.mode === 'nsd') {                          // New Star Darts: letzte Chance Q-School, sonst Karriereende
+        state.lastChance = { year: y + 1 };
+        addNews(state, 'ranking', '⚠️ Tourcard verloren – LAST CHANCE', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). In KW 2 ${y + 1} hast du eine letzte Chance: Erreiche an einem Q-School-Tag das Halbfinale – sonst ist deine Karriere vorbei.`);
+      } else addNews(state, 'ranking', 'Tourcard verloren', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). Zurück zur Q-School.`);
     } else { pl.tier = 'challenge'; pl.cardUntil = null; }
   }
   // 3) KI-Welt entwickelt sich weiter
@@ -134,6 +151,7 @@ export function yearEnd(state) {
 function newSeasonNews(state) {
   const p = state.player, y = state.date.year;
   if (p.tour === 'tour') addNews(state, 'info', `Saison ${y}: Tourcard bis ${p.cardUntil}`, 'Q-School, Challenge und Development Tour sind für dich gesperrt.');
+  else if (state.mode === 'nsd') addNews(state, 'info', `Saison ${y}: Last Chance in KW 2`, 'Melde dich in der Wochenansicht für die Q-School (UK oder Europa). Halbfinale an einem Tag = neue Tourcard.');
   else addNews(state, 'info', `Saison ${y}: Q-School in KW 2`, `Melde dich für die Q-School UK oder Europa an – sonst keine Challenge-Tour-Berechtigung in ${y}.${p.age <= DEV_MAX_AGE ? ' Die Development Tour (bis 23) kannst du auch ohne Q-School spielen.' : ''}`);
 }
 

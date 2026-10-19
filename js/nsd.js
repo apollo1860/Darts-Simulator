@@ -8,7 +8,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals } from './career.js';
 
 // Version = abgeschlossene Etappe (Anzeige rechts oben im Titelbildschirm), bei jeder Etappe erhöhen
-export const APP_VERSION = 5;
+export const APP_VERSION = 6;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },

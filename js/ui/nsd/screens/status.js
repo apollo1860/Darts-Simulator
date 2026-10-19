@@ -42,7 +42,7 @@ export function render(app) {
         <div class="nsd-dark ${p.gear ? '' : 'red'}">${p.gear ? esc(p.gear.name) : 'Keine'}</div>
       </div>
     </div>
-    <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="calendar">Kalender 🗓️ ▶</button></div>
+    <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="stats">📋 Statistik</button><button data-go="calendar">Spielplan 🗓️ ▶</button></div>
     <div class="nsd-strip"><span>Jahr ${yearNo}</span><span class="mid">${s.date.year}</span><span class="r">KW ${s.date.week}</span></div>`,
     bottom: bar([
       { go: 'league', icon: '🏆', label: 'Liga' },
@@ -59,5 +59,5 @@ export function mount(root, app) {
   root.querySelector('#s-drinks').onclick = () => app.go('drinks');
   root.querySelector('#s-darts').onclick = () => app.go('darts');
   // Spielen: laufendes Turnier → Turnier, sonst Wochenansicht (Melden / Weiter)
-  root.querySelector('#s-play').onclick = () => app.go(app.state.lifeEvent ? 'lifeevent' : app.state.activeEvent ? 'event' : 'week');
+  root.querySelector('#s-play').onclick = () => app.go(app.state.ended ? 'careerEnd' : app.state.lifeEvent ? 'lifeevent' : app.state.activeEvent ? 'event' : 'week');
 }

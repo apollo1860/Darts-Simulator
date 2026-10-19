@@ -1159,4 +1159,26 @@ test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Sais
   assert.equal(s.goals.year, 2028); assert.ok(s.seasonReport && s.weekly);
 });
 
+test('New Star Darts: Tourcard verloren → Last Chance (Q-School), sonst Karriereende', async () => {
+  const N = await import('../js/nsd.js');
+  const { shownTo, eventsInWeek: evw } = await import('../js/calendar.js');
+  const mk = () => { const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 18, slot: 1, seed: 14 }); s.player.cardUntil = 2027; return s; };
+  // Saisonende ohne Preisgeld → Karte weg, Last Chance 2028
+  const s = mk(); s.date.week = 52; s.lifeEvent = null; nextWeek(s);
+  assert.equal(s.player.tour, 'none'); assert.deepEqual(s.lastChance, { year: 2028 });
+  assert.ok(s.news.some(n => n.title.includes('LAST CHANCE')));
+  s.date.week = 2;
+  const qs = evw(s, 2028, 2).filter(e => e.cat === 'qschool');
+  assert.ok(qs.length && qs.every(e => shownTo(s, e)) && eventStatus(s, qs[0]).playable);
+  assert.ok(!evw(s, 2028, 2).some(e => ['challenge', 'local'].includes(e.cat) && shownTo(s, e)));
+  // nicht gespielt → nach KW 2 Karriereende
+  s.lifeEvent = null; nextWeek(s);
+  assert.equal(s.ended, true); assert.equal(s.lastChance, null);
+  // Mit neuer Karte → weiter
+  const t = mk(); t.date.week = 52; nextWeek(t); t.date.week = 2;
+  ET.awardCard(t, 'P', 2029, 'Q-School 2028'); t.lifeEvent = null; nextWeek(t);
+  assert.ok(!t.ended); assert.equal(t.player.tour, 'tour'); assert.ok(t.news.some(n => n.title.includes('Zurück auf der Tour')));
+  assert.equal(N.APP_VERSION, 6);
+});
+
 console.log(`\n${n} Tests ok`);

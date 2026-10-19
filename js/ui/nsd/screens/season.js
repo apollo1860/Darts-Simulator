@@ -23,6 +23,7 @@ export function mount(root, app) {
     const s = app.state;
     if (s.seasonReport) s.seasonReport.seen = true;
     app.save();
+    if (s.ended) return app.go('careerEnd');
     app.go(s.lifeEvent ? 'lifeevent' : 'goals', s.lifeEvent ? { back: 'goals' } : undefined);
   };
 }
