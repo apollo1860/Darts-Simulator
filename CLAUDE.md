@@ -29,7 +29,8 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Beziehungen pflegen** (Leben → Antippen): zufällige Aktion aus `REL_ACTIONS`; Fans/Manager/Sponsoren 60 % Energie, Freundin Geschenk 4 Basis-★; immer +6. Manager/Trainer-Namen je Spielstand zufällig (`nameTeam`).
 - **Ereignisse**: Beziehungen ±1/2 (gekappt), Auftritte/Feiern kosten 60 % Energie (sonst gesperrt). Frau einladen: Chance aus Lifestyle + Status (`meetChance`, 8–75 %), sonst ausgelacht (Fans −1). Getränke füllen Energie auf 100 %.
 - **Minispiele**: frühe Level sehr leicht (Kreis/Linien skaliert). Fokus: 2 s offen, dann umgedreht und sichtbar gemischt (`memorySwaps` 1 → 16, Tempo steigt), **ein** Paar reicht: 0/1/2 Fehler → 3/2/1 Sterne. Abbau ab 30: Formverlust-Schwelle 9 → 3 Wochen (60 J.), Chance 35 → 70 %.
-- **Meilensteine** (133, `data/achievements.js`, Screen `achievements`): 8 Bereiche; „Am Board“ nur selbst geworfen (`state.selfStats` aus `liveHumanDart`), Zähler `state.mstats`, `state.flags`. Einblendung unten (`js/ui/nsd/msToast.js`, Warteschlange `state.msQueue`, Tippen schließt, sonst 3 s).
+- **Meilensteine** (133, `data/achievements.js`, Screen `achievements`): 8 Bereiche; „Am Board“ nur selbst geworfen (`state.selfStats` aus `liveHumanDart`), Zähler `state.mstats`, `state.flags`. Kein Geld, nur kleines Star-Status-Plus (`msStarPoints` = Gewicht/5, 1–10 Punkte). Einblendung im NSS-Stil über der unteren Leiste – links Stern mit Haken, rechts der Text (`js/ui/nsd/msToast.js`, Warteschlange `state.msQueue`, Tippen schließt, sonst 3 s).
+- **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
 - **Start**: Profil (Vorname, Nachname, Nation, Alter 16–30, Wurfhand; nur männlich, keine Bonuspunkte). Direkt **mit Tourcard** (2 Jahre), nominell einer der Schwächsten. Kein Lokal/DDV/WDF/Q-School/CT/Dev/HNQ/WM-Regional (`NSD_BLOCKED`, `state.mode = 'nsd'`).
@@ -86,7 +87,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 
 ## Dateistruktur
 ```
-index.html            Einstieg, lädt js/main.js
+index.html            Einstieg, lädt js/main.js; App-Icon/Manifest (img/, manifest.webmanifest)
 css/base.css          Design-Tokens, Reset, Typo, Layout
 css/components.css    Button, Kachel, Karte (FUT), Tabelle, Modal, Toast, Bracket, Kalender
 js/main.js            Bootstrap + Router (app.go(screen, params)), Auto-Save

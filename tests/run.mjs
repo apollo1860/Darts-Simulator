@@ -1095,7 +1095,7 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   L.buyItem(s, 'flat'); L.buyItem(s, 'townhouse'); L.buyItem(s, 'console');
   assert.throws(() => L.buyItem(s, 'flat'), /Schon/);
   assert.equal(L.lifestyleOf(p), 6 + 12 + 3); assert.equal(L.homeRegen(p), 10);
-  assert.ok(s.stars >= 1000 - 90 - 320 - 12 + 5);                           // + Meilensteine (Immobilie, Kontostand …)
+  assert.equal(s.stars, 1000 - 90 - 320 - 12);                              // Meilensteine bringen kein Geld
   p.star.level = 21; assert.equal(L.itemPrice({ price: 90 }, 21), 180); p.star.level = 1;
   assert.ok(s.achievements.home && s.achievements.wheels === undefined);
   // Ereignisse: Bedingungen, Kosten, Zufall
@@ -1230,6 +1230,8 @@ test('New Star Darts v7: Start 2026, Holder-Liste, Status-Regeln, Meilensteine, 
   s.stats.career.s180 = 50; L.checkAchievements(s); assert.ok(!s.achievements.self180);
   s.selfStats = { s180: 1, hiFinish: 170, bigFish: 1 }; L.checkAchievements(s);
   assert.ok(s.achievements.self180 && s.achievements.bigfish && s.achievements.hf150 && s.msQueue.includes('bigfish'));
+  const st0 = s.stars, xp0 = p.star.xp + p.star.level * 1000; s.selfStats.checkouts = 1; L.checkAchievements(s);
+  assert.equal(s.stars, st0); assert.ok(p.star.xp + p.star.level * 1000 > xp0);   // kein Geld, kleines Status-Plus
 });
 
 console.log(`\n${n} Tests ok`);

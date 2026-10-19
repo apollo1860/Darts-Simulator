@@ -9,7 +9,7 @@ const HELP = `<p><b>Liga</b>: Ranglisten und Spielplan. <b>Fähigkeit</b>: deine
 
 export function render(app) {
   const s = app.state, p = s.player, e = Math.round(p.energy ?? 100), fit = e >= 20;
-  const d = p.drinks ?? {}, yearNo = s.date.year - 2026;
+  const d = p.drinks ?? {}, yearNo = s.date.year - (s.startYear ?? 2026) + 1;
   return frame({
     body: `${header(p.name)}
     <div class="nsd-meters">

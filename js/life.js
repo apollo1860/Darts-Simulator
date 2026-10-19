@@ -2,7 +2,7 @@
 import { LIFESTYLE } from '../data/lifestyle.js';
 import { LIFE_EVENTS, PARTNER_NAMES } from '../data/lifeevents.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
-import { starPrice, starPayout, addEnergy, addRel, skillsAvg, skillValue, ENERGY_WEEK, TRAINABLE } from './nsd.js';
+import { starPrice, starPayout, addEnergy, addRel, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { TRAINERS } from '../data/team.js';
@@ -132,16 +132,18 @@ export function achievementCtx(state) {
     owned: ownedItems(p), lifestyle: lifestyleOf(p), seasons: state.date.year - (state.startYear ?? state.date.year),
   };
 }
+// Meilenstein-Belohnung: wenige Star-Status-Punkte (1–10, Balken Stufe 1 = 100)
+export const msStarPoints = a => Math.min(10, Math.max(1, Math.round(a.stars / 5)));
 export function checkAchievements(state) {
   if (state.mode !== 'nsd') return [];
   const ctx = achievementCtx(state), got = [];
   state.achievements ??= {};
   for (const a of ACHIEVEMENTS) {
     if (state.achievements[a.id] || !a.check(ctx)) continue;
-    const reward = starPayout(a.stars, state.player.star.level);
+    const pts = msStarPoints(a);                                // kein Geld – nur ein kleines Plus beim Star-Status
     state.achievements[a.id] = { year: state.date.year, week: state.date.week };
-    state.stars = (state.stars ?? 0) + reward;
-    addNews(state, 'star', `${a.icon} Meilenstein: ${a.label}`, `Belohnung: ${reward} ★.`);
+    addStarProgress(state, pts);
+    addNews(state, 'star', `${a.icon} Meilenstein: ${a.label}`, `Star-Status +${pts}.`);
     (state.msQueue ??= []).push(a.id);                        // Einblendung unten (UI)
     got.push(a);
   }

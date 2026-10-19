@@ -454,15 +454,15 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-aim-opp b { color: #ff8a8a; }
 .nsd-bar .nsd-throw { background: linear-gradient(#6cff4a 0, #35e81a 50%, #12c800 50%, #2bdc12 100%); border-color: #0f7d00; }
 .nsd-bar .nsd-throw .lb { font-size: 1.5rem; }
-/* Meilensteine */
-.nsd-ms-toast { position: fixed; left: 50%; bottom: 18px; z-index: 9999; transform: translate(-50%, 140%); transition: transform .25s ease;
-  display: flex; align-items: center; gap: 12px; width: min(92vw, 440px); padding: 12px 16px; border-radius: 12px; cursor: pointer;
-  background: linear-gradient(#3b3b3b, #1c1c1c); border: 3px solid #ffde3b; color: #fff; font-family: var(--nsd-font); text-align: left;
-  box-shadow: 0 8px 24px rgba(0,0,0,.5); }
-.nsd-ms-toast.show { transform: translate(-50%, 0); }
-.nsd-ms-toast .ic { font-size: 2.2rem; }
-.nsd-ms-toast small { display: block; color: #ffde3b; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; font-size: .75rem; }
-.nsd-ms-toast b { font-size: 1.15rem; }
+/* Meilensteine: Einblendung über der unteren Leiste (NSS-Stil) */
+.nsd-ms-toast { position: fixed; left: 50%; bottom: 140px; z-index: 9999; display: grid; grid-template-columns: 24% 1fr; gap: 10px;
+  width: min(100vw, 480px); height: 90px; padding: 6px 10px; border: 0; cursor: pointer; background: transparent; opacity: 0; transition: opacity .2s ease; font-family: var(--nsd-font); }
+.nsd-ms-toast:not([style*="left"]) { transform: translateX(-50%); }
+.nsd-ms-toast.show { opacity: 1; }
+.nsd-ms-toast .ms-ic, .nsd-ms-toast .ms-txt { display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 2px solid #1f1f1f;
+  background: linear-gradient(#6a6a6a 0, #555 50%, #3e3e3e 50%, #4a4a4a 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.25); }
+.nsd-ms-toast .ms-ic svg { width: 70%; height: 80%; filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+.nsd-ms-toast .ms-txt { color: #fff; font-weight: 700; font-size: 1.35rem; padding: 0 12px; text-align: center; text-shadow: var(--nsd-shadow); }
 .nsd-ms-group { padding: 6px 8px 10px; }
 .nsd-ms-head { font-weight: 800; font-size: 1.05rem; padding: 6px 4px; text-shadow: var(--nsd-shadow); }
 .nsd-ms-head small { opacity: .8; font-weight: 600; }

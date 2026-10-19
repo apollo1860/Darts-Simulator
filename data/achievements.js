@@ -1,4 +1,4 @@
-// New Star Darts: Meilensteine (je einmal, Belohnung in Basis-★ × Status-Faktor). check(c) mit Kontext aus life.js (achievementCtx).
+// New Star Darts: Meilensteine (je einmal; stars = Gewicht → kleines Star-Status-Plus, msStarPoints in life.js). check(c) mit Kontext aus life.js (achievementCtx).
 // „Selbst geworfen“ (cat 'board') zählt nur, was du im Liveticker selbst ans Board bringst (state.selfStats) – nicht simuliert.
 export const MS_CATS = [['board', '🎯 Am Board (selbst geworfen)'], ['match', '⚔️ Matches'], ['event', '🏆 Turniere'],
   ['rank', '📈 Rangliste'], ['star', '⭐ Star-Status'], ['skill', '💪 Fähigkeiten'], ['life', '💎 Leben'], ['career', '🗓️ Karriere']];
