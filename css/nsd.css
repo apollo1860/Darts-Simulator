@@ -473,3 +473,6 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-ms .ic { font-size: 1.8rem; line-height: 1.1; }
 .nsd-ms .lb { font-size: .78rem; font-weight: 700; line-height: 1.15; }
 .nsd-ms .rw { font-size: .68rem; opacity: .85; }
+.nsd-zoomtog { margin-left: 8px; padding: 3px 10px; border-radius: 12px; border: 2px solid #2a2a2a; cursor: pointer; font: 700 .85rem var(--nsd-font);
+  color: #fff; background: linear-gradient(#9a9a9a, #5d5d5d); text-shadow: var(--nsd-shadow); vertical-align: middle; }
+.nsd-zoomtog.on { background: linear-gradient(#6cff4a, #12c800); border-color: #0f7d00; }

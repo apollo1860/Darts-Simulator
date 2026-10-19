@@ -2,7 +2,7 @@
 // Zielmechanik: Ziel wählen → vertikale Linie stoppen → horizontale Linie stoppen → Dart landet zufällig im Kreis
 // am Schnittpunkt (Kreis kleiner, je besser die Fähigkeiten). Gegner-Matchdarts werden auf der Scheibe gezeigt.
 import { esc, fmtNum, surname } from '../../../util.js';
-import { getSettings } from '../settings.js';
+import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
@@ -20,7 +20,7 @@ const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME' };
 const Y_SPEED = 0.8;   // Linie von oben nach unten etwas langsamer als die seitliche
-const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken lässt sich in den Optionen abschalten. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p>';
+const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p>';
 let ui = null;
 
 export function render(app) {
@@ -164,6 +164,7 @@ function closeOverlay() {
   ui.aimEl.classList.add('hidden'); ui.aimEl.classList.remove('opp'); ui.aimEl.innerHTML = ''; ui.aim = null; ui.show = null;
   if (wasAim) normalBar();
 }
+const zoomLabel = () => { const b = $('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 Zoom ${on ? 'an' : 'aus'}`; b.classList.toggle('on', on); } };
 // Zoom-Hilfe: beim Checken auf das Viertel um das Ziel heranzoomen (Scoring: ganze Scheibe)
 function zoomTo(label) {
   const svg = $('#bsvg');
@@ -204,11 +205,15 @@ function startAim(kind) {
   ui.aim = { kind, phase: 'pick', target: null, prm: null, fx: 0, fy: 0, t0: 0, ph: 0, rng: new RNG(ui.s.rng) };
   ui.aimEl.classList.remove('hidden');
   ui.aimEl.innerHTML = boardHtml(`🟢 DU WIRFST · ${KIND[kind]} · Rest <b id="rem">${m.rem[ui.me]}</b>`,
-    `<div class="nsd-aim-opp">Gegner ${esc(nm(1 - ui.me))} steht auf <b>${m.rem[1 - ui.me]}</b> · Legs ${m.legs[ui.me]}:${m.legs[1 - ui.me]}</div>
+    `<div class="nsd-aim-opp">Gegner ${esc(nm(1 - ui.me))} steht auf <b>${m.rem[1 - ui.me]}</b> · Legs ${m.legs[ui.me]}:${m.legs[1 - ui.me]}
+       <button class="nsd-zoomtog" id="ztog"></button></div>
      <div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>`);
   throwBar();
   $('#stage').addEventListener('pointerdown', onStage);
   $('#chips').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b && ui.aim?.phase === 'pick') setTarget(b.dataset.t); });
+  // Zoom-Hilfe jederzeit an/aus (wird gemerkt)
+  $('#ztog').addEventListener('click', e => { e.stopPropagation(); setSetting('zoom', !getSettings().zoom); zoomLabel(); if (ui.aim?.target) zoomTo(ui.aim.target); });
+  zoomLabel();
   nextDart();
 }
 function nextDart() {
