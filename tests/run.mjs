@@ -954,4 +954,28 @@ test('Dev Tour ohne Q-School (bis 23), Challenge Tour weiter nur mit Q-School', 
   assert.equal(eventStatus(old, eventsInWeek(old, 2027, 14).find(e => e.cat === 'dev')).reason, 'Nur bis 23 Jahre');
 });
 
+test('New Star Darts: Karrierestart mit Tourcard, Fähigkeiten 0–60, Tour-Modus ohne Amateur-Events', async () => {
+  const N = await import('../js/nsd.js');
+  const { shownTo } = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 18, slot: 1, seed: 5 });
+  const p = s.player;
+  assert.equal(s.mode, 'nsd'); assert.equal(p.name, 'Benny Buchse'); assert.equal(p.tour, 'tour'); assert.equal(p.cardUntil, 2028);
+  assert.equal(s.stars, N.START_STARS); assert.equal(p.energy, 100); assert.equal(p.star.level, 1);
+  assert.equal(N.skillValue(p, 'sco'), 0); assert.equal(N.skillValue(p, 'men'), 1);           // Mental = Star-Status
+  assert.equal(p.attrs.sco, 82); assert.equal(p.attrs.men, 82.3);
+  N.setStartSkills(p, { sco: 3, fin: 2, foc: 0, cal: 1 });
+  assert.equal(N.skillValue(p, 'sco'), 3); assert.equal(p.attrs.sco, 82.9); assert.equal(N.skillLevel(p, 'fin'), 1);
+  p.skills.sco = Array(20).fill(3); N.syncAttrs(p); assert.equal(p.attrs.sco, 100);           // 60 = Weltspitze
+  p.star.level = 80; assert.equal(N.mentalOf(p), 60);                                         // Mental max. 60
+  assert.equal(N.starFactor(1), 1); assert.equal(N.starPrice(20, 21), 40);                    // +5 % je Stufe
+  // keine lokalen/Amateur-Turniere, Pro Tour spielbar
+  const w1 = eventsInWeek(s, 2027, 1);
+  assert.ok(w1.some(e => e.cat === 'local') && !w1.filter(e => shownTo(s, e)).some(e => e.cat === 'local'));
+  assert.equal(eventStatus(s, w1.find(e => e.cat === 'local')).playable, false);
+  s.date.week = 6;
+  assert.ok(eventStatus(s, eventsInWeek(s, 2027, 6).find(e => e.cat === 'pc')).playable);
+  assert.ok(orderOfMerit(s, 'pdc').some(x => x.p.id === 'P'));
+  p.skills.sco = Array(20).fill(1); nextWeek(s); assert.equal(p.attrs.sco, 82 + 0.3 * 20);   // Woche synchronisiert Attribute
+});
+
 console.log(`\n${n} Tests ok`);

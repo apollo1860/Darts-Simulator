@@ -23,8 +23,28 @@ import * as match from './matchUI.js';
 import * as watch from './ui/screens/watch.js';
 import * as training from './ui/screens/training.js';
 import * as home from './ui/screens/home.js';
+// New Star Darts
+import * as title from './ui/nsd/screens/title.js';
+import * as slots from './ui/nsd/screens/slots.js';
+import * as options from './ui/nsd/screens/options.js';
+import * as welcome from './ui/nsd/screens/welcome.js';
+import * as newprofile from './ui/nsd/screens/newprofile.js';
+import * as intro from './ui/nsd/screens/intro.js';
+import * as status from './ui/nsd/screens/status.js';
+import * as skills from './ui/nsd/screens/skills.js';
+import * as life from './ui/nsd/screens/life.js';
+import * as league from './ui/nsd/screens/league.js';
 
-const SCREENS = { menu, create, hub, week, calendar, event, finance, profile, stats, news, rankings, tour, team, rival, sponsors, settings, careerEnd, match, watch, training, home };
+// Alte Darts-Career-Screens (menu/create/hub) sind durch die New-Star-Darts-Screens ersetzt; übrige werden schrittweise umgebaut
+void menu; void create; void hub;
+const SCREENS = { title, menu: title, slots, options, welcome, newprofile, intro, hub: status, skills, life, league,
+  week, calendar, event, finance, profile, stats, news, rankings, tour, team, rival, sponsors, settings, careerEnd, match, watch, training, home };
+const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile'];
+// Container je Screen: NSD-Screens randlos, alte Screens im bisherigen Layout
+const wrap = (scr, html, style = '') => {
+  document.body.classList.toggle('nsd-on', !!scr.nsd);
+  return `<div class="${scr.nsd ? 'nsd-root' : 'screen'}" ${style}>${html}</div>`;
+};
 const root = document.getElementById('app');
 
 const app = {
@@ -34,10 +54,10 @@ const app = {
   go(name, params = {}) {
     const scr = SCREENS[name];
     if (!scr) return console.error('Unbekannter Screen', name);
-    if (!app.state && !['menu', 'create'].includes(name)) name = 'menu';
+    if (!app.state && !NO_STATE.includes(name)) name = 'title';
     SCREENS[app.screen]?.unmount?.();
     app.screen = name; app.params = params;
-    root.innerHTML = `<div class="screen">${SCREENS[name].render(app, params)}</div>`;
+    root.innerHTML = wrap(SCREENS[name], SCREENS[name].render(app, params));
     SCREENS[name].mount?.(root, app, params);
     afterMount(root, app);
     window.scrollTo({ top: 0 });
@@ -45,7 +65,7 @@ const app = {
   refresh() { // gleichen Screen neu zeichnen, Scrollposition behalten
     const y = window.scrollY;
     SCREENS[app.screen]?.unmount?.();
-    root.innerHTML = `<div class="screen" style="animation:none">${SCREENS[app.screen].render(app, app.params)}</div>`;
+    root.innerHTML = wrap(SCREENS[app.screen], SCREENS[app.screen].render(app, app.params), 'style="animation:none"');
     SCREENS[app.screen].mount?.(root, app, app.params);
     afterMount(root, app);
     window.scrollTo({ top: y });
@@ -66,4 +86,4 @@ root.addEventListener('click', e => {
 });
 
 window.app = app; // Debug
-app.go('menu');
+app.go('title');

@@ -1,7 +1,39 @@
-# Darts Career – Projektgedächtnis
+# New Star Darts (ehem. Darts Career) – Projektgedächtnis
 
-FIFA-artiger Karrieremodus für Darts. Browserspiel, kein Backend, läuft lokal (per lokalem Webserver) und auf GitHub Pages.
+Karrierespiel für Darts im Stil von New Star Soccer (vorher: FIFA-artiger Karrieremodus). Browserspiel, kein Backend, läuft lokal (per lokalem Webserver) und auf GitHub Pages.
 Immer zuerst `STATUS.md` lesen (Phasenstand, Annahmen, Bugs). Pro Sitzung genau **eine Phase**. Am Phasenende: testen (`node tests/run.mjs`), `STATUS.md` updaten, committen.
+
+## 🌟 NEW STAR DARTS – Umbau (ab Okt. 2026, Nutzerwunsch)
+Das Spiel wird zu **New Star Darts**: Karrierespiel nach dem Vorbild *New Star Soccer* (Funktionsweise + Design nach Nutzer-Screenshots,
+eigene Grafiken). Die Simulation (Tour, Majors, Qualifikationen, KI-Welt, Wurfmodell, Ranglisten) bleibt im Hintergrund erhalten.
+Etappenweise Umsetzung (eine Etappe pro Sitzung):
+1. **Grundgerüst & Design** ✅ – Rahmen, Titel, Spielstände, Optionen, Willkommen, Profil erstellen, Status, Fähigkeit, Leben, Liga.
+2. **Spielen** – Wochenablauf, DartConnect-Liveticker mit Schlüsselmomenten, Kreis-Zielmechanik, Energie-Regeln, Match-Note, News-Seite.
+3. **Fähigkeit** – Trainings-Minispiele + Einstufung, Getränke-Shop, Darts-Shop.
+4. **Leben** – Beziehungen, Lebens-Ereignisse (Karten), Lifestyle-Shop (Kauf), Erfolge.
+5. **Karriere-Rahmen** – Star-Status-Fortschritt, Ziele, wöchentliches Update, Manager/Fitnesstrainer, Sponsor-Verhandlung (Höher/Niedriger), Interview, Saisonbericht, Auszeichnungen.
+6. **Liga** – Ranglisten in ★, Spielplan, Kartenverlust/„Last Chance“, alte Screens entfernen.
+
+### Festgelegte Regeln
+- **Start**: Profil (Vorname, Nachname, Nation, Alter 16–30, Wurfhand; nur männlich, keine Bonuspunkte). Direkt **mit Tourcard** (2 Jahre), nominell einer der Schwächsten. Kein Lokal/DDV/WDF/Q-School/CT/Dev/HNQ/WM-Regional (`NSD_BLOCKED`, `state.mode = 'nsd'`).
+- **Fähigkeiten 0–60**: Scoring, Finishing, Fokus, Rechnen = je 20 Trainingslevel × max. 3 Punkte (`player.skills[key][level]`). **Mental** nicht trainierbar = Star-Status (max. 60). Umrechnung für die Match-Engine: Attribut = 82 + 0,3 × Fähigkeit (`syncAttrs`, 0 ≈ schwächster Holder, 60 = Weltspitze 100).
+- **Training (Minispiele)**: kostet > 50 % Energie (55 %); 3 Versuche (Erfolg im 1./2./3. → +3/+2/+1), Level beliebig oft wiederholbar bis 3 Punkte; 3 Fehlversuche = nur Energieverlust.
+  - Scoring: 1 Aufnahme, Mindestpunktzahl steigt je Level (L1 ≈ 40 … L20 ≥ 140). Finishing: je Level anderes Doppel, 3 Darts; Linien minimal schneller je Level.
+  - Fokus: Memory 4×4 mit Darts-Grafiken, Vorderseiten erst sichtbar, dann umgedreht (4 Rückseitenfarben, zufällig), 3 Herzen. Rechnen: Finish-Kombination auf der Scheibe antippen (z. B. 72 = T20 + D6), L1–5 ohne Zeit, dann kürzer bis 8 s in L20.
+  - Einstufung nach Profilerstellung: jedes Minispiel einmal Level 1 ohne Energie → Startwerte.
+  - Formverlust: ab 9 Wochen ohne Training einer Fähigkeit kann 1 Punkt verloren gehen (ab Woche 13: 2 …), immer der letzte Stern des höchsten Levels; Vorwarnung + Mitteilung.
+- **Match**: alles im DartConnect-Liveticker; **Schlüsselmomente selbst werfen** (Matchdarts, eigene Checks ab 61, Entscheidungslegs, Breaks). Zielmechanik: zwei Linien wie gehabt, mittig ein halbtransparenter **Kreis** – darin landet der Dart zufällig; höhere Fähigkeiten = kleinerer Kreis. **Energie < 20 %**: kein Selbstwerfen mehr, Aufnahmen immer schlechter.
+- **Star-Status 1–100**: wächst durch Matchsiege (Stufe 1: ≈ 10–15 % je Sieg; Zu-null/hoher Average mehr) und gute Interviews; Niederlage = leichter Abzug (deutlich verloren = mehr, nie 1:1), nie unter die erreichte Stufe; je Stufe schwerer (`starNeed`).
+- **Sterne-Geld ★**: Status 1: 1 Bier = 1 ★. Preisgelder **und** Preise × Status-Faktor (+5 %/Stufe, `starFactor`). Basis-Sieg: PC 20, WS 30, ET 40, World Cup 60, Masters 100, UK Open 120, WGP/EC/PCF 150, Grand Slam 200, Matchplay 250, PL 15 (Spieltag)/250, **WM 500**; Runden F 50 %, HF 25 %, VF 12 %, L16 6 %, L32 4 %, L64 2 %, erstes Match verloren = 0. Ranglisten in ★ (alle Spieler wie mit eigenem Status).
+- **Getränke**: Bier (Energie), Schnaps (Energie + Fähigkeit), Wodka (Energie + Fähigkeit + Beziehung +1); Basis 1/3/5 ★.
+- **Beziehungen**: Manager, Fans, Freundin, Sponsoren (+ Zufriedenheit, Lifestyle). **Team**: Manager (Agent, Provision), Fitnesstrainer (Energie-Erholung). Kein Casino.
+- **Lifestyle-Shop**: Gegenstände, Fahrzeuge, Immobilien einmalig kaufen (statt Jahresmiete). **Tourcard verloren** → „Last Chance“-Event, sonst Karriereende.
+
+### Oberfläche (js/ui/nsd/)
+- `frame.js`: Rahmen (Glasdach, Pixel-Zuschauer oben/unten aus `crowd.js` per Canvas, Geländer), `titleBand`, `darkBar`, `meter` (grüne/rote/graue Glanzbalken mit Icon), `header` (✖ Menü · Name · ? Hilfe), `bar` (untere Leiste, 4 Spalten, `wide` = 2), `card` (Vollbild-Text + ✔), Icons `starIcon`/`heartIcon`/`coin`, `bindHead`.
+- `css/nsd.css`: Schrift Jost (Logo Anton), graue Glanz-Buttons, dunkle Leisten, grüner Rasen (`bg-green`), Tabellen (`.nsd-table`, Zone blau, eigene Zeile grün), Modals im NSD-Look (`body.nsd-on`). Max. 480 px breit (Handy-Hochformat).
+- Router: Screen-Module mit `export const nsd = true` werden randlos gerendert (`.nsd-root`). Screens: `title` (= `menu`), `slots`, `options`, `welcome`, `newprofile`, `intro`, `hub` (= Status), `skills`, `life`, `league`. Alte Screens (week, event, watch, calendar, …) laufen bis zu ihrem Umbau im alten Look weiter.
+- Speicher-Schlüssel `newStarDarts.slot.N` (alte Darts-Career-Stände werden nicht übernommen).
 
 ## Arbeitsregeln
 - Alles auf Deutsch (UI, Texte, knappe Kommentare).
@@ -45,6 +77,9 @@ js/rival.js           Rivale: Erzeugung, gezielt in lokale/DDV/WDF-Felder, Duell
 js/mishaps.js         Zufallsereignisse (Finger, Schule ≤ 18, Zahn, Rücken, Erkältung, Magen-Darm)
 js/milestones.js      Meilensteine (einmalig, Extra-XP; Match-, Titel- und Ranglisten-Meilensteine)
 js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP + Clutch)
+js/nsd.js             New Star Darts: Spielermodell (Fähigkeiten 0–60, Star-Status, Energie, ★, Getränke, Beziehungen), newNsdCareer, syncAttrs
+js/ui/nsd/            NSD-Oberfläche: frame.js (Bausteine), crowd.js (Pixel-Zuschauer), screens/*.js
+css/nsd.css           NSD-Design
 js/home.js            Wohnen & Auto: Auszug mit 18, Jahresmiete, Wohnungs-Effekte, Auto (Reiserabatt, Wartung)
 js/slump.js           Formtiefs: Auslöser (Niederlagenserie, Blamage, Abheben, Ausgebrannt, Privates), Malus, Ende
 js/expenses.js        Einmalige Kosten bei hohem Vermögen (Chance steigt mit dem Kontostand)

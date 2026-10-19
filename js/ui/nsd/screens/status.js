@@ -1,0 +1,76 @@
+// Hauptscreen (Status): Star-Status, Energie, Alter, Sterne-Geld, Fähigkeiten/Zufriedenheit/Lifestyle, Tour-Status, Shop, Getränke, Darts
+import { esc } from '../../../util.js';
+import { skillsAvg, SKILL_MAX, starPct } from '../../../nsd.js';
+import { frame, header, meter, starIcon, heartIcon, coin, bar, bindHead } from '../frame.js';
+import { toast, confirmDialog } from '../../components.js';
+import { eventsInWeek, shownTo } from '../../../calendar.js';
+import { eventStatus } from '../../../tournaments.js';
+import { nextWeek } from '../../../season.js';
+
+export const nsd = true;
+const HELP = `<p><b>Liga</b>: Ranglisten und Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
+  <p>Unter 20 % Energie bist du nicht match-fit: Du wirfst keine Schlüsselmomente mehr selbst und spielst immer schlechter.</p>`;
+
+export function render(app) {
+  const s = app.state, p = s.player, e = Math.round(p.energy ?? 100), fit = e >= 20;
+  const d = p.drinks ?? {}, yearNo = s.date.year - 2026;
+  return frame({
+    body: `${header(p.name)}
+    <div class="nsd-meters">
+      ${meter({ icon: starIcon(p.star?.level ?? 1), label: 'Star-Status', pct: starPct(p) })}
+      ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: fit ? 'green' : 'red' })}
+    </div>
+    <div class="nsd-strip"><span>Alter ${p.age}</span><span class="mid">Status</span><span class="r">${coin(s.stars ?? 0)}</span></div>
+    <div class="nsd-rows">
+      <div class="nsd-grid3">
+        ${meter({ label: 'Fähigkeiten', pct: skillsAvg(p) / SKILL_MAX * 100, cls: 'sm' })}
+        ${meter({ label: 'Zufriedenheit', pct: p.satisfaction ?? 50 })}
+        ${meter({ label: 'Lifestyle', pct: p.lifestyle ?? 0 })}
+      </div>
+      <div class="nsd-rowpair">
+        <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">🛡️ ${p.tour === 'tour' ? `Tourcard ${p.cardUntil}` : 'Keine Tourcard'}</div>
+        <div class="nsd-dark ${fit ? '' : 'red'}">${fit ? 'Match-fit' : 'Nicht fit'}</div>
+      </div>
+      <div class="nsd-rowpair x">
+        <button class="nsd-btn row" id="s-shop"><span class="ic">🛒</span><span class="lb">Shop</span></button>
+        <div class="nsd-dark" style="font-size:1.12rem">${p.fitness ? esc(p.fitness.name) : 'Fitnesstrainer'}</div>
+        <div class="nsd-x" style="${p.fitness ? 'color:#2bd33a' : ''}">${p.fitness ? '✔' : '✖'}</div>
+      </div>
+      <div class="nsd-rowpair">
+        <button class="nsd-btn row" id="s-drinks"><span class="ic">🍺</span><span class="lb">Getränke</span></button>
+        <div class="nsd-dark" style="font-size:1.15rem;white-space:nowrap">🍺${d.beer ?? 0}&nbsp; 🥃${d.schnaps ?? 0}&nbsp; 🍸${d.wodka ?? 0}</div>
+      </div>
+      <div class="nsd-rowpair">
+        <button class="nsd-btn row" id="s-darts"><span class="ic">🎯</span><span class="lb">Darts</span></button>
+        <div class="nsd-dark ${p.gear ? '' : 'red'}">${p.gear ? esc(p.gear.name) : 'Keine'}</div>
+      </div>
+    </div>
+    <div class="nsd-pager"><button data-go="stats">◀ 📋 Statistiken</button><button data-go="calendar">Kalender 🗓️ ▶</button></div>
+    <div class="nsd-strip"><span>Jahr ${yearNo}</span><span class="mid">${s.date.year}</span><span class="r">KW ${s.date.week}</span></div>`,
+    bottom: bar([
+      { go: 'league', icon: '🏆', label: 'Liga' },
+      { go: 'skills', icon: '🎯', label: 'Fähigkeit' },
+      { go: 'life', icon: '👥', label: 'Leben' },
+      { id: 's-play', icon: '<span style="color:#2bd33a">➡</span>', label: 'Spielen' },
+    ]),
+  });
+}
+
+export function mount(root, app) {
+  bindHead(root, app, HELP);
+  const soon = what => () => toast(`${what} kommt in Etappe 3.`);
+  root.querySelector('#s-shop').onclick = soon('Der Shop');
+  root.querySelector('#s-drinks').onclick = soon('Der Getränke-Shop');
+  root.querySelector('#s-darts').onclick = soon('Der Darts-Shop');
+  // Spielen (bis Etappe 2): laufendes Turnier → Turnier; spielbares Event → Wochenplan; sonst nächste Woche
+  root.querySelector('#s-play').onclick = async () => {
+    const s = app.state;
+    if (s.activeEvent) return app.go('event');                   // laufend oder noch abzuschließen
+    const open = eventsInWeek(s, s.date.year, s.date.week).filter(e => shownTo(s, e) && eventStatus(s, e).playable);
+    if (open.length) return app.go('week');
+    if (!await confirmDialog('Nächste Woche?', 'Diese Woche steht für dich kein Turnier mehr an.', 'Weiter')) return;
+    nextWeek(s); app.save();
+    toast(`KW ${s.date.week} · ${s.news[0]?.title ?? ''}`);
+    app.refresh();
+  };
+}

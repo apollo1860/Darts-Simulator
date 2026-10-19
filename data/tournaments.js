@@ -40,6 +40,9 @@ const ET = [
   [36, 'German Darts Championship', 'Hildesheim', 'DE'], [39, 'Swiss Darts Trophy', 'Basel', 'CH'],
 ];
 
+// New Star Darts (Tour-Modus): Start mit Tourcard → diese Kategorien gibt es dort nicht
+export const NSD_BLOCKED = new Set(['local', 'ddv', 'wdf', 'qschool', 'challenge', 'dev', 'hnq', 'wmqs', 'wmreg']);
+
 // Regionale ET-Qualifier (je 1 Platz, nur Spieler ohne Tourcard, laufen im Hintergrund)
 export const ET_REGIONS = {
   nb: { label: 'Nordic & Baltic', nations: ['DK', 'SE', 'NO', 'FI', 'EE', 'LV', 'LT'] },

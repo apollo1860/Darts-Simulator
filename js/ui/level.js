@@ -71,7 +71,7 @@ export function afterMount(root, app) {
 // Eigenes Fenster bei neuem Level
 export function checkLevelUp(app) {
   const p = app.state?.player;
-  if (!p) return;
+  if (!p || app.state.mode === 'nsd') return;
   if (p.levelSeen === undefined) { p.levelSeen = p.level ?? 1; return; }
   if ((p.level ?? 1) <= p.levelSeen) return;
   const ups = p.level - p.levelSeen, gain = pointsGained(p.level, ups);

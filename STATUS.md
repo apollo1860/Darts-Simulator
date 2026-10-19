@@ -1,4 +1,19 @@
-# STATUS – Darts Career
+# STATUS – New Star Darts (ehem. Darts Career)
+
+## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Etappe 1 – Grundgerüst & Design**: NSS-Look (Glasdach, eigene Pixel-Zuschauer, graue Glanz-Buttons, grüner Rasen), Titelbildschirm, Spielstände, Optionen (Export/Import), Willkommen, Profil erstellen, Karrierestart mit Tourcard (`newNsdCareer`), Hauptscreen Status, Fähigkeit (0–60), Leben (Beziehungen, Erfolge), Liga (PDC/Pro-Tour-Rangliste). „Spielen“ führt vorerst in den alten Wochenplan bzw. zur nächsten Woche.
+- [ ] Etappe 2 – Spielen (Liveticker, Schlüsselmomente, Kreis-Zielmechanik, Energie, Match-Note, News-Seite, Sterne-Preisgeld)
+- [ ] Etappe 3 – Fähigkeit (Minispiele, Einstufung, Getränke, Darts-Shop, Formverlust)
+- [ ] Etappe 4 – Leben (Ereignisse, Lifestyle-Shop, Beziehungen)
+- [ ] Etappe 5 – Karriere-Rahmen (Star-Status, Ziele, Wochen-Update, Team, Verhandlung, Interview, Saisonbericht, Auszeichnungen)
+- [ ] Etappe 6 – Liga (★-Ranglisten, Spielplan, Last Chance, Aufräumen)
+
+### Annahmen Etappe 1
+- Fähigkeit 0 → Attribut 82 (≈ 82 Ø, knapp unter dem schwächsten Holder ~86 Ø), 60 → 100. Startwerte bis zur Einstufung (Etappe 3): 0, Mental 1.
+- Startguthaben 25 ★, Energie 100 %, Fans 10, Zufriedenheit 60. Euro-Finanzen laufen intern weiter, bis Etappe 2 auf ★ umstellt; Liga zeigt vorerst € an.
+- Google Fonts (Jost, Anton) mit System-Fallbacks. Alte Spielstände (Schlüssel `dartsCareer.slot.N`) bleiben im Browser liegen, werden aber nicht angezeigt.
+
+## Bisherige Phasen (Darts Career)
 
 ## Phasen
 - [x] **Phase 1 – Gerüst & Hub** (Dateistruktur, Designsystem, Charaktererstellung, State/Speichern, Wochenkalender, Hub, Finanzen, Platzhalter-Spielerdaten, lokale Turniere per Simulation)

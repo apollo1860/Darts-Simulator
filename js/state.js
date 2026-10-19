@@ -9,10 +9,10 @@ import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings } from './rankings.js';
 
-export const VERSION = 11;
+export const VERSION = 12;   // v12: New Star Darts (neuer Speicher-Schlüssel, alte Darts-Career-Stände bleiben unberührt)
 export const SLOTS = [1, 2, 3];
 export const START_YEAR = 2027;
-const KEY = n => `dartsCareer.slot.${n}`;
+const KEY = n => `newStarDarts.slot.${n}`;
 
 export const emptyStats = () => ({
   matches: 0, wins: 0, legsWon: 0, legsLost: 0, points: 0, darts: 0,
@@ -85,7 +85,7 @@ export function listSlots() {
     const s = loadGame(slot);
     return s ? {
       slot, empty: false, name: s.player.name, nation: s.player.nation, year: s.date.year,
-      week: s.date.week, balance: s.finance.balance, savedAt: s.savedAt, ended: s.ended,
+      week: s.date.week, balance: s.finance.balance, savedAt: s.savedAt, ended: s.ended, stars: s.stars ?? 0, star: s.player.star?.level ?? 1,
     } : { slot, empty: true };
   });
 }

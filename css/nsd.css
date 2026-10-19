@@ -1,0 +1,267 @@
+/* ===== New Star Darts – Oberfläche im Stil von New Star Soccer (eigene Grafiken) ===== */
+:root {
+  --nsd-font: 'Jost', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+  --nsd-green-a: #6e9b5d; --nsd-green-b: #4c7a3d;
+  --nsd-shadow: 0 2px 0 rgba(0,0,0,.55), 0 0 3px rgba(0,0,0,.6);
+}
+body.nsd-on { background: #8fa3bd; }
+body.nsd-on::before { display: none; }
+.nsd-root { min-height: 100vh; min-height: 100dvh; background: #9db1c9; }
+.nsd-root, .nsd-root button, .nsd-root input, .nsd-root select { font-family: var(--nsd-font); }
+
+.nsd {
+  max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; background: #cfccbd; color: #fff;
+  box-shadow: 0 0 30px rgba(0,0,0,.35);
+}
+/* Glasdach: Paneele mit Kreuzstreben */
+.nsd-roof {
+  flex: 0 0 56px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.35) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(rgba(255,255,255,.35) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(45deg, transparent 47%, rgba(80,100,130,.25) 49%, rgba(80,100,130,.25) 51%, transparent 53%) 0 0 / 28px 28px,
+    linear-gradient(-45deg, transparent 47%, rgba(80,100,130,.25) 49%, rgba(80,100,130,.25) 51%, transparent 53%) 0 0 / 28px 28px,
+    linear-gradient(#a9bdd6, #8ea4c0);
+}
+.nsd-crowd {
+  flex: 0 0 44px; image-rendering: pixelated; image-rendering: crisp-edges;
+  background-repeat: repeat-x; background-size: auto 100%;
+  border-top: 3px solid #f4f2e8; border-bottom: 3px solid #f4f2e8;
+}
+.nsd-crowd.top { background-image: var(--crowd-top); border-top-color: #222; }
+.nsd-crowd.bottom { background-image: var(--crowd-bottom); border-bottom-color: #222; }
+.nsd-rail { flex: 0 0 14px; background: linear-gradient(#e8e6d8, #c2bfae); border-bottom: 1px solid #9c9989; }
+
+.nsd-main { flex: 1; display: flex; flex-direction: column; }
+.bg-green {
+  background:
+    repeating-radial-gradient(circle at 50% 55%, rgba(255,255,255,.035) 0 22px, transparent 22px 44px),
+    radial-gradient(circle at 50% 50%, var(--nsd-green-a), var(--nsd-green-b) 75%);
+}
+.bg-felt {
+  background:
+    repeating-radial-gradient(circle at 50% 55%, rgba(0,0,0,.05) 0 30px, transparent 30px 60px),
+    radial-gradient(circle at 50% 50%, #4a7a40, #355f2f 80%);
+}
+.bg-grey { background: linear-gradient(#d6d6d6, #b9b9b9); }
+
+/* Text mit Kontur wie im Original */
+.nsd-title, .nsd-dark, .nsd-btn .lb, .nsd-meter .lb, .nsd-card, .nsd-name, .nsd-table, .nsd-row-lb { text-shadow: var(--nsd-shadow); }
+
+/* Titelband (heller Glanz-Verlauf) */
+.nsd-title {
+  flex: 0 0 auto; min-height: 92px; display: flex; align-items: center; justify-content: center; text-align: center;
+  background: linear-gradient(#e2e2e2 0, #d0d0d0 50%, #bcbcbc 50%, #a8a8a8 100%);
+  border-bottom: 1px solid #8a8a8a; padding: 10px 14px;
+  font-size: 1.95rem; font-weight: 700; letter-spacing: .01em; line-height: 1.1;
+}
+
+/* Dunkle Glanz-Leiste */
+.nsd-dark {
+  background: linear-gradient(#686868 0, #4a4a4a 50%, #333 50%, #474747 100%);
+  border: 2px solid #1f1f1f; border-radius: 7px; box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 2px 2px rgba(0,0,0,.3);
+  text-align: center; font-weight: 700; font-size: 1.55rem; padding: 6px 10px; line-height: 1.25;
+}
+.nsd-dark.sm { font-size: 1.05rem; padding: 6px 8px; }
+.nsd-dark.red { color: #ff2b2b; }
+
+/* Graue Glanz-Buttons */
+.nsd-btn {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: 1px solid #9a9a9a; border-radius: 9px; cursor: pointer; color: #fff; min-height: 76px; padding: 6px 4px;
+  background: linear-gradient(#f6f6f6 0, #dedede 50%, #c6c6c6 50%, #dadada 100%);
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.18), 0 3px 4px rgba(0,0,0,.35);
+  transition: transform .08s, filter .15s;
+}
+.nsd-btn:active { transform: translateY(2px); box-shadow: inset 0 -1px 0 rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.35); }
+.nsd-btn:disabled { opacity: .55; cursor: default; filter: grayscale(.6); }
+.nsd-btn .ic { font-size: 2rem; line-height: 1; filter: drop-shadow(0 2px 1px rgba(0,0,0,.35)); }
+.nsd-btn .lb { font-weight: 700; font-size: 1.2rem; line-height: 1.05; }
+.nsd-btn.row { flex-direction: row; justify-content: flex-start; gap: 14px; padding: 6px 16px; min-height: 58px; }
+.nsd-btn.row .lb { font-size: 1.4rem; flex: 1; text-align: center; }
+.nsd-btn.on { background: linear-gradient(#6cff4a 0, #35e81a 50%, #12c800 50%, #2bdc12 100%); border-color: #109000; }
+.nsd-btn.blue { background: linear-gradient(#d4d4ff 0, #b9b9f6 50%, #9e9ee8 50%, #b2b2f2 100%); border-color: #7a7ac4; }
+.nsd-check { color: #2bd33a; font-size: 3rem !important; text-shadow: 0 2px 0 #106b16, 0 0 2px #0a4a0e; }
+
+/* Untere Leiste */
+.nsd-bar {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; padding: 10px;
+  background: linear-gradient(#e6e6e6 0, #d4d4d4 50%, #bdbdbd 50%, #cecece 100%);
+  border-top: 1px solid #f4f4f4;
+}
+.nsd-bar .wide { grid-column: span 2; }
+.nsd-bar .nsd-btn { min-height: 82px; }
+
+/* Balken (Star-Status, Energie, Fähigkeiten …) */
+.nsd-meter {
+  position: relative; height: 44px; border-radius: 4px; overflow: visible;
+  background: linear-gradient(#4b4b4b, #2e2e2e); border: 3px solid #bdbdbd; box-shadow: inset 0 0 0 1px #111;
+  display: flex; align-items: center; justify-content: center;
+}
+.nsd-meter .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 1px; }
+.nsd-meter .fill.green { background: linear-gradient(#5dff3b 0, #29e60e 50%, #0fc400 50%, #20d80a 100%); }
+.nsd-meter .fill.red { background: linear-gradient(#ff6b6b 0, #ff3030 50%, #d40000 50%, #f01a1a 100%); }
+.nsd-meter .fill.grey { background: linear-gradient(#9a9a9a, #6d6d6d); }
+.nsd-meter .lb { position: relative; font-weight: 700; font-size: 1.15rem; padding-left: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nsd-meter .ic { position: absolute; left: -10px; top: 50%; transform: translateY(-50%); z-index: 2; }
+.nsd-meter.big { height: 70px; border-width: 3px; }
+.nsd-meter.big .lb { font-size: 1.6rem; padding-left: 0; }
+
+/* Icons */
+.nsd-star { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 54px; }
+.nsd-star svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+.nsd-star b { position: absolute; top: 52%; left: 50%; transform: translate(-50%, -50%); font-size: 1.15rem; color: #fff; text-shadow: var(--nsd-shadow); }
+.nsd-star.sm { width: 22px; height: 21px; vertical-align: -3px; }
+.nsd-heart { display: inline-block; width: 54px; height: 50px; }
+.nsd-heart svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+.nsd-coin { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; }
+
+/* Kopfzeile */
+.nsd-head { display: grid; grid-template-columns: 52px 1fr 52px; gap: 8px; padding: 8px 8px 4px; background: linear-gradient(#cfcfcf, #b9b9b9); }
+.nsd-sq {
+  height: 50px; border-radius: 8px; border: 1px solid #999; font-size: 1.7rem; font-weight: 800; cursor: pointer;
+  background: linear-gradient(#f6f6f6 0, #dedede 50%, #c6c6c6 50%, #dadada 100%); box-shadow: 0 3px 3px rgba(0,0,0,.35);
+}
+.nsd-sq.red { color: #e3261d; text-shadow: 0 1px 0 #7a0a05; }
+.nsd-sq.green { color: #39c51f; text-shadow: 0 1px 0 #1a5e0e; }
+.nsd-name {
+  display: flex; align-items: center; justify-content: center; border-radius: 7px; border: 2px solid #1f1f1f;
+  background: linear-gradient(#5b5b5b 0, #444 50%, #2f2f2f 50%, #3e3e3e 100%); font-size: 1.6rem; font-weight: 700; padding: 0 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Inhaltsbereiche */
+.nsd-pad { padding: 10px; }
+.nsd-stack > * + * { margin-top: 10px; }
+.nsd-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.nsd-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.nsd-meters { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 6px 12px 8px 18px; background: linear-gradient(#cfcfcf, #b9b9b9); }
+.nsd-strip {
+  display: grid; grid-template-columns: 1fr 1.4fr 1fr; align-items: center; height: 34px;
+  background: linear-gradient(#e9e9e9, #c9c9c9); color: #fff; font-weight: 700; font-size: 1.15rem;
+}
+.nsd-strip > * { text-shadow: var(--nsd-shadow); padding: 0 12px; }
+.nsd-strip .mid { height: 100%; display: flex; align-items: center; justify-content: center; background: #2b2b2b; border-radius: 18px 18px 0 0; }
+.nsd-strip .r { text-align: right; }
+.nsd-sep { height: 10px; background: linear-gradient(#cfcfcf, #b5b5b5); }
+
+/* Liste mit Zeilen (Fähigkeiten, Beziehungen): Balken + Button rechts */
+.nsd-list { display: flex; flex-direction: column; }
+.nsd-line { display: grid; grid-template-columns: 1fr 86px; gap: 12px; align-items: center; padding: 8px 10px; border-bottom: 2px solid rgba(255,255,255,.12); }
+.nsd-line .nsd-meter { height: 64px; border-radius: 6px; }
+.nsd-line .nsd-meter .lb { font-size: 1.55rem; padding-left: 0; }
+.nsd-line .nsd-btn { min-height: 64px; }
+.nsd-line .nsd-btn .ic { font-size: 2.1rem; color: #2c9b1c; text-shadow: none; }
+
+/* Eingaben */
+.nsd-input {
+  width: 100%; height: 48px; border-radius: 7px; border: 2px solid #9c9c9c; font-size: 1.35rem; font-weight: 700;
+  text-align: center; color: #333; background: linear-gradient(#ffffff 0, #f1f1f1 50%, #e3e3e3 50%, #f6f6f6 100%);
+}
+.nsd-input:focus { outline: 3px solid #ffd54a; }
+.nsd-select {
+  width: 100%; height: 56px; border-radius: 8px; border: 1px solid #999; font-size: 1.55rem; font-weight: 700; color: #fff;
+  text-shadow: var(--nsd-shadow); text-align: center; text-align-last: center; appearance: none; -webkit-appearance: none; cursor: pointer;
+  background: linear-gradient(#f6f6f6 0, #dedede 50%, #c6c6c6 50%, #dadada 100%); box-shadow: 0 3px 3px rgba(0,0,0,.3);
+}
+.nsd-select option { color: #222; text-shadow: none; }
+.nsd-field { position: relative; }
+.nsd-field.arrow::before { content: '▶'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #c9c9c9; font-size: 1.6rem; pointer-events: none; text-shadow: 0 1px 0 #fff; }
+.nsd-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.nsd-seg .nsd-btn { min-height: 46px; }
+
+/* Vollbild-Karte */
+.nsd-card { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; font-size: 1.65rem; font-weight: 700; line-height: 1.3; }
+.bg-green .nsd-card { background: transparent; }
+
+/* Tabellen (Liga, Spielstände) */
+.nsd-table { width: 100%; border-collapse: collapse; font-weight: 700; font-size: 1.05rem; }
+.nsd-table th { background: linear-gradient(#7b7b7b, #4d4d4d); padding: 8px 4px; font-weight: 700; }
+.nsd-table th.alt { background: linear-gradient(#5a5a5a, #2f2f2f); }
+.nsd-table td { padding: 10px 4px; background: linear-gradient(#d9d9d9 0, #c6c6c6 50%, #b4b4b4 50%, #c3c3c3 100%); border-bottom: 1px solid #9c9c9c; white-space: nowrap; }
+.nsd-table td.nm { overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.nsd-table tr.zone td { background: linear-gradient(#b4b4ff 0, #9d9df0 50%, #8787e2 50%, #9a9aec 100%); }
+.nsd-table tr.me td { background: linear-gradient(#6cff4a 0, #35e81a 50%, #12c800 50%, #2bdc12 100%); }
+.nsd-table .num { text-align: right; padding-right: 8px; }
+.nsd-table .c { text-align: center; }
+.nsd-scroll { flex: 1; overflow: auto; }
+
+/* Status-Zeilen */
+.nsd-rows { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.nsd-rowpair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.nsd-rowpair.x { grid-template-columns: 1fr 0.95fr 58px; }
+.nsd-rowpair .nsd-dark { display: flex; align-items: center; justify-content: center; min-height: 54px; font-size: 1.3rem; }
+.nsd-tag { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; border-radius: 7px; font-weight: 700; font-size: 1.3rem; border: 2px solid #1f1f1f; }
+.nsd-tag.green { background: linear-gradient(#6cff4a 0, #35e81a 50%, #12c800 50%, #2bdc12 100%); border-color: #0f7d00; }
+.nsd-tag.red { background: linear-gradient(#ff6b6b 0, #ff3030 50%, #d40000 50%, #f01a1a 100%); border-color: #8a0000; }
+.nsd-pager { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; font-weight: 700; font-size: 1.15rem; }
+.nsd-pager button { background: none; border: 0; color: #fff; font: inherit; text-shadow: var(--nsd-shadow); cursor: pointer; padding: 4px 6px; }
+
+/* Titelbildschirm */
+.nsd-titlescreen {
+  position: relative; flex: 1; overflow: hidden;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48' viewBox='0 0 28 48'%3E%3Cpath d='M14 0l14 8v16l-14 8L0 24V8z M14 32l14 8v16 M14 32L0 40v16' fill='none' stroke='%23ffffff' stroke-opacity='.10' stroke-width='1.5'/%3E%3C/svg%3E"),
+    linear-gradient(#3e4f8f 0%, #5d70ad 55%, #9fb3dc 78%);
+}
+.nsd-logo { position: relative; z-index: 2; margin: 34px auto 0; width: 86%; }
+.nsd-logo .row1 { display: flex; align-items: stretch; gap: 8px; }
+.nsd-logo .box { flex: 0 0 23%; background: #e8392b; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 #9b1d13; }
+.nsd-logo .box svg { width: 78%; }
+.nsd-logo .ns, .nsd-logo .dt { font-family: 'Anton', 'Impact', sans-serif; text-transform: uppercase; line-height: .9; }
+.nsd-logo .ns { color: #e8392b; font-size: 4.2rem; text-shadow: 0 3px 0 #8f1a10; }
+.nsd-logo .dt { color: #fff; font-size: 6.2rem; letter-spacing: .02em; text-shadow: 0 4px 0 #3a3a3a, 0 0 6px rgba(0,0,0,.4); margin-top: 6px; }
+.nsd-logo .tm { font-size: .7rem; vertical-align: top; color: #fff; }
+.nsd-menu { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 14px; margin-top: 34px; align-items: flex-end; }
+.nsd-menu .nsd-btn { width: 76%; border-radius: 9px 0 0 9px; border-right: 0; min-height: 66px; }
+.nsd-menu .nsd-btn:nth-child(2) { width: 73%; }
+.nsd-menu .nsd-btn:nth-child(3) { width: 70%; }
+.nsd-menu .nsd-btn:nth-child(4) { width: 67%; }
+.nsd-menu .nsd-btn .lb { font-size: 1.75rem; }
+.nsd-menu .nsd-btn .ic { font-size: 2.1rem; }
+.nsd-board { position: absolute; z-index: 1; left: -46px; bottom: 26px; width: 210px; height: 210px; filter: drop-shadow(0 6px 6px rgba(0,0,0,.45)); }
+.nsd-grass {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 46px;
+  background:
+    linear-gradient(transparent, rgba(0,0,0,.15)),
+    repeating-linear-gradient(100deg, #2f8f1e 0 3px, #48b52e 3px 6px, #3aa324 6px 9px);
+  clip-path: polygon(0 30%, 2% 0, 4% 30%, 6% 5%, 8% 30%, 10% 0, 12% 28%, 14% 6%, 16% 30%, 18% 0, 20% 30%, 22% 4%, 24% 30%, 26% 0, 28% 28%, 30% 5%, 32% 30%, 34% 0, 36% 30%, 38% 6%, 40% 30%, 42% 0, 44% 28%, 46% 4%, 48% 30%, 50% 0, 52% 30%, 54% 5%, 56% 30%, 58% 0, 60% 28%, 62% 6%, 64% 30%, 66% 0, 68% 30%, 70% 4%, 72% 30%, 74% 0, 76% 28%, 78% 5%, 80% 30%, 82% 0, 84% 30%, 86% 6%, 88% 30%, 90% 0, 92% 28%, 94% 4%, 96% 30%, 98% 0, 100% 30%, 100% 100%, 0 100%);
+}
+
+/* Modale Fenster im NSD-Look */
+body.nsd-on .modal-backdrop { background: rgba(20,30,20,.6); }
+body.nsd-on .modal {
+  background: radial-gradient(circle, #5e8b4e, #3f6c33 80%); border: 3px solid #d6d6d6; border-radius: 10px;
+  color: #fff; font-family: var(--nsd-font); box-shadow: 0 10px 30px rgba(0,0,0,.6);
+}
+body.nsd-on .modal h3 { font-family: var(--nsd-font); font-style: normal; text-transform: none; font-size: 1.5rem; text-shadow: var(--nsd-shadow); }
+body.nsd-on .modal .modal-body { font-size: 1.05rem; font-weight: 600; text-shadow: 0 1px 1px rgba(0,0,0,.6); }
+body.nsd-on .modal .btn {
+  font-family: var(--nsd-font); font-style: normal; text-transform: none; font-weight: 700; font-size: 1.15rem; color: #fff; clip-path: none;
+  border: 1px solid #999; border-radius: 8px; text-shadow: var(--nsd-shadow);
+  background: linear-gradient(#f6f6f6 0, #dedede 50%, #c6c6c6 50%, #dadada 100%); box-shadow: 0 3px 3px rgba(0,0,0,.35);
+}
+body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
+
+@media (max-width: 380px) {
+  .nsd-title { font-size: 1.6rem; min-height: 78px; }
+  .nsd-btn .lb { font-size: 1.02rem; }
+  .nsd-logo .ns { font-size: 3.4rem; } .nsd-logo .dt { font-size: 5rem; }
+}
+
+/* Feinschliff Etappe 1 */
+.nsd.fixed { height: 100vh; height: 100dvh; }
+.nsd.fixed .nsd-main { min-height: 0; overflow: hidden; }
+.nsd-logo .ns { white-space: nowrap; font-size: clamp(2.6rem, 14vw, 4.2rem); }
+.nsd-logo .dt { font-size: clamp(3.8rem, 21vw, 6.2rem); }
+.nsd-grid3 .nsd-meter { height: 40px; }
+.nsd-grid3 .nsd-meter .lb { font-size: .92rem; padding-left: 0; }
+.nsd-rowpair .nsd-btn.row { gap: 8px; padding: 6px 10px; }
+.nsd-rowpair .nsd-btn.row .lb { font-size: 1.22rem; }
+.nsd-rowpair .nsd-btn.row .ic { font-size: 1.7rem; }
+.nsd-bar .nsd-btn { min-height: 88px; gap: 6px; }
+.nsd-bar .nsd-btn .ic { font-size: 1.85rem; }
+.nsd-bar .nsd-btn .lb { font-size: 1.1rem; }
+.nsd-x { display: flex; align-items: center; justify-content: center; min-height: 54px; border-radius: 7px; border: 2px solid #1f1f1f; background: linear-gradient(#5b5b5b 0, #444 50%, #2f2f2f 50%, #3e3e3e 100%); color: #ff2b2b; font-size: 1.6rem; font-weight: 800; }
+.nsd-table th { position: sticky; top: 0; z-index: 1; }

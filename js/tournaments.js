@@ -1,6 +1,6 @@
 // Turniere: Berechtigung, Meldung, Feld/Auslosung, Runden, Platzierungen, Preisgeld/OOM,
 // Mehrfach-Events (z. B. CT-Wochenende mit 5 Turnieren, 4 Q-School-Tage) und KI-Hintergrund-Turniere (DOM-frei)
-import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS, ET_REGIONS } from '../data/tournaments.js';
+import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS, ET_REGIONS, NSD_BLOCKED } from '../data/tournaments.js';
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
@@ -36,6 +36,7 @@ export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'etq', 'hnq', 'et',
 export function eligibility(state, ev) {
   const p = state.player, y = state.date.year;
   const card = p.tour === 'tour';
+  if (state.mode === 'nsd' && NSD_BLOCKED.has(ev.cat)) return { ok: false, reason: 'Nicht im Tour-Modus' };
   switch (ev.cat) {
     case 'local': return { ok: true };
     case 'ddv': case 'wdf': return card ? { ok: false, reason: 'Nur ohne Tourcard' } : { ok: true };

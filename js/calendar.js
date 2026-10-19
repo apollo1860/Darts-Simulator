@@ -1,5 +1,5 @@
 // Wochenkalender (DOM-frei)
-import { CALENDAR, LOCAL_BLOCKED_WEEKS, LOCAL_NAMES, LOCAL_CITIES, WDF_PRIZE_BAND } from '../data/tournaments.js';
+import { CALENDAR, LOCAL_BLOCKED_WEEKS, LOCAL_NAMES, LOCAL_CITIES, WDF_PRIZE_BAND, NSD_BLOCKED } from '../data/tournaments.js';
 import { REGIONS } from '../data/regions.js';
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
@@ -41,7 +41,7 @@ export function eventsInWeek(state, year, week) {
 }
 
 // Für den Spieler anzeigen? Internationale WM-Qualifier nur für die eigene Region (laufen sonst im Hintergrund)
-export const shownTo = (state, ev) => ev.cat !== 'wmreg' || (!ev.aiOnly && ev.nations.includes(state.player.nation));
+export const shownTo = (state, ev) => !(state.mode === 'nsd' && NSD_BLOCKED.has(ev.cat)) && (ev.cat !== 'wmreg' || (!ev.aiOnly && ev.nations.includes(state.player.nation)));
 
 export function findEvent(state, id, year = state.date.year, week = state.date.week) {
   return eventsInWeek(state, year, week).find(e => e.id === id) ?? null;

@@ -20,6 +20,7 @@ import { eventStatus } from './tournaments.js';
 import { homeWeek } from './home.js';
 import { slumpWeek } from './slump.js';
 import { expenseWeek } from './expenses.js';
+import { syncAttrs } from './nsd.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -43,6 +44,7 @@ export function nextWeek(state) {
   trackPeak(state);
   rankMilestones(state);
   if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); }
+  if (state.mode === 'nsd') syncAttrs(state.player);     // Fähigkeiten bestimmen die Attribute
   return true;
 }
 
