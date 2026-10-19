@@ -4,6 +4,7 @@
 // Die Match-Engine arbeitet weiter mit Perzentil-Attributen → syncAttrs() rechnet Fähigkeiten um.
 import { newCareer } from './state.js';
 import { addNews } from './news.js';
+import { DARTS } from '../data/gear.js';
 
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
@@ -32,10 +33,15 @@ export const skillsAvg = p => SKILLS.reduce((a, s) => a + skillValue(p, s.key), 
 // Höchstes Level mit mindestens einem Punkt (+1 = nächstes spielbares Level)
 export const skillLevel = (p, key) => (p.skills?.[key] ?? []).reduce((hi, v, i) => (v > 0 ? i + 1 : hi), 0);
 
-// Fähigkeiten → Attribute der Match-Engine
+// Bonus durch Darts (ausgerüstet) und Rausch (Schnaps/Wodka, bis Wochenende) – nicht auf Mental
+export const gearOf = p => DARTS.find(d => d.id === p.gear?.id) ?? null;
+export const skillBonus = (p, key) => (key === 'men' ? 0 : (gearOf(p)?.bonus[key] ?? 0) + (p.buzz ?? 0));
+export const skillEffective = (p, key) => Math.min(SKILL_MAX, skillValue(p, key) + skillBonus(p, key));
+
+// Fähigkeiten (inkl. Bonus) → Attribute der Match-Engine
 export function syncAttrs(p) {
   if (!p.skills) return p.attrs;
-  for (const s of SKILLS) p.attrs[s.key] = Math.round((ATTR_BASE + ATTR_PER_POINT * skillValue(p, s.key)) * 10) / 10;
+  for (const s of SKILLS) p.attrs[s.key] = Math.round((ATTR_BASE + ATTR_PER_POINT * skillEffective(p, s.key)) * 10) / 10;
   return p.attrs;
 }
 
@@ -64,7 +70,8 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
     drinks: { beer: 0, schnaps: 0, wodka: 0 },
     rel: { manager: 0, fans: 10, partner: 0, sponsors: 0 },
     satisfaction: 60, lifestyle: 0,
-    gear: null, fitness: null, assessed: false,
+    gear: null, darts: [], fitness: null, assessed: false, buzz: 0,
+    idle: Object.fromEntries(TRAINABLE.map(t => [t.key, 0])),
   });
   s.stars = START_STARS;
   // Vorbelegte Ranglisten (€) → Basis-★

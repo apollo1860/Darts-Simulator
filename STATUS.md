@@ -3,10 +3,19 @@
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
 - [x] **Etappe 1 – Grundgerüst & Design**: NSS-Look (Glasdach, eigene Pixel-Zuschauer, graue Glanz-Buttons, grüner Rasen), Titelbildschirm, Spielstände, Optionen (Export/Import), Willkommen, Profil erstellen, Karrierestart mit Tourcard (`newNsdCareer`), Hauptscreen Status, Fähigkeit (0–60), Leben (Beziehungen, Erfolge), Liga (PDC/Pro-Tour-Rangliste). „Spielen“ führt vorerst in den alten Wochenplan bzw. zur nächsten Woche.
 - [x] **Etappe 2 – Spielen**: Wochenansicht (Melden, Weiter +40 % Energie), Turnier-Lobby (VS, Spielen/Simulieren, Ergebnis mit ★ und Star-Status), DartConnect-Liveticker mit Kommentarzeile, Schlüsselmomente selbst werfen (Matchdarts, Entscheidungsleg, Break, Check ab 61) mit Linien + Kreis, Gegner-Matchdarts/180er auf der Scheibe, Energie-Regeln (< 20 %: KI wirft, Malus wächst je Leg), Spielbericht mit Note/Star-Status/Fans, Darts News (Browser-Karte nach Titeln), ★-Preisgeld + ★-Ranglisten.
-- [ ] Etappe 3 – Fähigkeit (Minispiele, Einstufung, Getränke, Darts-Shop, Formverlust)
+- [x] **Etappe 3 – Fähigkeit**: 4 Minispiele (Scoring, Finishing mit Linien + Kreis, Fokus-Memory mit 3 Herzen, Rechnen auf Schema-Scheibe mit Zeitlimit), 20 Level × 3 Sterne je Fähigkeit, Training 55 % Energie, Einstufung nach Profilerstellung, freies Training im Titelmenü, Formverlust mit Vorwarnung, Getränke-Shop (Bier/Schnaps/Wodka, Rausch), Darts-Shop (5 Sets mit Bonus).
 - [ ] Etappe 4 – Leben (Ereignisse, Lifestyle-Shop, Beziehungen)
 - [ ] Etappe 5 – Karriere-Rahmen (Star-Status, Ziele, Wochen-Update, Team, Verhandlung, Interview, Saisonbericht, Auszeichnungen)
 - [ ] Etappe 6 – Liga (★-Ranglisten, Spielplan, Last Chance, Aufräumen)
+
+### Annahmen Etappe 3
+- Schnaps/Wodka-„Fähigkeit“ = vorübergehender Rausch (+2/+3 auf alle trainierbaren Fähigkeiten) bis Wochenende, nicht dauerhaft – sonst ersetzt Trinken das Training.
+- Wodka-Beziehung +1 geht an die niedrigste bestehende Beziehung (Fans immer, Manager/Freundin/Sponsoren nur wenn > 0).
+- Energie: Bier +20, Schnaps +25, Wodka +30 %. Training nur ab 55 % Energie.
+- Darts-Sets: Messing 10 ★ (Scoring +1) … Signature 350 ★ (+6/+4/+3/+1); Bonus zählt im Match, nicht in den Minispielen-Werten (nur Kreisgröße).
+- Formverlust: ab Woche 9 je Woche 35 % Chance (nicht garantiert); Vorwarnung einmalig in Woche 7.
+- Fokus-Memory: Sterne = verbleibende Herzen (3 Herzen = 3 Sterne). Rechnen: neue Zahl je Versuch. Einstufung mit Kreis wie Fähigkeit 0.
+- Rechnen nutzt eine Schema-Scheibe mit gleich breiten Ringen (echte Doppel-/Triple-Ringe sind am Handy kaum antippbar).
 
 ### Annahmen Etappe 2
 - Umrechnung geändert: Fähigkeit 0 → Attribut **85** (statt 82; mit 82 gewann ein Neuling praktisch kein Match), +0,25 je Punkt → 60 = 100. Bot-Saison mit Fähigkeiten 0: ~7 Siege in 24 PC-Matches.

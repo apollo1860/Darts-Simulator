@@ -21,6 +21,7 @@ import { homeWeek } from './home.js';
 import { slumpWeek } from './slump.js';
 import { expenseWeek } from './expenses.js';
 import { syncAttrs, addEnergy, ENERGY_WEEK } from './nsd.js';
+import { decayWeek, soberUp } from './skilltrain.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -33,7 +34,7 @@ export function nextWeek(state) {
   weekNews(state, evs, ai);
   if (week >= WEEKS_PER_YEAR) { recordHistory(state); if (!nsd) sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);
-  if (nsd) addEnergy(state.player, ENERGY_WEEK);
+  if (nsd) { addEnergy(state.player, ENERGY_WEEK); soberUp(state.player); decayWeek(state, new RNG(state.rng)); }
   else {
     homeWeek(state);
     slumpWeek(state);

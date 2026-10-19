@@ -39,12 +39,18 @@ import * as tourevent from './ui/nsd/screens/tourevent.js';
 import * as live from './ui/nsd/screens/live.js';
 import * as matchstats from './ui/nsd/screens/matchstats.js';
 import * as newsfeed from './ui/nsd/screens/newsfeed.js';
+import * as trainlevels from './ui/nsd/screens/trainlevels.js';
+import * as minigame from './ui/nsd/screens/minigame.js';
+import * as placement from './ui/nsd/screens/placement.js';
+import * as practice from './ui/nsd/screens/practice.js';
+import * as drinks from './ui/nsd/screens/drinks.js';
+import * as darts from './ui/nsd/screens/darts.js';
 
 // Alte Darts-Career-Screens (menu/create/hub) sind durch die New-Star-Darts-Screens ersetzt; übrige werden schrittweise umgebaut
 void menu; void create; void hub; void week; void event; void news;
 const SCREENS = { title, menu: title, slots, options, welcome, newprofile, intro, hub: status, skills, life, league,
-  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, calendar, finance, profile, stats, rankings, tour, team, rival, sponsors, settings, careerEnd, match, watch, training, home };
-const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile'];
+  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, calendar, finance, profile, stats, rankings, tour, team, rival, sponsors, settings, careerEnd, match, watch, training, home };
+const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile', 'practice', 'minigame'];
 // Container je Screen: NSD-Screens randlos, alte Screens im bisherigen Layout
 const wrap = (scr, html, style = '') => {
   document.body.classList.toggle('nsd-on', !!scr.nsd);

@@ -1,5 +1,6 @@
 // Fähigkeiten: Scoring, Finishing, Fokus, Rechnen (0–60, trainierbar) und Mental (= Star-Status, max. 60)
-import { SKILLS, SKILL_MAX, skillValue, skillsAvg } from '../../../nsd.js';
+import { SKILLS, TRAINABLE, SKILL_MAX, skillValue, skillsAvg, skillBonus } from '../../../nsd.js';
+import { decayRisk } from '../../../skilltrain.js';
 import { esc } from '../../../util.js';
 import { frame, header, meter, heartIcon, bar, bindHead } from '../frame.js';
 import { toast, modal } from '../../components.js';
@@ -19,12 +20,13 @@ export function render(app) {
       ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: e >= 20 ? 'green' : 'red' })}
     </div>
     <div class="nsd-list">${SKILLS.map(s => {
-      const v = skillValue(p, s.key);
+      const v = skillValue(p, s.key), b = skillBonus(p, s.key);
       return `<div class="nsd-line">
-        ${meter({ label: `${s.label} ${v}`, pct: v / SKILL_MAX * 100 })}
+        ${meter({ label: `${s.label} ${v}${b ? ` <small>(+${b})</small>` : ''}`, pct: v / SKILL_MAX * 100 })}
         <button class="nsd-btn" data-sk="${s.key}">${s.star ? '<span class="ic">⭐</span>' : '<span class="ic" style="font-weight:900">❯</span>'}</button>
       </div>`;
-    }).join('')}</div>`,
+    }).join('')}</div>
+    ${decayRisk(p).length ? `<div class="nsd-warn">⚠️ Lange nicht trainiert: ${decayRisk(p).map(t => t.label).join(', ')}</div>` : ''}`,
     bottom: bar([
       { go: 'hub', icon: '🏠', label: 'Start' },
       { id: 'k-train', icon: '👟', label: 'Trainiere' },
@@ -36,10 +38,14 @@ export function render(app) {
 
 export function mount(root, app) {
   bindHead(root, app, HELP);
-  root.querySelectorAll('[data-sk]').forEach(b => b.onclick = () => toast(b.dataset.sk === 'men'
-    ? 'Mental steigt mit jedem neuen Star-Status.' : 'Die Trainings-Minispiele kommen in Etappe 3.'));
-  root.querySelector('#k-train').onclick = () => toast('Die Trainings-Minispiele kommen in Etappe 3.');
-  root.querySelector('#k-drink').onclick = () => toast('Getränke kommen in Etappe 3.');
+  root.querySelectorAll('[data-sk]').forEach(b => b.onclick = () => (b.dataset.sk === 'men'
+    ? toast('Mental steigt mit jedem neuen Star-Status.') : app.go('trainlevels', { key: b.dataset.sk })));
+  // Trainiere: die am längsten nicht trainierte Fähigkeit
+  root.querySelector('#k-train').onclick = () => {
+    const p = app.state.player, t = [...TRAINABLE].sort((a, b) => (p.idle?.[b.key] ?? 0) - (p.idle?.[a.key] ?? 0))[0];
+    app.go('trainlevels', { key: t.key });
+  };
+  root.querySelector('#k-drink').onclick = () => app.go('drinks');
   root.querySelector('#k-form').onclick = () => {
     const rs = app.state.results.slice(0, 8);
     modal({ title: 'Form', body: rs.length ? `<table class="nsd-table">${rs.map(r =>

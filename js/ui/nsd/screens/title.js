@@ -1,7 +1,6 @@
 // Titelbildschirm: Logo, Dartscheibe, Menü (Spielen · Trainieren · Optionen)
 import { frame, starIcon } from '../frame.js';
 import { boardSvg } from '../../boardSvg.js';
-import { toast } from '../../components.js';
 
 export const nsd = true;
 export function render() {
@@ -24,5 +23,5 @@ export function render() {
   });
 }
 export function mount(root) {
-  root.querySelector('#t-train').onclick = () => toast('Freies Training kommt mit den Minispielen (Etappe 3).');
+  root.querySelector('#t-train').onclick = () => app.go('practice');
 }

@@ -55,10 +55,10 @@ export function render(app) {
 
 export function mount(root, app) {
   bindHead(root, app, HELP);
-  const soon = what => () => toast(`${what} kommt in Etappe 3.`);
-  root.querySelector('#s-shop').onclick = soon('Der Shop');
-  root.querySelector('#s-drinks').onclick = soon('Der Getränke-Shop');
-  root.querySelector('#s-darts').onclick = soon('Der Darts-Shop');
+  const soon = what => () => toast(`${what} kommt in Etappe 4.`);
+  root.querySelector('#s-shop').onclick = soon('Der Lifestyle-Shop');
+  root.querySelector('#s-drinks').onclick = () => app.go('drinks');
+  root.querySelector('#s-darts').onclick = () => app.go('darts');
   // Spielen: laufendes Turnier → Turnier, sonst Wochenansicht (Melden / Weiter)
   root.querySelector('#s-play').onclick = () => app.go(app.state.activeEvent ? 'event' : 'week');
 }

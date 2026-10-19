@@ -1034,4 +1034,51 @@ test('New Star Darts: ★-Preisgeld, Energie, Star-Status, Note, Schlüsselmomen
   }
 });
 
+test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', async () => {
+  const N = await import('../js/nsd.js');
+  const T = await import('../js/skilltrain.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 18, slot: 1, seed: 11 });
+  const p = s.player;
+  // Level-Parameter
+  assert.equal(T.scoringMin(1), 40); assert.equal(T.scoringMin(20), 140);
+  assert.equal(new Set(T.FIN_TARGETS).size, 20); assert.equal(T.finishTarget(20), 'BULL');
+  assert.equal(T.calcTime(5), null); assert.equal(T.calcTime(6), 20); assert.equal(T.calcTime(20), 8);
+  assert.ok(T.memoryPreview(1) > T.memoryPreview(20));
+  assert.ok(T.validFinish(['T20', 'D6'], 72)); assert.ok(!T.validFinish(['T20', 'S12'], 72)); assert.ok(!T.validFinish(['T20', 'T4'], 72));
+  assert.ok(T.validFinish(['BULL'], 50)); assert.ok(T.validFinish(['S19', 'D1'], 21)); assert.ok(!T.validFinish(['S20', 'D1'], 21));
+  const rng = new RNG({ s: 3 });
+  for (let L = 1; L <= 20; L++) { const r = T.calcTask(rng, L), [lo, hi] = T.calcRange(L); assert.ok(r >= lo && r <= hi && T.validFinish(checkoutRoute(r, 3), r)); }
+  // Einstufung (ohne Energie), Punkte = 3/2/1 je Versuch, bestes Ergebnis zählt
+  T.finishTraining(s, 'sco', 1, 2, { placement: true });
+  T.finishTraining(s, 'fin', 1, 0, { placement: true });
+  assert.equal(N.skillValue(p, 'sco'), 2); assert.equal(N.skillValue(p, 'fin'), 0); assert.equal(p.energy, 100);
+  assert.equal(p.attrs.sco, 85.5);
+  // Training kostet 55 %, Level 2 offen erst mit Stern in Level 1
+  assert.equal(T.canTrain(s, 'fin', 2).ok, false); assert.equal(T.nextLevel(p, 'fin'), 1);
+  T.startTraining(s, 'sco', 1); assert.equal(p.energy, 45);
+  assert.throws(() => T.startTraining(s, 'sco', 2), /Energie/);
+  T.finishTraining(s, 'sco', 1, 1); assert.equal(N.skillValue(p, 'sco'), 3);
+  T.finishTraining(s, 'sco', 1, 3); assert.equal(N.skillValue(p, 'sco'), 3);           // schlechter → bleibt
+  assert.equal(T.nextLevel(p, 'sco'), 2); assert.equal(T.canTrain(s, 'men', 1).ok, false);
+  // Getränke: Preis × Status, Energie, Rausch (bis Wochenende), Wodka-Beziehung
+  s.stars = 100;
+  T.buyDrink(s, 'beer', 2); assert.equal(s.stars, 98);
+  T.drink(s, 'beer', rng); assert.equal(p.energy, 65);
+  T.buyDrink(s, 'wodka'); const fans = p.rel.fans; const r = T.drink(s, 'wodka', rng);
+  assert.equal(p.buzz, 3); assert.equal(p.attrs.sco, 85 + 0.25 * 6); assert.equal(p.attrs.men, 85.3);   // kein Mental-Bonus
+  assert.equal(r.rel, 'fans'); assert.equal(p.rel.fans, fans + 1);
+  assert.throws(() => T.drink(s, 'schnaps', rng));
+  p.star.level = 21; assert.equal(T.drinkPrice({ price: 5 }, 21), 10);
+  // Darts: Bonus solange ausgerüstet
+  s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 3 + 3 + 2);
+  T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, 86.3);
+  // Formverlust: Warnung ab 7 Wochen, ab 9 Wochen Verlust (letzter Stern des höchsten Levels), ab 13 zwei
+  assert.equal(T.decayPoints(8), 0); assert.equal(T.decayPoints(9), 1); assert.equal(T.decayPoints(13), 2);
+  p.skills.cal = Array(20).fill(0); p.skills.cal[0] = 3; p.skills.cal[1] = 2;
+  for (let w = 0; w < 30; w++) T.decayWeek(s, rng);
+  assert.ok(N.skillValue(p, 'cal') < 5);
+  assert.ok(s.news.some(n => n.title.includes('Rechnen lässt bald nach')) && s.news.some(n => n.title.includes('Rechnen −')));
+  const q = { skills: { sco: [3, 2, 1, 0] } }; T.removePoint(q, 'sco'); assert.deepEqual(q.skills.sco, [3, 2, 0, 0]);
+});
+
 console.log(`\n${n} Tests ok`);
