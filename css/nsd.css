@@ -410,3 +410,6 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-life .chg span { padding: 4px 10px; border-radius: 12px; background: rgba(0,0,0,.35); }
 .nsd-ach td.nm small { display: block; font-size: .75rem; opacity: .7; }
 .nsd-pager b { text-shadow: var(--nsd-shadow); }
+.nsd-titlescreen { position: relative; }
+.nsd-version { position: absolute; top: 8px; right: 10px; z-index: 2; padding: 3px 9px; border-radius: 10px; background: rgba(0,0,0,.45);
+  color: #fff; font-weight: 700; font-size: .9rem; text-shadow: var(--nsd-shadow); }

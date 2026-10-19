@@ -6,6 +6,8 @@ import { newCareer } from './state.js';
 import { addNews } from './news.js';
 import { DARTS } from '../data/gear.js';
 
+// Version = abgeschlossene Etappe (Anzeige rechts oben im Titelbildschirm), bei jeder Etappe erhöhen
+export const APP_VERSION = 4;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },

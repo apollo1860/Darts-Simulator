@@ -6,6 +6,7 @@ Immer zuerst `STATUS.md` lesen (Phasenstand, Annahmen, Bugs). Pro Sitzung genau 
 ## 🌟 NEW STAR DARTS – Umbau (ab Okt. 2026, Nutzerwunsch)
 Das Spiel wird zu **New Star Darts**: Karrierespiel nach dem Vorbild *New Star Soccer* (Funktionsweise + Design nach Nutzer-Screenshots,
 eigene Grafiken). Die Simulation (Tour, Majors, Qualifikationen, KI-Welt, Wurfmodell, Ranglisten) bleibt im Hintergrund erhalten.
+**Version** (`APP_VERSION` in `js/nsd.js`, rechts oben im Titelbildschirm) = Nummer der zuletzt abgeschlossenen Etappe – bei jedem Etappen-Abschluss erhöhen.
 Etappenweise Umsetzung (eine Etappe pro Sitzung):
 1. **Grundgerüst & Design** ✅ – Rahmen, Titel, Spielstände, Optionen, Willkommen, Profil erstellen, Status, Fähigkeit, Leben, Liga.
 2. **Spielen** ✅ – Wochenablauf, DartConnect-Liveticker mit Schlüsselmomenten, Kreis-Zielmechanik, Energie-Regeln, Match-Note, News-Seite.

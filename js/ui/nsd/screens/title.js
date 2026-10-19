@@ -1,6 +1,7 @@
 // Titelbildschirm: Logo, Dartscheibe, Menü (Spielen · Trainieren · Optionen)
 import { frame, starIcon } from '../frame.js';
 import { boardSvg } from '../../boardSvg.js';
+import { APP_VERSION } from '../../../nsd.js';
 
 export const nsd = true;
 export function render() {
@@ -8,6 +9,7 @@ export function render() {
   return frame({
     bg: 'plain',
     body: `<div class="nsd-titlescreen">
+      <div class="nsd-version">Version ${APP_VERSION}</div>
       <div class="nsd-logo">
         <div class="row1"><div class="box">${logoStar}</div><div class="ns">New Star</div></div>
         <div class="dt">Darts<span class="tm">™</span></div>
@@ -22,6 +24,6 @@ export function render() {
     </div>`,
   });
 }
-export function mount(root) {
+export function mount(root, app) {
   root.querySelector('#t-train').onclick = () => app.go('practice');
 }
