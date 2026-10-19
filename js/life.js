@@ -2,7 +2,7 @@
 import { LIFESTYLE } from '../data/lifestyle.js';
 import { LIFE_EVENTS, PARTNER_NAMES } from '../data/lifeevents.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
-import { starPrice, starPayout, addEnergy, addRel, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE } from './nsd.js';
+import { starPrice, starPayout, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { TRAINERS } from '../data/team.js';
@@ -73,7 +73,7 @@ export function applyEffects(state, e) {
   if (e.energy) { addEnergy(p, e.energy); out.push(`Energie ${sign(e.energy)} %`); }
   if (e.sat) { p.satisfaction = clamp((p.satisfaction ?? 50) + e.sat, 0, 100); out.push(`Zufriedenheit ${sign(e.sat)}`); }
   const rel = v => Math.max(-2, Math.min(2, v));        // Ereignisse: Beziehungen höchstens ±2
-  if (e.fans) { addRel(p, 'fans', rel(e.fans)); out.push(`Fans ${sign(rel(e.fans))}`); }
+  if (e.fans) { addFans(p, rel(e.fans)); out.push(`Fans ${sign(rel(e.fans))}`); }
   if (e.meet) { p.partnerName = state.lifeEvent?.name ?? p.partnerName; p.rel.partner = e.meet; out.push(`Freundin: ${p.partnerName}`); }
   if (e.partner && p.rel.partner > 0) { addRel(p, 'partner', rel(e.partner)); out.push(`${p.partnerName ?? 'Freundin'} ${sign(rel(e.partner))}`); }
   for (const k of ['manager', 'sponsors']) if (e[k] && p.rel[k] > 0) { addRel(p, k, rel(e[k])); out.push(`${k === 'manager' ? 'Manager' : 'Sponsoren'} ${sign(rel(e[k]))}`); }

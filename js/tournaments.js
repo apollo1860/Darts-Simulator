@@ -28,7 +28,7 @@ import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from '.
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT,
-  matchRating, addRel, fansAfterMatch } from './nsd.js';
+  matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf } from './career.js';
@@ -571,7 +571,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const star = starMatchDelta(p.star.level, { won, my, opp, to, avg: s.avg, oppStrength, cat: inst.cat, fmt: inst.fmt, rating, oppRank: rankOf(state, 'pdc', oppId) });
   const ups = addStarProgress(state, star);
   const fans = fansAfterMatch(won, rating);
-  addRel(p, 'fans', fans);
+  addFans(p, fans);                                   // je mehr Fans, desto langsamer
   // Zähler für Meilensteine
   const ms = (state.mstats ??= {}), oppRank = rankOf(state, 'pdc', oppId), dec = res.score[0] >= to - 1 && res.score[1] >= to - 1;
   ms.bestAvg = Math.max(ms.bestAvg ?? 0, s.avg); ms.bestRating = Math.max(ms.bestRating ?? 0, rating);
@@ -779,11 +779,11 @@ function nsdEventEnd(state, inst) {
   if (inst.withPlayer) maybeInterviewNsd(state, inst, new RNG(state.rng));
   if (managerOf(state) && inst.place === 'W') addRel(p, 'manager', 4);
   if (inst.place === 'W' && !inst.isQualifier) {
-    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.cat] ?? 1) * (1 + 0.03 * (p.star.level - 1)) * 10) / 10;
+    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.cat] ?? 1) * (1 + 0.01 * (p.star.level - 1)) * 10) / 10;
     inst.star = Math.round(((inst.star ?? 0) + bonus) * 10) / 10;
     inst.titleStar = bonus;
     addStarProgress(state, bonus);
-    addRel(p, 'fans', inst.cat === 'major' ? 5 : 3);
+    addFans(p, inst.cat === 'major' ? 5 : 3);
     p.satisfaction = Math.min(100, (p.satisfaction ?? 30) + (inst.cat === 'major' ? 10 : 3));   // Major-Titel: deutlich zufriedener
   }
 }

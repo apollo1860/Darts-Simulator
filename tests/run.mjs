@@ -1109,7 +1109,7 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   assert.equal(p.energy, 60); assert.ok(r.changes.some(c => c.includes('Energie +10')));
   // Aktionen kosten 60 % Energie (sonst gesperrt), Beziehungen ±2 max.
   p.energy = 50; s.lifeEvent = { id: 'tv' }; assert.ok(L.lifeEventView(s).opts[0].tired); assert.throws(() => L.resolveLifeEvent(s, 0, rng), /müde/);
-  p.energy = 100; const f0 = p.rel.fans; L.resolveLifeEvent(s, 0, rng); assert.equal(p.energy, 40); assert.equal(p.rel.fans, f0 + 2);
+  p.energy = 100; const f0 = p.rel.fans; L.resolveLifeEvent(s, 0, rng); assert.equal(p.energy, 40); assert.ok(p.rel.fans > f0 && p.rel.fans <= f0 + 2);   // max. +2, mit vielen Fans weniger
   // Ohne Lifestyle/Status lacht sie dich aus (meist)
   assert.ok(L.meetChance({ owned: [], star: { level: 1 } }) < 0.12 && L.meetChance({ owned: ['villa', 'sportscar'], star: { level: 10 } }) > 0.4);
   s.stars = 0; s.lifeEvent = { id: 'birthday' }; assert.throws(() => L.resolveLifeEvent(s, 0, rng), /★/); void e0;

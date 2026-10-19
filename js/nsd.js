@@ -27,7 +27,7 @@ export const START_STARS = 5;      // Startguthaben (★ auf Status 1)
 // Start im Tour-Modus: Saison 2026 direkt nach der Q-School (KW 2)
 export const NSD_START = { year: 2026, week: 3 };
 // Star-Status-Fortschritt: je Stufe mehr Punkte nötig (Feinabstimmung Etappe 5)
-export const starNeed = level => Math.round(100 * Math.pow(1.03, Math.max(1, level) - 1));
+export const starNeed = level => Math.round(100 * Math.pow(1.04, Math.max(1, level) - 1));
 export const starPct = p => Math.min(100, ((p.star?.xp ?? 0) / starNeed(p.star?.level ?? 1)) * 100);
 export { NSD_BLOCKED } from '../data/tournaments.js';
 
@@ -127,7 +127,7 @@ export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.roun
 // Sieg auf Status 1 ≈ 12 % des Balkens (Bonus: zu null, hoher Average, stärkerer Gegner, große Bühne). Niederlage: kleiner Abzug.
 // Der Balken wächst je Stufe um 3 %, der Gewinn nur linear → jede Stufe dauert länger. Nie unter die erreichte Stufe.
 export const STAR_WEIGHT = { pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
-const starScale = level => 1 + 0.03 * (level - 1);
+const starScale = level => 1 + 0.01 * (level - 1);   // Gewinn wächst kaum, Balken +3 %/Stufe → jede Stufe deutlich schwerer
 // Gegner weit oben in der Order of Merit: mehr Punkte (Platz 1 ×1,6 … ab Platz 100 ×1)
 export const rankBonus = rank => 1 + 0.6 * Math.max(0, (100 - (rank ?? 999)) / 99);
 export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, cat, fmt, rating = 5, oppRank = null }) {
@@ -166,5 +166,7 @@ export function matchRating({ won, avg, coPct, s180 = 0, my, opp }) {
   const r = 5 + (avg - 85) / 6 + (coPct - 0.38) * 8 + s180 * 0.25 + (won ? 1 : -0.7) + (my - opp) * 0.15;
   return Math.round(Math.max(1, Math.min(10, r)) * 10) / 10;
 }
+// Fans: Zuwachs wird mit vielen Fans kleiner (100 % ist schwer zu erreichen); Verluste voll
+export const addFans = (p, n) => addRel(p, 'fans', n > 0 ? Math.round(n * Math.max(0.05, (1 - (p.rel.fans ?? 0) / 100) ** 2) * 10) / 10 : n);
 export function addRel(p, key, n) { p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key]; }
-export const fansAfterMatch = (won, rating) => (won ? 1 + (rating >= 8 ? 1 : 0) : rating < 4 ? -1 : 0);
+export const fansAfterMatch = (won, rating) => (won ? (rating >= 6 ? 1 : 0) + (rating >= 8.5 ? 1 : 0) : rating < 4 ? -1 : 0);

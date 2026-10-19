@@ -4,7 +4,7 @@ import { MANAGERS, TRAINERS, INTERVIEW_QS, REL_ACTIONS } from '../data/team.js';
 import { randomName } from '../data/names.js';
 import { RNG } from './rng.js';
 import { SPONSORS, SPONSOR_SLOTS } from '../data/sponsors.js';
-import { starPrice, starPayout, starFactor, addRel, addStarProgress } from './nsd.js';
+import { starPrice, starPayout, starFactor, addRel, addFans, addStarProgress } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { getPlayer } from './world.js';
@@ -196,13 +196,13 @@ export function answerInterview(state, style, rng) {
   else if (style === 1) { fans = win ? 2 : 1; star = win ? 6 : 4; txt = 'Klare Worte, gut angekommen.'; }
   else if (rng.chance(win ? 0.55 : 0.35)) { fans = 4; star = 9; txt = 'Die Presse liebt dein Selbstbewusstsein!'; }
   else { fans = -3; star = 0; txt = 'Das kam arrogant rüber – Buhrufe in den sozialen Medien.'; }
-  addRel(p, 'fans', fans);
+  addFans(p, fans);
   if (managerOf(state)) addRel(p, 'manager', style === 2 && fans < 0 ? -3 : 1);
   if (p.rel.sponsors > 0) addRel(p, 'sponsors', fans > 0 ? 1 : -2);
   iv.answers.push({ style, fans, star, txt });
   if (iv.answers.length >= iv.qs.length) {
     const total = iv.answers.reduce((a, x) => a + x.star, 0);
-    addStarProgress(state, Math.round(total * (1 + 0.03 * (p.star.level - 1))));
+    addStarProgress(state, Math.round(total * (1 + 0.01 * (p.star.level - 1))));
     iv.total = total;
     (state.flags ??= {}).interview = true;
   }
@@ -247,7 +247,7 @@ export function seasonAwards(state, y) {
     if (id === 'P') {
       (state.flags ??= {}).award = true;
       const r = starPayout(reward, p.star.level);
-      state.stars = (state.stars ?? 0) + r; addStarProgress(state, 30); addRel(p, 'fans', 3);
+      state.stars = (state.stars ?? 0) + r; addStarProgress(state, 30); addFans(p, 3);
       addNews(state, 'result', `🏅 Auszeichnung: ${label}`, `Belohnung: ${r} ★.`);
     }
   };
