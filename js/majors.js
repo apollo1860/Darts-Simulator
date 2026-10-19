@@ -17,7 +17,7 @@ export const RULE_TEXT = {
   matchplay: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM', wgp: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM',
   ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Players-Championship-OOM', gsod: "Finale eines TV-Majors (12 Monate), Pro-Tour-Titel, Jugend-Weltmeister, Top 2 Challenge Tour, Top 2 Women's Series oder Grand-Slam-Qualifier",
   gsq: 'Tourcard ohne direkten Grand-Slam-Platz',
-  wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, CT/Dev Top 2, Jugend-Weltmeister, Nebentour, internationaler Qualifier oder PDPA Qualifier',
+  wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, CT/Dev Top 3, Jugend-Weltmeister, Nebentour, internationaler Qualifier oder PDPA Qualifier',
   ws: 'Einladung: Top 8 PDC OOM (+ 8 Qualifikanten)', wsf: 'Top 24 der World-Series-Wertung',
   pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten deiner Nation',
 };
@@ -41,22 +41,21 @@ function wmAuto(state) {
   return q.wmAuto;
 }
 
-// WM: alle Plätze außer dem PDPA Qualifier – Top 40 PDC + 40 Pro Tour (rücken nach), Top 2 CT/Dev (ohne Karte), Jugend-Weltmeister,
-// Women's Series Top 2, Affiliate-Touren (WM_TOURS), internationale Qualifier. Doppelt Qualifizierte rücken NICHT nach → mehr TCHQ-Plätze.
+// WM: alle Plätze außer dem PDPA Qualifier – Top 40 PDC + 40 Pro Tour (rücken nach), Top 3 Dev/CT (ohne Karte), Jugend-Weltmeister,
+// Touren (WM_TOURS: Women's Series 3, Asian Tour 5, DPA 2, DPNZ 1, Nordic & Baltic 3, CDC 3), 14 Qualifier. Doppelt Qualifizierte rücken NICHT nach → mehr TCHQ-Plätze.
 export function wmDirect(state) {
   const q = qualOf(state), used = new Set(wmAuto(state)), out = [...used];
   const add = ids => { for (const id of ids) if (id && !used.has(id)) { used.add(id); out.push(id); } };
   const noCard = ids => ids.filter(id => (id === 'P' ? state.player.tour !== 'tour' : getPlayer(state, id)?.tier !== 'tour'));
-  add(noCard(idsOf(orderOfMerit(state, 'challenge'))).slice(0, 2));
-  add(noCard(idsOf(orderOfMerit(state, 'dev'))).slice(0, 2));
+  add(noCard(idsOf(orderOfMerit(state, 'dev'))).slice(0, 3));
+  add(noCard(idsOf(orderOfMerit(state, 'challenge'))).slice(0, 3));
   add([q.wmYouth]);
-  add(wmWomenDirect(state));                                       // Women's Series Top 2
-  for (const [c, n] of Object.entries(WM_TOURS)) add(secondaryOrder(state, c).slice(0, n));
+  add(wmTourDirect(state));                                        // Women's Series, Asian Tour, DPA, DPNZ, Nordic & Baltic, CDC
   for (const x of WM_QUALIFIERS) add(q.wmReg?.[x.key] ?? []);
   return out.slice(0, 126);
 }
 export const wmTchqSlots = state => 128 - wmDirect(state).length;
-export const wmWomenDirect = state => secondaryOrder(state, 'women').slice(0, 2);
+export const wmTourDirect = state => Object.entries(WM_TOURS).flatMap(([c, n]) => secondaryOrder(state, c).slice(0, n));
 
 // ---- Grand Slam of Darts (KW 46) ----
 // 1. Sieger + Finalisten aller TV-Majors der letzten 12 Monate, 2. offene Plätze (bis 16): meiste Pro-Tour-Titel (PC/ET) des Jahres,

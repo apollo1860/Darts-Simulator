@@ -53,20 +53,27 @@ export const ET_REGIONS = {
 // Internationale WM-Qualifier (Turniere). Dazu kommen direkte Plätze über die Affiliate-Touren (WM_TOURS, Vorjahres-… bzw. Jahres-OOM),
 // Nebentouren (CT/Dev Top 2, Jugend-Weltmeister) und Women's Series Top 2; Rest: PDPA Qualifier (Tourcard-Holder)
 export const WM_QUALIFIERS = [
+  // Europa (5 von 8; dazu Nordic & Baltic Tour 3)
   { key: 'esl', name: 'PDC Europe Super League', nations: ['DE', 'AT', 'CH'], slots: 1, city: 'Hildesheim', country: 'DE' },
-  { key: 'benelux', name: 'WM-Qualifier Benelux', nations: ['NL', 'BE', 'LU'], slots: 1, city: 'Rotterdam', country: 'NL' },
+  { key: 'benelux', name: 'WM-Qualifier Westeuropa/Benelux', nations: ['NL', 'BE', 'LU'], slots: 1, city: 'Rotterdam', country: 'NL' },
   { key: 'sued', name: 'WM-Qualifier Südeuropa', nations: ['FR', 'GI', 'IT', 'PT', 'ES', 'GR', 'MT'], slots: 1, city: 'Barcelona', country: 'ES' },
   { key: 'ost', name: 'WM-Qualifier Osteuropa', nations: ['PL', 'HU', 'RO', 'BG', 'RS', 'UA'], slots: 1, city: 'Warschau', country: 'PL' },
   { key: 'mittel', name: 'WM-Qualifier Mitteleuropa', nations: ['CZ', 'SK', 'SI', 'HR'], slots: 1, city: 'Prag', country: 'CZ' },
-  { key: 'jp', name: 'WM-Qualifier Japan', nations: ['JP'], slots: 1, city: 'Tokio', country: 'JP', overseas: true },
-  { key: 'cn', name: 'WM-Qualifier China', nations: ['CN'], slots: 1, city: 'Shanghai', country: 'CN', overseas: true },
-  { key: 'in', name: 'WM-Qualifier Indien', nations: ['IN'], slots: 1, city: 'Mumbai', country: 'IN', overseas: true },
-  { key: 'cdlc', name: 'CDLC-Qualifier (Mittel-/Südamerika)', nations: ['MX', 'BR', 'AR'], slots: 1, city: 'Mexiko-Stadt', country: 'MX', overseas: true },
-  { key: 'africa', name: 'WM-Qualifier Afrika (African Darts Group)', nations: ['ZA', 'KE', 'NG', 'EG', 'MA'], slots: 2, city: 'Johannesburg', country: 'ZA', overseas: true },
-  { key: 'women', name: "Women's World Matchplay", nations: ['ENG', 'NL', 'DE', 'SE'], slots: 2, city: 'Blackpool', country: 'ENG', women: true, week: 29 },
+  // Asien & Ozeanien (3 von 11; dazu Asian Tour 5, DPA 2, DPNZ 1)
+  { key: 'tasman', name: 'Trans-Tasman Championship', nations: ['AU', 'NZ'], slots: 1, city: 'Sydney', country: 'AU', overseas: true },
+  { key: 'asiach', name: 'PDC Asian Championship', nations: ['JP', 'PH', 'CN', 'IN', 'HK', 'SG', 'MY', 'TH'], slots: 1, city: 'Manila', country: 'PH', overseas: true },
+  { key: 'jp', name: 'Steel Tip Championship Japan', nations: ['JP'], slots: 1, city: 'Tokio', country: 'JP', overseas: true },
+  // Amerika (2 von 5; dazu CDC ProTour 3)
+  { key: 'cdccup', name: 'CDC Continental Cup', nations: ['US', 'CA'], slots: 1, city: 'Las Vegas', country: 'US', overseas: true },
+  { key: 'sam', name: 'Südamerika-Qualifier', nations: ['MX', 'BR', 'AR', 'CL', 'CO'], slots: 1, city: 'Mexiko-Stadt', country: 'MX', overseas: true },
+  // Afrika (2)
+  { key: 'nafrica', name: 'Northern African Qualifier', nations: ['EG', 'MA', 'TN', 'DZ'], slots: 1, city: 'Kairo', country: 'EG', overseas: true },
+  { key: 'safrica', name: 'Southern African Qualifier', nations: ['ZA', 'ZW', 'KE', 'NG', 'NA'], slots: 1, city: 'Johannesburg', country: 'ZA', overseas: true },
+  // Frauen (1 von 4; dazu Women's Series Top 3)
+  { key: 'women', name: "Women's World Matchplay", nations: ['ENG', 'NL', 'DE', 'SE'], slots: 1, city: 'Blackpool', country: 'ENG', women: true, week: 29 },
 ];
-// Direkte WM-Plätze über die Affiliate-Touren (Top n der Jahres-OOM, data/secondary.js)
-export const WM_TOURS = { asia: 6, cdc: 4, nb: 3, dpa: 2, dpnz: 1 };
+// Direkte WM-Plätze über die Touren (Top n der Jahres-OOM, data/secondary.js)
+export const WM_TOURS = { women: 3, asia: 5, dpa: 2, dpnz: 1, nb: 3, cdc: 3 };
 
 // DDV (Deutscher Dartverband): 4 Ranglistenturniere pro Jahr, nur ohne Tourcard
 const DDV = [[9, 'Gelsenkirchen'], [20, 'Bad Nauheim'], [33, 'Hamburg'], [44, 'München']];

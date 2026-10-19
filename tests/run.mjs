@@ -360,10 +360,9 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   assert.equal(q.masters.length, 24); assert.equal(q.matchplay.length, 32); assert.equal(q.pcf.length, 64);
   assert.equal(q.wm.length, 128); assert.equal(new Set(q.wm).size, 128);
   assert.ok(q.wmqSurvivors.length >= 2 && q.wmqSurvivors.every(id => q.wm.includes(id)));      // TCHQ: Restplätze, mind. 2
-  assert.equal(Object.keys(q.wmReg).length, 11);                                            // 11 internationale Qualifier
-  assert.equal(Object.values(q.wmReg).flat().length, 13); assert.ok(q.wmYouth);           // Europa 5, Asien 3, Amerika/Afrika 3, Frauen 2
-  for (const [c, n] of Object.entries({ asia: 6, cdc: 4, nb: 3, dpa: 2, dpnz: 1 })) assert.equal(q.wm.filter(id => getPlayer(s, id)?.circuit === c).length, n);
-  assert.equal(q.wm.filter(id => getPlayer(s, id)?.woman).length, 4);                    // 2 Women's Series + 2 Women's World Matchplay
+  assert.equal(Object.keys(q.wmReg).length, 13); assert.equal(Object.values(q.wmReg).flat().length, 13); assert.ok(q.wmYouth);   // 13 Qualifier à 1 Platz
+  for (const [c, n] of Object.entries({ asia: 5, cdc: 3, nb: 3, dpa: 2, dpnz: 1 })) assert.ok(q.wm.filter(id => getPlayer(s, id)?.circuit === c).length >= n);
+  assert.equal(q.wm.filter(id => getPlayer(s, id)?.woman).length, 4);                    // 3 Women's Series + Women's World Matchplay
   assert.ok(q.wmReg.women.every(id => getPlayer(s, id).woman));
   assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wm.slice(0, 32).every((id, i) => id === q.wmAuto[i]));                       // Top 32 PDC gesetzt
@@ -1263,8 +1262,8 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   s.date.week = 44;
   s.date.week = 29;
   const wq = ET.runAITournament(s, eventsInWeek(s, 2026, 29).find(e => e.id === 'wmq-women'));
-  assert.ok(wq.survivors.length === 2 && wq.survivors.every(id => s.world.players[id].woman));
-  assert.ok(!wq.survivors.some(id => secondaryOrder(s, 'women').slice(0, 2).includes(id)));   // Top 2 Women's Series direkt
+  assert.ok(wq.survivors.length === 1 && wq.survivors.every(id => s.world.players[id].woman));
+  assert.ok(!wq.survivors.some(id => secondaryOrder(s, 'women').slice(0, 3).includes(id)));   // Top 3 Women's Series direkt
 });
 
 test('New Star Darts v10: UK Open (gestaffelter Einstieg, offene Auslosung), Grand Slam (TV-Finalisten, Titel, Nebentouren, Qualifier), PC Finals', async () => {
