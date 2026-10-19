@@ -89,6 +89,7 @@ export function mount(root, app) {
   on('#e-close', () => {
     const win = s.activeEvent.place === 'W' && !s.activeEvent.isQualifier;
     closeEvent(s); app.save();
+    if (s.interview) return app.go('interview');
     app.go(win ? 'news' : 'hub', win ? { flash: true } : undefined);
   });
 }

@@ -1117,4 +1117,46 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   assert.equal(p.energy, before + 40 + 10);
 });
 
+test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Saisonbericht', async () => {
+  const N = await import('../js/nsd.js');
+  const C = await import('../js/career.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 18, slot: 1, seed: 13 });
+  const p = s.player, rng = new RNG({ s: 21 });
+  // Ziele zum Start
+  assert.equal(s.goals.year, 2027); assert.equal(s.goals.list.length, 3);
+  assert.ok(s.goals.list[0].target >= 64);
+  // Manager: Voraussetzungen, Provision
+  assert.throws(() => C.hireManager(s, 'm3'), /nicht/);
+  C.hireManager(s, 'm1'); assert.equal(p.rel.manager, 50); assert.equal(C.managerCut(s, 20), 2);
+  // Trainer: Gebühr pro Woche, Erholung
+  s.stars = 100; C.hireTrainer(s, 'f2'); assert.equal(p.fitness.id, 'f2');
+  const L = await import('../js/life.js'); p.satisfaction = 50;
+  assert.equal(L.weeklyEnergy(p), 40 + 12);
+  const out = C.careerWeek(s, rng); assert.equal(out.fee, 3); assert.equal(s.stars, 97 + out.sponsor);
+  // Sponsor-Angebot erzwingen und verhandeln
+  let tries = 0; while (!s.nsdSponsors.offer && tries++ < 200) C.sponsorWeek(s, rng);
+  const o = s.nsdSponsors.offer; assert.ok(o && o.perWeek >= 1);
+  let r; do { r = C.negotiate(s, o.card <= 7 ? 'higher' : 'lower', rng); } while (!r.done);
+  assert.ok(o.bonus === -0.1 || o.bonus > 0);
+  const val = C.offerValue(o); C.acceptOffer(s);
+  assert.equal(s.nsdSponsors.active.length, 1); assert.equal(s.nsdSponsors.active[0].perWeek, val); assert.ok(p.rel.sponsors > 0);
+  const st0 = s.stars; C.sponsorWeek(s, rng); assert.ok(s.stars >= st0 + val - 0);
+  // Interview nach Titel
+  const iv = C.maybeInterviewNsd(s, { place: 'W', cat: 'pc', name: 'PC 1' }, rng); assert.equal(iv.qs.length, 3);
+  assert.equal(C.maybeInterviewNsd(s, { place: 'QF', cat: 'major', name: 'X' }, rng), null);
+  s.interview = iv; const xp0 = p.star.xp, lv0 = p.star.level;
+  for (let i = 0; i < 3; i++) C.answerInterview(s, 1, rng);
+  assert.ok(p.star.level > lv0 || p.star.xp > xp0); assert.equal(iv.total, 18);
+  // Saisonbericht + Ziele + Auszeichnungen
+  s.stats.seasons[2027] = { ...(s.stats.seasons[2027] ?? {}), wins: 20, matches: 30 };
+  s.rankings.years[2027] = { ...(s.rankings.years[2027] ?? {}), pdc: { T1: 300, P: 5 }, protour: { T2: 100 } };
+  const rep = C.seasonReport(s);
+  assert.equal(rep.year, 2027); assert.equal(rep.goals.length, 3); assert.ok(rep.goals.find(g => g.label.includes('Matchsiege')).ok);
+  assert.ok(rep.awards.some(a => a.label === 'Spieler des Jahres'));
+  assert.equal(s.goals.done, true);
+  // Jahreswechsel: neue Ziele
+  s.date.week = 52; s.activeEvent = null; s.lifeEvent = null; nextWeek(s);
+  assert.equal(s.goals.year, 2028); assert.ok(s.seasonReport && s.weekly);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -413,3 +413,17 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-titlescreen { position: relative; }
 .nsd-version { position: absolute; top: 8px; right: 10px; z-index: 2; padding: 3px 9px; border-radius: 10px; background: rgba(0,0,0,.45);
   color: #fff; font-weight: 700; font-size: .9rem; text-shadow: var(--nsd-shadow); }
+
+/* ===== Etappe 5: Karriere-Rahmen ===== */
+.nsd-offer { margin: 8px 10px; padding: 12px; border-radius: 8px; background: rgba(0,0,0,.35); border: 2px solid #ffde3b; text-shadow: var(--nsd-shadow); display: flex; flex-direction: column; gap: 6px; }
+.nsd-offer-val { display: flex; align-items: center; gap: 8px; font-size: 1.6rem; font-weight: 800; }
+.nsd-offer-val small { font-size: .9rem; }
+.nsd-offer .pos { color: #8dff6a; } .nsd-offer .neg { color: #ff8a8a; }
+.nsd-hl { display: flex; align-items: center; gap: 14px; justify-content: center; padding-top: 4px; }
+.nsd-pcard { width: 78px; height: 108px; border-radius: 10px; background: linear-gradient(#fff, #e7e2cf); color: #b3202a; border: 3px solid #222;
+  display: flex; align-items: center; justify-content: center; font-family: 'Anton', var(--nsd-font); font-size: 2.8rem; text-shadow: none; }
+.nsd-pcard.ok { box-shadow: 0 0 0 4px #2bdc12; } .nsd-pcard.bad { box-shadow: 0 0 0 4px #ff3030; }
+.nsd-hl-btns { display: flex; flex-direction: column; gap: 8px; }
+.nsd-hl-btns .nsd-btn { min-height: 48px; padding: 0 16px; }
+.nsd-result-row.mine { background: rgba(255,222,59,.35); }
+.nsd-life .opts .nsd-btn .lb { white-space: normal; text-align: center; line-height: 1.2; padding: 6px 4px; }

@@ -48,11 +48,17 @@ import * as darts from './ui/nsd/screens/darts.js';
 import * as lifestyle from './ui/nsd/screens/lifestyle.js';
 import * as lifeevent from './ui/nsd/screens/lifeevent.js';
 import * as achievements from './ui/nsd/screens/achievements.js';
+import * as nteam from './ui/nsd/screens/nteam.js';
+import * as nsponsors from './ui/nsd/screens/nsponsors.js';
+import * as goals from './ui/nsd/screens/goals.js';
+import * as weekly from './ui/nsd/screens/weekly.js';
+import * as season from './ui/nsd/screens/season.js';
+import * as interview from './ui/nsd/screens/interview.js';
 
 // Alte Darts-Career-Screens (menu/create/hub) sind durch die New-Star-Darts-Screens ersetzt; übrige werden schrittweise umgebaut
-void menu; void create; void hub; void week; void event; void news;
+void menu; void create; void hub; void week; void event; void news; void team; void sponsors;
 const SCREENS = { title, menu: title, slots, options, welcome, newprofile, intro, hub: status, skills, life, league,
-  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, lifestyle, lifeevent, achievements, calendar, finance, profile, stats, rankings, tour, team, rival, sponsors, settings, careerEnd, match, watch, training, home };
+  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, lifestyle, lifeevent, achievements, goals, weekly, season, interview, calendar, finance, profile, stats, rankings, tour, team: nteam, rival, sponsors: nsponsors, settings, careerEnd, match, watch, training, home };
 const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile', 'practice', 'minigame'];
 // Container je Screen: NSD-Screens randlos, alte Screens im bisherigen Layout
 const wrap = (scr, html, style = '') => {

@@ -5,9 +5,10 @@
 import { newCareer } from './state.js';
 import { addNews } from './news.js';
 import { DARTS } from '../data/gear.js';
+import { setGoals } from './career.js';
 
 // Version = abgeschlossene Etappe (Anzeige rechts oben im Titelbildschirm), bei jeder Etappe erhöhen
-export const APP_VERSION = 4;
+export const APP_VERSION = 5;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -80,6 +81,7 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
   for (const yr of Object.values(s.rankings.years ?? {})) for (const t of Object.values(yr))
     for (const id in t) t[id] = Math.round(t[id] / EUR_PER_STAR * 10) / 10;
   syncAttrs(p);
+  setGoals(s);
   addNews(s, 'info', `Willkommen auf der Tour, ${first}!`,
     `Über die Q-School ${y - 1} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
   return s;

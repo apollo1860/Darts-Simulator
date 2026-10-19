@@ -31,6 +31,7 @@ import { canSelfPlay, starPrizeTable, starPayout, matchEnergy, energyMalus, addE
   matchRating, addRel, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
+import { managerCut, maybeInterviewNsd, managerOf } from './career.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -741,8 +742,12 @@ function finishEvent(state, inst) {
 // New Star Darts: ★ auszahlen, Titel-Bonus (Star-Status, Fans)
 function nsdEventEnd(state, inst) {
   const p = state.player;
-  inst.stars = starPayout(inst.prize, p.star.level);
+  const gross = starPayout(inst.prize, p.star.level);
+  inst.cut = managerCut(state, gross);                 // Manager-Provision
+  inst.stars = gross - inst.cut;
   state.stars = (state.stars ?? 0) + inst.stars;
+  if (inst.withPlayer) maybeInterviewNsd(state, inst, new RNG(state.rng));
+  if (managerOf(state) && inst.place === 'W') addRel(p, 'manager', 4);
   if (inst.place === 'W' && !inst.isQualifier) {
     const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.cat] ?? 1) * (1 + 0.03 * (p.star.level - 1)) * 10) / 10;
     inst.star = Math.round(((inst.star ?? 0) + bonus) * 10) / 10;

@@ -5,8 +5,15 @@
 - [x] **Etappe 2 – Spielen**: Wochenansicht (Melden, Weiter +40 % Energie), Turnier-Lobby (VS, Spielen/Simulieren, Ergebnis mit ★ und Star-Status), DartConnect-Liveticker mit Kommentarzeile, Schlüsselmomente selbst werfen (Matchdarts, Entscheidungsleg, Break, Check ab 61) mit Linien + Kreis, Gegner-Matchdarts/180er auf der Scheibe, Energie-Regeln (< 20 %: KI wirft, Malus wächst je Leg), Spielbericht mit Note/Star-Status/Fans, Darts News (Browser-Karte nach Titeln), ★-Preisgeld + ★-Ranglisten.
 - [x] **Etappe 3 – Fähigkeit**: 4 Minispiele (Scoring, Finishing mit Linien + Kreis, Fokus-Memory mit 3 Herzen, Rechnen auf Schema-Scheibe mit Zeitlimit), 20 Level × 3 Sterne je Fähigkeit, Training 55 % Energie, Einstufung nach Profilerstellung, freies Training im Titelmenü, Formverlust mit Vorwarnung, Getränke-Shop (Bier/Schnaps/Wodka, Rausch), Darts-Shop (5 Sets mit Bonus).
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
-- [ ] Etappe 5 – Karriere-Rahmen (Star-Status, Ziele, Wochen-Update, Team, Verhandlung, Interview, Saisonbericht, Auszeichnungen)
+- [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [ ] Etappe 6 – Liga (★-Ranglisten, Spielplan, Last Chance, Aufräumen)
+
+### Annahmen Etappe 5
+- Star-Status-Zahlen unverändert (Sieg ≈ 12 Punkte, Balken +3 %/Stufe); neue Quellen: Interview (bis 27), Saisonziele (10 je Ziel), Auszeichnungen (30), Titel (25 × Gewicht).
+- Sponsor-Geld wird wöchentlich gezahlt (statt Jahresgehalt/Antrittsgeld/Bonus des alten Systems); Vertrag 12–52 Wochen, Betrag beim Unterschreiben fest.
+- Manager-Beziehung sinkt zufällig (15 %/Woche −1) – Erfolge, Ziele und gute Interviews halten sie oben.
+- Interview-Antworten wirken unabhängig von der Frage (Stil zählt); großspurig gelingt nach Titeln zu 55 %, sonst 35 %.
+- Auszeichnungen nach Saison-Preisgeld (PDC/Pro Tour des Jahres); Newcomer = Karte über Q-School/CT/Dev des Vorjahres. Version wird bei jeder Etappe erhöht (`APP_VERSION`).
 
 ### Annahmen Etappe 4
 - Zufriedenheit wirkt über die Erholung (−10 … +10 % Energie/Woche), nicht direkt auf die Match-Leistung. Startwert 60, ein Neuling ohne Lifestyle pendelt sich bei ~40 ein.

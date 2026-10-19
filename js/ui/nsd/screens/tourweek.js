@@ -57,9 +57,7 @@ export function mount(root, app) {
     const top = s.news[0];
     nextWeek(s); app.save();
     const fresh = [];
-    for (const x of s.news) { if (x === top) break; if (x.type !== 'ranking') fresh.push(x); }
-    toast(`KW ${s.date.week} · Energie ${s.player.energy} %${fresh[0] ? ` · ${fresh[0].title}` : ''}`);
-    if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
-    app.refresh();
+    for (const x of s.news) { if (x === top) break; fresh.push({ title: x.title, text: x.text }); }
+    app.go('weekly', { news: fresh.slice(0, 12) });
   };
 }

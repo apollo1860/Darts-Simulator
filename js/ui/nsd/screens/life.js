@@ -12,7 +12,7 @@ const GIFT = 4;
 
 export function render(app) {
   const p = app.state.player, rel = p.rel ?? {}, e = Math.round(p.energy ?? 100);
-  const has = { manager: !!app.state.staff?.manager, sponsors: (app.state.sponsors?.active?.length ?? 0) > 0, partner: (rel.partner ?? 0) > 0, fans: true };
+  const has = { manager: !!app.state.team?.manager, sponsors: (app.state.nsdSponsors?.active?.length ?? 0) > 0 || (rel.sponsors ?? 0) > 0, partner: (rel.partner ?? 0) > 0, fans: true };
   return frame({
     body: `${header(p.name)}
     <div class="nsd-meters">
@@ -39,7 +39,7 @@ export function mount(root, app) {
     const k = b.dataset.rel;
     if (k === 'partner') return partnerModal(app);
     if (k === 'fans') return toast('Fans gewinnst du mit Siegen, guten Noten und Auftritten.');
-    toast(`${relLabel[k]}: kommt in Etappe 5.`);
+    app.go(k === 'manager' ? 'team' : 'sponsors');
   });
   root.querySelector('#l-ach').onclick = () => app.go('achievements');
 }

@@ -5,6 +5,7 @@ import { ACHIEVEMENTS } from '../data/achievements.js';
 import { starPrice, starPayout, addEnergy, addRel, skillsAvg, ENERGY_WEEK, TRAINABLE } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
+import { TRAINERS } from '../data/team.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fill = (txt, p) => txt.replaceAll('{partner}', p.partnerName ?? 'Sie');
@@ -28,8 +29,9 @@ export function buyItem(state, id) {
   return cost;
 }
 
-// ---- Wöchentliche Erholung: Basis 40 + bestes Zuhause + Zufriedenheit (−10 … +10) ----
-export const weeklyEnergy = p => ENERGY_WEEK + homeRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5);
+// ---- Wöchentliche Erholung: Basis 40 + bestes Zuhause + Fitnesstrainer + Zufriedenheit (−10 … +10) ----
+export const fitnessRegen = p => TRAINERS.find(t => t.id === p.fitness?.id)?.regen ?? 0;
+export const weeklyEnergy = p => ENERGY_WEEK + homeRegen(p) + fitnessRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5);
 
 // Zufriedenheit: Zielwert aus Lifestyle, Freundin, Fans und Selbstvertrauen; wöchentlich 20 % Richtung Ziel
 export function satisfactionTarget(p) {

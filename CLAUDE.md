@@ -12,7 +12,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 2. **Spielen** ✅ – Wochenablauf, DartConnect-Liveticker mit Schlüsselmomenten, Kreis-Zielmechanik, Energie-Regeln, Match-Note, News-Seite.
 3. **Fähigkeit** ✅ – Trainings-Minispiele + Einstufung, Getränke-Shop, Darts-Shop.
 4. **Leben** ✅ – Beziehungen, Lebens-Ereignisse (Karten), Lifestyle-Shop (Kauf), Erfolge.
-5. **Karriere-Rahmen** – Star-Status-Fortschritt, Ziele, wöchentliches Update, Manager/Fitnesstrainer, Sponsor-Verhandlung (Höher/Niedriger), Interview, Saisonbericht, Auszeichnungen.
+5. **Karriere-Rahmen** ✅ – Star-Status-Fortschritt, Ziele, wöchentliches Update, Manager/Fitnesstrainer, Sponsor-Verhandlung (Höher/Niedriger), Interview, Saisonbericht, Auszeichnungen.
 6. **Liga** – Ranglisten in ★, Spielplan, Kartenverlust/„Last Chance“, alte Screens entfernen.
 
 ### Festgelegte Regeln
@@ -41,7 +41,13 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
   - Getränke (`DRINKS`): Bier +20 % Energie, Schnaps +25 % + Rausch +2, Wodka +30 % + Rausch +3 + niedrigste bestehende Beziehung +1. Rausch (`player.buzz`) = Bonuspunkte auf alle trainierbaren Fähigkeiten bis Wochenende (`soberUp`). Darts (`DARTS`, 10–350 ★): dauerhafter Bonus solange ausgerüstet (`player.gear`, `player.darts`). Bonus über `skillEffective` (max. 60) in `syncAttrs`, nie auf Mental.
 - **Beziehungen**: Manager, Fans, Freundin, Sponsoren (+ Zufriedenheit, Lifestyle). **Team**: Manager (Agent, Provision), Fitnesstrainer (Energie-Erholung). Kein Casino.
 - **Lifestyle-Shop**: Gegenstände, Fahrzeuge, Immobilien einmalig kaufen (statt Jahresmiete).
-- **Umsetzung Etappe 4** (`js/life.js`, `data/lifestyle.js`, `data/lifeevents.js`, `data/achievements.js`, Screens `lifestyle`, `lifeevent`, `achievements`, `life`):
+- **Umsetzung Etappe 5** (`js/career.js`, `data/team.js`, Screens `team` (= nteam), `sponsors` (= nsponsors), `goals`, `weekly`, `season`, `interview`):
+  - Manager (`MANAGERS`, Stufe 2/3 ab Star-Status 10/30 oder PDC Top 64/16): Provision 10/15/20 % auf Preisgeld (`inst.cut`), Sponsor-Angebote 22/32/45 %/Woche (ohne Manager 6 %) und Betrag ×1/1,3/1,7; Beziehung startet bei 50, Titel +4, Interviews ±, Saisonziele (n·8 − 10), zufällig −1; bei 0 Kündigung. `state.team = {manager, trainer}`.
+  - Fitnesstrainer (`TRAINERS`): 1/3/6 Basis-★ pro Woche, Erholung +6/12/18 % (`fitnessRegen` in `weeklyEnergy`); nicht bezahlbar → Kündigung.
+  - Sponsoren (`state.nsdSponsors = {active, offer}`): 1 Vertrag je Platz (4), Wochenzahlung; Angebot 3 Wochen gültig, Betrag aus Status/Fans/Rang (`sponsorBase`) × Status-Faktor. Verhandlung Höher/Niedriger (`negotiate`): Treffer +15 % (max. 5 = +75 %), Fehler −10 % und Ende; jederzeit annehmen/ablehnen.
+  - Saisonziele (`setGoals`, KW 1 + Karrierestart): PDC-Rang (×0,8, außerhalb Top 64 mind. 64; sonst ×0,7), Matchsiege (Vorjahr + 4, mind. 8), Turnierergebnis (Vorjahresbestes + 1 Runde, mind. Letzte 32). Abrechnung im Saisonbericht: 15/10/10 Basis-★ + 10 Star-Punkte je Ziel.
+  - Interview (`maybeInterviewNsd`): nach jedem Titel und nach Finale/Halbfinale außerhalb der Pro Tour; 3 Fragen, bescheiden (+1 Fan, +3 Status) / selbstbewusst (+1–2, +4–6) / großspurig (Risiko: +4/+9 oder −3/0).
+  - Wochen-Update (`weekly`, nach „Weiter“: Energie, Sponsoren, Trainer, Neuigkeiten), Saisonbericht (`seasonReport` vor `yearEnd`: Bilanz, Ziele, Auszeichnungen Spieler/Pro-Tour-Spieler/Newcomer des Jahres + Fan-Liebling ab 75 Fans; eigene Auszeichnung → ★ + 30 Status-Punkte).- **Umsetzung Etappe 4** (`js/life.js`, `data/lifestyle.js`, `data/lifeevents.js`, `data/achievements.js`, Screens `lifestyle`, `lifeevent`, `achievements`, `life`):
   - Shop (`LIFESTYLE`, 14 Artikel, 8–4.200 Basis-★): Lifestyle-Punkte (Summe, max. 100 → `player.lifestyle`), Zufriedenheit sofort, Immobilien Erholung +5/10/15/20 % pro Woche (beste zählt, `homeRegen`). Besitz `player.owned`.
   - Wöchentliche Erholung `weeklyEnergy` = 40 + beste Immobilie + (Zufriedenheit − 50)/5. Zufriedenheit nähert sich wöchentlich zu 20 % dem Ziel 35 + 0,3·Lifestyle + Freundin (5 + 0,15·Beziehung) + 0,1·Fans + 1,5·Selbstvertrauen (`lifeWeek`).
   - Ereignis-Karten (`LIFE_EVENTS`, 18 Stück mit Bedingungen): 35 %/Woche, nie zweimal hintereinander, offen in `state.lifeEvent` bis entschieden (Hub-Hinweis, „Spielen“/„Weiter“ führen zuerst dorthin). Optionen mit Effekten (Energie, Zufriedenheit, Fans, Freundin, ★, Trainingsrückstand, Zufallsausgang).
@@ -99,6 +105,8 @@ js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP 
 js/nsd.js             New Star Darts: Spielermodell (Fähigkeiten 0–60, Star-Status, Energie, ★, Getränke, Beziehungen), newNsdCareer, syncAttrs, ★-Preistabellen, Energie-/Status-/Noten-Regeln
 js/skilltrain.js      New Star Darts: Training/Minispiel-Parameter, Einstufung, Formverlust, Getränke, Darts-Shop
 data/gear.js          Getränke und Darts (Preise in Basis-★, Boni)
+js/career.js          New Star Darts: Manager, Fitnesstrainer, Sponsoren (Höher/Niedriger), Saisonziele, Interview, Saisonbericht, Auszeichnungen
+data/team.js          Manager, Fitnesstrainer, Interview-Fragen
 js/life.js            New Star Darts: Lifestyle-Shop, Zufriedenheit, Erholung, Ereignis-Karten, Freundin, Erfolge
 data/lifestyle.js     Lifestyle-Artikel · data/lifeevents.js Ereignis-Karten · data/achievements.js Erfolge
 js/ui/nsd/            NSD-Oberfläche: frame.js (Bausteine), crowd.js (Pixel-Zuschauer), screens/*.js

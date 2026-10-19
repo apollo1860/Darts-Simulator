@@ -30,7 +30,7 @@ export function render(app) {
       </div>
       <div class="nsd-rowpair x">
         <button class="nsd-btn row" id="s-shop"><span class="ic">🛒</span><span class="lb">Shop</span></button>
-        <div class="nsd-dark" style="font-size:1.12rem">${p.fitness ? esc(p.fitness.name) : 'Fitnesstrainer'}</div>
+        <button class="nsd-dark" data-go="team" style="font-size:1.05rem;border:0;cursor:pointer;font-family:inherit;color:inherit">${p.fitness ? esc(p.fitness.name) : 'Fitnesstrainer'}</button>
         <div class="nsd-x" style="${p.fitness ? 'color:#2bd33a' : ''}">${p.fitness ? '✔' : '✖'}</div>
       </div>
       <div class="nsd-rowpair">
@@ -42,7 +42,7 @@ export function render(app) {
         <div class="nsd-dark ${p.gear ? '' : 'red'}">${p.gear ? esc(p.gear.name) : 'Keine'}</div>
       </div>
     </div>
-    <div class="nsd-pager"><button data-go="stats">◀ 📋 Statistiken</button><button data-go="calendar">Kalender 🗓️ ▶</button></div>
+    <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="calendar">Kalender 🗓️ ▶</button></div>
     <div class="nsd-strip"><span>Jahr ${yearNo}</span><span class="mid">${s.date.year}</span><span class="r">KW ${s.date.week}</span></div>`,
     bottom: bar([
       { go: 'league', icon: '🏆', label: 'Liga' },

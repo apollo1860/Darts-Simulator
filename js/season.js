@@ -22,6 +22,7 @@ import { slumpWeek } from './slump.js';
 import { expenseWeek } from './expenses.js';
 import { syncAttrs, addEnergy } from './nsd.js';
 import { lifeWeek, weeklyEnergy } from './life.js';
+import { careerWeek, setGoals, seasonReport } from './career.js';
 import { decayWeek, soberUp } from './skilltrain.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
@@ -33,9 +34,14 @@ export function nextWeek(state) {
   const nsd = state.mode === 'nsd';                      // New Star Darts: alte €-/XP-Nebensysteme ruhen
   if (!nsd) { interviewWeekEnd(state); trainingWeekEnd(state); weeklyRecovery(state); }
   weekNews(state, evs, ai);
-  if (week >= WEEKS_PER_YEAR) { recordHistory(state); if (!nsd) sponsorYearEnd(state); yearEnd(state); }
+  if (week >= WEEKS_PER_YEAR) { recordHistory(state); if (nsd) seasonReport(state); else sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);
-  if (nsd) { addEnergy(state.player, weeklyEnergy(state.player)); soberUp(state.player); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); }
+  if (nsd) {
+    const e0 = state.player.energy, c = careerWeek(state, new RNG(state.rng));
+    addEnergy(state.player, weeklyEnergy(state.player)); soberUp(state.player); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng));
+    state.weekly = { ...c, energy: state.player.energy - e0 };
+    if (state.date.week === 1) setGoals(state);
+  }
   else {
     homeWeek(state);
     slumpWeek(state);
