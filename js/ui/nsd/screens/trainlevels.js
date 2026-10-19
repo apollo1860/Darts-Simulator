@@ -1,13 +1,13 @@
 // Training einer Fähigkeit: 20 Level mit je 3 Sternen; Level wählen → Minispiel (kostet 55 % Energie)
 import { TRAINABLE, SKILL_LEVELS, skillValue, skillBonus } from '../../../nsd.js';
-import { TRAIN_ENERGY, levelPoints, levelOpen, canTrain, startTraining, nextLevel, DECAY_FROM } from '../../../skilltrain.js';
+import { TRAIN_ENERGY, levelPoints, levelOpen, canTrain, startTraining, nextLevel, decayWarn } from '../../../skilltrain.js';
 import { frame, header, titleBand, meter, heartIcon, starIcon, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
 const HELP = `<p>Jedes Level hat 3 Sterne: Erfolg im 1. Versuch = 3, im 2. = 2, im 3. = 1. Du kannst ein Level beliebig oft spielen, bis es perfekt ist – zählt immer das beste Ergebnis.</p>
   <p>Ein Training kostet ${TRAIN_ENERGY} % Energie. Das nächste Level öffnet sich, sobald du im vorigen mindestens einen Stern hast.</p>
-  <p>Ab ${DECAY_FROM} Wochen ohne Training einer Fähigkeit können Sterne verloren gehen.</p>`;
+  <p>Ab 9 Wochen ohne Training einer Fähigkeit können Sterne verloren gehen – ab 30 Jahren früher (mit 60 schon nach 3 Wochen).</p>`;
 
 export function render(app, params = {}) {
   const p = app.state.player, key = params.key ?? 'sco', t = TRAINABLE.find(x => x.key === key);
@@ -22,7 +22,7 @@ export function render(app, params = {}) {
       <div class="nsd-meters one">${meter({ icon: heartIcon(), label: `Energie ${e} %`, pct: e, tone: e >= TRAIN_ENERGY ? 'green' : 'red' })}</div>
       <div class="nsd-pager"><button data-k="${TRAINABLE[(idx + 3) % 4].key}">◀ ${TRAINABLE[(idx + 3) % 4].label}</button><button data-k="${TRAINABLE[(idx + 1) % 4].key}">${TRAINABLE[(idx + 1) % 4].label} ▶</button></div>
       <div class="nsd-lvls">${tiles}</div>
-      ${(p.idle?.[key] ?? 0) >= 7 ? `<div class="nsd-warn">⚠️ Seit ${p.idle[key]} Wochen nicht trainiert – Sterne in Gefahr!</div>` : ''}`,
+      ${(p.idle?.[key] ?? 0) >= decayWarn(p.age) ? `<div class="nsd-warn">⚠️ Seit ${p.idle[key]} Wochen nicht trainiert – Sterne in Gefahr!</div>` : ''}`,
     bottom: bar([{ go: 'skills', icon: '◀', label: 'Zurück' }, { go: 'drinks', icon: '🍺', label: 'Trinken' },
       { id: 't-next', icon: '<span style="color:#2bd33a">➡</span>', label: nl ? `Level ${nl}` : 'Alles perfekt', wide: true, disabled: !nl }]),
   });

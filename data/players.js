@@ -14,14 +14,14 @@ export const TOUR_TOP64 = [
   ['Ross Smith', 'ENG', 37, 94], ['Damon Heta', 'AU', 39, 95], ['Jermaine Wattimena', 'NL', 38, 93],
   ['Mike De Decker', 'BE', 31, 94], ['Rob Cross', 'ENG', 36, 95], ['Luke Woodhouse', 'ENG', 38, 94],
   ['Dave Chisnall', 'ENG', 46, 94], ['Daryl Gurney', 'NIR', 40, 92], ['Ryan Joyce', 'ENG', 41, 92],
-  ['Dimitri Van den Bergh', 'BE', 32, 93], ['Cameron Menzies', 'SCO', 37, 93], ['Ritchie Edhouse', 'ENG', 43, 92],
+  ['Dimitri van den Bergh', 'BE', 32, 93], ['Cameron Menzies', 'SCO', 37, 93], ['Ritchie Edhouse', 'ENG', 43, 92],
   ['Krzysztof Ratajski', 'PL', 49, 93], ['Wessel Nijman', 'NL', 26, 96], ['Dirk van Duijvenbode', 'NL', 34, 94],
   ['Peter Wright', 'SCO', 56, 93], ['Michael Smith', 'ENG', 36, 93], ['Andrew Gilding', 'ENG', 56, 91],
   ['Ricardo Pietreczko', 'DE', 32, 93], ['Joe Cullen', 'ENG', 37, 93], ['Raymond van Barneveld', 'NL', 59, 92],
   ['Martin Lukeman', 'ENG', 41, 92], ['Kevin Doets', 'NL', 28, 92], ['Callan Rydz', 'ENG', 28, 94],
-  ['Ricky Evans', 'ENG', 36, 90], ['Brendan Dolan', 'NIR', 53, 91], ['Niels Zonneveld', 'NL', 28, 91],
+  ['Ricky Evans', 'ENG', 36, 90], ['Brendan Dolan', 'IRL', 53, 91], ['Niels Zonneveld', 'NL', 28, 91],
   ['William O\'Connor', 'IRL', 40, 91], ['Scott Williams', 'ENG', 36, 92], ['Madars Razma', 'LV', 38, 92],
-  ['Michael Mansell', 'NIR', 33, 90],  ['Gabriel Clemens', 'DE', 43, 92], ['James Hurrell', 'ENG', 29, 91], ['Connor Scutt', 'ENG', 31, 90],
+  ['Mickey Mansell', 'NIR', 33, 90],  ['Gabriel Clemens', 'DE', 43, 92], ['James Hurrell', 'ENG', 29, 91], ['Connor Scutt', 'ENG', 31, 90],
   ['Justin Hood', 'ENG', 33, 91], ['Jeffrey de Graaf', 'SE', 36, 91], ['Ian White', 'ENG', 56, 90],
   ['Alan Soutar', 'SCO', 48, 89], ['Niko Springer', 'DE', 26, 92], ['Mensur Suljović', 'AT', 54, 90],
   ['Ryan Meikle', 'ENG', 30, 91], ['Richard Veenstra', 'NL', 45, 89], ['Keane Barry', 'IRL', 24, 92],
@@ -33,14 +33,14 @@ export const TOUR_TOP64 = [
 export const TOUR_EXPIRING = [
   ['Karel Sedláček', 'CZ', 47, 90], ['Bradley Brooks', 'ENG', 23, 89], ['Cam Crabtree', 'ENG', 22, 88],
   ['Wesley Plaisier', 'NL', 36, 90], ['Sebastian Białecki', 'PL', 22, 90], ['Max Hopp', 'DE', 30, 89],
-  ['Adam Lipscombe', 'ENG', 32, 88], ['Dominik Grüllich', 'DE', 21, 87], ['Cor Dekker', 'NL', 27, 89],
-  ['Maik Kuivenhoven', 'NL', 38, 87], ['Andy Boulton', 'ENG', 40, 87], ['Tavis Dudeney', 'ENG', 22, 87],
-  ['Oskar Lukasiak', 'PL', 24, 88], ['Darryl Pilgrim', 'ENG', 38, 87], ['Tom Bissell', 'ENG', 34, 88],
+  ['Adam Lipscombe', 'ENG', 32, 88], ['Dominik Grüllich', 'DE', 21, 87], ['Cor Dekker', 'NO', 27, 89],
+  ['Maik Kuivenhoven', 'NL', 38, 87], ['Andy Boulton', 'SCO', 40, 87], ['Tavis Dudeney', 'ENG', 22, 87],
+  ['Oskar Lukasiak', 'SE', 24, 88], ['Darryl Pilgrim', 'ENG', 38, 87], ['Tom Bissell', 'ENG', 34, 88],
   ['Christian Kist', 'NL', 40, 89], ['Leon Weber', 'DE', 22, 88], ['Dennie Olde Kalter', 'NL', 25, 87],
   ['Jim Long', 'CA', 41, 88], ['Thomas Lovely', 'ENG', 33, 87], ['Marvin van Velzen', 'NL', 26, 87],
-  ['Viktor Tingström', 'SE', 30, 87], ['Adam Warner', 'ENG', 34, 87], ['Greg Ritchie', 'ENG', 40, 87],
+  ['Viktor Tingström', 'SE', 30, 87], ['Adam Warner', 'ENG', 34, 87], ['Greg Ritchie', 'SCO', 40, 87],
   ['Adam Paxton', 'ENG', 30, 87], ['Maximilian Czerwinski', 'DE', 25, 87], ['Tytus Kanik', 'PL', 20, 87],
-  ['Stefaan Henderyck', 'BE', 45, 87], ['Rusty-Jake Rodriguez', 'AT', 28, 88], ['Pero Ljubić', 'AT', 41, 87],
+  ['Stefaan Henderyck', 'BE', 45, 87], ['Rusty-Jake Rodriguez', 'AT', 28, 88], ['Pero Ljubić', 'HR', 41, 87],
   ['Kai Gotthardt', 'DE', 24, 89],
 ];
 
@@ -56,7 +56,7 @@ export const TOUR_NEW_2026 = [
   ['Chris Landman', 'NL', 38, 88], ['Marvin Kraft', 'DE', 25, 88], ['Benjamin Pratnemer', 'SI', 35, 88],
   ['Adam Gawlas', 'CZ', 22, 89], ['Jurjen van der Velde', 'NL', 22, 90], ['Alexander Merkx', 'NL', 24, 88],
   ['Pascal Rupprecht', 'DE', 26, 88], ['Stephen Burton', 'ENG', 40, 88], ['Mervyn King', 'ENG', 61, 88],
-  ['Tyler Thorpe', 'ENG', 21, 88], ['Stephen Rosney', 'SCO', 38, 87], ['David Sharp', 'ENG', 35, 87],
+  ['Tyler Thorpe', 'ENG', 21, 88], ['Stephen Rosney', 'IRL', 38, 87], ['David Sharp', 'SCO', 35, 87],
 ];
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)

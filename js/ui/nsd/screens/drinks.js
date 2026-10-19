@@ -7,7 +7,7 @@ import { frame, header, titleBand, meter, heartIcon, coin, bar, bindHead } from 
 import { toast } from '../../components.js';
 
 export const nsd = true;
-const HELP = '<p><b>Bier</b> gibt Energie. <b>Schnaps</b> gibt Energie und einen Rausch: Bonus auf Scoring, Finishing, Fokus und Rechnen bis zum Wochenende. <b>Wodka</b> wie Schnaps, stärker, und verbessert eine Beziehung um 1.</p><p>Mental bekommt nie einen Bonus. Preise steigen mit deinem Star-Status.</p>';
+const HELP = '<p><b>Bier</b> füllt die Energie auf 100 %. <b>Schnaps</b> gibt Energie und einen Rausch: Bonus auf Scoring, Finishing, Fokus und Rechnen bis zum Wochenende. <b>Wodka</b> wie Schnaps, stärker, und verbessert eine Beziehung um 1.</p><p>Mental bekommt nie einen Bonus. Preise steigen mit deinem Star-Status.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, e = Math.round(p.energy ?? 100), lvl = p.star.level;
@@ -17,7 +17,7 @@ export function render(app) {
       <div class="nsd-strip"><span>${p.buzz ? `🥴 +${p.buzz}` : 'Nüchtern'}</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       <div class="nsd-evs">${DRINKS.map(d => `<div class="nsd-ev">
         <div class="nsd-ev-main"><div class="nsd-ev-name">${d.icon} ${d.name} <small>× ${p.drinks[d.id] ?? 0}</small></div>
-          <div class="nsd-ev-sub">+${d.energy} % Energie${d.buzz ? ` · Rausch +${d.buzz}` : ''}${d.rel ? ' · Beziehung +1' : ''}</div>
+          <div class="nsd-ev-sub">Energie auf 100 %${d.buzz ? ` · Rausch +${d.buzz}` : ''}${d.rel ? ' · Beziehung +1' : ''}</div>
           <div class="nsd-ev-sub">Preis ${coin(drinkPrice(d, lvl))}</div></div>
         <div class="nsd-ev-btns"><button class="nsd-btn" data-buy="${d.id}"><span class="lb">Kaufen</span></button>
           <button class="nsd-btn" data-drink="${d.id}" ${p.drinks[d.id] > 0 ? '' : 'disabled'}><span class="lb">Trinken</span></button></div>

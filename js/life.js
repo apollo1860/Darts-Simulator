@@ -2,7 +2,7 @@
 import { LIFESTYLE } from '../data/lifestyle.js';
 import { LIFE_EVENTS, PARTNER_NAMES } from '../data/lifeevents.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
-import { starPrice, starPayout, addEnergy, addRel, skillsAvg, ENERGY_WEEK, TRAINABLE } from './nsd.js';
+import { starPrice, starPayout, addEnergy, addRel, skillsAvg, skillValue, ENERGY_WEEK, TRAINABLE } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { TRAINERS } from '../data/team.js';
@@ -34,12 +34,17 @@ export const fitnessRegen = p => TRAINERS.find(t => t.id === p.fitness?.id)?.reg
 export const weeklyEnergy = p => ENERGY_WEEK + homeRegen(p) + fitnessRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5);
 
 // Zufriedenheit: Zielwert aus Lifestyle, Freundin, Fans und Selbstvertrauen; wöchentlich 20 % Richtung Ziel
+// Zufriedenheit: Ziel aus Luxus (Lifestyle), Freundin und dem Schnitt aller bestehenden Beziehungen; Start niedrig (30)
+export const SAT_START = 30;
 export function satisfactionTarget(p) {
-  const r = p.rel ?? {};
-  return clamp(35 + 0.3 * lifestyleOf(p) + ((r.partner ?? 0) > 0 ? 5 + 0.15 * r.partner : 0) + 0.1 * (r.fans ?? 0) + 1.5 * (p.momentum ?? 0), 0, 100);
+  const r = p.rel ?? {}, keys = ['fans', 'manager', 'partner', 'sponsors'].filter(k => k === 'fans' || (r[k] ?? 0) > 0);
+  const relAvg = keys.reduce((a, k) => a + (r[k] ?? 0), 0) / keys.length;
+  return clamp(15 + 0.4 * lifestyleOf(p) + ((r.partner ?? 0) > 0 ? 6 + 0.1 * r.partner : 0) + 0.2 * relAvg + 1 * (p.momentum ?? 0), 0, 100);
 }
 
 // ---- Lebens-Ereignisse ----
+// Frau ansprechen: ohne Lifestyle und Star-Status wirst du meist ausgelacht
+export const meetChance = p => Math.max(0.08, Math.min(0.75, 0.05 + 0.012 * lifestyleOf(p) + 0.02 * (p.star?.level ?? 1)));
 export const LIFE_EVENT_CHANCE = 0.35;
 export const eventById = id => LIFE_EVENTS.find(e => e.id === id);
 export function rollLifeEvent(state, rng) {
@@ -54,7 +59,8 @@ export function lifeEventView(state) {
   const le = state.lifeEvent, ev = le && eventById(le.id);
   if (!ev) return null;
   const p = { ...state.player, partnerName: le.name ?? state.player.partnerName };
-  return { icon: ev.icon, text: fill(ev.text, p), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0 })) };
+  return { icon: ev.icon, text: fill(ev.text, p), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
+    energy: o.energy < 0 ? -o.energy : 0, tired: o.energy < 0 && (state.player.energy ?? 0) < -o.energy })) };
 }
 // Effekte anwenden; Rückgabe: Liste lesbarer Änderungen
 export function applyEffects(state, e) {
@@ -66,10 +72,11 @@ export function applyEffects(state, e) {
   }
   if (e.energy) { addEnergy(p, e.energy); out.push(`Energie ${sign(e.energy)} %`); }
   if (e.sat) { p.satisfaction = clamp((p.satisfaction ?? 50) + e.sat, 0, 100); out.push(`Zufriedenheit ${sign(e.sat)}`); }
-  if (e.fans) { addRel(p, 'fans', e.fans); out.push(`Fans ${sign(e.fans)}`); }
+  const rel = v => Math.max(-2, Math.min(2, v));        // Ereignisse: Beziehungen höchstens ±2
+  if (e.fans) { addRel(p, 'fans', rel(e.fans)); out.push(`Fans ${sign(rel(e.fans))}`); }
   if (e.meet) { p.partnerName = state.lifeEvent?.name ?? p.partnerName; p.rel.partner = e.meet; out.push(`Freundin: ${p.partnerName}`); }
-  if (e.partner && p.rel.partner > 0) { addRel(p, 'partner', e.partner); out.push(`${p.partnerName ?? 'Freundin'} ${sign(e.partner)}`); }
-  for (const k of ['manager', 'sponsors']) if (e[k] && p.rel[k] > 0) { addRel(p, k, e[k]); out.push(`${k === 'manager' ? 'Manager' : 'Sponsoren'} ${sign(e[k])}`); }
+  if (e.partner && p.rel.partner > 0) { addRel(p, 'partner', rel(e.partner)); out.push(`${p.partnerName ?? 'Freundin'} ${sign(rel(e.partner))}`); }
+  for (const k of ['manager', 'sponsors']) if (e[k] && p.rel[k] > 0) { addRel(p, k, rel(e[k])); out.push(`${k === 'manager' ? 'Manager' : 'Sponsoren'} ${sign(rel(e[k]))}`); }
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
   if (e.single) breakUp(state, false);
   return out;
@@ -80,11 +87,13 @@ export function resolveLifeEvent(state, idx, rng) {
   if (!opt) throw new Error('Kein Ereignis');
   const p = state.player;
   if (opt.stars < 0 && (state.stars ?? 0) < starPrice(-opt.stars, p.star.level)) throw new Error('Nicht genug ★');
+  if (opt.energy < 0 && (p.energy ?? 0) < -opt.energy) throw new Error(`Zu müde – ${-opt.energy} % Energie nötig`);
   const name = le.name ?? p.partnerName;
   const changes = applyEffects(state, { ...opt, stars: opt.stars, chance: undefined });
   let text = opt.out ?? '';
   if (opt.chance) {
-    const r = rng.chance(opt.chance.p) ? opt.chance.ok : opt.chance.fail;
+    const pr = opt.chance.p === 'meet' ? meetChance(p) : opt.chance.p;
+    const r = rng.chance(pr) ? opt.chance.ok : opt.chance.fail;
     changes.push(...applyEffects(state, r));
     text = r.out ?? text;
   }
@@ -104,18 +113,23 @@ export function lifeWeek(state, rng) {
   const p = state.player;
   if (p.rel.partner > 0) { addRel(p, 'partner', -1); if (p.rel.partner <= 0) breakUp(state); }
   const s = p.satisfaction ?? 50;
-  p.satisfaction = Math.round(clamp(s + (satisfactionTarget(p) - s) * 0.2, 0, 100) * 10) / 10;
+  p.satisfaction = Math.round(clamp(s + (satisfactionTarget(p) - s) * 0.08, 0, 100) * 10) / 10;   // langsam
   p.lifestyle = lifestyleOf(p);
   rollLifeEvent(state, rng);
   checkAchievements(state);
 }
 
 // ---- Erfolge ----
+const SELF0 = { visits: 0, s180: 0, s140: 0, ton: 0, checkouts: 0, hiFinish: 0, bigFish: 0, matchDarts: 0, bull: 0 };
+const MS0 = { nilWins: 0, deciderWins: 0, beatTop16: 0, beatTop8: 0, beatNo1: 0, bestAvg: 0, bestRating: 0 };
 export function achievementCtx(state) {
-  const p = state.player, c = state.stats?.career ?? {};
+  const p = state.player, c = state.stats?.career ?? {}, results = state.results ?? [];
   return {
-    state, p, rank: rankOf(state, 'pdc', 'P'), stats: { wins: c.wins ?? 0, s180: c.s180 ?? 0, bestLeg: c.bestLeg ?? 0 },
-    titles: (state.results ?? []).filter(r => r.place === 'W'), skillsAvg: skillsAvg(p), owned: ownedItems(p), lifestyle: lifestyleOf(p),
+    state, p, rank: rankOf(state, 'pdc', 'P'), ptRank: rankOf(state, 'protour', 'P'),
+    wins: c.wins ?? 0, events: c.events ?? 0, bestLeg: c.bestLeg ?? 0, results, titles: results.filter(r => r.place === 'W'),
+    self: { ...SELF0, ...(state.selfStats ?? {}) }, ms: { ...MS0, ...(state.mstats ?? {}) }, flags: state.flags ?? {},
+    skills: Object.fromEntries(TRAINABLE.map(t => [t.key, skillValue(p, t.key)])), skillsAvg: skillsAvg(p),
+    owned: ownedItems(p), lifestyle: lifestyleOf(p), seasons: state.date.year - (state.startYear ?? state.date.year),
   };
 }
 export function checkAchievements(state) {
@@ -127,7 +141,8 @@ export function checkAchievements(state) {
     const reward = starPayout(a.stars, state.player.star.level);
     state.achievements[a.id] = { year: state.date.year, week: state.date.week };
     state.stars = (state.stars ?? 0) + reward;
-    addNews(state, 'star', `${a.icon} Erfolg: ${a.label}`, `Belohnung: ${reward} ★.`);
+    addNews(state, 'star', `${a.icon} Meilenstein: ${a.label}`, `Belohnung: ${reward} ★.`);
+    (state.msQueue ??= []).push(a.id);                        // Einblendung unten (UI)
     got.push(a);
   }
   return got;

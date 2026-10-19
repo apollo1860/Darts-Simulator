@@ -106,6 +106,7 @@ export function lastChanceCheck(state) {
   if (!lc || state.date.year !== lc.year || state.date.week <= 2) return;
   state.lastChance = null;
   if (state.player.tour === 'tour') {
+    (state.flags ??= {}).lastChance = true;
     addNews(state, 'result', '🎉 Zurück auf der Tour!', 'Die Last Chance genutzt – deine neue Tourcard gilt bis Ende ' + state.player.cardUntil + '.');
     return;
   }
@@ -130,7 +131,12 @@ export function yearEnd(state) {
   for (const x of orderOfMerit(state, 'pdc', y)) {
     const pl = x.p;
     if (!pl.cardUntil) continue;
-    if (x.rank <= 64) { if (pl.cardUntil <= y) pl.cardVia = `Top 64 PDC ${y}`; pl.cardUntil = Math.max(pl.cardUntil, y + 1); continue; }
+    if (x.rank <= 64) {
+      if (pl.cardUntil <= y) pl.cardVia = `Top 64 PDC ${y}`;
+      pl.cardUntil = Math.max(pl.cardUntil, y + 1);
+      if (pl.id === 'P') (state.flags ??= {}).renewed = true;
+      continue;
+    }
     if (pl.cardUntil > y) continue;
     lost.push(pl.name);
     if (pl.id === 'P') {

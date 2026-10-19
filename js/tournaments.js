@@ -27,7 +27,7 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
-import { canSelfPlay, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT,
+import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT,
   matchRating, addRel, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
@@ -328,7 +328,8 @@ const attrsOf = (state, id, inst = state.activeEvent) => {
   if (id !== 'P') return staged;
   if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)
     const mal = energyMalus(state.player.energy ?? 100, inst?.live?.m?.legIdx ?? 0);
-    return mal ? { ...staged, sco: staged.sco - mal, fin: staged.fin - mal, foc: staged.foc - mal } : staged;
+    const ce = Math.max(0, 0.07 - 0.0012 * skillEffective(state.player, 'cal'));   // Rechnen schwach → Bogey-Reste, falsche Doppel
+    return mal ? { ...staged, ce, sco: staged.sco - mal, fin: staged.fin - mal, foc: staged.foc - mal } : { ...staged, ce };
   }
   return applyNerves(staged, nervesFor(inst, state.player));   // Lampenfieber (erste Pro-Tour-Zeit)
 };
@@ -431,6 +432,8 @@ export function keyMoment(state) {
   if (isDecider(lm)) return 'decider';
   if (fin && lm.legStarter !== me) return 'break';
   if (fin && r > 60) return 'finish';
+  // ab und zu eine Scoring-Aufnahme mitten im Leg (höchstens eine je Leg)
+  if (r > 170 && r < 501 && live.scoreLeg !== lm.legIdx && new RNG(state.rng).chance(0.35)) { live.scoreLeg = lm.legIdx; return 'scoring'; }
   return null;
 }
 // Zielparameter (Kreis, Linien) für den eigenen Dart
@@ -440,10 +443,26 @@ export function aimParams(state, target) {
 }
 // Eigener Dart an Position (x, y) in mm
 export function liveHumanDart(state, x, y, target) {
-  const live = state.activeEvent.live, lm = live.m, side = lm.turn;
+  const live = state.activeEvent.live, lm = live.m, side = lm.turn, start = lm.visit.start;
   const hit = scoreAt(x, y), ev = throwDart(lm, hit);
   const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
-  if (visitOver) { live.route = null; tickMods(live, side); }
+  if (visitOver) {
+    live.route = null; tickMods(live, side);
+    // Selbst geworfene Highlights (nur echte Würfe am Board zählen für Meilensteine)
+    const st = (state.selfStats ??= { visits: 0, s180: 0, s140: 0, ton: 0, checkouts: 0, hiFinish: 0, bigFish: 0, matchDarts: 0, bull: 0 });
+    st.visits++;
+    if (ev?.visitScore === 180) st.s180++;
+    else if (ev?.visitScore >= 140) st.s140++;
+    else if (ev?.visitScore >= 100) st.ton++;
+    if (ev?.checkout) {
+      st.checkouts++; st.hiFinish = Math.max(st.hiFinish, start);
+      if (start === 170) st.bigFish++;
+      if (hit.label === 'BULL') st.bull++;
+      if (ev.matchEnd) st.matchDarts++;
+    }
+    live.selfEvent = { score: ev?.visitScore ?? 0, checkout: !!ev?.checkout, start };
+    checkAchievements(state);
+  }
   return { ev, dart: { target, x, y, hit }, side, visitOver };
 }
 
@@ -548,11 +567,22 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const oppId = me === 0 ? m.b : m.a, oppP = inst.teams?.[oppId] ?? getPlayer(state, oppId);
   addEnergy(p, -matchEnergy(res.legsTotal[0] + res.legsTotal[1]));
   const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
-  const star = starMatchDelta(p.star.level, { won, my, opp, to, avg: s.avg, oppStrength, cat: inst.cat, fmt: inst.fmt });
-  const ups = addStarProgress(state, star);
   const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp });
+  const star = starMatchDelta(p.star.level, { won, my, opp, to, avg: s.avg, oppStrength, cat: inst.cat, fmt: inst.fmt, rating, oppRank: rankOf(state, 'pdc', oppId) });
+  const ups = addStarProgress(state, star);
   const fans = fansAfterMatch(won, rating);
   addRel(p, 'fans', fans);
+  // Zähler für Meilensteine
+  const ms = (state.mstats ??= {}), oppRank = rankOf(state, 'pdc', oppId), dec = res.score[0] >= to - 1 && res.score[1] >= to - 1;
+  ms.bestAvg = Math.max(ms.bestAvg ?? 0, s.avg); ms.bestRating = Math.max(ms.bestRating ?? 0, rating);
+  if (won) {
+    if (opp === 0) ms.nilWins = (ms.nilWins ?? 0) + 1;
+    if (dec) ms.deciderWins = (ms.deciderWins ?? 0) + 1;
+    if (oppRank && oppRank <= 16) ms.beatTop16 = (ms.beatTop16 ?? 0) + 1;
+    if (oppRank && oppRank <= 8) ms.beatTop8 = (ms.beatTop8 ?? 0) + 1;
+    if (oppRank === 1) ms.beatNo1 = (ms.beatNo1 ?? 0) + 1;
+  }
+  checkAchievements(state);
   // Erfahrung (Clutch) und Selbstvertrauen laufen still weiter
   const decider = res.score[0] >= to - 1 && res.score[1] >= to - 1;
   addClutch(p, Math.round((2 + (decider ? 3 : 0) + (decider && won ? 3 : 0)) * xpFactor(inst)));
@@ -754,6 +784,7 @@ function nsdEventEnd(state, inst) {
     inst.titleStar = bonus;
     addStarProgress(state, bonus);
     addRel(p, 'fans', inst.cat === 'major' ? 5 : 3);
+    p.satisfaction = Math.min(100, (p.satisfaction ?? 30) + (inst.cat === 'major' ? 10 : 3));   // Major-Titel: deutlich zufriedener
   }
 }
 

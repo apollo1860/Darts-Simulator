@@ -5,10 +5,10 @@
 import { newCareer } from './state.js';
 import { addNews } from './news.js';
 import { DARTS } from '../data/gear.js';
-import { setGoals } from './career.js';
+import { setGoals, nameTeam } from './career.js';
 
 // Version = abgeschlossene Etappe (Anzeige rechts oben im Titelbildschirm), bei jeder Etappe erhöhen
-export const APP_VERSION = 6;
+export const APP_VERSION = 7;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -17,13 +17,15 @@ export const TRAINABLE = [
   { key: 'cal', label: 'Rechnen', icon: '🧮' },
 ];
 export const SKILLS = [...TRAINABLE, { key: 'men', label: 'Mental', icon: '💪', star: true }];
-// Fähigkeit 0 ≈ etwas unter dem schwächsten Tourcard-Holder (Attribut 85, Holder ab ~87), 60 = Weltspitze (100)
-export const ATTR_BASE = 85, ATTR_PER_POINT = 0.25;
+// Fähigkeit 0 ≈ knapp unter dem schwächsten Tourcard-Holder (Attribut 86,5, Holder ab ~87), 60 = Weltspitze (100)
+export const ATTR_BASE = 87.5, ATTR_PER_POINT = 12.5 / 60;
 export const STAR_MAX = 100;
 // Status-Faktor: Preisgelder UND Preise × (1 + 5 % je Stufe über 1)
 export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
 export const starPrice = (base, level = 1) => Math.max(1, Math.round(base * starFactor(level)));
-export const START_STARS = 25;     // Startguthaben (★ auf Status 1)
+export const START_STARS = 5;      // Startguthaben (★ auf Status 1)
+// Start im Tour-Modus: Saison 2026 direkt nach der Q-School (KW 2)
+export const NSD_START = { year: 2026, week: 3 };
 // Star-Status-Fortschritt: je Stufe mehr Punkte nötig (Feinabstimmung Etappe 5)
 export const starNeed = level => Math.round(100 * Math.pow(1.03, Math.max(1, level) - 1));
 export const starPct = p => Math.min(100, ((p.star?.xp ?? 0) / starNeed(p.star?.level ?? 1)) * 100);
@@ -61,29 +63,31 @@ export function setStartSkills(p, points) {
 // Neue Karriere im Tour-Modus: Profil (Vorname, Nachname, Nation, Alter, Wurfhand), Start mit Tourcard
 export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot = 1, seed }) {
   const name = `${first} ${last}`.trim();
-  const s = newCareer({ name, nation, hand, age, slot, seed });
+  const s = newCareer({ name, nation, hand, age, slot, seed, ...NSD_START });
   s.mode = 'nsd';
   s.news = [];
   const p = s.player, y = s.date.year;
   Object.assign(p, {
     first, last,
-    tour: 'tour', cardUntil: y + 1, everTourcard: true, cardVia: `Q-School ${y - 1}`, proMatches: 0,
+    tour: 'tour', cardUntil: y + 1, everTourcard: true, cardVia: `Q-School ${y}`, proMatches: 0,
     star: { level: 1, xp: 0 }, energy: 100,
     skills: Object.fromEntries(TRAINABLE.map(t => [t.key, Array(SKILL_LEVELS).fill(0)])),
     drinks: { beer: 0, schnaps: 0, wodka: 0 },
     rel: { manager: 0, fans: 10, partner: 0, sponsors: 0 },
-    satisfaction: 60, lifestyle: 0,
+    satisfaction: 30, lifestyle: 0,
     gear: null, darts: [], fitness: null, assessed: false, buzz: 0,
     idle: Object.fromEntries(TRAINABLE.map(t => [t.key, 0])),
   });
+  p.exp = Math.max(p.exp ?? 0, 3);    // Tour-Neuling mit Q-School-Erfahrung (KI-Holder liegen meist bei 5–10)
   s.stars = START_STARS;
   // Vorbelegte Ranglisten (€) → Basis-★
   for (const yr of Object.values(s.rankings.years ?? {})) for (const t of Object.values(yr))
     for (const id in t) t[id] = Math.round(t[id] / EUR_PER_STAR * 10) / 10;
   syncAttrs(p);
   setGoals(s);
+  nameTeam(s);
   addNews(s, 'info', `Willkommen auf der Tour, ${first}!`,
-    `Über die Q-School ${y - 1} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
+    `Über die Q-School ${y} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
   return s;
 }
 
@@ -124,16 +128,22 @@ export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.roun
 // Der Balken wächst je Stufe um 3 %, der Gewinn nur linear → jede Stufe dauert länger. Nie unter die erreichte Stufe.
 export const STAR_WEIGHT = { pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
 const starScale = level => 1 + 0.03 * (level - 1);
-export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, cat, fmt }) {
+// Gegner weit oben in der Order of Merit: mehr Punkte (Platz 1 ×1,6 … ab Platz 100 ×1)
+export const rankBonus = rank => 1 + 0.6 * Math.max(0, (100 - (rank ?? 999)) / 99);
+export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, cat, fmt, rating = 5, oppRank = null }) {
   const w = (fmt === 'wm' ? 1.6 : STAR_WEIGHT[cat] ?? 1) * starScale(level);
   if (won) {
-    let g = 12;
+    let g = 12 * rankBonus(oppRank);
     if (opp === 0) g *= 1.4;
     g *= Math.max(0.75, Math.min(1.4, 1 + (avg - 88) / 40));     // Average
     g *= Math.max(0.85, Math.min(1.5, 1 + oppStrength / 20));    // Gegner stärker (+) / schwächer (−)
     return Math.round(g * w * 10) / 10;
   }
   const close = to > 1 ? my / (to - 1) : 0;                      // 1 = knapp verloren
+  // Bis Star-Status 10: auch Niederlagen bringen etwas (1–3 % des Balkens), außer Ø unter 85 oder zu null verloren
+  if (level <= 10 && avg >= 85 && my > 0) return Math.round(starNeed(level) * (1 + 2 * close) / 100 * 10) / 10;
+  // Gute Leistung trotz Niederlage (Note über 6,0): kleines Plus
+  if (rating > 6) return Math.round(starNeed(level) * (0.5 + (rating - 6) * 0.5) / 100 * 10) / 10;
   return -Math.round((1 + 3 * (1 - close)) * starScale(level) * 10) / 10;
 }
 export const STAR_TITLE = 25;   // Turniersieg (× Gewicht)

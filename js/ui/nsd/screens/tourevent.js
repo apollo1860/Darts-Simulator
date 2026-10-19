@@ -5,7 +5,7 @@ import { getPlayer } from '../../../world.js';
 import { formatLabel } from '../../../matchEngine.js';
 import { rankOf } from '../../../rankings.js';
 import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../../tournaments.js';
-import { skillsAvg, starPct, canSelfPlay } from '../../../nsd.js';
+import { starPct, canSelfPlay } from '../../../nsd.js';
 import { frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead } from '../frame.js';
 
 export const nsd = true;
@@ -31,10 +31,10 @@ function versus(s, inst, m) {
   const r = rankOf(s, 'pdc', oppId), mine = rankOf(s, 'pdc', 'P');
   return `<div class="nsd-vs">
     <div class="nsd-vs-side me"><div class="fl">${flag(p.nation)}</div><div class="nm">${esc(p.name)}</div>
-      <div class="dt">${starIcon(p.star.level, 'sm')} Status · OOM ${mine ?? '–'}</div><div class="dt">Fähigkeiten Ø ${fmtNum(skillsAvg(p), 0)}</div></div>
+      <div class="dt">${starIcon(p.star.level, 'sm')} Status · OOM ${mine ?? '–'}</div></div>
     <div class="nsd-vs-x">VS</div>
     <div class="nsd-vs-side"><div class="fl">${flag(nationOf(s, oppId))}</div><div class="nm">${esc(nameOf(s, oppId))}</div>
-      <div class="dt">OOM ${r ?? '–'}</div><div class="dt">Ø ${fmtNum(opp?.avg ?? 0, 1)}</div></div>
+      <div class="dt">OOM ${r ?? '–'}</div><div class="dt">Ø ${Math.round((opp?.avg ?? 0) * 0.85)}–${Math.round((opp?.avg ?? 0) * 1.15)}</div></div>
   </div>`;
 }
 

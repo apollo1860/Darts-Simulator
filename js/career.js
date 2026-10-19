@@ -1,6 +1,8 @@
 // New Star Darts (DOM-frei): Karriere-Rahmen – Manager, Fitnesstrainer, Sponsoren (Höher/Niedriger-Verhandlung),
 // Saisonziele, Interviews, Wochen-Update-Daten, Saisonbericht und Auszeichnungen
-import { MANAGERS, TRAINERS, INTERVIEW_QS } from '../data/team.js';
+import { MANAGERS, TRAINERS, INTERVIEW_QS, REL_ACTIONS } from '../data/team.js';
+import { randomName } from '../data/names.js';
+import { RNG } from './rng.js';
 import { SPONSORS, SPONSOR_SLOTS } from '../data/sponsors.js';
 import { starPrice, starPayout, starFactor, addRel, addStarProgress } from './nsd.js';
 import { addNews } from './news.js';
@@ -9,15 +11,26 @@ import { getPlayer } from './world.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const team = state => (state.team ??= { manager: null, trainer: null });
+// Namen von Managern/Trainern: je Spielstand zufällig (Namenspool), einmal festgelegt
+export function nameTeam(state, rng = new RNG(state.rng)) {
+  const t = team(state), used = new Set();
+  t.names ??= {};
+  for (const m of MANAGERS) t.names[m.id] ??= randomName(rng, rng.pick(['DE', 'ENG', 'NL', 'IRL']), used);
+  for (const f of TRAINERS) t.names[f.id] ??= `${f.title} ${randomName(rng, rng.pick(['DE', 'ENG', 'NL']), used).split(' ').slice(-1)[0]}`;
+  return t.names;
+}
+const named = (state, x) => (x ? { ...x, name: team(state).names?.[x.id] ?? x.name } : null);
+export const managersOf = state => (nameTeam(state), MANAGERS.map(m => named(state, m)));
+export const trainersOf = state => (nameTeam(state), TRAINERS.map(t => named(state, t)));
 
 // ---------- Manager ----------
-export const managerOf = state => MANAGERS.find(m => m.id === team(state).manager) ?? null;
+export const managerOf = state => named(state, MANAGERS.find(m => m.id === team(state).manager));
 export function managerOk(state, m) {
   const p = state.player, r = rankOf(state, 'pdc', 'P');
   return p.star.level >= m.needStar || (m.needRank && r && r <= m.needRank);
 }
 export function hireManager(state, id) {
-  const m = MANAGERS.find(x => x.id === id);
+  const m = named(state, MANAGERS.find(x => x.id === id));
   if (!managerOk(state, m)) throw new Error(`${m.name} nimmt dich (noch) nicht unter Vertrag`);
   team(state).manager = id;
   state.player.rel.manager = 50;
@@ -36,16 +49,39 @@ export function managerCut(state, stars) {
 }
 
 // ---------- Fitnesstrainer ----------
-export const trainerOf = state => TRAINERS.find(t => t.id === team(state).trainer) ?? null;
+export const trainerOf = state => named(state, TRAINERS.find(t => t.id === team(state).trainer));
 export const trainerFee = (t, level) => starPrice(t.fee, level);
 export const trainerRegen = state => trainerOf(state)?.regen ?? 0;
 export function hireTrainer(state, id) {
-  const t = TRAINERS.find(x => x.id === id), fee = trainerFee(t, state.player.star.level);
+  const t = named(state, TRAINERS.find(x => x.id === id)), fee = trainerFee(t, state.player.star.level);
   if ((state.stars ?? 0) < fee) throw new Error('Nicht genug ★ für die erste Woche');
   team(state).trainer = id;
   state.player.fitness = { id, name: t.name };
 }
 export function fireTrainer(state) { team(state).trainer = null; state.player.fitness = null; }
+
+// ---------- Beziehungs-Aktionen (Fans, Manager, Sponsoren: 60 % Energie; Freundin: Geschenk in ★) ----------
+export const REL_ENERGY = 60, REL_GAIN = 6, GIFT_PRICE = 4;
+export function relAvailable(state, key) {
+  const p = state.player;
+  if (key === 'manager') return !!managerOf(state);
+  if (key === 'sponsors') return (state.nsdSponsors?.active?.length ?? 0) > 0 || (p.rel.sponsors ?? 0) > 0;
+  if (key === 'partner') return (p.rel.partner ?? 0) > 0;
+  return true;
+}
+export function pickRelAction(state, key, rng = new RNG(state.rng)) {
+  return { key, name: rng.pick(REL_ACTIONS[key]), energy: key === 'partner' ? 0 : REL_ENERGY,
+    stars: key === 'partner' ? starPrice(GIFT_PRICE, state.player.star.level) : 0, gain: REL_GAIN };
+}
+export function doRelAction(state, act) {
+  const p = state.player;
+  if (!relAvailable(state, act.key)) throw new Error('Diese Beziehung gibt es (noch) nicht');
+  if (act.energy && (p.energy ?? 0) < act.energy) throw new Error(`Zu müde – ${act.energy} % Energie nötig`);
+  if (act.stars && (state.stars ?? 0) < act.stars) throw new Error('Nicht genug ★');
+  if (act.energy) p.energy = Math.max(0, p.energy - act.energy);
+  if (act.stars) state.stars -= act.stars;
+  return addRel(p, act.key, act.gain);
+}
 
 // ---------- Sponsoren ----------
 const sp = state => (state.nsdSponsors ??= { active: [], offer: null });
@@ -138,6 +174,7 @@ export function settleGoals(state) {
   if (n) addStarProgress(state, n * 10);
   if (managerOf(state)) { addRel(p, 'manager', n * 8 - 10); if (p.rel.manager <= 0) fireManager(state); }
   gs.done = true; gs.result = { n, reward };
+  if (n === gs.list.length) (state.flags ??= {}).allGoals = true;
   return res;
 }
 
@@ -167,6 +204,7 @@ export function answerInterview(state, style, rng) {
     const total = iv.answers.reduce((a, x) => a + x.star, 0);
     addStarProgress(state, Math.round(total * (1 + 0.03 * (p.star.level - 1))));
     iv.total = total;
+    (state.flags ??= {}).interview = true;
   }
   return { fans, star, txt, done: iv.answers.length >= iv.qs.length };
 }
@@ -207,6 +245,7 @@ export function seasonAwards(state, y) {
   const add = (label, id, reward) => {
     out.push({ label, id, name: nm(id), mine: id === 'P' });
     if (id === 'P') {
+      (state.flags ??= {}).award = true;
       const r = starPayout(reward, p.star.level);
       state.stars = (state.stars ?? 0) + r; addStarProgress(state, 30); addRel(p, 'fans', 3);
       addNews(state, 'result', `🏅 Auszeichnung: ${label}`, `Belohnung: ${r} ★.`);
@@ -214,7 +253,7 @@ export function seasonAwards(state, y) {
   };
   const poy = yearList(state, 'pdc', y)[0]; if (poy) add('Spieler des Jahres', poy[0], 40);
   const pt = yearList(state, 'protour', y)[0]; if (pt) add('Pro-Tour-Spieler des Jahres', pt[0], 20);
-  const fresh = id => (id === 'P' ? (p.cardVia ?? '').includes(String(y - 1)) && !p.yearsOnTour : (getPlayer(state, id)?.cardVia ?? '').includes(String(y - 1)));
+  const fresh = id => (id === 'P' ? (p.cardVia ?? '').includes(String(y)) && !p.yearsOnTour : (getPlayer(state, id)?.cardVia ?? '').includes(`Q-School UK ${y}`) || (getPlayer(state, id)?.cardVia ?? '').includes(`Q-School Europa ${y}`));
   const nw = yearList(state, 'pdc', y).find(([id]) => fresh(id)); if (nw) add('Newcomer des Jahres', nw[0], 15);
   if ((p.rel.fans ?? 0) >= 75) add('Fan-Liebling', 'P', 15);
   p.yearsOnTour = (p.yearsOnTour ?? 0) + 1;

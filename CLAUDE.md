@@ -18,6 +18,19 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
    - Kartenverlust (`yearEnd`): `state.lastChance = {year}` → Q-School in KW 2 ist dann sichtbar/spielbar (`nsdBlocked` in calendar.js); nach KW 2 ohne Karte (`lastChanceCheck`) → `state.ended` → Screen `careerEnd` (= nend.js).
    - Alte Darts-Career-UI (js/ui/screens, matchUI, level, interview) entfernt; alte Logikmodule bleiben für die Hintergrund-Simulation/Tests.
 
+### Version 7 – Feedback-Runde (gilt vor älteren Angaben unten)
+- **Start**: Saison 2026, KW 3 (direkt nach der Q-School; `NSD_START`), 5 ★, Alter 16–60 (`START_AGES`), Erfahrung mind. +3. Welt = 128 Holder laut Nutzerliste (data/players.js: T = Top 64 + X = letztes Kartenjahr → Karte bis 2026; N1–4 bis 2026, Q-School 2026 bis 2027; `createWorld(rng, 2026)`). Top 64 am Saisonende → +1 Jahr, sonst Verlust (außer Karte läuft noch).
+- **Masters**: im Tour-Modus Vorrunden für alle Holder (Feld bis 128, Top 24 vorn).
+- **Fähigkeit → Attribut** = 87,5 + 12,5/60 × Fähigkeit. Rechenfehler eigener Würfe `ce` = 0,07 − 0,0012 × Rechnen (Sim) bzw. 0,15 − 0,0025 × Rechnen (Zielvorschlag im Liveticker); falsche Doppel oft D13/D11/D5/D17/D19. Selbstvertrauen wirkt im Tour-Modus halb so stark.
+- **Liveticker**: Werfen/Stopp über den großen grünen Knopf in der unteren Leiste (Pause/Tempo/Beenden während des Zielens ausgeblendet); y-Linie ×0,8 Tempo, Grundtempo 0,8 − 0,004 × Fokus; Kreis 17 − 0,2 × Fähigkeit. Zoom-Hilfe beim Checken (Rest ≤ 170, Ausschnitt 230 mm um das Ziel; Optionen → An/Aus, `js/ui/nsd/settings.js`). Gegnerstand wird beim eigenen Wurf angezeigt. Gegner am Board nur bei Matchdarts (rot, „GEGNER WIRFT“). Zusätzlich max. eine Scoring-Aufnahme je Leg (35 %, Rest > 170). Nachnamen mit Zusätzen (`surname`: „Olde Kalter“, „van Gerwen“).
+- **Partie-Übersicht**: Gegner-Ø als Spanne ±15 %, keine eigenen Fähigkeitswerte.
+- **Star-Status**: Sieg × `rankBonus` (Gegner Platz 1 ×1,6 … ab 100 ×1). Niederlage bis Status 10: +1–3 % des Balkens (nicht bei Ø < 85 oder zu null); Note > 6,0: kleines Plus.
+- **Zufriedenheit**: Start 30, nähert sich wöchentlich nur zu 8 % dem Ziel 15 + 0,4·Lifestyle + Freundin (6 + 0,1·Beziehung) + 0,2·Ø aller Beziehungen + Selbstvertrauen; Titel +3, Major-Titel +10.
+- **Beziehungen pflegen** (Leben → Antippen): zufällige Aktion aus `REL_ACTIONS`; Fans/Manager/Sponsoren 60 % Energie, Freundin Geschenk 4 Basis-★; immer +6. Manager/Trainer-Namen je Spielstand zufällig (`nameTeam`).
+- **Ereignisse**: Beziehungen ±1/2 (gekappt), Auftritte/Feiern kosten 60 % Energie (sonst gesperrt). Frau einladen: Chance aus Lifestyle + Status (`meetChance`, 8–75 %), sonst ausgelacht (Fans −1). Getränke füllen Energie auf 100 %.
+- **Minispiele**: frühe Level sehr leicht (Kreis/Linien skaliert). Fokus: 2 s offen, dann umgedreht und sichtbar gemischt (`memorySwaps` 1 → 16, Tempo steigt), **ein** Paar reicht: 0/1/2 Fehler → 3/2/1 Sterne. Abbau ab 30: Formverlust-Schwelle 9 → 3 Wochen (60 J.), Chance 35 → 70 %.
+- **Meilensteine** (133, `data/achievements.js`, Screen `achievements`): 8 Bereiche; „Am Board“ nur selbst geworfen (`state.selfStats` aus `liveHumanDart`), Zähler `state.mstats`, `state.flags`. Einblendung unten (`js/ui/nsd/msToast.js`, Warteschlange `state.msQueue`, Tippen schließt, sonst 3 s).
+
 ### Festgelegte Regeln
 - **Start**: Profil (Vorname, Nachname, Nation, Alter 16–30, Wurfhand; nur männlich, keine Bonuspunkte). Direkt **mit Tourcard** (2 Jahre), nominell einer der Schwächsten. Kein Lokal/DDV/WDF/Q-School/CT/Dev/HNQ/WM-Regional (`NSD_BLOCKED`, `state.mode = 'nsd'`).
 - **Fähigkeiten 0–60**: Scoring, Finishing, Fokus, Rechnen = je 20 Trainingslevel × max. 3 Punkte (`player.skills[key][level]`). **Mental** nicht trainierbar = Star-Status (max. 60). Umrechnung für die Match-Engine: Attribut = 85 + 0,25 × Fähigkeit (`syncAttrs`, 0 ≈ knapp unter dem schwächsten Holder ~87, 60 = Weltspitze 100).

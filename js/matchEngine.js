@@ -17,7 +17,7 @@ export function makeProfile(attrs, rng, mod = {}) {
     co: checkoutBase(attrs) * (mod.coMult ?? 1),
     men: attrs.men,
     foc: attrs.foc,
-    ce: calcError(attrs.cal),
+    ce: attrs.ce ?? calcError(attrs.cal),
     exp: attrs.exp ?? 0,
   };
 }

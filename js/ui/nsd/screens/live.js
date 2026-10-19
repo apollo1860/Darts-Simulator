@@ -1,15 +1,16 @@
 // DartConnect-Liveticker (Tour-Modus): Aufnahme für Aufnahme, Schlüsselmomente wirfst du selbst.
 // Zielmechanik: Ziel wählen → vertikale Linie stoppen → horizontale Linie stoppen → Dart landet zufällig im Kreis
 // am Schnittpunkt (Kreis kleiner, je besser die Fähigkeiten). Gegner-Matchdarts werden auf der Scheibe gezeigt.
-import { esc, fmtNum } from '../../../util.js';
+import { esc, fmtNum, surname } from '../../../util.js';
+import { getSettings } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
-import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall, isBigTreble,
+import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
-import { wave, landInCircle } from '../../../throwModel.js';
+import { wave, landInCircle, miscalcTarget } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
-import { canSelfPlay } from '../../../nsd.js';
+import { canSelfPlay, skillEffective } from '../../../nsd.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { confirmDialog } from '../../components.js';
 import { frame, bar, bindHead } from '../frame.js';
@@ -17,9 +18,9 @@ import { frame, bar, bindHead } from '../frame.js';
 export const nsd = true;
 const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
-const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE' };
-const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann zweimal stoppen. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p>';
-const shortName = n => n.trim().split(/\s+/).slice(-1)[0];
+const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME' };
+const Y_SPEED = 0.8;   // Linie von oben nach unten etwas langsamer als die seitliche
+const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken lässt sich in den Optionen abschalten. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p>';
 let ui = null;
 
 export function render(app) {
@@ -50,29 +51,46 @@ export function mount(root, app) {
   const pm = playerMatch(s.activeEvent);
   ui = { app, s, live, me: live.me, ids: [pm.a, pm.b], timer: 0, raf: 0, paused: false, fast: false, lines: [],
     el: root.querySelector('#dc'), ticker: root.querySelector('#ticker'), aimEl: root.querySelector('#aim'), aim: null, show: null };
-  root.querySelector('#l-pause').onclick = e => {
-    ui.paused = !ui.paused;
-    e.currentTarget.querySelector('.lb').textContent = ui.paused ? 'Weiter' : 'Pause';
-    if (!ui.paused && !ui.aim) schedule(300);
-  };
-  root.querySelector('#l-fast').onclick = e => { ui.fast = !ui.fast; e.currentTarget.classList.toggle('on', ui.fast); };
-  root.querySelector('#l-end').onclick = async () => {
-    if (!await confirmDialog('Sofort beenden?', 'Der Rest des Matches wird ohne Anzeige simuliert – ohne deine Schlüsselmomente.', 'Beenden')) return;
-    if (!ui) return;
-    const { s: st, app: ap } = ui;
-    stopAll(); simulateLiveRest(st); nextRound(st); ap.save(); ap.go('matchstats');
-  };
+  ui.barEl = root.querySelector('.nsd-bar');
+  ui.barHtml = ui.barEl.innerHTML;
+  ui.ce = Math.max(0, 0.15 - 0.0025 * skillEffective(s.player, 'cal'));   // Rechenfehler beim Zielvorschlag
+  bindBar();
   document.addEventListener('keydown', onKey);
   if (!canSelfPlay(s.player)) say('😵 Nicht match-fit – die KI wirft für dich.', 'bad');
   draw();
   schedule(700);
 }
 
+// Untere Leiste: normal Pause/Tempo/Sofort beenden – beim Selbstwerfen nur der große Wurf-Knopf
+function bindBar() {
+  const q = id => ui.barEl.querySelector(id);
+  q('#l-pause').onclick = e => {
+    ui.paused = !ui.paused;
+    e.currentTarget.querySelector('.lb').textContent = ui.paused ? 'Weiter' : 'Pause';
+    if (!ui.paused && !ui.aim) schedule(300);
+  };
+  q('#l-fast').onclick = e => { ui.fast = !ui.fast; e.currentTarget.classList.toggle('on', ui.fast); };
+  q('#l-fast').classList.toggle('on', ui.fast);
+  q('#l-end').onclick = async () => {
+    if (ui?.aim) return;
+    if (!await confirmDialog('Sofort beenden?', 'Der Rest des Matches wird ohne Anzeige simuliert – ohne deine Schlüsselmomente.', 'Beenden')) return;
+    if (!ui) return;
+    const { s: st, app: ap } = ui;
+    stopAll(); simulateLiveRest(st); nextRound(st); ap.save(); ap.go('matchstats');
+  };
+}
+function throwBar() {
+  ui.barEl.innerHTML = '<span class="nsd-gap"></span><button class="nsd-btn wide nsd-throw" id="throw"><span class="ic" style="color:#2bd33a">🎯</span><span class="lb">Werfen</span></button><span class="nsd-gap"></span>';
+  ui.barEl.querySelector('#throw').addEventListener('pointerdown', e => { e.preventDefault(); onAction(); });
+}
+function normalBar() { ui.barEl.innerHTML = ui.barHtml; bindBar(); }
+const $t = () => ui.barEl.querySelector('#throw');
+
 export function unmount() { if (!ui) return; stopAll(); document.removeEventListener('keydown', onKey); ui = null; }
 function stopAll() { clearTimeout(ui.timer); cancelAnimationFrame(ui.raf); }
 const wait = ms => (ui.fast ? ms / 3 : ms);
 function schedule(ms) { clearTimeout(ui.timer); ui.timer = setTimeout(step, wait(ms)); }
-const nm = i => shortName(ui.s.activeEvent?.teams?.[ui.ids[i]]?.name ?? getPlayer(ui.s, ui.ids[i])?.name ?? '?');
+const nm = i => surname(ui.s.activeEvent?.teams?.[ui.ids[i]]?.name ?? getPlayer(ui.s, ui.ids[i])?.name ?? '?');
 
 // ---------- Ablauf ----------
 function step() {
@@ -83,12 +101,9 @@ function step() {
   const key = keyMoment(ui.s);
   if (key) return startAim(key);
   if (m.turn !== ui.me && boardCall(ui.s) === 'match') return startShow('match');
-  const side = m.turn, pre = [];
+  const side = m.turn;
   let r;
-  do {
-    r = liveDartStep(ui.s); pre.push(r.dart);
-    if (!r.visitOver && side !== ui.me && pre.length === 2 && pre.every(d => isBigTreble(d.hit))) { ui.app.save(); draw(); return startShow('180', pre); }
-  } while (!r.visitOver);
+  do r = liveDartStep(ui.s); while (!r.visitOver);
   afterVisit(r.ev, side);
 }
 
@@ -144,14 +159,28 @@ function mark(x, y, mine) {
   $('#marks').appendChild(g);
 }
 function banner(text, good) { const b = $('#banner'); b.textContent = text; b.className = `board-banner show ${good ? 'leg' : 'bust'}`; }
-function closeOverlay() { ui.aimEl.classList.add('hidden'); ui.aimEl.innerHTML = ''; ui.aim = null; ui.show = null; }
+function closeOverlay() {
+  const wasAim = !!ui.aim;
+  ui.aimEl.classList.add('hidden'); ui.aimEl.classList.remove('opp'); ui.aimEl.innerHTML = ''; ui.aim = null; ui.show = null;
+  if (wasAim) normalBar();
+}
+// Zoom-Hilfe: beim Checken auf das Viertel um das Ziel heranzoomen
+function zoomTo(label) {
+  const svg = $('#bsvg');
+  if (!svg) return;
+  const zoom = getSettings().zoom && ui.aim && ui.live.m.rem[ui.me] <= 170;
+  if (!zoom) return svg.setAttribute('viewBox', '-200 -200 400 400');
+  const p = targetPoint(label), size = 230, h = size / 2;
+  const cx = Math.max(-200 + h, Math.min(200 - h, p.x)), cy = Math.max(-200 + h, Math.min(200 - h, p.y));
+  svg.setAttribute('viewBox', `${(cx - h).toFixed(1)} ${(cy - h).toFixed(1)} ${size} ${size}`);
+}
 
 // Gegner-Matchdarts / 180 im Anflug: Dart für Dart zeigen
 function startShow(kind, pre = []) {
   const m = ui.live.m, side = m.turn;
   ui.show = { kind, side, start: m.visit?.start ?? m.rem[side], sum: 0 };
-  ui.aimEl.classList.remove('hidden');
-  ui.aimEl.innerHTML = boardHtml(kind === 'match' ? `⚠️ MATCHDARTS · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>` : `🔥 180 IM ANFLUG? · ${esc(nm(side))}`);
+  ui.aimEl.classList.remove('hidden'); ui.aimEl.classList.add('opp');
+  ui.aimEl.innerHTML = boardHtml(`🔴 GEGNER WIRFT · MATCHDARTS · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>`);
   for (const d of pre) { ui.show.sum += d.hit.score; mark(d.x, d.y, false); }
   ui.timer = setTimeout(showDart, wait(pre.length ? 1100 : 800));
 }
@@ -173,11 +202,11 @@ function startAim(kind) {
   const m = ui.live.m;
   ui.aim = { kind, phase: 'pick', target: null, prm: null, fx: 0, fy: 0, t0: 0, ph: 0, rng: new RNG(ui.s.rng) };
   ui.aimEl.classList.remove('hidden');
-  ui.aimEl.innerHTML = boardHtml(`${KIND[kind]} · Du stehst auf <b id="rem">${m.rem[ui.me]}</b>`,
-    `<div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>
-     <button class="nsd-btn blue nsd-throw" id="throw"><span class="lb">Werfen</span></button>`);
+  ui.aimEl.innerHTML = boardHtml(`🟢 DU WIRFST · ${KIND[kind]} · Rest <b id="rem">${m.rem[ui.me]}</b>`,
+    `<div class="nsd-aim-opp">Gegner ${esc(nm(1 - ui.me))} steht auf <b>${m.rem[1 - ui.me]}</b> · Legs ${m.legs[ui.me]}:${m.legs[1 - ui.me]}</div>
+     <div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>`);
+  throwBar();
   $('#stage').addEventListener('pointerdown', onStage);
-  $('#throw').addEventListener('pointerdown', e => { e.preventDefault(); onAction(); });
   $('#chips').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b && ui.aim?.phase === 'pick') setTarget(b.dataset.t); });
   nextDart();
 }
@@ -186,16 +215,18 @@ function nextDart() {
   a.phase = 'pick';
   $('#rem').textContent = m.rem[ui.me];
   ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
-  setTarget(suggestTarget(m.rem[ui.me], dartsLeft(m)));
-  $('#throw').querySelector('.lb').textContent = `Werfen (Dart ${m.visit.darts.length + 1})`;
-  $('#throw').disabled = false;
+  const sug = suggestTarget(m.rem[ui.me], dartsLeft(m));
+  setTarget(miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng));         // schwaches Rechnen: Vorschlag manchmal falsch
+  $t().querySelector('.lb').textContent = `Werfen (Dart ${m.visit.darts.length + 1})`;
+  $t().disabled = false;
 }
 function setTarget(label) {
   const a = ui.aim, m = ui.live.m, p = targetPoint(label);
   a.target = label; a.prm = aimParams(ui.s, label);
   $('#cross').style.display = ''; $('#cross').setAttribute('transform', `translate(${p.x} ${p.y})`);
   $('#region').setAttribute('d', regionPath(label));
-  const route = checkoutRoute(m.rem[ui.me], dartsLeft(m));
+  zoomTo(label);
+  const route = ui.ce < 0.12 ? checkoutRoute(m.rem[ui.me], dartsLeft(m)) : null;   // Weg nur bei ordentlichem Rechnen
   $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}`;
   const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
   $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${fieldName(t)}</button>`).join('');
@@ -222,14 +253,14 @@ function onAction() {
 }
 function linePos(axis, now) {
   const a = ui.aim, p = targetPoint(a.target), dt = (now - a.t0) / 1000;
-  return (axis === 'v' ? p.x : p.y) + a.prm.amp * wave(a.ph + dt * a.prm.freq * (axis === 'v' ? 1 : 1.13));
+  return (axis === 'v' ? p.x : p.y) + a.prm.amp * wave(a.ph + dt * a.prm.freq * (axis === 'v' ? 1 : Y_SPEED));
 }
 function startLine(axis) {
   const a = ui.aim, p = targetPoint(a.target);
   a.phase = axis; a.t0 = performance.now(); a.ph = a.rng.next();
   const line = $(axis === 'v' ? '#vline' : '#hline'), circ = $('#circ');
   line.style.display = ''; circ.style.display = ''; circ.setAttribute('r', a.prm.radius.toFixed(1));
-  $('#throw').querySelector('.lb').textContent = 'Stopp';
+  $t().querySelector('.lb').textContent = 'Stopp';
   cancelAnimationFrame(ui.raf);
   const tick = now => {
     if (!ui?.aim || ui.aim.phase !== axis) return;
@@ -249,11 +280,12 @@ function stopLine() {
   }
   a.fy = pos; $('#hline').setAttribute('transform', `translate(0 ${pos})`); $('#hline').classList.add('fixed');
   $('#circ').setAttribute('cy', pos);
-  a.phase = 'busy'; $('#throw').disabled = true;
+  a.phase = 'busy'; $t().disabled = true;
   const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
   mark(pt.x, pt.y, true);
   ui.app.save(); draw(r.visitOver ? r.ev : null);
+  if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
   banner(txt, !r.ev?.bust);
   if (!r.visitOver) { ui.timer = setTimeout(() => { if (ui?.aim) { $('#banner').className = 'board-banner'; nextDart(); } }, 700); return; }
@@ -265,7 +297,7 @@ function draw(ev) {
   const m = ui.live.m, me = ui.me, op = 1 - me;
   const visits = m.legVisits ?? [[], []], active = m.done ? -1 : m.turn;
   const head = (i, side) => `<div class="dc-player ${side} ${active === i ? 'active' : ''}">
-      <div class="dc-name">${m.legStarter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm">${esc(i === me ? ui.s.player.name.split(' ').slice(-1)[0] : nm(i))}</span></div>
+      <div class="dc-name">${m.legStarter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm">${esc(i === me ? surname(ui.s.player.name) : nm(i))}</span></div>
       <div class="dc-scorebox">${side === 'right' ? '' : avgs(i)}<span class="dc-rem">${m.rem[i]}</span>${side === 'right' ? avgs(i) : ''}</div></div>`;
   const avgs = i => `<div class="dc-avgs"><span class="dc-legavg">${fmtNum(legAverage(m, i), 0)}</span><span class="dc-avg">${fmtNum(liveAverage(m, i), 0)}</span></div>`;
   const nextRow = active >= 0 ? visits[active].length : -1, rows = Math.max(visits[0].length, visits[1].length, nextRow + 1, 1);

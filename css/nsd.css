@@ -375,8 +375,8 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-mg-result .stars { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; }
 .nsd-mg-result .stars .off { opacity: .25; filter: grayscale(1); }
 .nsd .nsd-main { position: relative; }
-.nsd-memo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: auto 0; }
-.nsd-memo-card { aspect-ratio: 1; border-radius: 10px; border: 3px solid #f4f2e8; font-size: 2.2rem; cursor: pointer;
+.nsd-memo { position: relative; aspect-ratio: 1; margin: auto 0; }
+.nsd-memo-card { position: absolute; width: calc(25% - 8px); height: calc(25% - 8px); margin: 4px; border-radius: 10px; border: 3px solid #f4f2e8; font-size: 2.2rem; cursor: pointer;
   background: linear-gradient(#fdfcf6, #dcd8c6); box-shadow: 0 3px 0 rgba(0,0,0,.35); transition: transform .15s; }
 .nsd-memo-card.back { font-size: 0; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.18) 0 6px, transparent 6px 12px); }
 .nsd-memo-card.back.red { background-color: #d8283d; } .nsd-memo-card.back.blue { background-color: #2563c9; }
@@ -395,7 +395,7 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-calc-darts.bad span.on { background: linear-gradient(#ff6b6b, #d40000); }
 .nsd-calc-darts em { width: 100%; text-align: center; color: #ffb3b3; font-style: normal; }
 .nsd-meters.one { grid-template-columns: 1fr; }
-.nsd-memo { width: min(100%, max(220px, calc(100vh - 530px))); width: min(100%, max(220px, calc(100dvh - 530px))); margin: auto; }
+.nsd-memo { width: min(100%, max(200px, calc(100vh - 575px))); width: min(100%, max(200px, calc(100dvh - 575px))); margin: auto; }
 
 /* ===== Etappe 4: Leben ===== */
 .nsd-alert { width: 100%; border: 0; font-size: 1.1rem; cursor: pointer; font-family: var(--nsd-font); color: #ffde3b; animation: nsd-pulse 1.4s ease-in-out infinite; }
@@ -446,3 +446,30 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-stats-t th { color: #fff; text-shadow: var(--nsd-shadow); }
 .nsd-pager { gap: 6px; }
 .nsd-pager button { font-size: 1rem; }
+
+/* ===== Version 7: Feedback ===== */
+.nsd-aim.opp { background: radial-gradient(circle at 50% 40%, #4a1f1f, #1a0b0b 80%); box-shadow: inset 0 0 0 4px #e53935; }
+.nsd-aim.opp .nsd-aim-head { color: #ff8a8a; }
+.nsd-aim-opp { text-align: center; font-weight: 700; font-size: .95rem; padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,.4); text-shadow: var(--nsd-shadow); }
+.nsd-aim-opp b { color: #ff8a8a; }
+.nsd-bar .nsd-throw { background: linear-gradient(#6cff4a 0, #35e81a 50%, #12c800 50%, #2bdc12 100%); border-color: #0f7d00; }
+.nsd-bar .nsd-throw .lb { font-size: 1.5rem; }
+/* Meilensteine */
+.nsd-ms-toast { position: fixed; left: 50%; bottom: 18px; z-index: 9999; transform: translate(-50%, 140%); transition: transform .25s ease;
+  display: flex; align-items: center; gap: 12px; width: min(92vw, 440px); padding: 12px 16px; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(#3b3b3b, #1c1c1c); border: 3px solid #ffde3b; color: #fff; font-family: var(--nsd-font); text-align: left;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.nsd-ms-toast.show { transform: translate(-50%, 0); }
+.nsd-ms-toast .ic { font-size: 2.2rem; }
+.nsd-ms-toast small { display: block; color: #ffde3b; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; font-size: .75rem; }
+.nsd-ms-toast b { font-size: 1.15rem; }
+.nsd-ms-group { padding: 6px 8px 10px; }
+.nsd-ms-head { font-weight: 800; font-size: 1.05rem; padding: 6px 4px; text-shadow: var(--nsd-shadow); }
+.nsd-ms-head small { opacity: .8; font-weight: 600; }
+.nsd-ms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.nsd-ms { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 8px; text-align: center;
+  background: rgba(0,0,0,.35); border: 2px solid rgba(255,255,255,.1); filter: grayscale(1); opacity: .45; text-shadow: var(--nsd-shadow); }
+.nsd-ms.on { filter: none; opacity: 1; background: linear-gradient(#3a5f2c, #24421a); border-color: #ffde3b; }
+.nsd-ms .ic { font-size: 1.8rem; line-height: 1.1; }
+.nsd-ms .lb { font-size: .78rem; font-weight: 700; line-height: 1.15; }
+.nsd-ms .rw { font-size: .68rem; opacity: .85; }

@@ -1,12 +1,20 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 7 – Feedback-Runde**: Start 2026 nach der Q-School mit echter Holder-Liste, Masters-Vorrunden, 5 ★, Alter bis 60 mit Abbau ab 30, Zielen-Bug behoben (Wurf-Knopf unten), Zoom-Hilfe, Gegnerstand/-Matchdarts, Scoring-Momente, Rechenfehler, leichterer Start, neue Star-Status-Regeln, Zufriedenheit langsam, Beziehungs-Aktionen, Ereignisse ±2/60 % Energie, Getränke auf 100 %, Fokus-Memory neu, 133 Meilensteine mit Einblendung.
 - [x] **Etappe 1 – Grundgerüst & Design**: NSS-Look (Glasdach, eigene Pixel-Zuschauer, graue Glanz-Buttons, grüner Rasen), Titelbildschirm, Spielstände, Optionen (Export/Import), Willkommen, Profil erstellen, Karrierestart mit Tourcard (`newNsdCareer`), Hauptscreen Status, Fähigkeit (0–60), Leben (Beziehungen, Erfolge), Liga (PDC/Pro-Tour-Rangliste). „Spielen“ führt vorerst in den alten Wochenplan bzw. zur nächsten Woche.
 - [x] **Etappe 2 – Spielen**: Wochenansicht (Melden, Weiter +40 % Energie), Turnier-Lobby (VS, Spielen/Simulieren, Ergebnis mit ★ und Star-Status), DartConnect-Liveticker mit Kommentarzeile, Schlüsselmomente selbst werfen (Matchdarts, Entscheidungsleg, Break, Check ab 61) mit Linien + Kreis, Gegner-Matchdarts/180er auf der Scheibe, Energie-Regeln (< 20 %: KI wirft, Malus wächst je Leg), Spielbericht mit Note/Star-Status/Fans, Darts News (Browser-Karte nach Titeln), ★-Preisgeld + ★-Ranglisten.
 - [x] **Etappe 3 – Fähigkeit**: 4 Minispiele (Scoring, Finishing mit Linien + Kreis, Fokus-Memory mit 3 Herzen, Rechnen auf Schema-Scheibe mit Zeitlimit), 20 Level × 3 Sterne je Fähigkeit, Training 55 % Energie, Einstufung nach Profilerstellung, freies Training im Titelmenü, Formverlust mit Vorwarnung, Getränke-Shop (Bier/Schnaps/Wodka, Rausch), Darts-Shop (5 Sets mit Bonus).
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Version 7
+- Holder-Liste: Spieler 65–99 der Nutzerliste haben 2026 ihr letztes Kartenjahr (wie Top 64: Verlust außerhalb der Top 64), 100–128 (Q-School 2026) Karte bis 2027. Nationen laut Liste übernommen (u. a. Dolan IRL, Dekker NO, Lukasiak SE, Ljubić HR). Alter = Listenwert − 1.
+- Masters: alle Holder spielen (Feld 128, Spieler ggf. statt des 128.), Top 24 nach Rangliste vorn – keine eigene Vorrunden-Veranstaltung.
+- Schwierigkeit: Neuling ≈ schwächster Holder (Sim ~25–35 % Siege gegen das PC-Feld), Schlüsselmomente machen den Unterschied.
+- Zoom nur bei Rest ≤ 170. Scoring-Schlüsselmoment höchstens 1× je Leg.
+- Meilenstein-Screenshot des Nutzers fehlte – Gestaltung als Kachel-Raster (grau/farbig) nach Beschreibung.
 
 ### Annahmen Etappe 6
 - „Last Chance“ = die normale Q-School (UK oder Europa) in KW 2 des Folgejahres: Halbfinale an einem der 4 Tage → Tourcard bis Ende Folgejahr. Wer nicht spielt oder scheitert, beendet die Karriere (Spielstand bleibt als „Karriereende“ im Slot).

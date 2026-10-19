@@ -5,7 +5,7 @@ import { RNG } from '../../../rng.js';
 import { ORDER, scoreAt, targetPoint, fieldName, labelValue } from '../../../board.js';
 import { wave, landInCircle } from '../../../throwModel.js';
 import { TRAINABLE, skillEffective } from '../../../nsd.js';
-import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
+import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { frame, titleBand, darkBar, bar, heartIcon, starIcon } from '../frame.js';
 
@@ -15,7 +15,7 @@ let g = null;   // Laufzeit-Zustand
 const TASK = {
   sco: L => `Wirf mit einer Aufnahme mindestens <b>${scoringMin(L)}</b> Punkte.`,
   fin: L => `Triff <b>${fieldName(finishTarget(L))}</b> – 3 Darts pro Versuch.`,
-  foc: L => `Merke dir die Karten (${String(memoryPreview(L)).replace('.', ',')} s) und finde alle Paare.`,
+  foc: L => `Merken (2 s), dem Mischen (${memorySwaps(L)}×) folgen, <b>ein</b> Paar finden.`,
   cal: L => `Tippe ein gültiges Finish für die Zahl an${calcTime(L) ? ` – ${calcTime(L)} Sekunden Zeit` : ''}.`,
 };
 
@@ -199,12 +199,13 @@ function stopLine() {
 }
 
 // ================= Fokus: Memory 4×4 =================
+// 2 s offen zeigen, umdrehen, dann sichtbar vermischen (Tausche je Level). Ein gefundenes Paar = geschafft:
+// ohne Fehler 3 Sterne, 1 Fehler 2, 2 Fehler 1, 3 Fehler (Herzen weg) = gescheitert.
 const ICONS = ['🎯', '🏆', '🍺', '🎤', '⭐', '🥇', '🎟️', '👕'];
 const BACKS = ['red', 'blue', 'green', 'yellow'];
 function memoryGame() {
-  g.hearts = ATTEMPTS; g.open = []; g.found = 0;
-  const cards = g.rng.shuffle([...ICONS, ...ICONS]).map(icon => ({ icon, back: g.rng.pick(BACKS), up: true, done: false }));
-  g.cards = cards;
+  g.hearts = ATTEMPTS; g.open = [];
+  g.cards = g.rng.shuffle([...ICONS, ...ICONS]).map((icon, i) => ({ icon, back: g.rng.pick(BACKS), up: true, done: false, pos: i }));
   drawMemory(); tries(true);
   setAction('Los', () => {
     setAction('Merken …', null, true);
@@ -213,21 +214,24 @@ function memoryGame() {
     show();
     g.tick = setInterval(() => {
       left = Math.max(0, left - 0.1); show();
-      if (left <= 0) { clearInterval(g.tick); cards.forEach(c => { c.up = false; }); drawMemory(); tries(true); setAction('Paare finden', null, true); g.play = true; }
+      if (left > 0) return;
+      clearInterval(g.tick);
+      g.cards.forEach(c => { c.up = false; }); drawMemory(); tries(true);
+      setAction('Mischen …', null, true);
+      later(() => shuffleStep(memorySwaps(g.level)), 400);
     }, 100);
   });
   g.el('#mg').addEventListener('click', e => {
     const b = e.target.closest('[data-c]');
     if (!b || !g.play || g.open.length >= 2) return;
-    const c = cards[+b.dataset.c];
+    const c = g.cards[+b.dataset.c];
     if (c.up || c.done) return;
     c.up = true; g.open.push(c); drawMemory();
     if (g.open.length < 2) return;
     const [a, d] = g.open;
-    if (a.icon === d.icon) {
-      a.done = d.done = true; g.open = []; g.found++; drawMemory();
-      if (g.found === ICONS.length) { g.play = false; later(() => end(ATTEMPTS - g.hearts + 1), 600); }
-      return;
+    if (a.icon === d.icon) {                                    // Paar gefunden → geschafft
+      a.done = d.done = true; g.play = false; drawMemory();
+      return later(() => end(ATTEMPTS - g.hearts + 1), 700);
     }
     g.hearts--; tries(true);
     later(() => {
@@ -236,9 +240,35 @@ function memoryGame() {
     }, 800);
   });
 }
+// Zwei verdeckte Karten tauschen ihre Plätze (sichtbar animiert)
+function shuffleStep(n) {
+  if (!g) return;
+  if (n <= 0) { g.play = true; setAction('Ein Paar finden', null, true); return; }
+  const i = g.rng.int(0, 15);
+  let j = g.rng.int(0, 14); if (j >= i) j++;
+  const a = g.cards.find(c => c.pos === i), b = g.cards.find(c => c.pos === j);
+  a.pos = j; b.pos = i;
+  placeCards(memorySwapMs(g.level));
+  later(() => shuffleStep(n - 1), memorySwapMs(g.level) + 120);
+}
 function drawMemory() {
-  g.el('#mg').innerHTML = `<div class="nsd-memo">${g.cards.map((c, i) =>
-    `<button class="nsd-memo-card ${c.up || c.done ? 'up' : `back ${c.back}`} ${c.done ? 'done' : ''}" data-c="${i}">${c.up || c.done ? c.icon : ''}</button>`).join('')}</div>`;
+  const el = g.el('#mg');
+  if (!el.querySelector('.nsd-memo')) {
+    el.innerHTML = `<div class="nsd-memo">${g.cards.map((c, i) => `<button class="nsd-memo-card" data-c="${i}"></button>`).join('')}</div>`;
+  }
+  el.querySelectorAll('[data-c]').forEach(b => {
+    const c = g.cards[+b.dataset.c];
+    b.className = `nsd-memo-card ${c.up || c.done ? 'up' : `back ${c.back}`} ${c.done ? 'done' : ''}`;
+    b.textContent = c.up || c.done ? c.icon : '';
+  });
+  placeCards(0);
+}
+function placeCards(ms) {
+  g.el('#mg').querySelectorAll('[data-c]').forEach(b => {
+    const c = g.cards[+b.dataset.c];
+    b.style.transition = ms ? `left ${ms}ms ease-in-out, top ${ms}ms ease-in-out` : 'none';
+    b.style.left = `${(c.pos % 4) * 25}%`; b.style.top = `${Math.floor(c.pos / 4) * 25}%`;
+  });
 }
 
 // ================= Rechnen: Finish auf einer (vereinfachten) Scheibe antippen =================

@@ -12,15 +12,18 @@ export const LOCAL_SHIFT = 6;   // lokale Gegner etwas schwächer als die Listen
 const POOL_MAX = 300;          // Spieler ohne Karte (Challenge + Dev, inkl. schwacher Pool)
 
 // tier: tour | challenge | dev | local ; cardUntil = letzte Saison mit gültiger Tourcard
+// startYear 2026 (Tour-Modus): Stand nach der Q-School 2026 – alle 128 Holder laut Nutzerliste (Top 64 + 35 im letzten Kartenjahr: Karte bis 2026; Q-School 2026: bis 2027)
 export function createWorld(rng, startYear = 2027) {
+  const y26 = startYear === 2026, ageShift = 2027 - startYear;
   const players = {};
   const add = (rows, prefix, tier, cardUntil) => rows.forEach(([name, nation, age, avg], i) => {
     const id = `${prefix}${i + 1}`;
-    players[id] = { id, name, nation, age, avg, tier, cardUntil, attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
+    players[id] = { id, name, nation, age: age - ageShift, avg, tier, cardUntil, attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
   });
   add(TOUR_TOP64, 'T', 'tour', startYear);              // Ende 2026 in den Top 64 → +1 Jahr (bis 2027)
-  add(TOUR_EXPIRING, 'X', 'challenge', null);           // Karte Ende 2026 verloren → Q-School
-  add(TOUR_NEW_2026, 'N', 'tour', startYear);           // 2-Jahres-Karte 2026/2027
+  add(TOUR_EXPIRING, 'X', y26 ? 'tour' : 'challenge', y26 ? 2026 : null);   // 2026 noch Holder, Ende 2026 ohne Top 64 → Verlust
+  add(TOUR_NEW_2026, 'N', 'tour', y26 ? 2027 : startYear);           // 2-Jahres-Karte 2026/2027
+  if (y26) for (let i = 1; i <= 4; i++) players[`N${i}`].cardUntil = 2026;   // CT/Dev 2025 (laut Liste: 1 Jahr)
   add(CHALLENGE_PLAYERS, 'C', 'challenge', null);
   add(DEV_PLAYERS, 'D', 'dev', null);
   add(LOCAL_PLAYERS.map(([n, nat, a, avg]) => [n, nat, a, avg - LOCAL_SHIFT]), 'L', 'local', null);
@@ -34,16 +37,17 @@ export function createWorld(rng, startYear = 2027) {
   addDdvPool(world, rng);
   addWeakPool(world, rng);
   // Challenge-/Dev-Tour 2026: je Top 2 der Nutzerliste (Listenplatz 1–2) erhalten eine Karte bis Ende 2028
-  for (const prefix of ['C', 'D']) {
+  for (const prefix of y26 ? [] : ['C', 'D']) {
     [1, 2].map(i => players[prefix + i])
       .forEach(p => { p.tier = 'tour'; p.cardUntil = startYear + 1; });
   }
   for (const p of Object.values(players)) {
-    if (p.id[0] === 'T') p.cardVia = `Top 64 PDC ${startYear - 1}`;
-    if (p.id[0] === 'N') p.cardVia = +p.id.slice(1) <= 2 ? `Challenge Tour ${startYear - 2}` : +p.id.slice(1) <= 4 ? `Development Tour ${startYear - 2}`
-      : `${QSCHOOL_UK_2026.includes(p.name) ? 'Q-School UK' : 'Q-School Europa'} ${startYear - 1}`;
+    if (p.id[0] === 'T') p.cardVia = `Top 64 PDC ${y26 ? 2025 : startYear - 1}`;
+    if (p.id[0] === 'X' && y26) p.cardVia = 'Tourcard 2025/2026';
+    if (p.id[0] === 'N') p.cardVia = +p.id.slice(1) <= 2 ? `Challenge Tour ${y26 ? 2025 : startYear - 2}` : +p.id.slice(1) <= 4 ? `Development Tour ${y26 ? 2025 : startYear - 2}`
+      : `${QSCHOOL_UK_2026.includes(p.name) ? 'Q-School UK' : 'Q-School Europa'} 2026`;
   }
-  for (const [pre, label] of [['C', 'Challenge Tour'], ['D', 'Development Tour']]) for (const i of [1, 2]) players[pre + i].cardVia = `${label} ${startYear - 1}`;
+  if (!y26) for (const [pre, label] of [['C', 'Challenge Tour'], ['D', 'Development Tour']]) for (const i of [1, 2]) players[pre + i].cardVia = `${label} ${startYear - 1}`;
   updateTiers({ world });
   return world;
 }

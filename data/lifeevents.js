@@ -1,16 +1,18 @@
 // New Star Darts: Lebens-Ereignisse (Karten). Je Woche 35 % Chance auf eins (wenn keins offen ist).
 // if(p, state) = Bedingung; Optionen mit Effekten: energy, sat, fans, partner, manager, sponsors, stars (Basis-★, × Status-Faktor; negativ = Kosten),
 // idle (true = Trainingsrückstand zurücksetzen), single (Beziehung endet), meet (neue Freundin, Startwert), chance {p, ok, fail}.
-// Texte: {partner} = Name der Freundin.
+// Texte: {partner} = Name der Freundin. Aktionen (Auftritte, Feiern …) kosten immer 60 % Energie (nur ab 60 % wählbar);
+// Beziehungs-Änderungen durch Ereignisse sind auf ±2 begrenzt (life.js).
 export const PARTNER_NAMES = ['Lena', 'Laura', 'Sarah', 'Julia', 'Anna', 'Lisa', 'Marie', 'Sophie', 'Emma', 'Mia', 'Hannah', 'Jessica', 'Nina', 'Kim', 'Chloe', 'Emily', 'Olivia', 'Sanne', 'Femke', 'Alicia'];
 const hasPartner = p => (p.rel?.partner ?? 0) > 0;
 
 export const LIFE_EVENTS = [
   { id: 'party', icon: '🎉', text: 'Deine Kumpels schmeißen eine Party und wollen dich unbedingt dabeihaben.',
-    opts: [{ label: 'Hingehen', energy: -20, sat: 8, fans: 1, out: 'Lange Nacht, gute Laune.' },
+    opts: [{ label: 'Hingehen', energy: -60, sat: 8, fans: 1, out: 'Lange Nacht, gute Laune.' },
       { label: 'Absagen', sat: -3, out: 'Die Jungs sind etwas enttäuscht.' }] },
   { id: 'meet', icon: '💘', if: p => !hasPartner(p), text: 'Nach dem Turnier spricht dich {partner} an der Bar an. Sie scheint sich für Darts zu interessieren …',
-    opts: [{ label: 'Auf einen Drink einladen', stars: -2, chance: { p: 0.6, ok: { meet: 30, sat: 10, out: 'Ihr versteht euch blendend – ihr seid jetzt zusammen!' }, fail: { sat: -3, out: 'Ein netter Abend, aber mehr wird daraus nicht.' } } },
+    // Chance hängt von Lifestyle und Star-Status ab (life.js: meetChance); ohne beides wirst du ausgelacht
+    opts: [{ label: 'Auf einen Drink einladen', stars: -2, chance: { p: 'meet', ok: { meet: 30, sat: 10, out: 'Ihr versteht euch blendend – ihr seid jetzt zusammen!' }, fail: { fans: -1, sat: -3, out: 'Sie lacht dich aus und geht zu ihren Freundinnen zurück. Autsch.' } } },
       { label: 'Freundlich abwinken', out: 'Du konzentrierst dich auf Darts.' }] },
   { id: 'dinner', icon: '🍝', if: hasPartner, text: '{partner} möchte mit dir schick essen gehen.',
     opts: [{ label: 'Edles Restaurant', stars: -5, partner: 6, sat: 4, out: '{partner} strahlt den ganzen Abend.' },
@@ -24,16 +26,16 @@ export const LIFE_EVENTS = [
     opts: [{ label: 'Wochenende frei nehmen', energy: 10, partner: 6, out: 'Ein ruhiges Wochenende zu zweit tut euch gut.' },
       { label: 'Darts geht vor', partner: -8, chance: { p: 0.25, ok: { single: true, sat: -10, out: '{partner} macht Schluss.' }, fail: { out: '{partner} zieht sich zurück.' } } }] },
   { id: 'fanvideo', icon: '📱', text: 'Ein junger Fan bittet um eine Video-Grußbotschaft.',
-    opts: [{ label: 'Klar, mach ich', energy: -3, fans: 3, out: 'Das Video geht viral – die Fans lieben es.' },
+    opts: [{ label: 'Klar, mach ich', energy: -60, fans: 3, out: 'Das Video geht viral – die Fans lieben es.' },
       { label: 'Keine Zeit', fans: -2, out: 'Schade, findet die Community.' }] },
   { id: 'charity', icon: '🤝', text: 'Du wirst zu einem Charity-Darts-Abend für ein Kinderhospiz eingeladen.',
-    opts: [{ label: 'Mitmachen', energy: -15, fans: 4, sponsors: 2, sat: 4, out: 'Ein bewegender Abend für einen guten Zweck.' },
+    opts: [{ label: 'Mitmachen', energy: -60, fans: 4, sponsors: 2, sat: 4, out: 'Ein bewegender Abend für einen guten Zweck.' },
       { label: 'Ablehnen', out: 'Vielleicht beim nächsten Mal.' }] },
   { id: 'tv', icon: '📺', text: 'Das Regionalfernsehen möchte ein Porträt über dich drehen.',
-    opts: [{ label: 'Gerne', energy: -5, fans: 3, sat: 2, out: 'Du machst eine gute Figur vor der Kamera.' },
+    opts: [{ label: 'Gerne', energy: -60, fans: 3, sat: 2, out: 'Du machst eine gute Figur vor der Kamera.' },
       { label: 'Lieber nicht', out: 'Du bleibst lieber im Hintergrund.' }] },
   { id: 'pubshow', icon: '🍻', text: 'Eine Kneipe bucht dich für einen Show-Abend gegen ihre Stammgäste.',
-    opts: [{ label: 'Annehmen', stars: 4, energy: -20, fans: 2, out: 'Gage kassiert, Stimmung bestens.' },
+    opts: [{ label: 'Annehmen', stars: 4, energy: -60, fans: 2, out: 'Gage kassiert, Stimmung bestens.' },
       { label: 'Ablehnen', energy: 5, out: 'Du ruhst dich lieber aus.' }] },
   { id: 'strain', icon: '🩹', text: 'Dein Wurfarm zwickt – eine leichte Zerrung.',
     opts: [{ label: 'Zum Physio', stars: -4, energy: 10, out: 'Gut behandelt, alles locker.' },
@@ -51,15 +53,15 @@ export const LIFE_EVENTS = [
     opts: [{ label: 'Entschuldigen', fans: -1, out: 'Die Sache ist schnell vergessen.' },
       { label: 'Mit Humor nehmen', chance: { p: 0.5, ok: { fans: 3, out: 'Die Leute lachen mit dir.' }, fail: { fans: -4, sat: -2, out: 'Nicht alle finden das lustig.' } } }] },
   { id: 'club', icon: '🪩', text: 'Ein paar Tour-Spieler ziehen nach dem Turnier noch in einen Club.',
-    opts: [{ label: 'Mitfeiern', energy: -30, sat: 10, out: 'Legendäre Nacht.' },
+    opts: [{ label: 'Mitfeiern', energy: -60, sat: 10, out: 'Legendäre Nacht.' },
       { label: 'Ins Hotel', energy: 5, out: 'Ausgeschlafen in die neue Woche.' }] },
   { id: 'camp', icon: '🏋️', text: 'Ein Ex-Profi bietet dir einen privaten Trainingstag an.',
-    opts: [{ label: 'Buchen', stars: -8, energy: -20, idle: true, out: 'Viel gelernt – deine Fähigkeiten sind wieder frisch.' },
+    opts: [{ label: 'Buchen', stars: -8, energy: -60, idle: true, out: 'Viel gelernt – deine Fähigkeiten sind wieder frisch.' },
       { label: 'Ablehnen', out: 'Du trainierst lieber allein.' }] },
   { id: 'housewarming', icon: '🏠', if: p => (p.owned ?? []).some(id => ['flat', 'townhouse', 'villa', 'island'].includes(id)), text: 'Zeit für eine Party in deinem neuen Zuhause?',
-    opts: [{ label: 'Party!', stars: -3, energy: -15, fans: 2, sat: 6, out: 'Alle beneiden dich um dein Zuhause.' },
+    opts: [{ label: 'Party!', stars: -3, energy: -60, fans: 2, sat: 6, out: 'Alle beneiden dich um dein Zuhause.' },
       { label: 'Ruhig bleiben', energy: 5, out: 'Du genießt die Ruhe.' }] },
   { id: 'carfan', icon: '🚗', if: p => (p.owned ?? []).some(id => ['sportscar', 'limo'].includes(id)), text: 'Fans erkennen dich an deinem Auto und wollen Selfies.',
-    opts: [{ label: 'Anhalten', energy: -3, fans: 3, out: 'Ein Dutzend Selfies später …' },
+    opts: [{ label: 'Anhalten', energy: -60, fans: 3, out: 'Ein Dutzend Selfies später …' },
       { label: 'Weiterfahren', fans: -1, out: 'Du hast es eilig.' }] },
 ];

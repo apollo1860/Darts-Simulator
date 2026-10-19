@@ -13,7 +13,7 @@ export const MAJOR_CATS = ['major', 'ws', 'pl'];
 const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 8, plf: 4, wmq: 0, pln: 0, gsod: 32 };
 
 export const RULE_TEXT = {
-  masters: 'Top 24 der PDC Order of Merit', ukopen: 'Tourcard oder Top 32 der Challenge-Tour-OOM',
+  masters: 'Top 24 der PDC Order of Merit (Tour-Modus: alle Tourcard-Holder, Vorrunden)', ukopen: 'Tourcard oder Top 32 der Challenge-Tour-OOM',
   matchplay: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM', wgp: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM',
   ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Pro Tour OOM', gsod: 'Top 16 PDC, Top 12 Pro Tour oder Top 2 CT/Dev',
   wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, CT/Dev Top 3, Jugend-Weltmeister, internationaler Qualifier oder TCHQ',
@@ -107,7 +107,11 @@ function computeField(state, ev) {
   const pdc = idsOf(orderOfMerit(state, 'pdc')), pt = idsOf(orderOfMerit(state, 'protour'));
   const used = new Set();
   switch (ev.fmt) {
-    case 'masters': return pdc.slice(0, 24);
+    case 'masters': {                        // Tour-Modus: Vorrunden für alle Holder (Top 24 gesetzt vorn), sonst Top 24
+      if (state.mode !== 'nsd') return pdc.slice(0, 24);
+      const holders = pdc.filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
+      return holders.length > 128 ? [...holders.slice(0, 127), ...(holders.slice(0, 127).includes('P') ? [holders[127]] : ['P'])].filter(Boolean) : holders;
+    }
     case 'matchplay': case 'wgp': return [...take(pdc, 16, used), ...take(pt, 16, used)];
     case 'ec': return idsOf(orderOfMerit(state, 'eto')).slice(0, 32);
     case 'pcf': return pt.slice(0, 64);

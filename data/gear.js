@@ -1,10 +1,10 @@
 // New Star Darts: Getränke und Darts (fiktiv). Preise = Basis bei Star-Status 1 (× starFactor).
-// Getränke: Energie sofort; Schnaps/Wodka zusätzlich „Rausch“ = Bonuspunkte auf alle trainierbaren Fähigkeiten bis Wochenende,
+// Getränke: Energie sofort auf 100 %; Schnaps/Wodka zusätzlich „Rausch“ = Bonuspunkte auf alle trainierbaren Fähigkeiten bis Wochenende,
 // Wodka außerdem Beziehung +1 (niedrigste bestehende).
 export const DRINKS = [
-  { id: 'beer', name: 'Bier', icon: '🍺', price: 1, energy: 20, buzz: 0, rel: 0 },
-  { id: 'schnaps', name: 'Schnaps', icon: '🥃', price: 3, energy: 25, buzz: 2, rel: 0 },
-  { id: 'wodka', name: 'Wodka', icon: '🍸', price: 5, energy: 30, buzz: 3, rel: 1 },
+  { id: 'beer', name: 'Bier', icon: '🍺', price: 1, energy: 100, buzz: 0, rel: 0 },
+  { id: 'schnaps', name: 'Schnaps', icon: '🥃', price: 3, energy: 100, buzz: 2, rel: 0 },
+  { id: 'wodka', name: 'Wodka', icon: '🍸', price: 5, energy: 100, buzz: 3, rel: 1 },
 ];
 // Darts: dauerhafter Bonus (Fähigkeitspunkte), solange ausgerüstet
 export const DARTS = [

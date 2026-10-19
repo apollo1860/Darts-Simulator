@@ -5,11 +5,12 @@ export const MANAGERS = [
   { id: 'm2', name: 'Sandra Voss', icon: '👩‍💼', cut: 0.15, offer: 0.32, mult: 1.3, needStar: 10, needRank: 64, info: 'Gut vernetzt bei Sponsoren' },
   { id: 'm3', name: 'Victor Lennox', icon: '🕴️', cut: 0.20, offer: 0.45, mult: 1.7, needStar: 30, needRank: 16, info: 'Holt die ganz großen Deals' },
 ];
-// Fitnesstrainer: Wochengebühr, Energie-Erholung pro Woche
+// Namen werden je Spielstand zufällig zusammengesetzt (career.js: nameTeam); name = Ersatz für alte Stände
+// Fitnesstrainer: Wochengebühr, Energie-Erholung pro Woche (title + Zufallsname)
 export const TRAINERS = [
-  { id: 'f1', name: 'Fitness-Studio-Coach', icon: '🏃', fee: 1, regen: 6 },
-  { id: 'f2', name: 'Athletiktrainer Brandt', icon: '🏋️', fee: 3, regen: 12 },
-  { id: 'f3', name: 'Sportwissenschaftlerin Dr. Ilić', icon: '🧬', fee: 6, regen: 18 },
+  { id: 'f1', title: 'Fitness-Coach', name: 'Fitness-Studio-Coach', icon: '🏃', fee: 1, regen: 6 },
+  { id: 'f2', title: 'Athletiktrainer', name: 'Athletiktrainer Brandt', icon: '🏋️', fee: 3, regen: 12 },
+  { id: 'f3', title: 'Sportwissenschaftler Dr.', name: 'Sportwissenschaftlerin Dr. Ilić', icon: '🧬', fee: 6, regen: 18 },
 ];
 // Interview: je Frage 3 Antworten – humble (bescheiden), proud (selbstbewusst), cocky (großspurig)
 export const INTERVIEW_QS = [
@@ -20,4 +21,11 @@ export const INTERVIEW_QS = [
   { q: 'Wie wichtig sind dir die Fans?', a: ['Ohne sie wäre ich nichts.', 'Die Stimmung hat mich heute getragen.', 'Die kommen doch wegen mir.'] },
   { q: 'Wie hast du dich vorbereitet?', a: ['Ganz normal trainiert, nichts Besonderes.', 'Viel Training an den Doppeln – hat sich ausgezahlt.', 'Vorbereitung? Talent reicht.'] },
 ];
+// Beziehungs-Aktionen (Tippen im Leben-Screen): zufällige Aktion, kostet 60 % Energie, Beziehung +REL_GAIN
+export const REL_ACTIONS = {
+  fans: ['Autogrammstunde', 'Twitch-Livestream', 'Grußbotschaft', 'Give-Away', 'Make-A-Wish-Foundation'],
+  manager: ['Meet & Greet mit potenziellen Sponsoren', 'Fotoshooting für Werbeflyer', 'Gemeinsam essen gehen', 'Gemeinsam etwas trinken'],
+  sponsors: ['Fotoshooting für Werbung', 'Instagram-Post', 'Meet & Greet', 'Gemeinsam essen gehen', 'Autogrammkarten unterschreiben'],
+  partner: ['Blumenstrauß', 'Parfüm', 'Kurztrip', 'Schmuck', 'Candle-Light-Dinner'],
+};
 export const STYLE_LABEL = ['bescheiden', 'selbstbewusst', 'großspurig'];

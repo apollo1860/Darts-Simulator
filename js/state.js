@@ -20,14 +20,14 @@ export const emptyStats = () => ({
   events: 0, titles: 0, finals: 0,
 });
 
-export function newCareer({ name, nation, hand, age = 16, region = DEFAULT_REGION, bonus = {}, slot = 1, seed = randomSeed() }) {
+export function newCareer({ name, nation, hand, age = 16, region = DEFAULT_REGION, bonus = {}, slot = 1, seed = randomSeed(), year = START_YEAR, week = 1 }) {
   age = Math.max(START_AGES[0], Math.min(START_AGES[1], Math.round(age)));
   const rngState = { s: seed >>> 0 };
   const rng = new RNG(rngState);
   const state = {
     version: VERSION, slot, seed, createdAt: Date.now(), savedAt: 0,
     rng: rngState,
-    date: { year: START_YEAR, week: 1 },
+    date: { year, week }, startYear: year,
     player: {
       id: 'P', name, nation, hand, age,
       region: nation === 'DE' ? region : null,
@@ -35,7 +35,7 @@ export function newCareer({ name, nation, hand, age = 16, region = DEFAULT_REGIO
       level: 1, xp: 0, xpTotal: 0, pointsEarned: 0, points: 0,
       tour: 'none', cardUntil: null, qschoolYear: null, avgReal: null, everTourcard: false, proMatches: 0,
     },
-    world: createWorld(rng),
+    world: createWorld(rng, year),
     finance: { balance: START_BUDGET, tx: [], seasons: {}, prizeTotal: 0 },
     week: { played: false, eventId: null },
     activeEvent: null,
@@ -46,11 +46,11 @@ export function newCareer({ name, nation, hand, age = 16, region = DEFAULT_REGIO
     rankings: { years: {} },
     ended: false,
   };
-  seedRankings(state, rng, START_YEAR);
+  seedRankings(state, rng, year);
   createRival(state, rng);
-  seasonFinance(state, START_YEAR);
-  seasonStats(state, START_YEAR);
-  state.finance.tx.unshift({ year: START_YEAR, week: 1, text: 'Startkapital', amount: START_BUDGET, cat: 'start' });
+  seasonFinance(state, year);
+  seasonStats(state, year);
+  state.finance.tx.unshift({ year, week, text: 'Startkapital', amount: START_BUDGET, cat: 'start' });
   addNews(state, 'info', `Willkommen, ${name}!`,
     'Deine Karriere beginnt. Ohne Tourcard bleiben dir vorerst lokale Turniere – sammle Erfahrung und Preisgeld. Die Q-School findet in KW 2 statt.');
   return state;

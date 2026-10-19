@@ -18,8 +18,10 @@ export const FIN_TARGETS = ['D20', 'D16', 'D10', 'D8', 'D18', 'D12', 'D4', 'D6',
 export const finishTarget = L => FIN_TARGETS[lvl(L) - 1];
 // Linien werden je Level nur minimal schneller (+1,5 %/Level)
 export const lineSpeed = L => 1 + 0.015 * (lvl(L) - 1);
-// Fokus (Memory 4×4): Vorschau-Zeit in Sekunden (L1 8 s … L20 2,5 s)
-export const memoryPreview = L => Math.round((8 - 5.5 * (lvl(L) - 1) / 19) * 10) / 10;
+// Fokus (Memory 4×4): Karten 2 s offen, dann umgedreht und vermischt – Anzahl und Tempo der Tausche steigen mit dem Level
+export const memoryPreview = () => 2;
+export const memorySwaps = L => Math.round(1 + (lvl(L) - 1) * 0.8);          // L1 1 … L20 16 Tausche
+export const memorySwapMs = L => Math.round(1100 - (lvl(L) - 1) * 40);        // L1 1,1 s … L20 0,34 s je Tausch
 // Rechnen: Zeitlimit (L1–5 ohne, L6 20 s … L20 8 s) und Zahlenbereich
 export const calcTime = L => (lvl(L) <= 5 ? null : Math.round(20 - 12 * (lvl(L) - 6) / 14));
 export function calcRange(L) {
@@ -39,11 +41,13 @@ export function validFinish(labels, rem) {
 }
 
 // Aim-Parameter für Scoring/Finishing-Training aus der aktuellen Fähigkeit (ohne Druck)
+// Frühe Level sehr leicht: kleiner Kreis, ruhige Linien; je Level etwas schwerer
 export function trainAim(skill, focus, L) {
+  const t = (lvl(L) - 1) / 19;
   return {
-    radius: Math.max(5, Math.min(36, 20 - 0.22 * skill)),
-    amp: Math.max(24, Math.min(50, 40 - 0.25 * focus)),
-    freq: Math.max(0.65, Math.min(1.3, 0.95 - 0.004 * focus)) * lineSpeed(L),
+    radius: Math.max(4, Math.min(36, (17 - 0.2 * skill) * (0.55 + 0.45 * t))),
+    amp: Math.max(16, Math.min(50, (40 - 0.25 * focus) * (0.6 + 0.4 * t))),
+    freq: Math.max(0.4, Math.min(1.3, (0.8 - 0.004 * focus) * (0.7 + 0.3 * t))) * lineSpeed(L),
   };
 }
 
@@ -82,8 +86,13 @@ export function finishTraining(state, key, L, attempt, { placement = false } = {
 }
 
 // ---- Formverlust: ab 9 Wochen ohne Training kann 1 Punkt verloren gehen, ab 13 Wochen 2 … (je 4 Wochen +1) ----
+// Ab 30 körperlicher Abbau: die Schwelle sinkt bis 60 auf 3 Wochen, die Chance steigt bis 70 %
 export const DECAY_FROM = 9, DECAY_STEP = 4, DECAY_CHANCE = 0.35, DECAY_WARN = 7;
-export const decayPoints = idle => (idle < DECAY_FROM ? 0 : 1 + Math.floor((idle - DECAY_FROM) / DECAY_STEP));
+const ageT = age => Math.max(0, Math.min(1, ((age ?? 20) - 29) / 31));
+export const decayFrom = (age = 20) => DECAY_FROM - Math.round(6 * ageT(age));
+export const decayChance = (age = 20) => DECAY_CHANCE + 0.35 * ageT(age);
+export const decayWarn = (age = 20) => Math.max(1, decayFrom(age) - 2);
+export const decayPoints = (idle, age = 20) => (idle < decayFrom(age) ? 0 : 1 + Math.floor((idle - decayFrom(age)) / DECAY_STEP));
 // Letzten Stern des höchsten Levels abziehen
 export function removePoint(p, key) {
   const arr = p.skills[key];
@@ -96,12 +105,12 @@ export function decayWeek(state, rng) {
   for (const t of TRAINABLE) {
     const idle = p.idle[t.key] = (p.idle[t.key] ?? 0) + 1;
     if (skillValue(p, t.key) <= 0) continue;
-    if (idle >= DECAY_WARN && idle < DECAY_FROM && !p.warned[t.key]) {
+    if (idle >= decayWarn(p.age) && idle < decayFrom(p.age) && !p.warned[t.key]) {
       p.warned[t.key] = true;
-      addNews(state, 'info', `⚠️ ${t.label} lässt bald nach`, `Seit ${idle} Wochen kein ${t.label}-Training. Ab ${DECAY_FROM} Wochen können Punkte verloren gehen.`);
+      addNews(state, 'info', `⚠️ ${t.label} lässt bald nach`, `Seit ${idle} Wochen kein ${t.label}-Training. Ab ${decayFrom(p.age)} Wochen können Punkte verloren gehen${p.age >= 30 ? ' (ab 30 baut der Körper schneller ab)' : ''}.`);
     }
-    const n = decayPoints(idle);
-    if (n && rng.chance(DECAY_CHANCE)) {
+    const n = decayPoints(idle, p.age);
+    if (n && rng.chance(decayChance(p.age))) {
       let lost = 0;
       for (let k = 0; k < n; k++) if (removePoint(p, t.key)) lost++;
       if (lost) addNews(state, 'info', `📉 ${t.label} −${lost}`, `${idle} Wochen ohne Training: ${t.label} sinkt auf ${skillValue(p, t.key)}. Trainiere, um das zu stoppen.`);
@@ -110,7 +119,7 @@ export function decayWeek(state, rng) {
   syncAttrs(p);
 }
 // Fähigkeiten mit drohendem Verlust (für Hinweise)
-export const decayRisk = p => TRAINABLE.filter(t => (p.idle?.[t.key] ?? 0) >= DECAY_WARN && skillValue(p, t.key) > 0);
+export const decayRisk = p => TRAINABLE.filter(t => (p.idle?.[t.key] ?? 0) >= decayWarn(p.age) && skillValue(p, t.key) > 0);
 
 // ---- Getränke ----
 export const drinkPrice = (d, level) => starPrice(d.price, level);
@@ -125,7 +134,7 @@ export function drink(state, id, rng) {
   const p = state.player, d = DRINKS.find(x => x.id === id);
   if (!(p.drinks[id] > 0)) throw new Error(`Kein ${d.name} mehr da`);
   p.drinks[id]--;
-  addEnergy(p, d.energy);
+  p.energy = 100;                                   // jedes Getränk füllt die Energie ganz auf
   if (d.buzz) { p.buzz = (p.buzz ?? 0) + d.buzz; syncAttrs(p); }
   let rel = null;
   if (d.rel) {                                  // niedrigste bestehende Beziehung (Fans immer, andere nur wenn vorhanden)

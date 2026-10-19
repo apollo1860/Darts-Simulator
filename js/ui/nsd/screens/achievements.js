@@ -1,18 +1,25 @@
-// Erfolge: einmalige Meilensteine mit ★-Belohnung
-import { ACHIEVEMENTS } from '../../../../data/achievements.js';
+// Meilensteine: alle auf einen Blick – erreicht in Farbe, offen ausgegraut; nach Bereichen gruppiert
+import { ACHIEVEMENTS, MS_CATS } from '../../../../data/achievements.js';
 import { starPayout } from '../../../nsd.js';
-import { frame, header, titleBand, coin, bar, bindHead } from '../frame.js';
+import { esc } from '../../../util.js';
+import { frame, header, titleBand, bar, bindHead } from '../frame.js';
 
 export const nsd = true;
 export function render(app) {
   const s = app.state, got = s.achievements ?? {}, n = ACHIEVEMENTS.filter(a => got[a.id]).length;
+  const groups = MS_CATS.map(([cat, label]) => {
+    const list = ACHIEVEMENTS.filter(a => a.cat === cat), k = list.filter(a => got[a.id]).length;
+    return `<div class="nsd-ms-group"><div class="nsd-ms-head">${label} <small>${k}/${list.length}</small></div>
+      <div class="nsd-ms-grid">${list.map(a => `<div class="nsd-ms ${got[a.id] ? 'on' : ''}" title="${esc(a.label)}">
+        <span class="ic">${a.icon}</span><span class="lb">${esc(a.label)}</span>
+        <span class="rw">${got[a.id] ? `KW ${got[a.id].week}/${got[a.id].year}` : `${starPayout(a.stars, s.player.star.level)} ★`}</span></div>`).join('')}</div></div>`;
+  }).join('');
   return frame({
     cls: 'fixed',
-    body: `${header(s.player.name)}${titleBand(`Erfolge ${n}/${ACHIEVEMENTS.length}`)}
-      <div class="nsd-scroll"><table class="nsd-table nsd-ach">${ACHIEVEMENTS.map(a => `<tr class="${got[a.id] ? 'me' : ''}">
-        <td class="c">${a.icon}</td><td class="nm">${a.label}${got[a.id] ? `<small>KW ${got[a.id].week}/${got[a.id].year}</small>` : ''}</td>
-        <td class="num">${got[a.id] ? '✔' : coin(starPayout(a.stars, s.player.star.level))}</td></tr>`).join('')}</table></div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { go: 'life', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    body: `${header(s.player.name)}${titleBand(`Meilensteine ${n}/${ACHIEVEMENTS.length}`)}<div class="nsd-scroll">${groups}</div>`,
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'stats', icon: '📋', label: 'Statistik' }, { go: 'life', icon: '<span class="nsd-check">✔</span>', wide: true }]),
   });
 }
-export function mount(root, app) { bindHead(root, app, '<p>Erfolge gibt es nur einmal. Die Belohnung in ★ steigt mit deinem Star-Status.</p>'); }
+export function mount(root, app) {
+  bindHead(root, app, '<p>Jeder Meilenstein zählt einmal und bringt ★ (steigen mit deinem Star-Status). Meilensteine „Am Board“ – 180er, High Finishes, Big Fish – gibt es nur für Würfe, die du im Liveticker selbst wirfst.</p>');
+}

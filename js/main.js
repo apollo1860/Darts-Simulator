@@ -1,6 +1,7 @@
 // Bootstrap & Router
 import { saveGame } from './state.js';
 import { toast, modal } from './ui/components.js';
+import { flushMilestones } from './ui/nsd/msToast.js';
 // New Star Darts
 import * as title from './ui/nsd/screens/title.js';
 import * as slots from './ui/nsd/screens/slots.js';
@@ -60,6 +61,7 @@ const app = {
     app.screen = name; app.params = params;
     root.innerHTML = wrap(SCREENS[name], SCREENS[name].render(app, params));
     SCREENS[name].mount?.(root, app, params);
+    flushMilestones(app);
     window.scrollTo({ top: 0 });
   },
   refresh() { // gleichen Screen neu zeichnen, Scrollposition behalten
@@ -67,6 +69,7 @@ const app = {
     SCREENS[app.screen]?.unmount?.();
     root.innerHTML = wrap(SCREENS[app.screen], SCREENS[app.screen].render(app, app.params), 'style="animation:none"');
     SCREENS[app.screen].mount?.(root, app, app.params);
+    flushMilestones(app);
     window.scrollTo({ top: y });
   },
   save(silent = true) {
@@ -75,7 +78,7 @@ const app = {
     if (!ok) toast('Speichern fehlgeschlagen (Speicher voll?)', 'error');
     else if (!silent) toast('Gespeichert', 'success');
   },
-  toast, modal,
+  toast, modal, flushMilestones: () => flushMilestones(app),
 };
 
 // Globale Navigation per data-go

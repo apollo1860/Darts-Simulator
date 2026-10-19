@@ -50,7 +50,8 @@ export const fatigueFactor = (m, foc) => 1 + Math.max(0, m.legIdx - 8) * 0.012 *
 // Rechnen: mit Wahrscheinlichkeit ce wird falsch gestellt (naives T20/Single) oder das falsche Doppel angespielt
 function maybeMiscalc(target, rem, ce, rng) {
   if (rem > 230 || !rng.chance(rem <= 40 ? ce * 0.5 : ce)) return target;
-  if (isDoubleLabel(target) && target !== 'BULL') {
+  if (isDoubleLabel(target) && target !== 'BULL') {             // falsches Doppel: oft untypische (D13, D11, D5, D17, D19)
+    if (rng.chance(0.5)) return rng.pick(['D13', 'D11', 'D5', 'D17', 'D19']);
     const n = +target.slice(1), w = Math.min(20, Math.max(1, n + rng.pick([-3, -2, -1, 1, 2, 3])));
     return 'D' + w;
   }
@@ -61,8 +62,8 @@ function maybeMiscalc(target, rem, ce, rng) {
 
 // KI-Dart: Ziel wählen + werfen. Rückgabe {target, x, y, hit}
 export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced = null) {
-  // forced = vom Spieler gewählter Weg (keine Rechenfehler)
-  const target = forced ?? maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m)), m.rem[i], calcError(attrs.cal), rng);
+  // forced = vom Spieler gewählter Weg (keine Rechenfehler); attrs.ce = eigene Fehlerquote (Tour-Modus, aus Rechnen 0–60)
+  const target = forced ?? maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m)), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng);
   const p = targetPoint(target);
   const base = isDoubleLabel(target) ? sig.dbl : sig.score;
   const s = base * mult * pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);
@@ -92,16 +93,16 @@ export function wave(phase) {
 
 // New Star Darts: Kreis-Zielmechanik – zwei Linien wie beim manuellen Zielen, am Schnittpunkt ein Kreis,
 // in dem der Dart gleichverteilt landet. Kreis aus Scoring (Doppel/Bull: Finishing), Linien aus Fokus.
-// Fähigkeit 0–60 ≙ Attribut 85–100; Druck (Matchdart, Entscheidungsleg) und Ausdauer vergrößern beides.
-const skillEq = v => (v - 85) / 0.25;
+// Fähigkeit 0–60 ≙ Attribut 87,5–100; Druck (Matchdart, Entscheidungsleg) und Ausdauer vergrößern beides.
+const skillEq = v => (v - 87.5) / (12.5 / 60);
 export function circleParams(attrs, m, i, target) {
   const dbl = isDoubleLabel(target) || target === '25';
   const sk = skillEq(dbl ? attrs.fin : attrs.sco), fk = skillEq(attrs.foc);
   const pf = pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);
   return {
-    radius: clamp(20 - 0.22 * sk, 5, 36) * pf,
+    radius: clamp(17 - 0.2 * sk, 5, 36) * pf,
     amp: clamp(40 - 0.25 * fk, 24, 50),
-    freq: clamp(0.95 - 0.004 * fk, 0.65, 1.3) * Math.sqrt(pf),
+    freq: clamp(0.8 - 0.004 * fk, 0.55, 1.2) * Math.sqrt(pf),
     pressure: pf > 1.05,
   };
 }
@@ -110,3 +111,6 @@ export function landInCircle(x, y, r, rng) {
   const a = rng.next() * 2 * Math.PI, d = r * Math.sqrt(rng.next());
   return { x: x + Math.cos(a) * d, y: y + Math.sin(a) * d };
 }
+
+// Zielvorschlag mit möglichem Rechenfehler (für den eigenen Wurf im Liveticker)
+export const miscalcTarget = (target, rem, ce, rng) => maybeMiscalc(target, rem, ce, rng);

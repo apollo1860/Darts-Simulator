@@ -1,5 +1,5 @@
 // Spielbericht nach jedem eigenen Match: Statistik beider Spieler, Note, Star-Status, Fans, Energie
-import { esc, fmtNum } from '../../../util.js';
+import { esc, fmtNum, surname } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { starPct } from '../../../nsd.js';
 import { frame, header, titleBand, darkBar, bar, meter, starIcon, heartIcon, bindHead } from '../frame.js';
@@ -20,7 +20,7 @@ export function render(app) {
     body: `${header(p.name)}${titleBand(esc(lm.round))}
       ${darkBar(`${lm.won ? 'SIEG' : 'NIEDERLAGE'} ${lm.score[0]} : ${lm.score[1]}`, lm.won ? '' : 'red')}
       <table class="nsd-table nsd-stats">
-        <tr><th>${flag(p.nation)} Du</th><th></th><th class="nm">${flag(getPlayer(s, lm.opp)?.nation)} ${esc(nameOf(s, lm.opp).split(' ').slice(-1)[0])}</th></tr>
+        <tr><th>${flag(p.nation)} Du</th><th></th><th class="nm">${flag(getPlayer(s, lm.opp)?.nation)} ${esc(surname(nameOf(s, lm.opp)))}</th></tr>
         ${row('Average', fmtNum(a.avg, 2), fmtNum(b.avg, 2))}
         ${row('180er', a.s180, b.s180)}
         ${row('140+', a.s140, b.s140)}

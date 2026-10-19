@@ -36,3 +36,13 @@ export function weekRange(year, week) {
 export const weekLabel = (year, week) => `KW ${week} · ${weekRange(year, week)}`;
 
 export const uid = (() => { let n = 0; return p => `${p}${Date.now().toString(36)}${(n++).toString(36)}`; })();
+
+// Nachname inkl. Namenszusätzen (van, van der, de, Olde …): „Dennie Olde Kalter“ → „Olde Kalter“, „Michael van Gerwen“ → „van Gerwen“
+const PARTICLES = new Set(['van', 'von', 'de', 'den', 'der', 'da', 'di', 'du', 'le', 'la', 'olde', 'ten', 'ter', "o'"]);
+export function surname(name) {
+  const parts = String(name ?? '').trim().split(/\s+/);
+  if (parts.length <= 1) return parts[0] ?? '';
+  let i = parts.length - 1;
+  while (i > 1 && PARTICLES.has(parts[i - 1].toLowerCase())) i--;
+  return parts.slice(i).join(' ');
+}

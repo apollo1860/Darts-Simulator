@@ -20,7 +20,7 @@ export function render(app, params = {}) {
   if (!v) return frame({ body: `${titleBand('Ereignis')}<div class="nsd-card">Nichts los.</div>`, bottom: bar([null, null, { id: 'le-ok', icon: '<span class="nsd-check">✔</span>', wide: true }]) });
   return frame({
     body: `${titleBand('Ereignis')}<div class="nsd-card nsd-life"><div class="ic">${v.icon}</div><div class="txt">${esc(v.text)}</div>
-      <div class="opts">${v.opts.map(o => `<button class="nsd-btn" data-o="${o.i}" ${o.cost > (s.stars ?? 0) ? 'disabled' : ''}><span class="lb">${esc(o.label)}${o.cost ? ` ${coin(o.cost)}` : ''}</span></button>`).join('')}</div></div>`,
+      <div class="opts">${v.opts.map(o => `<button class="nsd-btn" data-o="${o.i}" ${o.cost > (s.stars ?? 0) || o.tired ? 'disabled' : ''}><span class="lb">${esc(o.label)}${o.cost ? ` ${coin(o.cost)}` : ''}${o.energy ? ` · −${o.energy} % ⚡` : ''}</span></button>`).join('')}</div></div>`,
   });
 }
 export function mount(root, app, params = {}) {

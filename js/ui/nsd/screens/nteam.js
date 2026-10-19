@@ -1,6 +1,5 @@
 // Team: Manager (Provision, Sponsor-Angebote, Ziele) und Fitnesstrainer (Wochengebühr, Energie-Erholung)
-import { MANAGERS, TRAINERS } from '../../../../data/team.js';
-import { managerOf, managerOk, hireManager, fireManager, trainerOf, trainerFee, hireTrainer, fireTrainer } from '../../../career.js';
+import { managersOf, trainersOf, managerOf, managerOk, hireManager, fireManager, trainerOf, trainerFee, hireTrainer, fireTrainer } from '../../../career.js';
 import { frame, header, titleBand, darkBar, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
@@ -13,7 +12,7 @@ export function render(app) {
     body: `${header(p.name)}${titleBand('Team')}
       ${darkBar(m ? `💼 ${m.name}` : 'Kein Manager', 'sm')}
       ${m ? `<div class="nsd-meters one">${meter({ label: `Beziehung ${Math.round(p.rel.manager)}`, pct: p.rel.manager })}</div>` : ''}
-      <div class="nsd-evs">${MANAGERS.map(x => {
+      <div class="nsd-evs">${managersOf(s).map(x => {
         const on = m?.id === x.id, ok = managerOk(s, x);
         return `<div class="nsd-ev ${on ? 'on' : ok ? '' : 'off'}"><div class="nsd-ev-main"><div class="nsd-ev-name">${x.icon} ${x.name}</div>
           <div class="nsd-ev-sub">${x.info}</div><div class="nsd-ev-sub">Provision ${Math.round(x.cut * 100)} % · Sponsoren ×${String(x.mult).replace('.', ',')}</div>
@@ -21,7 +20,7 @@ export function render(app) {
           ${on ? '<button class="nsd-btn" id="m-fire"><span class="lb">Entlassen</span></button>' : ok ? `<button class="nsd-btn" data-m="${x.id}"><span class="lb">Holen</span></button>` : ''}</div>`;
       }).join('')}</div>
       ${darkBar(t ? `🏃 ${t.name}` : 'Kein Fitnesstrainer', 'sm')}
-      <div class="nsd-evs">${TRAINERS.map(x => {
+      <div class="nsd-evs">${trainersOf(s).map(x => {
         const on = t?.id === x.id;
         return `<div class="nsd-ev ${on ? 'on' : ''}"><div class="nsd-ev-main"><div class="nsd-ev-name">${x.icon} ${x.name}</div>
           <div class="nsd-ev-sub">Erholung +${x.regen} % pro Woche</div><div class="nsd-ev-sub">Gebühr ${coin(trainerFee(x, lvl))} pro Woche</div></div>

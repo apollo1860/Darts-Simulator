@@ -48,7 +48,7 @@ export function frame({ body, bottom = '', bg = 'green', cls = '' }) {   // cls 
 // Vollbild-Textkarte (grüner Rasen) mit Haken-Button
 export function card(text, { okId = 'nsd-ok', left = null } = {}) {
   return frame({
-    body: `<div class="nsd-card">${text}</div>`,
+    body: `<div class="nsd-card"><div>${text}</div></div>`,
     bottom: bar([left, null, { id: okId, icon: '<span class="nsd-check">✔</span>', wide: true }]),
   });
 }

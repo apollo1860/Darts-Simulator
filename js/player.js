@@ -64,7 +64,7 @@ export const perf = p => {
   const f = Math.max(0, ((p.fatigue ?? 0) - 30) / 70);
   if (f) { a.sco -= f * 6; a.foc -= f * 8; a.fin -= f * 4; }
   // Selbstvertrauen (Momentum): ±1,5 … ±4 auf Scoring, Finishing, Fokus
-  const mb = momentumBonus(p);
+  const mb = momentumBonus(p) * (p.skills ? 0.5 : 1);   // Tour-Modus: Selbstvertrauen wirkt halb so stark
   if (mb) { a.sco += mb; a.fin += mb; a.foc += mb; }
   // Turniervorbereitung (Training): Bonus auf das trainierte Attribut
   // Formtief: −malus auf Scoring, Finishing, Fokus
@@ -79,7 +79,7 @@ export const perf = p => {
 // XP von Level L nach L+1 = 50·L·(1 + 2·((L−1)/99)²), auf 10 gerundet: 50, 100, 150 … L50 ≈ 3.750, L99 = 14.650
 // Summe bis Level 50 ≈ 76 Tsd. XP, bis Level 100 ≈ 491 Tsd. XP
 // Startalter 16–30 wählbar; ältere Starter bringen etwas Erfahrung mit (+1 je 2 Jahre über 16, max. +3)
-export const START_AGES = [16, 30];
+export const START_AGES = [16, 60];
 export const startExp = (age = 16) => Math.min(EXP_MIN + Math.floor((age - 16) / 2), EXP_MIN + 7);
 
 export const MAX_LEVEL = 100;
