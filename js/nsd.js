@@ -8,7 +8,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 14;
+export const APP_VERSION = 15;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -105,7 +105,7 @@ export function starPrizeTable(fmtKey) {
   const W = STAR_PRIZE_WIN[fmtKey];
   if (!W) return {};
   if (fmtKey === 'pln') return { W };
-  const shares = fmtKey === 'ukopen' ? { ...STAR_SHARES, L96: 0.01, L128: 0.005 } : STAR_SHARES;   // UK Open: Runde 2/3
+  const shares = fmtKey === 'ukopen' ? { ...STAR_SHARES, L96: 0.01, L128: 0.005 } : fmtKey === 'wcod' ? { ...STAR_SHARES, G2: 0.04, G3: 0.02 } : STAR_SHARES;   // UK Open: Runde 2/3, World Cup: Gruppe
   return { W, ...Object.fromEntries(Object.entries(shares).map(([k, v]) => [k, Math.round(W * v * 10) / 10])) };
 }
 // Auszahlung an den Spieler (mind. 1 ★, wenn es überhaupt etwas gibt)

@@ -10,7 +10,7 @@ import { clamp } from './util.js';
 
 export const MAJOR_CATS = ['major', 'ws', 'pl'];
 // Anzahl gesetzter Spieler (Rest wird zugelost)
-const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 8, plf: 4, wmq: 0, gsq: 0, pln: 0, gsod: 32 };
+const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 999, plf: 4, wmq: 0, gsq: 0, pln: 0, gsod: 32 };
 
 export const RULE_TEXT = {
   masters: 'Top 24 der PDC Order of Merit (Tour-Modus: alle Tourcard-Holder, Vorrunden)', ukopen: 'Tourcard, Top 8 Challenge-/Dev-Tour-OOM oder Riley’s-Amateur-Qualifier',
@@ -19,7 +19,7 @@ export const RULE_TEXT = {
   gsq: 'Tourcard ohne direkten Grand-Slam-Platz',
   wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, Jugend-Weltmeister, Platz 2–4 CT/Dev, internationaler Qualifier oder Tour Card Holder Qualifier',
   ws: 'Einladung: Top 8 PDC OOM (+ 8 Qualifikanten)', wsf: 'Top 24 der World-Series-Wertung',
-  pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten deiner Nation',
+  pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten einer der 40 World-Cup-Nationen',
 };
 
 const idsOf = list => list.map(x => x.p.id);
@@ -102,18 +102,24 @@ function ukOpenField(state, rng) {
   return [...holders, ...ct, ...dev, ...take(rng.shuffle(ams().map(p => p.id)), need, used)];
 }
 
-// ---- World Cup: Zweierteams ----
+// ---- World Cup (KW 24): 40 Nationen à 2 Spieler (Europa 25, Asien 9, Nordamerika 2, Ozeanien 2, Afrika 1, Südamerika 1) ----
+// Je Nation die 2 Besten aus allen Pools (Holder nach PDC-Rang, sonst Spielstärke); fehlen Spieler → schwache fiktive Amateure.
+export const WC_NATIONS = [
+  'ENG', 'NL', 'WAL', 'SCO', 'NIR', 'IRL', 'DE', 'BE', 'AT', 'CH', 'PL', 'CZ', 'HU', 'LV', 'LT', 'EE', 'SE', 'DK', 'NO', 'FI', 'FR', 'ES', 'PT', 'IT', 'HR',
+  'JP', 'PH', 'CN', 'HK', 'IN', 'SG', 'MY', 'TH', 'BH',
+  'US', 'CA', 'AU', 'NZ', 'ZA', 'AR',
+];
 export function wcTeams(state) {
   const q = qualOf(state);
   if (q.wcTeams) return q.wcTeams;
   const p = state.player, rankP = idsOf(orderOfMerit(state, 'pdc'));
-  const pool = [...playersOfTier(state, 'tour', 'challenge'), ...(p.tour === 'tour' || p.qschoolYear === state.date.year ? [p] : [])];
   const score = x => { const r = rankP.indexOf(x.id); return r >= 0 ? 1000 - r : overall(x.attrs); };
-  const byNation = {};
-  for (const x of pool) (byNation[x.nation] ??= []).push(x);
+  const cands = nat => [...playersOfTier(state, 'tour', 'challenge', 'dev', 'secondary', 'ddv', 'local', 'amateur'), ...(p.tour === 'tour' || p.qschoolYear === state.date.year ? [p] : [])]
+    .filter(x => x.nation === nat && !x.woman);
   const teams = {};
-  for (const [nat, list] of Object.entries(byNation)) {
-    if (list.length < 2) continue;
+  for (const nat of WC_NATIONS) {
+    let list = cands(nat);
+    if (list.length < 2) { addAmateurs(state, nat, 2 - list.length); list = cands(nat); }
     const two = list.sort((a, b) => score(b) - score(a)).slice(0, 2);
     const id = two.some(x => x.id === 'P') ? 'P' : `W:${nat}`;
     const avg = k => Math.round((two[0].attrs[k] + two[1].attrs[k]) / 2);

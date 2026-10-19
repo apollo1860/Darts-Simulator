@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 15**: World Cup (KW 24) mit 40 Nationen (Europa 25, Asien 9, Nordamerika 2, Ozeanien 2, Afrika 1, Südamerika 1), Top 4 direkt im Achtelfinale, 36 Teams in 12 Dreiergruppen (Gruppensieger weiter), fehlende Spieler = schwache fiktive Amateure; Preisgeld weiter ohne OOM.
 - [x] **Version 14**: Pools African Darts Group (7, Kenia/Uganda) und CDLC (7, Karibik/Lateinamerika) mit Nutzer-Average ±15 % Spielraum je Karriere; neue Nationen (u. a. Uganda, Bahamas, Trinidad und Tobago, Guyana).
 - [x] **Version 13**: WM-Qualifikanten nach der echten Liste 2026 (Jugend-Weltmeister, Dev/CT Platz 2–4, Women's Series 2–5, 21 Qualifier mit 22 Plätzen, Asian Tour 5, PDCNB Pro Tour 2, CDC bester US-Amerikaner/Kanadier, ADA 1, DPNZ 1, Tour Card Holder Qualifier 4); Spieler der Liste in die Nebentour-Pools aufgenommen.
 - [x] **Version 12**: WM-Plätze exakt nach Nutzerliste (48 = Nebentouren 7, Frauen 4, Asien & Ozeanien 11, Europa 8, Amerika 5, Afrika 2, PDPA Qualifier 11).
@@ -19,6 +20,10 @@
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Version 15
+- Nationen selbst gewählt: ENG, NL, WAL, SCO, NIR, IRL, DE, BE, AT, CH, PL, CZ, HU, LV, LT, EE, SE, DK, NO, FI, FR, ES, PT, IT, HR · JP, PH, CN, HK, IN, SG, MY, TH, BH · US, CA · AU, NZ · ZA · AR.
+- Teams weiter als Team-Durchschnitt beider Spieler (kein abwechselndes Werfen im Liveticker). Setzliste nach Teamstärke (Holder nach PDC-Rang). Gruppen: 3 Töpfe à 12, Best of 7 Legs; Gruppenplatz 2/3 = kleines Preisgeld (G2/G3).
 
 ### Annahmen Version 14
 - „15 % Spielraum“ = der angegebene Average wird bei jeder neuen Karriere zufällig um bis zu ±15 % verschoben (z. B. 84 → 71–97) und bleibt dann fest; gilt für alle Pool-Spieler mit vom Nutzer genanntem Average. Alter unbekannt → zufällig 25–45.

@@ -61,6 +61,10 @@ Object.assign(NAME_POOLS, {
     last: ['Romano', 'Rossi', 'Russo', 'Ferrari', 'Esposito', 'Bianchi', 'Colombo', 'Ricci', 'Marino', 'Greco'] },
   GR: { nations: ['GR'], first: ['Nikos', 'Giorgos', 'Dimitris', 'Kostas', 'Yannis', 'Panagiotis', 'Christos', 'Vasilis'],
     last: ['Papadakis', 'Papadopoulos', 'Georgiou', 'Nikolaidis', 'Karagiannis', 'Vlachos', 'Oikonomou', 'Dimitriou'] },
+  SEA: { nations: ['TH', 'MY'], first: ['Somchai', 'Anan', 'Kittisak', 'Niran', 'Ahmad', 'Hafiz', 'Faizal', 'Azman', 'Chaiwat', 'Rizal'],
+    last: ['Srisuk', 'Wongsa', 'Chaiyaporn', 'Rattanakul', 'Ismail', 'Rahman', 'Abdullah', 'Hamid', 'Tan', 'Lim'] },
+  ME: { nations: ['BH'], first: ['Ahmed', 'Ali', 'Hassan', 'Yousef', 'Khalid', 'Omar', 'Faisal', 'Hamad'],
+    last: ['Al-Khalifa', 'Al-Sayed', 'Al-Ansari', 'Al-Mahmood', 'Haddad', 'Nasser', 'Saleh', 'Karim'] },
   BALK: { nations: ['HR', 'SI', 'RS', 'RO', 'BG'], first: ['Ivan', 'Matej', 'Luka', 'Marko', 'Nikola', 'Stefan', 'Andrei', 'Bogdan', 'Dimitar', 'Petar'],
     last: ['Kovačević', 'Novak', 'Horvat', 'Petrović', 'Jovanović', 'Popescu', 'Ionescu', 'Dimitrov', 'Georgiev', 'Babić'] },
 });

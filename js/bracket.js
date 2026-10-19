@@ -126,15 +126,15 @@ export function groupKoMatches(rounds, groups) {
 }
 
 // Platzierung Gruppen-Aus (G3/G4)
-export function groupPlace(rounds, groups, id) {
+export function groupPlace(rounds, groups, id, adv = 2) {
   const gi = groups.findIndex(g => g.includes(id));
   if (gi < 0) return null;
   const pos = groupTable(rounds, groups[gi], gi).findIndex(x => x.id === id);
-  return pos >= 2 ? `G${pos + 1}` : null;
+  return pos >= adv ? `G${pos + 1}` : null;
 }
 
 // ---- Vorrunde Winmau World Masters: Gruppen (2–4 Spieler, jeder gegen jeden), nur Gruppensieger → K.-o. gegen Gesetzte ----
-export function buildPrelimRounds(groups, fmt, koSize = 64) {
+export function buildPrelimRounds(groups, fmt, koSize = 64, label = 'Vorrunde · Gruppenspiel') {
   const pairs = g => g.flatMap((_, x) => g.slice(x + 1).map((__, k) => [x, x + 1 + k]));
   const days = [];
   groups.forEach((g, gi) => {
@@ -146,7 +146,7 @@ export function buildPrelimRounds(groups, fmt, koSize = 64) {
       (days[d] ??= []).push({ a: g[x], b: g[y], winner: null, score: null, group: gi });
     }
   });
-  const rounds = days.map((matches, d) => ({ name: `Vorrunde · Gruppenspiel ${d + 1}`, remaining: groups.length, isGroup: true, format: fmt.group, matches }));
+  const rounds = days.map((matches, d) => ({ name: `${label} ${d + 1}`, remaining: groups.length, isGroup: true, format: fmt.group, matches }));
   for (let rem = koSize; rem > (fmt.stopAt ?? 1); rem /= 2) {
     rounds.push({ name: ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
   }

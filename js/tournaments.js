@@ -102,7 +102,7 @@ export function eventStatus(state, ev, n = null) {
 const PLACE_LABEL = {
   W: 'Sieger', F: 'Finale', SF: 'Halbfinale', QF: 'Viertelfinale', L16: 'Achtelfinale', L32: 'Letzte 32',
   L64: 'Letzte 64', L96: 'Runde 3', L128: 'Runde 2', L160: 'Runde 1', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
-  QUAL: 'Qualifiziert', NQ: 'Nicht qualifiziert', G3: 'Gruppenphase (3.)', G4: 'Gruppenphase (4.)',
+  QUAL: 'Qualifiziert', NQ: 'Nicht qualifiziert', G2: 'Gruppenphase (2.)', G3: 'Gruppenphase (3.)', G4: 'Gruppenphase (4.)',
 };
 export const placeLabel = k => PLACE_LABEL[k] ?? k;
 
@@ -276,6 +276,11 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     groups = groups.filter(g => g.length);
     prelimSeeds = f.seeds;
     rounds = buildPrelimRounds(groups, fmt);
+  } else if (ev.team) {          // World Cup: Top 4 direkt im Achtelfinale, 36 Teams in 12 Dreiergruppen (Töpfe nach Stärke), Gruppensieger weiter
+    prelimSeeds = field.slice(0, 4);
+    const rest = field.slice(4), pots = [0, 1, 2].map(k => rng.shuffle(rest.slice(k * 12, k * 12 + 12)));
+    groups = Array.from({ length: 12 }, (_, g) => pots.map(p => p[g]).filter(Boolean)).filter(g => g.length);
+    rounds = buildPrelimRounds(groups, fmt, 16, 'Gruppenphase · Spieltag');
   } else if (ev.groups) {        // Grand Slam: 4 Töpfe à 8 → 8 Gruppen
     const pots = [0, 1, 2, 3].map(k => rng.shuffle(field.slice(k * 8, k * 8 + 8)));
     groups = Array.from({ length: 8 }, (_, g) => pots.map(p => p[g]).filter(Boolean));
@@ -690,7 +695,7 @@ function settle(state, inst) {
   const year = state.date.year;
   for (const id of ids) {
     const place = survivors.includes(id) ? (inst.cards ? 'CARD' : inst.stopAt > 1 ? 'QUAL' : 'W')
-      : inst.isQualifier ? 'NQ' : ((inst.groups && groupPlace(inst.rounds, inst.groups, id)) || placeOf(inst.rounds, id));
+      : inst.isQualifier ? 'NQ' : ((inst.groups && groupPlace(inst.rounds, inst.groups, id, inst.teams ? 1 : 2)) || placeOf(inst.rounds, id));
     (inst.places ??= {})[id] = place;
     let prize = inst.prizes[place] ?? 0;
     if (inst.teams && id === 'P') prize = Math.round(prize * teamPrizeShare);   // World Cup: Preisgeld wird geteilt

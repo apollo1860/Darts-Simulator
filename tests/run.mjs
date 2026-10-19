@@ -1302,4 +1302,23 @@ test('New Star Darts v10: UK Open (gestaffelter Einstieg, offene Auslosung), Gra
   assert.deepEqual(new Set(pcf), new Set(orderOfMerit(s, 'pco').slice(0, 64).map(x => x.p.id)));
 });
 
+test('New Star Darts v15: World Cup – 40 Nationen, Top 4 im Achtelfinale, 12 Dreiergruppen, keine OOM', async () => {
+  const N = await import('../js/nsd.js');
+  const M = await import('../js/majors.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 8 });
+  s.date.week = 24;
+  const teams = Object.values(M.wcTeams(s));
+  assert.equal(teams.length, 40); assert.ok(teams.every(t => t.members.length === 2));
+  assert.ok(['JP', 'PH', 'ZA', 'AR', 'NZ', 'CA', 'BH'].every(n => teams.some(t => t.nation === n)));
+  const ev = eventsInWeek(s, 2026, 24).find(e => e.id === 'wcod');
+  const inst = ET.runAITournament(s, ev);
+  assert.equal(inst.groups.length, 12); assert.ok(inst.groups.every(g => g.length === 3));
+  const ko = inst.rounds.find(r => !r.isGroup);
+  assert.equal(ko.matches.length, 8); assert.equal(ko.name, 'Achtelfinale');
+  assert.ok(inst.prelimSeeds.every(id => ko.matches.some(m => m.a === id || m.b === id)));
+  assert.equal(inst.rounds.filter(r => r.isGroup).length, 3);
+  assert.ok(Object.values(inst.places).filter(p => p === 'G2').length === 12 && Object.values(inst.places).filter(p => p === 'G3').length === 12);
+  assert.deepEqual(inst.oom, []);
+});
+
 console.log(`\n${n} Tests ok`);

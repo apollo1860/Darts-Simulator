@@ -4,7 +4,7 @@ import { seasonStats } from './state.js';
 import { overall } from './player.js';
 import { getPlayer } from './world.js';
 
-export const PLACE_ORDER = ['W', 'CARD', 'F', 'SF', 'QF', 'L16', 'G3', 'G4', 'L32', 'L64', 'L96', 'L128', 'L160', 'L256', 'QUAL', 'NQ'];
+export const PLACE_ORDER = ['W', 'CARD', 'F', 'SF', 'QF', 'L16', 'G2', 'G3', 'G4', 'L32', 'L64', 'L96', 'L128', 'L160', 'L256', 'QUAL', 'NQ'];
 const better = (a, b) => (b === undefined || PLACE_ORDER.indexOf(a) < PLACE_ORDER.indexOf(b));
 
 const arch = state => (state.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });
