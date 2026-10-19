@@ -122,15 +122,16 @@ export const CALENDAR = [
     city: PL_CITIES[i], country: PL_COUNTRY[i] ?? 'ENG', noOom: true, extra: true, plNight: i + 1,
     note: 'Top 8 PDC (Einladung) · zählt zusätzlich zum Wochen-Event',
   })),
-  { id: 'uk-open', cat: 'major', fmt: 'ukopen', name: 'UK Open', week: 10, city: 'Minehead', country: 'ENG', note: 'Alle Tourcard-Holder + 32 Amateure (CT-OOM)' },
+  { id: 'uk-open', cat: 'major', fmt: 'ukopen', name: 'UK Open', week: 10, city: 'Minehead', country: 'ENG', note: '160 Spieler · gestaffelter Einstieg nach Rangliste · ab Runde 4 freie Auslosung' },
   { id: 'pl-final', cat: 'pl', fmt: 'plf', name: 'Premier League Play-offs', week: 22, city: 'London', country: 'ENG', noOom: true, extra: true, note: 'Top 4 der Tabelle' },
   { id: 'wcod', cat: 'major', fmt: 'wcod', name: 'World Cup of Darts', week: 24, city: 'Frankfurt', country: 'DE', noOom: true, team: true, note: 'Zweierteams: die 2 Besten jeder Nation' },
   { id: 'matchplay', cat: 'major', fmt: 'matchplay', name: 'World Matchplay', week: 29, weeks: 2, city: 'Blackpool', country: 'ENG', note: 'Top 16 PDC + Top 16 Pro Tour' },
   { id: 'wgp', cat: 'major', fmt: 'wgp', name: 'World Grand Prix', week: 40, city: 'Leicester', country: 'ENG', note: 'Top 16 PDC + Top 16 Pro Tour · Sätze' },
   { id: 'ec', cat: 'major', fmt: 'ec', name: 'European Championship', week: 42, city: 'Dortmund', country: 'DE', note: 'Top 32 der European-Tour-Wertung' },
   { id: 'youth-wm', cat: 'dev', fmt: 'youth', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24 · zählt nicht zur Dev-OOM', noOom: true },
-  { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '32 Spieler · Gruppenphase + K.-o.' },
-  { id: 'pcf', cat: 'major', fmt: 'pcf', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG', note: 'Top 64 Pro Tour OOM' },
+  { id: 'gs-quali', cat: 'major', fmt: 'gsq', name: 'Grand Slam Tour Card Holder Qualifier', week: 45, city: 'Wigan', country: 'ENG', noOom: true, note: 'Tourcard-Holder ohne direkten Grand-Slam-Platz · alle Restplätze' },
+  { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '32 Spieler: TV-Finalisten, Pro-Tour-Titel, Nebentouren, Qualifier · Gruppenphase + K.-o.' },
+  { id: 'pcf', cat: 'major', fmt: 'pcf', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG', note: 'Top 64 der Players-Championship-OOM' },
   { id: 'wm-qs', cat: 'wmqs', name: 'WM-Qualifier (Q-School-Teilnehmer)', week: 46, city: 'Milton Keynes', country: 'ENG',
     note: 'alle Q-School-Teilnehmer des Jahres ohne Tourcard · Sieger spielt die WM' },
   { id: 'wm-quali', cat: 'major', fmt: 'wmq', name: 'WM Tour Card Holder Qualifier', week: 49, city: 'Milton Keynes', country: 'ENG', noOom: true, note: 'Last Chance: Tourcard-Holder ohne WM-Platz · alle Restplätze (mind. 2)' },
@@ -209,6 +210,7 @@ export const FORMATS = {
   ec: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   gsod: { group: { legs: 5 }, default: { legs: 10 }, byRemaining: { 8: { legs: 16 }, 4: { legs: 16 }, 2: { legs: 16 } } },
   pcf: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
+  gsq: { default: { legs: 6 }, stopAt: 8 },                          // Plätze dynamisch (Sektionen = Restplätze)
   wmq: { default: { legs: 6 }, stopAt: 16 },                         // Plätze dynamisch (Sektionen = Restplätze)
   wmreg: { default: { legs: 5 }, byRemaining: { 2: { legs: 6 } } },  // Plätze je Qualifier (Sektionen)
   wm: { default: { sets: 3, legs: 3 }, byRemaining: { 32: { sets: 4, legs: 3 }, 16: { sets: 4, legs: 3 }, 8: { sets: 5, legs: 3 }, 4: { sets: 6, legs: 3 }, 2: { sets: 7, legs: 3 } } },

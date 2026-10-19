@@ -1280,4 +1280,41 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   assert.ok(wq.survivors.filter(id => s.world.players[id].tier === 'secondary').length >= 2);
 });
 
+test('New Star Darts v10: UK Open (gestaffelter Einstieg, offene Auslosung), Grand Slam (TV-Finalisten, Titel, Nebentouren, Qualifier), PC Finals', async () => {
+  const N = await import('../js/nsd.js');
+  const M = await import('../js/majors.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 5 });
+  while (s.date.week < 10) assert.ok(nextWeek(s));
+  const uk = eventsInWeek(s, 2026, 10).find(e => e.id === 'uk-open'), f = M.majorField(s, uk, true);
+  assert.equal(f.length, 160); assert.equal(new Set(f).size, 160);
+  const holders = f.filter(id => id === 'P' || s.world.players[id].tier === 'tour').length;
+  assert.ok(f.slice(0, holders).every(id => id === 'P' || s.world.players[id].tier === 'tour'));
+  assert.ok(f.slice(holders).some(id => s.world.players[id].tier === 'amateur'));
+  ET.enterEvent(s, 'uk-open');
+  const inst = s.activeEvent, top32 = f.slice(0, 32);
+  assert.equal(inst.rounds[0].matches.length, 32); assert.equal(inst.rounds.length, 9);
+  assert.ok(!inst.rounds[0].matches.some(m => f.indexOf(m.a) < 96 || f.indexOf(m.b) < 96));   // Runde 1: ab Platz 97 + Amateure
+  ET.simulateRest(s);
+  assert.deepEqual(inst.rounds.map(r => r.matches.length), [32, 32, 32, 32, 16, 8, 4, 2, 1]);
+  assert.ok(inst.rounds[3].matches.some(m => !top32.includes(m.a) || !top32.includes(m.b)));
+  assert.ok(!inst.rounds.slice(0, 3).some(r => r.matches.some(m => top32.includes(m.a) || top32.includes(m.b))));   // Top 32 erst in Runde 4
+  assert.ok(['L160', 'L128', 'L96', 'L64', 'L32', 'L16', 'QF', 'SF', 'F', 'W'].includes(inst.place));
+  ET.closeEvent(s);
+  assert.ok(s.champions[2026].find(c => c.eventId === 'uk-open').runnerUp);
+  while (s.date.week < 47) assert.ok(nextWeek(s));
+  const q = M.qualOf(s), d = q.gsDirect;
+  assert.ok(d && d.pdc.length === 16 && d.sec.length === 5);
+  assert.ok(d.sec.includes(q.wmYouth) && d.sec.filter(id => s.world.players[id]?.circuit === 'women').length === 2);
+  assert.equal(q.gsqSurvivors.length, 32 - 16 - 5);
+  assert.equal(q.gsod.length, 32); assert.equal(new Set(q.gsod).size, 32);
+  assert.ok([...d.pdc, ...d.sec, ...q.gsqSurvivors].every(id => q.gsod.includes(id)));
+  const tv = s.champions[2026].filter(c => ['masters', 'uk-open', 'matchplay'].includes(c.eventId));
+  assert.ok(tv.every(c => q.gsod.includes(c.id)));
+  // PC Finals: Top 64 der reinen Players-Championship-OOM
+  const { orderOfMerit } = await import('../js/rankings.js');
+  s.date.week = 48;
+  const pcf = M.majorField(s, eventsInWeek(s, 2026, 48).find(e => e.id === 'pcf'), true);
+  assert.deepEqual(new Set(pcf), new Set(orderOfMerit(s, 'pco').slice(0, 64).map(x => x.p.id)));
+});
+
 console.log(`\n${n} Tests ok`);

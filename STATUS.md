@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 10**: UK Open mit gestaffeltem Einstieg (Runde 1: ab Platz 97 + 8 CT + 8 Dev + Riley's-Amateure, Runde 2: 65–96, Runde 3: 33–64, Runde 4: Top 32) und offener Auslosung ab Runde 4; Grand Slam nach TV-Finalisten (12 Monate), Pro-Tour-Titeln, Nebentouren und neuem Tour Card Holder Qualifier (KW 45); PC Finals über eigene Players-Championship-OOM.
 - [x] **Version 9**: Eigene Spielerpools für die Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa; je Top 8 der Vorjahres-OOM, Ø nach Platz) – genutzt in Masters-Vorrunde, Grand Slam (2 Plätze Women's Series), WM- und ET-Regionalqualifiern.
 - [x] **Version 8**: Winmau World Masters mit echter Vorrunde (Gruppenphase, K.-o. gegen Platz 25–56, 8 Qualifikanten, Best of 5 Sets); Version steigt ab jetzt mit jedem Push.
 - [x] **Version 7.4**: Zoom-Hilfe direkt am Board per Knopf „🔍 Zoom an/aus“ (statt in den Optionen).
@@ -14,6 +15,11 @@
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Version 10
+- UK Open: Die Nutzerbeschreibung ergibt 176 Spieler (32 + 3×16 in Runde 1); umgesetzt wie real mit 160: Runde 1 = Holder ab Platz 97 + Top 8 CT-OOM + Top 8 Dev-OOM (Vorjahr, ohne Karte) + 16 Riley's-Amateure (fiktiv, UK/IRL) = 64. Gibt es mehr als 128 Holder, spielen alle, es gibt entsprechend weniger Amateure. Runde 2/3: Neueinsteiger gegen Sieger der Vorrunde (zugelost), ab Runde 4 nach jeder Runde komplett frei gelost. Plätze: Runde 1/2/3 = L160/L128/L96.
+- Grand Slam: max. 16 Plätze über Sieger + Finalisten von Masters, UK Open, Matchplay, WGP, EC, Grand Slam, PC Finals, WM, PL-Finale, WS Finals (KW 46 Vorjahr bis KW 45), Rest davon nach Anzahl Pro-Tour-Titeln (PC/ET) des Jahres (Gleichstand: Pro-Tour-Preisgeld); 5 Nebentour-Plätze (Jugend-Weltmeister, Top 2 Challenge Tour ohne Karte, Top 2 Women's Series); Rest (meist 11) über den Grand Slam Tour Card Holder Qualifier (`gs-quali`, KW 45, Sektionen). Im ersten Jahr fehlen die Finalisten 2025 (keine Historie) → mehr Plätze über Titel. Töpfe: nach PDC-Rangliste, Nebentouren in Topf 4.
+- Matchplay/WGP (Top 16 PDC + Top 16 Pro Tour) und European Championship (Top 32 ET-OOM) waren bereits so umgesetzt; die Pro Tour OOM zählt das laufende Kalenderjahr (nicht rollierend).
 
 ### Annahmen Version 9
 - Pools aus eigenem Wissen zusammengestellt (OOM 2025, nicht verifiziert); Alter ungefähr. Ø = Basis je Tour (Women 84, Asien 89, CDC 88, Nordic & Baltic 88, DPA 87, Osteuropa 87, DPNZ 86) − 1 je Platz.

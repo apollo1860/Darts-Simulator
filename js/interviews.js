@@ -10,7 +10,7 @@ export const GRID = 25;
 // Chance je Platzierung (Majors außer WM-Quali, Premier-League-Play-offs, World-Series-Finals)
 const CHANCE = { W: 1, F: 0.8, SF: 0.6, QF: 0.4 };
 export const interviewEligible = inst => !inst.isQualifier && inst.place
-  && ((inst.cat === 'major' && inst.eventId !== 'wm-quali') || inst.eventId === 'pl-final' || inst.eventId === 'ws-final');
+  && ((inst.cat === 'major' && !['wm-quali', 'gs-quali'].includes(inst.eventId)) || inst.eventId === 'pl-final' || inst.eventId === 'ws-final');
 
 // Nach einem eigenen Turnier: evtl. Interview-Anfrage anlegen (state.interview)
 export function maybeInterview(state, inst) {

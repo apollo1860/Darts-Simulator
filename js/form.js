@@ -13,7 +13,7 @@ export const EXP_CENTER = 3;
 export function stageFactor(inst, a, b) {
   if (!inst) return 0;
   const rem = inst.rounds?.[inst.current]?.remaining ?? 99;
-  if (STAGE_CATS.includes(inst.cat) && inst.eventId !== 'wm-quali') return rem <= 8 ? 1.5 : 1;
+  if (STAGE_CATS.includes(inst.cat) && !['wm-quali', 'gs-quali'].includes(inst.eventId)) return rem <= 8 ? 1.5 : 1;
   const big = inst.big ?? [];
   if ((a === 'P' && big.includes(b)) || (b === 'P' && big.includes(a))) return 0.7;
   return 0;

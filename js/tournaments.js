@@ -13,8 +13,8 @@ import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, pointsGained } fr
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek, nsdBlocked } from './calendar.js';
-import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches } from './bracket.js';
-import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots } from './majors.js';
+import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches, buildUkOpenRounds, ukOpenMatches } from './bracket.js';
+import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
 import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
@@ -101,7 +101,7 @@ export function eventStatus(state, ev, n = null) {
 
 const PLACE_LABEL = {
   W: 'Sieger', F: 'Finale', SF: 'Halbfinale', QF: 'Viertelfinale', L16: 'Achtelfinale', L32: 'Letzte 32',
-  L64: 'Letzte 64', L128: 'Letzte 128', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
+  L64: 'Letzte 64', L96: 'Runde 3', L128: 'Runde 2', L160: 'Runde 1', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
   QUAL: 'Qualifiziert', NQ: 'Nicht qualifiziert', G3: 'Gruppenphase (3.)', G4: 'Gruppenphase (4.)',
 };
 export const placeLabel = k => PLACE_LABEL[k] ?? k;
@@ -114,7 +114,7 @@ const oomTypes = (ev, sub) => {
   if (ev.cat === 'major') return ['pdc'];
   if (ev.cat === 'et') return ['pdc', 'protour', 'eto'];
   if (ev.cat === 'challenge' || ev.cat === 'dev') return [ev.cat];
-  if (ev.cat === 'pc' || ev.cat === 'et') return ['pdc', 'protour'];
+  if (ev.cat === 'pc') return ['pdc', 'protour', 'pco'];
   return [];
 };
 const subLabel = (ev, sub) => (ev.subs?.[sub] ?? (ev.count > 1 ? (ev.cat === 'qschool' ? `Tag ${sub + 1}` : `Turnier ${sub + 1}`) : ''));
@@ -261,10 +261,10 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
 function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
   const field = seededField(state, ev, withPlayer, rng, sub, ctx);
   const fk = fmtKey(ev, sub);
-  const slots = ev.fmt === 'wmq' ? wmTchqSlots(state) : ev.slots;          // Qualifier mit n Plätzen → n Sektionen
+  const slots = ev.fmt === 'wmq' ? wmTchqSlots(state) : ev.fmt === 'gsq' ? gsQualSlots(state) : ev.slots;          // Qualifier mit n Plätzen → n Sektionen
   const fmt = slots > 1 ? { ...FORMATS[fk], stopAt: slots, sections: slots } : FORMATS[fk];
   let groups = null, rounds;
-  let prelimSeeds = null;
+  let prelimSeeds = null, ukEntry = null;
   if (ev.prelim) {         // Winmau World Masters – Vorrunde: 32 Gruppen (jeder gegen jeden), Sieger → K.-o. gegen Platz 25–56
     const f = mastersPrelimField(state, withPlayer);
     groups = Array.from({ length: 32 }, () => []);
@@ -276,9 +276,10 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     const pots = [0, 1, 2, 3].map(k => rng.shuffle(field.slice(k * 8, k * 8 + 8)));
     groups = Array.from({ length: 8 }, (_, g) => pots.map(p => p[g]).filter(Boolean));
     rounds = buildGroupRounds(groups, fmt);
-  } else rounds = buildRounds(field, fmt);
+  } else if (fk === 'ukopen') ({ rounds, entry: ukEntry } = buildUkOpenRounds(field, fmt, rng));   // gestaffelter Einstieg
+  else rounds = buildRounds(field, fmt);
   return {
-    groups, prelimSeeds, teams: ev.team ? wcTeams(state) : null, autoPlayer: !!ctx.auto, plNight: ev.plNight ?? null,
+    groups, prelimSeeds, ukEntry, teams: ev.team ? wcTeams(state) : null, autoPlayer: !!ctx.auto, plNight: ev.plNight ?? null,
     eventId: ev.id, cat: ev.cat, fmt: fk, name: subName(ev, sub), baseName: ev.name,
     city: ev.city, country: ev.country, year: state.date.year, week: state.date.week,
     count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomTypes(ev, sub),
@@ -628,6 +629,11 @@ function advance(inst) {
   inst.current++;
   const r = inst.rounds[inst.current], prev = inst.rounds[inst.current - 1];
   if (r.isGroup) return;
+  if (inst.ukEntry) {                       // UK Open: Neueinsteiger bzw. offene Auslosung
+    r.matches = ukOpenMatches(prev, inst.ukEntry[inst.current] ?? [], new RNG({ s: hashSeed(`${inst.eventId}|${inst.year}|${inst.current}`) }), inst.current >= 3);
+    if (inst.withPlayer && inst.playerAlive && !r.matches.some(m => m.a === 'P' || m.b === 'P')) inst.playerAlive = false;
+    return;
+  }
   r.matches = prev.isGroup ? (inst.prelimSeeds ? prelimKoMatches(inst.rounds, inst.groups, inst.prelimSeeds, new RNG({ s: hashSeed(`${inst.eventId}|${inst.year}`) }))
     : groupKoMatches(inst.rounds, inst.groups)) : pairWinners(prev);
   if (prev.isGroup && inst.withPlayer && inst.playerAlive && !r.matches.some(m => m.a === 'P' || m.b === 'P')) inst.playerAlive = false;
@@ -689,6 +695,7 @@ function settle(state, inst) {
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
+  if (inst.eventId === 'gs-quali') qualOf(state).gsqSurvivors = survivors;
   if (inst.cat === 'wmreg') (qualOf(state).wmReg ??= {})[inst.eventId.slice(4)] = survivors;
   if (inst.eventId === 'youth-wm') qualOf(state).wmYouth = survivors[0];
   if (inst.cat === 'etq') etStore(state, inst.eventId.replace('etq', 'et')).tchq = survivors;
@@ -705,7 +712,8 @@ function settle(state, inst) {
       'Sieger des WM-Qualifiers der Q-School-Teilnehmer – Startplatz bei der WM im Dezember.');
   }
   if (survivors.length === 1 && !inst.isQualifier && !inst.cards && inst.cat !== 'local' && inst.fmt !== 'pln') {
-    recordChampion(state, inst, survivors[0]);
+    const fin = last.matches[0], runnerUp = fin && fin.b ? (fin.a === survivors[0] ? fin.b : fin.a) : null;
+    recordChampion(state, inst, survivors[0], runnerUp);
     rivalTitle(state, inst, survivors[0]);
   }
   if (inst.fmt === 'pln') scorePlNight(state, inst);

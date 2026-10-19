@@ -1,7 +1,7 @@
 // Majors & Events (DOM-frei): Qualifikation/Felder, World-Cup-Teams, Premier-League-Tabelle.
 // Felder werden in der Event-Woche einmal berechnet und in state.qual[Jahr][eventId] gespeichert.
 import { orderOfMerit, moneyOf } from './rankings.js';
-import { playersOfTier, getPlayer, secondaryOrder } from './world.js';
+import { playersOfTier, getPlayer, secondaryOrder, addAmateurs } from './world.js';
 import { overall } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { nationName } from '../data/nations.js';
@@ -10,12 +10,13 @@ import { clamp } from './util.js';
 
 export const MAJOR_CATS = ['major', 'ws', 'pl'];
 // Anzahl gesetzter Spieler (Rest wird zugelost)
-const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 8, plf: 4, wmq: 0, pln: 0, gsod: 32 };
+const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 8, plf: 4, wmq: 0, gsq: 0, pln: 0, gsod: 32 };
 
 export const RULE_TEXT = {
-  masters: 'Top 24 der PDC Order of Merit (Tour-Modus: alle Tourcard-Holder, Vorrunden)', ukopen: 'Tourcard oder Top 32 der Challenge-Tour-OOM',
+  masters: 'Top 24 der PDC Order of Merit (Tour-Modus: alle Tourcard-Holder, Vorrunden)', ukopen: 'Tourcard, Top 8 Challenge-/Dev-Tour-OOM oder Riley’s-Amateur-Qualifier',
   matchplay: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM', wgp: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM',
-  ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Pro Tour OOM', gsod: "Top 16 PDC, Top 10 Pro Tour, Top 2 CT/Dev oder Top 2 Women's Series",
+  ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Players-Championship-OOM', gsod: "Finale eines TV-Majors (12 Monate), Pro-Tour-Titel, Jugend-Weltmeister, Top 2 Challenge Tour, Top 2 Women's Series oder Grand-Slam-Qualifier",
+  gsq: 'Tourcard ohne direkten Grand-Slam-Platz',
   wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, CT/Dev Top 3, Jugend-Weltmeister, internationaler Qualifier oder TCHQ',
   ws: 'Einladung: Top 8 PDC OOM (+ 8 Qualifikanten)', wsf: 'Top 24 der World-Series-Wertung',
   pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten deiner Nation',
@@ -53,6 +54,45 @@ export function wmDirect(state) {
   return out.slice(0, 126);
 }
 export const wmTchqSlots = state => 128 - wmDirect(state).length;
+
+// ---- Grand Slam of Darts (KW 46) ----
+// 1. Sieger + Finalisten aller TV-Majors der letzten 12 Monate, 2. offene Plätze (bis 16): meiste Pro-Tour-Titel (PC/ET) des Jahres,
+// 3. Nebentouren: Jugend-Weltmeister, Top 2 Challenge Tour (ohne Karte), Top 2 Women's Series, 4. Rest: Tour Card Holder Qualifier (KW 45)
+const GS_TV = ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm', 'pl-final', 'ws-final'];
+const GS_PDC = 16, GS_SECONDARY = 5, GS_WEEK = 46;
+const active = (state, id) => id === 'P' || (getPlayer(state, id) && getPlayer(state, id).tier !== 'retired');
+export function gsDirect(state) {
+  const q = qualOf(state), y = state.date.year;
+  if (q.gsDirect) return q.gsDirect;
+  const ch = [...(state.champions?.[y - 1] ?? []).filter(c => c.week >= GS_WEEK), ...(state.champions?.[y] ?? []).filter(c => c.week < GS_WEEK)];
+  const tv = ch.filter(c => GS_TV.includes(c.eventId)), used = new Set();
+  const pdc = take([...tv.map(c => c.id), ...tv.map(c => c.runnerUp)].filter(id => id && active(state, id)), GS_PDC, used);
+  const titles = {};
+  for (const c of state.champions?.[y] ?? []) if ((c.cat === 'pc' || c.cat === 'et') && c.week < GS_WEEK) titles[c.id] = (titles[c.id] ?? 0) + 1;
+  const ptMoney = id => moneyOf(state, 'protour', id);
+  pdc.push(...take(Object.keys(titles).filter(id => active(state, id)).sort((a, b) => titles[b] - titles[a] || ptMoney(b) - ptMoney(a)), GS_PDC - pdc.length, used));
+  const ct = idsOf(orderOfMerit(state, 'challenge')).filter(id => id === 'P' ? state.player.tour !== 'tour' : getPlayer(state, id)?.tier !== 'tour');
+  const sec = [...take([q.wmYouth].filter(Boolean), 1, used), ...take(ct, 2, used), ...take(secondaryOrder(state, 'women', y), 2, used)];
+  const out = { pdc, sec };
+  if (state.date.week >= GS_WEEK - 1 && q.wmYouth) q.gsDirect = out;   // fixiert, sobald der Jugend-Weltmeister feststeht
+  return out;
+}
+// Restplätze für den Qualifier (Jugend-Weltmeister-Platz ist immer reserviert)
+export const gsQualSlots = state => Math.max(2, 32 - gsDirect(state).pdc.length - GS_SECONDARY);
+const holderIds = (state, ids) => ids.filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
+
+// ---- UK Open: 160 Spieler = alle Holder nach Rangliste + Top 8 CT/Dev-OOM (ohne Karte, Vorjahr) + Riley's-Amateure ----
+const UK_NATIONS = ['ENG', 'SCO', 'WAL', 'NIR', 'IRL'];
+function ukOpenField(state, rng) {
+  const y = state.date.year, used = new Set();
+  const holders = take(holdersByRank(state), 160, used), k = Math.min(8, Math.floor((160 - used.size) / 2));   // alle Holder spielen
+  const noCard = ids => ids.filter(id => id !== 'P' && getPlayer(state, id)?.tier !== 'tour');
+  const ct = take(noCard(idsOf(orderOfMerit(state, 'challenge', y - 1))), k, used), dev = take(noCard(idsOf(orderOfMerit(state, 'dev', y - 1))), k, used);
+  const need = 160 - used.size;
+  const ams = () => playersOfTier(state, 'amateur').filter(p => !p.woman && UK_NATIONS.includes(p.nation) && !used.has(p.id));
+  if (ams().length < need) addAmateurs(state, 'ENG', need - ams().length);
+  return [...holders, ...ct, ...dev, ...take(rng.shuffle(ams().map(p => p.id)), need, used)];
+}
 
 // ---- World Cup: Zweierteams ----
 export function wcTeams(state) {
@@ -135,16 +175,25 @@ function computeField(state, ev) {
     }
     case 'matchplay': case 'wgp': return [...take(pdc, 16, used), ...take(pt, 16, used)];
     case 'ec': return idsOf(orderOfMerit(state, 'eto')).slice(0, 32);
-    case 'pcf': return pt.slice(0, 64);
-    case 'ukopen': return [...take(pdc, 999, used), ...take(idsOf(orderOfMerit(state, 'challenge')), 32, used)];
+    case 'pcf': return idsOf(orderOfMerit(state, 'pco')).slice(0, 64);
+    case 'ukopen': return ukOpenField(state, rng);
     case 'ws': return [...take(pdc, 8, used), ...rng.shuffle(pdc.slice(8, 64)).slice(0, 8)];
     case 'wsf': {
       const ws = orderOfMerit(state, 'ws').filter(x => x.money > 0).map(x => x.p.id);
       return [...take(ws, 24, used), ...take(pdc, 24 - used.size, used)];
     }
-    case 'gsod': return [...take(pdc, 16, used), ...take(pt, 8, used),
-      ...take(idsOf(orderOfMerit(state, 'challenge')), 2, used), ...take(idsOf(orderOfMerit(state, 'dev')), 2, used),
-      ...take(secondaryOrder(state, 'women', y - 1), 2, used), ...take(pt, 2, used)];   // 2 Women's Series (Vorjahres-OOM)
+    case 'gsq': {                            // alle Holder ohne direkten Grand-Slam-Platz
+      const d = gsDirect(state), direct = new Set([...d.pdc, ...d.sec]);
+      return holderIds(state, pdc).filter(id => !direct.has(id));
+    }
+    case 'gsod': {                           // Töpfe nach PDC-Rangliste, Nebentouren zuletzt
+      const d = gsDirect(state);
+      [...d.pdc, ...d.sec].forEach(id => used.add(id));
+      const main = [...d.pdc, ...take(qualOf(state).gsqSurvivors ?? [], 32 - used.size, used)];
+      main.push(...take(holderIds(state, pdc), 32 - used.size, used));      // fehlende Plätze: PDC-Rangliste
+      const rk = id => { const i = pdc.indexOf(id); return i < 0 ? 999 : i; };
+      return [...main.sort((a, b) => rk(a) - rk(b)), ...d.sec];
+    }
     case 'wmq': {                            // Last Chance: alle Holder ohne WM-Platz
       const direct = new Set(wmDirect(state));
       return pdc.filter(id => !direct.has(id) && (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));

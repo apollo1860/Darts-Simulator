@@ -6,6 +6,7 @@ import { overall } from './player.js';
 export const OOM_TYPES = {
   pdc: { label: 'PDC Order of Merit', short: 'PDC', years: 2, cards: 64 },
   protour: { label: 'Pro Tour OOM', short: 'Pro Tour', years: 1 },
+  pco: { label: 'Players Championship OOM', short: 'PC', years: 1, hidden: true },   // nur Players Championships (→ PC Finals)
   challenge: { label: 'Challenge Tour OOM', short: 'Challenge', years: 1, cards: 2 },
   dev: { label: 'Development Tour OOM', short: 'Dev', years: 1, cards: 2 },
   eto: { label: 'European Tour OOM', short: 'ET', years: 1, hidden: true },
@@ -22,7 +23,7 @@ export function addMoney(state, type, id, amount, year = state.date.year) {
 // Teilnehmerkreis je Rangliste
 function members(state, type, year) {
   const p = state.player;
-  if (type === 'pdc' || type === 'protour' || type === 'eto' || type === 'ws') {
+  if (type === 'pdc' || type === 'protour' || type === 'pco' || type === 'eto' || type === 'ws') {
     const list = playersOfTier(state, 'tour');
     if (p.tour === 'tour') list.push(p);
     return list;

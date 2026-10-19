@@ -50,7 +50,7 @@ export function matchMilestones(state, s, won) {
 export function titleMilestones(state, inst) {
   if (inst.place !== 'W' || inst.isQualifier) return;
   const id = { local: 'local', wdf: 'wdf', dev: 'dev', challenge: 'challenge', pc: 'protour', et: 'protour', major: 'major' }[inst.cat];
-  if (id && !(inst.cat === 'major' && inst.eventId === 'wm-quali')) unlock(state, id);
+  if (id && !(inst.cat === 'major' && ['wm-quali', 'gs-quali'].includes(inst.eventId))) unlock(state, id);
 }
 
 // Wöchentlich: Weltranglisten-Meilensteine (nur mit Tourcard)

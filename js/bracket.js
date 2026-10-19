@@ -1,6 +1,6 @@
 // K.-o.-Baum (DOM-frei): Setzliste, Freilose, Rundennamen, Platzierungen
 export const ROUND_NAME = { 2: 'Finale', 4: 'Halbfinale', 8: 'Viertelfinale', 16: 'Achtelfinale', 32: 'Letzte 32', 64: 'Letzte 64', 128: 'Letzte 128', 256: 'Letzte 256' };
-export const PLACE_BY_REMAINING = { 2: 'F', 4: 'SF', 8: 'QF', 16: 'L16', 32: 'L32', 64: 'L64', 128: 'L128', 256: 'L256' };
+export const PLACE_BY_REMAINING = { 2: 'F', 4: 'SF', 8: 'QF', 16: 'L16', 32: 'L32', 64: 'L64', 96: 'L96', 128: 'L128', 160: 'L160', 256: 'L256' };
 const nextPow2 = n => { let s = 2; while (s < n) s *= 2; return s; };
 
 // Setzpositionen (1-basiert) für Feldgröße size: 1 vs size, 2 vs size-1 … verteilt
@@ -39,6 +39,30 @@ export function buildRounds(seeded, fmt) {
   return rounds;
 }
 
+// ---- UK Open („FA Cup des Darts“): gestaffelter Einstieg, ab Runde 4 freie Auslosung nach jeder Runde ----
+// field = Holder nach Rangliste (max. 128), dann Nicht-Holder. Runde 1: ab Platz 97 + Nicht-Holder, Runde 2: 65–96,
+// Runde 3: 33–64, Runde 4 (Letzte 64): Top 32.
+const pairUp = list => {
+  const out = [];
+  for (let i = 0; i < list.length; i += 2) out.push(list[i + 1] ? { a: list[i], b: list[i + 1], winner: null, score: null } : { a: list[i], b: null, winner: list[i], bye: true });
+  return out;
+};
+export function buildUkOpenRounds(field, fmt, rng) {
+  const entry = { 1: field.slice(64, 96), 2: field.slice(32, 64), 3: field.slice(0, 32) };
+  const rounds = [['Runde 1', 160], ['Runde 2', 128], ['Runde 3', 96], ...[64, 32, 16, 8, 4, 2].map(r => [ROUND_NAME[r], r])]
+    .map(([name, rem]) => ({ name, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] }));
+  rounds[0].matches = pairUp(rng.shuffle(field.slice(96)));
+  return { rounds, entry };
+}
+// Nächste Runde: Neueinsteiger gegen Sieger der Vorrunde (Runde 2/3), ab Runde 4 jeder gegen jeden (offene Auslosung)
+export function ukOpenMatches(prev, entrants, rng, open) {
+  const w = rng.shuffle(prev.matches.map(m => m.winner).filter(Boolean));
+  if (open) return pairUp(rng.shuffle([...w, ...entrants]));
+  const e = rng.shuffle(entrants), out = [];
+  while (e.length && w.length) out.push({ a: e.pop(), b: w.pop(), winner: null, score: null });
+  return [...out, ...pairUp([...e, ...w])];
+}
+
 // Gewinner der Runde paarweise in die nächste Runde
 export function pairWinners(round) {
   const w = round.matches.map(m => m.winner);
@@ -56,7 +80,7 @@ export function placeOf(rounds, id) {
   for (const r of rounds) {
     if (r.isGroup) continue;                         // Gruppenspiele → groupPlace()
     const m = r.matches.find(x => (x.a === id || x.b === id) && x.winner && !x.bye);
-    if (m && m.winner !== id) return PLACE_BY_REMAINING[r.remaining];
+    if (m && m.winner !== id) return r.place ?? PLACE_BY_REMAINING[r.remaining];
   }
   return null;
 }
