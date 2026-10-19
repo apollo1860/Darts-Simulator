@@ -15,6 +15,7 @@ export const CATEGORIES = {
   pc:        { label: 'Players Championship', short: 'PC', phase: 4 },
   et:        { label: 'European Tour',     short: 'ET', phase: 4 },
   etq:       { label: 'ET-Qualifier (Tour Card Holder)', short: 'TCHQ', phase: 4 },
+  mastersq:  { label: 'World Masters · Vorrunde', short: 'WWM-Q', phase: 5 },
   ws:        { label: 'World Series',      short: 'WS', phase: 5 },
   major:     { label: 'Major',             short: 'MAJOR', phase: 5 },
   pl:        { label: 'Premier League',    short: 'PL', phase: 5 },
@@ -112,7 +113,10 @@ export const CALENDAR = [
   { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
   ...WS.map(([w, id, name, city, country]) => ({ id, cat: 'ws', fmt: id === 'ws-final' ? 'wsf' : 'ws', name, week: w, city, country, noOom: true,
     note: id === 'ws-final' ? 'Top 24 der World-Series-Wertung' : 'Einladung: Top 8 PDC + 8 Qualifikanten' })),
-  { id: 'masters', cat: 'major', fmt: 'masters', name: 'The Masters', week: 5, city: 'Milton Keynes', country: 'ENG', note: 'Top 24 PDC OOM' },
+  // Winmau World Masters: Vorrunde (Gruppenphase + K.-o., 8 Qualifikanten) in der Woche vorher, Hauptfeld 32 = Top 24 + 8
+  { id: 'masters-q', cat: 'mastersq', fmt: 'mastersq', name: 'Winmau World Masters · Vorrunde', week: 4, city: 'Milton Keynes', country: 'ENG',
+    extra: true, qualifier: true, prelim: true, noOom: true, note: 'Holder ab Platz 25 + Nebentouren + JDC · 32 Gruppen, K.-o. gegen Platz 25–56 · 8 Plätze · Best of 5 Sets' },
+  { id: 'masters', cat: 'major', fmt: 'masters', name: 'Winmau World Masters', week: 5, city: 'Milton Keynes', country: 'ENG', note: 'Top 24 PDC + 8 Qualifikanten aus der Vorrunde' },
   ...Array.from({ length: 16 }, (_, i) => ({
     id: `pl-${i + 1}`, cat: 'pl', fmt: 'pln', name: `Premier League · Spieltag ${i + 1}`, week: 6 + i,
     city: PL_CITIES[i], country: PL_COUNTRY[i] ?? 'ENG', noOom: true, extra: true, plNight: i + 1,
@@ -191,7 +195,8 @@ export const FORMATS = {
   wdf: { field: 64, default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 6 } } },
   qschool: { default: { legs: 5 }, stopAt: 4, cards: true },
   pc: { field: 128, default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } } },   // Bo11, HF Bo13, F Bo15
-  etq: { default: { legs: 6 }, stopAt: 10, sections: 10 },         // Tour-Card-Holder-Qualifier: 10 Sektionen → 10 Qualifikanten
+  etq: { default: { legs: 6 }, stopAt: 10, sections: 10 },
+  mastersq: { group: { sets: 3, legs: 2 }, default: { sets: 3, legs: 2 }, stopAt: 8 },   // Best of 5 Sets, Satz Best of 3 Legs         // Tour-Card-Holder-Qualifier: 10 Sektionen → 10 Qualifikanten
   et: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } }, seeds: 16 },
   challenge: { default: { legs: 5 } },                               // durchgehend Bo9
   dev: { default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 5 } } },   // Bo7, ab VF Bo9

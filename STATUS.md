@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 8**: Winmau World Masters mit echter Vorrunde (Gruppenphase, K.-o. gegen Platz 25–56, 8 Qualifikanten, Best of 5 Sets); Version steigt ab jetzt mit jedem Push.
 - [x] **Version 7.4**: Zoom-Hilfe direkt am Board per Knopf „🔍 Zoom an/aus“ (statt in den Optionen).
 - [x] **Version 7.3**: Lifestyle-Shop mit 62 Artikeln laut Nutzerliste (Gegenstände, Fahrzeuge, Immobilien bis Burj Khalifa), Fitnesstrainer als Festpreis-Pakete mit alle 12 Wochen wechselnden Angeboten, Zoom nur beim echten Checken.
 - [x] **Version 7.2 – Bot-Langzeittest** (`tests/nsdCareer.mjs`): 15 Saisons ohne Fehler; Star-Status-Kurve flacher (1,04^Stufe, Gewinne +1 %/Stufe), Fans wachsen abnehmend. Ergebnis (gut trainierender Bot): Jahr 1 Rang ~129, Jahr 2 Top 20–100, ab Jahr 3 Weltspitze, Status 100 nach ~13 Jahren; wer im 2. Jahr nicht in die Top 64 kommt, muss in die Last Chance. Spät im Spiel häufen sich ★ ohne neue Kaufziele (offen).
@@ -12,6 +13,11 @@
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Version 8
+- Vorrunde liegt in KW 4 (Woche vor dem Hauptturnier) statt „am Vortag“ – der Kalender kennt nur Wochen, und das Hauptfeld braucht die Qualifikanten vorher.
+- 32 Gruppensieger + 32 Gesetzte = Letzte 64; damit genau 8 übrig bleiben, werden Letzte 64, 32 und 16 gespielt (3 K.-o.-Runden).
+- Nebentouren ohne eigene Simulation (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic): jeweils bester Spieler ohne Karte aus der Region bzw. beste Amateurin.
 
 ### Annahmen Version 7
 - Holder-Liste: Spieler 65–99 der Nutzerliste haben 2026 ihr letztes Kartenjahr (wie Top 64: Verlust außerhalb der Top 64), 100–128 (Q-School 2026) Karte bis 2027. Nationen laut Liste übernommen (u. a. Dolan IRL, Dekker NO, Lukasiak SE, Ljubić HR). Alter = Listenwert − 1.

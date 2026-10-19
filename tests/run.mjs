@@ -1214,9 +1214,19 @@ test('New Star Darts v7: Start 2026, Holder-Liste, Status-Regeln, Meilensteine, 
   const ok = w.find(x => x.name === 'Dennie Olde Kalter'); assert.equal(ok.tier, 'tour'); assert.equal(surname(ok.name), 'Olde Kalter');
   assert.equal(surname('Michael van Gerwen'), 'van Gerwen'); assert.equal(surname('Luke Littler'), 'Littler');
   assert.equal(w.find(x => x.name === 'Cor Dekker').nation, 'NO');
-  // Masters: Vorrunden für alle Holder
-  const { majorField } = await import('../js/majors.js');
-  s.date.week = 5; assert.ok(majorField(s, eventsInWeek(s, 2026, 5).find(e => e.id === 'masters'), true).includes('P')); s.date.week = 3;
+  // Winmau World Masters: Vorrunde (KW 4) – Gruppen, K.-o. gegen Platz 25–56, 8 Qualifikanten → Hauptfeld 32
+  const { majorField, mastersPrelimField, qualOf } = await import('../js/majors.js');
+  s.date.week = 4;
+  const mq = eventsInWeek(s, 2026, 4).find(e => e.id === 'masters-q');
+  assert.ok(mq && eventStatus(s, mq).playable);
+  const pf = mastersPrelimField(s, true); assert.equal(pf.seeds.length, 32); assert.ok(pf.pool.includes('P') && pf.pool.length > 70);
+  const qi = ET.runAITournament(s, mq, 0);
+  assert.equal(qi.rounds[0].format.sets, 3); assert.equal(qi.rounds[0].format.legs, 2);   // Best of 5 Sets, Satz Best of 3
+  assert.equal(qualOf(s).mastersQ.length, 8);
+  s.date.week = 5;
+  const mf = majorField(s, eventsInWeek(s, 2026, 5).find(e => e.id === 'masters'), true);
+  assert.equal(mf.length, 32); assert.ok(qualOf(s).mastersQ.every(id => mf.includes(id)));
+  s.date.week = 3;
   // Star-Status: bis Status 10 auch bei knapper Niederlage ein Plus (nicht unter 85 Ø / zu null), Note > 6 → Plus, Top-Gegner mehr
   assert.ok(N.starMatchDelta(1, { won: false, my: 4, opp: 6, to: 6, avg: 88, cat: 'pc' }) > 0);
   assert.ok(N.starMatchDelta(1, { won: false, my: 0, opp: 6, to: 6, avg: 88, cat: 'pc' }) < 0);

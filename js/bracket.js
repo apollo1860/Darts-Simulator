@@ -108,3 +108,34 @@ export function groupPlace(rounds, groups, id) {
   const pos = groupTable(rounds, groups[gi], gi).findIndex(x => x.id === id);
   return pos >= 2 ? `G${pos + 1}` : null;
 }
+
+// ---- Vorrunde Winmau World Masters: Gruppen (2–4 Spieler, jeder gegen jeden), nur Gruppensieger → K.-o. gegen Gesetzte ----
+export function buildPrelimRounds(groups, fmt, koSize = 64) {
+  const pairs = g => g.flatMap((_, x) => g.slice(x + 1).map((__, k) => [x, x + 1 + k]));
+  const days = [];
+  groups.forEach((g, gi) => {
+    const busy = [];                                           // Spieltag: jeder höchstens ein Match
+    for (const [x, y] of pairs(g)) {
+      let d = 0;
+      while (busy[d]?.has(x) || busy[d]?.has(y)) d++;
+      (busy[d] ??= new Set()).add(x).add(y);
+      (days[d] ??= []).push({ a: g[x], b: g[y], winner: null, score: null, group: gi });
+    }
+  });
+  const rounds = days.map((matches, d) => ({ name: `Vorrunde · Gruppenspiel ${d + 1}`, remaining: groups.length, isGroup: true, format: fmt.group, matches }));
+  for (let rem = koSize; rem > (fmt.stopAt ?? 1); rem /= 2) {
+    rounds.push({ name: ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
+  }
+  return rounds;
+}
+// K.-o.-Runde: Gesetzte (Platz 25–56) gegen zugeloste Gruppensieger; fehlende Gegner = Freilos
+export function prelimKoMatches(rounds, groups, seeds, rng) {
+  const winners = rng.shuffle(groups.map((g, gi) => groupTable(rounds, g, gi)[0]?.id).filter(Boolean));
+  const n = Math.max(seeds.length, winners.length), out = [];
+  for (let i = 0; i < n; i++) {
+    const a = seeds[i] ?? winners.pop(), b = seeds[i] ? winners.pop() : winners.pop();
+    if (a && b) out.push({ a, b, winner: null, score: null });
+    else if (a || b) out.push({ a: a ?? b, b: null, winner: a ?? b, bye: true });
+  }
+  return out;
+}

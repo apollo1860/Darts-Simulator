@@ -7,8 +7,8 @@ import { addNews } from './news.js';
 import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
-// Version = abgeschlossene Etappe (Anzeige rechts oben im Titelbildschirm), bei jeder Etappe erhöhen
-export const APP_VERSION = 7;
+// Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
+export const APP_VERSION = 8;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },

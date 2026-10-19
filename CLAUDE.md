@@ -6,7 +6,7 @@ Immer zuerst `STATUS.md` lesen (Phasenstand, Annahmen, Bugs). Pro Sitzung genau 
 ## 🌟 NEW STAR DARTS – Umbau (ab Okt. 2026, Nutzerwunsch)
 Das Spiel wird zu **New Star Darts**: Karrierespiel nach dem Vorbild *New Star Soccer* (Funktionsweise + Design nach Nutzer-Screenshots,
 eigene Grafiken). Die Simulation (Tour, Majors, Qualifikationen, KI-Welt, Wurfmodell, Ranglisten) bleibt im Hintergrund erhalten.
-**Version** (`APP_VERSION` in `js/nsd.js`, rechts oben im Titelbildschirm) = Nummer der zuletzt abgeschlossenen Etappe – bei jedem Etappen-Abschluss erhöhen.
+**Version** (`APP_VERSION` in `js/nsd.js`, rechts oben im Titelbildschirm): **bei jedem Push um 1 erhöhen** (Nutzerwunsch, ab Version 8).
 Etappenweise Umsetzung (eine Etappe pro Sitzung):
 1. **Grundgerüst & Design** ✅ – Rahmen, Titel, Spielstände, Optionen, Willkommen, Profil erstellen, Status, Fähigkeit, Leben, Liga.
 2. **Spielen** ✅ – Wochenablauf, DartConnect-Liveticker mit Schlüsselmomenten, Kreis-Zielmechanik, Energie-Regeln, Match-Note, News-Seite.
@@ -20,7 +20,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 
 ### Version 7 – Feedback-Runde (gilt vor älteren Angaben unten)
 - **Start**: Saison 2026, KW 3 (direkt nach der Q-School; `NSD_START`), 5 ★, Alter 16–60 (`START_AGES`), Erfahrung mind. +3. Welt = 128 Holder laut Nutzerliste (data/players.js: T = Top 64 + X = letztes Kartenjahr → Karte bis 2026; N1–4 bis 2026, Q-School 2026 bis 2027; `createWorld(rng, 2026)`). Top 64 am Saisonende → +1 Jahr, sonst Verlust (außer Karte läuft noch).
-- **Masters**: im Tour-Modus Vorrunden für alle Holder (Feld bis 128, Top 24 vorn).
+- **Winmau World Masters** (KW 5, 32er-Feld = Top 24 PDC + 8 Qualifikanten): **Vorrunde** `masters-q` (Kategorie `mastersq`, Zusatz-Event KW 4, kein Preisgeld): Holder ab Platz 57 + je Beste der Nebentouren (CT/Dev Top 2 ohne Karte, Nordic & Baltic, Asien, Nordamerika, Australien, Neuseeland, Frauen) + 4 JDC-Talente (Dev ≤ 18) in 32 Gruppen (jeder gegen jeden, `buildPrelimRounds`), Gruppensieger → K.-o. (Letzte 64) gegen die gesetzten Plätze 25–56 (`prelimKoMatches`), nach Letzte 64/32/16 bleiben 8 → `qual.mastersQ`. Alle Vorrunden-Partien Best of 5 Sets (Satz Best of 3 Legs). Fehlen Qualifikanten, rücken Platz 25 ff. nach.
 - **Fähigkeit → Attribut** = 87,5 + 12,5/60 × Fähigkeit. Rechenfehler eigener Würfe `ce` = 0,07 − 0,0012 × Rechnen (Sim) bzw. 0,15 − 0,0025 × Rechnen (Zielvorschlag im Liveticker); falsche Doppel oft D13/D11/D5/D17/D19. Selbstvertrauen wirkt im Tour-Modus halb so stark.
 - **Liveticker**: Werfen/Stopp über den großen grünen Knopf in der unteren Leiste (Pause/Tempo/Beenden während des Zielens ausgeblendet); y-Linie ×0,8 Tempo, Grundtempo 0,8 − 0,004 × Fokus; Kreis 17 − 0,2 × Fähigkeit. Zoom-Hilfe nur beim echten Checken (Rest ≤ 170 mit Checkout-Weg, nie bei Scoring-Aufnahmen; Ausschnitt 230 mm um das Ziel; Schalter „🔍 Zoom“ direkt am Board, wird gemerkt in `js/ui/nsd/settings.js`). Gegnerstand wird beim eigenen Wurf angezeigt. Gegner am Board nur bei Matchdarts (rot, „GEGNER WIRFT“). Zusätzlich max. eine Scoring-Aufnahme je Leg (35 %, Rest > 170). Nachnamen mit Zusätzen (`surname`: „Olde Kalter“, „van Gerwen“).
 - **Partie-Übersicht**: Gegner-Ø als Spanne ±15 %, keine eigenen Fähigkeitswerte.

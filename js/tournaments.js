@@ -13,8 +13,8 @@ import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, pointsGained } fr
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek, nsdBlocked } from './calendar.js';
-import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace } from './bracket.js';
-import { MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots } from './majors.js';
+import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches } from './bracket.js';
+import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots } from './majors.js';
 import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
@@ -35,7 +35,7 @@ import { managerCut, maybeInterviewNsd, managerOf } from './career.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
-export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'etq', 'hnq', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs', 'wmreg'];   // laufen ohne Spieler im Hintergrund
+export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'etq', 'mastersq', 'hnq', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs', 'wmreg'];   // laufen ohne Spieler im Hintergrund
 
 // Inhaltliche Berechtigung
 export function eligibility(state, ev) {
@@ -65,6 +65,11 @@ export function eligibility(state, ev) {
       return { ok: true };                                 // Dev Tour: offen für alle bis 23, keine Q-School nötig
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
     case 'et': return etQualified(state, ev) ? { ok: true } : { ok: false, reason: card ? 'Nicht qualifiziert (TCHQ verpasst?)' : 'Tourcard oder Host-Nation-Qualifier nötig' };
+    case 'mastersq': {                                   // Winmau World Masters – Vorrunde: Holder außerhalb der Top 24
+      if (!card) return { ok: false, reason: 'Tourcard nötig' };
+      const r = rankOf(state, 'pdc', 'P');
+      return r && r <= 24 ? { ok: false, reason: 'Direkt im Hauptfeld (Top 24)' } : { ok: true };
+    }
     case 'etq':
       if (!card) return { ok: false, reason: 'Tourcard nötig' };
       return etDirect(state).includes('P') ? { ok: false, reason: 'Schon direkt qualifiziert' } : { ok: true };
@@ -259,13 +264,21 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
   const slots = ev.fmt === 'wmq' ? wmTchqSlots(state) : ev.slots;          // Qualifier mit n Plätzen → n Sektionen
   const fmt = slots > 1 ? { ...FORMATS[fk], stopAt: slots, sections: slots } : FORMATS[fk];
   let groups = null, rounds;
-  if (ev.groups) {        // Grand Slam: 4 Töpfe à 8 → 8 Gruppen
+  let prelimSeeds = null;
+  if (ev.prelim) {         // Winmau World Masters – Vorrunde: 32 Gruppen (jeder gegen jeden), Sieger → K.-o. gegen Platz 25–56
+    const f = mastersPrelimField(state, withPlayer);
+    groups = Array.from({ length: 32 }, () => []);
+    rng.shuffle(f.pool).forEach((id, i) => groups[i % 32].push(id));
+    groups = groups.filter(g => g.length);
+    prelimSeeds = f.seeds;
+    rounds = buildPrelimRounds(groups, fmt);
+  } else if (ev.groups) {        // Grand Slam: 4 Töpfe à 8 → 8 Gruppen
     const pots = [0, 1, 2, 3].map(k => rng.shuffle(field.slice(k * 8, k * 8 + 8)));
     groups = Array.from({ length: 8 }, (_, g) => pots.map(p => p[g]).filter(Boolean));
     rounds = buildGroupRounds(groups, fmt);
   } else rounds = buildRounds(field, fmt);
   return {
-    groups, teams: ev.team ? wcTeams(state) : null, autoPlayer: !!ctx.auto, plNight: ev.plNight ?? null,
+    groups, prelimSeeds, teams: ev.team ? wcTeams(state) : null, autoPlayer: !!ctx.auto, plNight: ev.plNight ?? null,
     eventId: ev.id, cat: ev.cat, fmt: fk, name: subName(ev, sub), baseName: ev.name,
     city: ev.city, country: ev.country, year: state.date.year, week: state.date.week,
     count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomTypes(ev, sub),
@@ -615,7 +628,8 @@ function advance(inst) {
   inst.current++;
   const r = inst.rounds[inst.current], prev = inst.rounds[inst.current - 1];
   if (r.isGroup) return;
-  r.matches = prev.isGroup ? groupKoMatches(inst.rounds, inst.groups) : pairWinners(prev);
+  r.matches = prev.isGroup ? (inst.prelimSeeds ? prelimKoMatches(inst.rounds, inst.groups, inst.prelimSeeds, new RNG({ s: hashSeed(`${inst.eventId}|${inst.year}`) }))
+    : groupKoMatches(inst.rounds, inst.groups)) : pairWinners(prev);
   if (prev.isGroup && inst.withPlayer && inst.playerAlive && !r.matches.some(m => m.a === 'P' || m.b === 'P')) inst.playerAlive = false;
 }
 
@@ -678,6 +692,7 @@ function settle(state, inst) {
   if (inst.cat === 'wmreg') (qualOf(state).wmReg ??= {})[inst.eventId.slice(4)] = survivors;
   if (inst.eventId === 'youth-wm') qualOf(state).wmYouth = survivors[0];
   if (inst.cat === 'etq') etStore(state, inst.eventId.replace('etq', 'et')).tchq = survivors;
+  if (inst.cat === 'mastersq') qualOf(state).mastersQ = survivors;
   if (inst.cat === 'hnq') {                                    // HNQ: je Turnier ein Platz (max. 4)
     const st = etStore(state, inst.eventId.replace('hnq', 'et'));
     st.hnq ??= [];
@@ -744,6 +759,12 @@ function finishEvent(state, inst) {
   }
   trackTitle(state, inst);
   if (inst.isQualifier) {
+    if (inst.cat === 'mastersq') {
+      const ok = place === 'QUAL' || place === 'W';
+      addNews(state, 'result', ok ? '🎟️ Qualifiziert für die Winmau World Masters!' : `${inst.name}: ausgeschieden`, ok ? 'Du stehst im 32er-Hauptfeld – melde dich nächste Woche an.' : 'Kein Platz im Hauptfeld.');
+      if (!ok) state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });
+      return;
+    }
     if (inst.cat === 'wmreg') {
       const ok = place === 'QUAL' || place === 'W';
       addNews(state, 'result', ok ? `🎟️ WM-Ticket! ${inst.name}` : `${inst.name}: nicht qualifiziert`, ok ? 'Du spielst im Dezember die Weltmeisterschaft im Ally Pally.' : 'Kein WM-Platz – nächstes Jahr wieder.');

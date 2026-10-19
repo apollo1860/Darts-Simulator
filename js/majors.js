@@ -101,16 +101,40 @@ export function scorePlNight(state, inst) {
   pl.nights++;
 }
 
+// ---- Winmau World Masters: Vorrunde ----
+// Holder nach PDC-Rangliste (inkl. Spieler mit Karte)
+const holdersByRank = state => idsOf(orderOfMerit(state, 'pdc')).filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
+// Gesetzt (K.-o.): Platz 25–56. Gruppenphase: Holder ab Platz 57 + Beste der Nebentouren (CT, Dev, Nordic & Baltic, Asien,
+// Nordamerika, Australien, Neuseeland, Frauen) + 4 JDC-Talente (jüngste starke Dev-Spieler)
+const REGIONS = [['SE', 'NO', 'DK', 'FI', 'LT', 'LV', 'EE'], ['JP', 'PH', 'CN', 'IN', 'HK', 'SG', 'MY', 'TH'], ['US', 'CA'], ['AU'], ['NZ']];
+export function mastersPrelimField(state, withPlayer) {
+  const h = holdersByRank(state).filter(id => withPlayer || id !== 'P');
+  const seeds = h.slice(24, 56), used = new Set(h);
+  const pool = h.slice(56);
+  const free = id => id && !used.has(id) && (used.add(id), true);
+  for (const type of ['challenge', 'dev']) idsOf(orderOfMerit(state, type)).filter(id => id !== 'P' && getPlayer(state, id)?.tier !== 'tour').slice(0, 2).forEach(id => free(id) && pool.push(id));
+  const noCard = [...playersOfTier(state, 'challenge', 'dev', 'amateur')].filter(p => !p.woman);
+  for (const nats of REGIONS) {
+    const best = noCard.filter(p => nats.includes(p.nation) && !used.has(p.id)).sort((a, b) => b.avg - a.avg)[0];
+    if (best) { free(best.id); pool.push(best.id); }
+  }
+  const woman = playersOfTier(state, 'amateur').filter(p => p.woman && !used.has(p.id)).sort((a, b) => b.avg - a.avg)[0];
+  if (woman) { free(woman.id); pool.push(woman.id); }
+  playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => free(p.id) && pool.push(p.id));
+  return { seeds, pool };
+}
+
 // ---- Felder ----
 function computeField(state, ev) {
   const rng = fieldRng(state, ev), y = state.date.year;
   const pdc = idsOf(orderOfMerit(state, 'pdc')), pt = idsOf(orderOfMerit(state, 'protour'));
   const used = new Set();
   switch (ev.fmt) {
-    case 'masters': {                        // Tour-Modus: Vorrunden für alle Holder (Top 24 gesetzt vorn), sonst Top 24
+    case 'masters': {                        // Tour-Modus: Top 24 + 8 Qualifikanten der Vorrunde (fehlen sie noch: Platz 25–32)
       if (state.mode !== 'nsd') return pdc.slice(0, 24);
-      const holders = pdc.filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
-      return holders.length > 128 ? [...holders.slice(0, 127), ...(holders.slice(0, 127).includes('P') ? [holders[127]] : ['P'])].filter(Boolean) : holders;
+      const top = holdersByRank(state).slice(0, 24);
+      top.forEach(id => used.add(id));
+      return [...top, ...take(qualOf(state).mastersQ ?? [], 8, used), ...take(holdersByRank(state).slice(24), 32 - used.size, used)];
     }
     case 'matchplay': case 'wgp': return [...take(pdc, 16, used), ...take(pt, 16, used)];
     case 'ec': return idsOf(orderOfMerit(state, 'eto')).slice(0, 32);
