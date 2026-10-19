@@ -37,7 +37,7 @@ while (s.date.year < N.NSD_START.year + seasons && !s.ended) {
   // Team, Sponsoren, Shop
   for (const m of [...C.managersOf(s)].reverse()) if (C.managerOk(s, m) && s.team?.manager !== m.id) { try { C.fireManager(s, false); C.hireManager(s, m.id); } catch { } break; }
   if (s.nsdSponsors?.offer) C.acceptOffer(s);
-  if (!s.team?.trainer && s.stars > 60) try { C.hireTrainer(s, 'f1'); } catch { }
+  if (!p.fitness && s.stars > 60) try { C.hireTrainer(s, C.trainerOffers(s).at(-1).id); } catch { }
   const cheap = LIFESTYLE.filter(x => !p.owned?.includes(x.id)).sort((a, b) => a.price - b.price)[0];
   if (cheap && s.stars > 3 * L.itemPrice(cheap, p.star.level)) L.buyItem(s, cheap.id);
   // Training (Erfolg je nach „Spielerqualität“ skillQ), vorher bei Bedarf Bier

@@ -5,14 +5,13 @@ import { ACHIEVEMENTS } from '../data/achievements.js';
 import { starPrice, starPayout, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
-import { TRAINERS } from '../data/team.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fill = (txt, p) => txt.replaceAll('{partner}', p.partnerName ?? 'Sie');
 
 // ---- Lifestyle-Shop ----
 export const ownedItems = p => LIFESTYLE.filter(x => p.owned?.includes(x.id));
-export const lifestyleOf = p => Math.min(100, ownedItems(p).reduce((a, x) => a + x.ls, 0));
+export const lifestyleOf = p => Math.min(100, Math.round(ownedItems(p).reduce((a, x) => a + x.ls, 0) * 10) / 10);   // ganzer Shop = 100
 export const homeRegen = p => Math.max(0, ...ownedItems(p).map(x => x.regen ?? 0));
 export const itemPrice = (it, level) => starPrice(it.price, level);
 export function buyItem(state, id) {
@@ -30,7 +29,7 @@ export function buyItem(state, id) {
 }
 
 // ---- Wöchentliche Erholung: Basis 40 + bestes Zuhause + Fitnesstrainer + Zufriedenheit (−10 … +10) ----
-export const fitnessRegen = p => TRAINERS.find(t => t.id === p.fitness?.id)?.regen ?? 0;
+export const fitnessRegen = p => p.fitness?.regen ?? 0;
 export const weeklyEnergy = p => ENERGY_WEEK + homeRegen(p) + fitnessRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5);
 
 // Zufriedenheit: Zielwert aus Lifestyle, Freundin, Fans und Selbstvertrauen; wöchentlich 20 % Richtung Ziel
@@ -44,7 +43,7 @@ export function satisfactionTarget(p) {
 
 // ---- Lebens-Ereignisse ----
 // Frau ansprechen: ohne Lifestyle und Star-Status wirst du meist ausgelacht
-export const meetChance = p => Math.max(0.08, Math.min(0.75, 0.05 + 0.012 * lifestyleOf(p) + 0.02 * (p.star?.level ?? 1)));
+export const meetChance = p => Math.max(0.08, Math.min(0.75, 0.05 + 0.025 * lifestyleOf(p) + 0.02 * (p.star?.level ?? 1)));
 export const LIFE_EVENT_CHANCE = 0.35;
 export const eventById = id => LIFE_EVENTS.find(e => e.id === id);
 export function rollLifeEvent(state, rng) {

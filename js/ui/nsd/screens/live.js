@@ -164,11 +164,12 @@ function closeOverlay() {
   ui.aimEl.classList.add('hidden'); ui.aimEl.classList.remove('opp'); ui.aimEl.innerHTML = ''; ui.aim = null; ui.show = null;
   if (wasAim) normalBar();
 }
-// Zoom-Hilfe: beim Checken auf das Viertel um das Ziel heranzoomen
+// Zoom-Hilfe: beim Checken auf das Viertel um das Ziel heranzoomen (Scoring: ganze Scheibe)
 function zoomTo(label) {
   const svg = $('#bsvg');
   if (!svg) return;
-  const zoom = getSettings().zoom && ui.aim && ui.live.m.rem[ui.me] <= 170;
+  const m = ui.live.m, rem = m.rem[ui.me];   // nur beim echten Checken (Weg vorhanden), nie bei Scoring-Aufnahmen
+  const zoom = getSettings().zoom && ui.aim && ui.aim.kind !== 'scoring' && rem <= 170 && !!checkoutRoute(rem, dartsLeft(m));
   if (!zoom) return svg.setAttribute('viewBox', '-200 -200 400 400');
   const p = targetPoint(label), size = 230, h = size / 2;
   const cx = Math.max(-200 + h, Math.min(200 - h, p.x)), cy = Math.max(-200 + h, Math.min(200 - h, p.y));

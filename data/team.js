@@ -5,13 +5,9 @@ export const MANAGERS = [
   { id: 'm2', name: 'Sandra Voss', icon: '👩‍💼', cut: 0.15, offer: 0.32, mult: 1.3, needStar: 10, needRank: 64, info: 'Gut vernetzt bei Sponsoren' },
   { id: 'm3', name: 'Victor Lennox', icon: '🕴️', cut: 0.20, offer: 0.45, mult: 1.7, needStar: 30, needRank: 16, info: 'Holt die ganz großen Deals' },
 ];
-// Namen werden je Spielstand zufällig zusammengesetzt (career.js: nameTeam); name = Ersatz für alte Stände
-// Fitnesstrainer: Wochengebühr, Energie-Erholung pro Woche (title + Zufallsname)
-export const TRAINERS = [
-  { id: 'f1', title: 'Fitness-Coach', name: 'Fitness-Studio-Coach', icon: '🏃', fee: 1, regen: 6 },
-  { id: 'f2', title: 'Athletiktrainer', name: 'Athletiktrainer Brandt', icon: '🏋️', fee: 3, regen: 12 },
-  { id: 'f3', title: 'Sportwissenschaftler Dr.', name: 'Sportwissenschaftlerin Dr. Ilić', icon: '🧬', fee: 6, regen: 18 },
-];
+// Fitnesstrainer: zufällige Angebote (career.js: trainerOffers) – Titel und Symbole
+export const TRAINER_TITLES = ['Fitness-Coach', 'Athletiktrainer', 'Physiotherapeut', 'Personal Trainer', 'Sportwissenschaftler Dr.', 'Yoga-Coach', 'Ernährungsberater', 'Mentaltrainer'];
+export const TRAINER_ICONS = ['🏃', '🏋️', '🧘', '🥗', '🧬', '💆', '🚴'];
 // Interview: je Frage 3 Antworten – humble (bescheiden), proud (selbstbewusst), cocky (großspurig)
 export const INTERVIEW_QS = [
   { q: 'Wie fühlt sich dieser Erfolg an?', a: ['Ich bin einfach dankbar, hier sein zu dürfen.', 'Ich habe hart dafür gearbeitet – verdient!', 'Ehrlich? Das war erst der Anfang. Die anderen sollten sich warm anziehen.'] },

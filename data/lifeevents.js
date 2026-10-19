@@ -58,10 +58,10 @@ export const LIFE_EVENTS = [
   { id: 'camp', icon: '🏋️', text: 'Ein Ex-Profi bietet dir einen privaten Trainingstag an.',
     opts: [{ label: 'Buchen', stars: -8, energy: -60, idle: true, out: 'Viel gelernt – deine Fähigkeiten sind wieder frisch.' },
       { label: 'Ablehnen', out: 'Du trainierst lieber allein.' }] },
-  { id: 'housewarming', icon: '🏠', if: p => (p.owned ?? []).some(id => ['flat', 'townhouse', 'villa', 'island'].includes(id)), text: 'Zeit für eine Party in deinem neuen Zuhause?',
+  { id: 'housewarming', icon: '🏠', if: p => (p.owned ?? []).some(id => ['bungalow', 'haus', 'blockhuette', 'stadthaus', 'landhaus', 'strandhaus', 'ferienvilla', 'skihuette', 'bauernhof', 'weingut', 'privatinsel', 'wolkenkratzer', 'schlossneuschwanstein', 'burjkhalifa'].includes(id)), text: 'Zeit für eine Party in deinem neuen Zuhause?',
     opts: [{ label: 'Party!', stars: -3, energy: -60, fans: 2, sat: 6, out: 'Alle beneiden dich um dein Zuhause.' },
       { label: 'Ruhig bleiben', energy: 5, out: 'Du genießt die Ruhe.' }] },
-  { id: 'carfan', icon: '🚗', if: p => (p.owned ?? []).some(id => ['sportscar', 'limo'].includes(id)), text: 'Fans erkennen dich an deinem Auto und wollen Selfies.',
+  { id: 'carfan', icon: '🚗', if: p => (p.owned ?? []).some(id => ['sportwagen', 'limousine', 'rennwagen'].includes(id)), text: 'Fans erkennen dich an deinem Auto und wollen Selfies.',
     opts: [{ label: 'Anhalten', energy: -60, fans: 3, out: 'Ein Dutzend Selfies später …' },
       { label: 'Weiterfahren', fans: -1, out: 'Du hast es eilig.' }] },
 ];

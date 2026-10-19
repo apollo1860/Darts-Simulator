@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 7.3**: Lifestyle-Shop mit 62 Artikeln laut Nutzerliste (Gegenstände, Fahrzeuge, Immobilien bis Burj Khalifa), Fitnesstrainer als Festpreis-Pakete mit alle 12 Wochen wechselnden Angeboten, Zoom nur beim echten Checken.
 - [x] **Version 7.2 – Bot-Langzeittest** (`tests/nsdCareer.mjs`): 15 Saisons ohne Fehler; Star-Status-Kurve flacher (1,04^Stufe, Gewinne +1 %/Stufe), Fans wachsen abnehmend. Ergebnis (gut trainierender Bot): Jahr 1 Rang ~129, Jahr 2 Top 20–100, ab Jahr 3 Weltspitze, Status 100 nach ~13 Jahren; wer im 2. Jahr nicht in die Top 64 kommt, muss in die Last Chance. Spät im Spiel häufen sich ★ ohne neue Kaufziele (offen).
 - [x] **Version 7.1**: Meilensteine ohne Geld (kleines Star-Status-Plus), Einblendung im NSS-Stil, eigenes App-Icon (Homescreen/Favicon).
 - [x] **Version 7 – Feedback-Runde**: Start 2026 nach der Q-School mit echter Holder-Liste, Masters-Vorrunden, 5 ★, Alter bis 60 mit Abbau ab 30, Zielen-Bug behoben (Wurf-Knopf unten), Zoom-Hilfe, Gegnerstand/-Matchdarts, Scoring-Momente, Rechenfehler, leichterer Start, neue Star-Status-Regeln, Zufriedenheit langsam, Beziehungs-Aktionen, Ereignisse ±2/60 % Energie, Getränke auf 100 %, Fokus-Memory neu, 133 Meilensteine mit Einblendung.

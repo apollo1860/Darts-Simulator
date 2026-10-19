@@ -1092,10 +1092,15 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   // Shop: einmalig, Lifestyle, beste Immobilie zählt für die Erholung
   s.stars = 1000;
   assert.equal(p.satisfaction, 30); assert.equal(L.weeklyEnergy(p), 40 - 4);  // Start unzufrieden: 30 → −4
-  L.buyItem(s, 'flat'); L.buyItem(s, 'townhouse'); L.buyItem(s, 'console');
-  assert.throws(() => L.buyItem(s, 'flat'), /Schon/);
-  assert.equal(L.lifestyleOf(p), 6 + 12 + 3); assert.equal(L.homeRegen(p), 10);
-  assert.equal(s.stars, 1000 - 90 - 320 - 12);                              // Meilensteine bringen kein Geld
+  L.buyItem(s, 'apartment'); L.buyItem(s, 'haus'); L.buyItem(s, 'spielekonsole');
+  assert.throws(() => L.buyItem(s, 'apartment'), /Schon/);
+  const { LIFESTYLE } = await import('../data/lifestyle.js'), it = id => LIFESTYLE.find(x => x.id === id);
+  assert.equal(L.lifestyleOf(p), Math.round((it('apartment').ls + it('haus').ls + it('spielekonsole').ls) * 10) / 10);
+  assert.equal(L.homeRegen(p), it('haus').regen);                            // beste Immobilie zählt
+  assert.equal(s.stars, 1000 - 10 - 50 - 25);                                // Meilensteine bringen kein Geld
+  assert.equal(LIFESTYLE.length, 62); assert.ok(Math.abs(LIFESTYLE.reduce((a, x) => a + x.ls, 0) - 100) < 0.5);
+  for (const c of ['item', 'vehicle', 'home']) { const pr = LIFESTYLE.filter(x => x.cat === c).map(x => x.price); assert.deepEqual(pr, [...pr].sort((a, b) => a - b)); }
+  assert.equal(it('burjkhalifa').price, 10000); assert.equal(it('limeprimeabo').price, 2);
   p.star.level = 21; assert.equal(L.itemPrice({ price: 90 }, 21), 180); p.star.level = 1;
   assert.ok(s.achievements.home && s.achievements.wheels === undefined);
   // Ereignisse: Bedingungen, Kosten, Zufall
@@ -1111,7 +1116,7 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   p.energy = 50; s.lifeEvent = { id: 'tv' }; assert.ok(L.lifeEventView(s).opts[0].tired); assert.throws(() => L.resolveLifeEvent(s, 0, rng), /müde/);
   p.energy = 100; const f0 = p.rel.fans; L.resolveLifeEvent(s, 0, rng); assert.equal(p.energy, 40); assert.ok(p.rel.fans > f0 && p.rel.fans <= f0 + 2);   // max. +2, mit vielen Fans weniger
   // Ohne Lifestyle/Status lacht sie dich aus (meist)
-  assert.ok(L.meetChance({ owned: [], star: { level: 1 } }) < 0.12 && L.meetChance({ owned: ['villa', 'sportscar'], star: { level: 10 } }) > 0.4);
+  assert.ok(L.meetChance({ owned: [], star: { level: 1 } }) < 0.12 && L.meetChance({ owned: ['ferienvilla', 'sportwagen', 'rolex', 'yacht', 'weingut'], star: { level: 10 } }) > 0.4);
   s.stars = 0; s.lifeEvent = { id: 'birthday' }; assert.throws(() => L.resolveLifeEvent(s, 0, rng), /★/); void e0;
   // Woche: Freundin −1, Zufriedenheit Richtung Ziel, Karte mit 35 %
   s.lifeEvent = null; p.rel.partner = 1; L.lifeWeek(s, rng);
@@ -1120,8 +1125,8 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   let n = 0; for (let i = 0; i < 200; i++) { s.lifeEvent = null; if (L.rollLifeEvent(s, rng)) n++; }
   assert.ok(n > 40 && n < 100, `Ereignisse ${n}`);
   // Wochen-Erholung in nextWeek
-  s.lifeEvent = null; p.energy = 10; p.satisfaction = 50; const before = p.energy; nextWeek(s);   // Erholung: 40 + Stadthaus 10
-  assert.equal(p.energy, before + 40 + 10);
+  s.lifeEvent = null; p.energy = 10; p.satisfaction = 50; const before = p.energy; nextWeek(s);   // Erholung: 40 + Haus
+  assert.equal(p.energy, before + 40 + it('haus').regen);
 });
 
 test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Saisonbericht', async () => {
@@ -1135,11 +1140,15 @@ test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Sais
   // Manager: Voraussetzungen, Provision
   assert.throws(() => C.hireManager(s, 'm3'), /nicht/);
   C.hireManager(s, 'm1'); assert.equal(p.rel.manager, 50); assert.equal(C.managerCut(s, 20), 2);
-  // Trainer: Gebühr pro Woche, Erholung
-  s.stars = 100; C.hireTrainer(s, 'f2'); assert.equal(p.fitness.id, 'f2');
+  // Trainer: Festpreis-Paket für n Wochen, Erholung, Angebote wechseln alle 12 Wochen
+  const offers = C.trainerOffers(s), tr = offers[0];
+  assert.equal(offers.length, 3); assert.ok(tr.price >= 1 && tr.weeks >= 4 && tr.regen >= 4 && tr.name);
+  s.stars = 100; C.hireTrainer(s, tr.id); assert.equal(s.stars, 100 - tr.price); assert.equal(p.fitness.regen, tr.regen);
   const L = await import('../js/life.js'); p.satisfaction = 50;
-  assert.equal(L.weeklyEnergy(p), 40 + 12);
-  const out = C.careerWeek(s, rng); assert.equal(out.fee, 3); assert.equal(s.stars, 97 + out.sponsor);
+  assert.equal(L.weeklyEnergy(p), 40 + tr.regen);
+  const out = C.careerWeek(s, rng); assert.equal(out.fee, 0); assert.equal(s.stars, 100 - tr.price + out.sponsor);
+  s.date.week += tr.weeks + 1; C.careerWeek(s, rng); assert.equal(p.fitness, null);              // Paket abgelaufen
+  s.date.week += 12; C.trainerOffers(s); assert.ok(!C.trainerOffers(s).some(x => offers.includes(x))); s.date.week -= tr.weeks + 13;
   // Sponsor-Angebot erzwingen und verhandeln
   let tries = 0; while (!s.nsdSponsors.offer && tries++ < 200) C.sponsorWeek(s, rng);
   const o = s.nsdSponsors.offer; assert.ok(o && o.perWeek >= 1);

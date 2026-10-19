@@ -1,5 +1,6 @@
 // Lifestyle-Shop: Gegenstände, Fahrzeuge, Immobilien einmalig kaufen (Lifestyle, Zufriedenheit, Immobilien: Energie-Erholung)
 import { LIFESTYLE, LIFESTYLE_CATS } from '../../../../data/lifestyle.js';
+import { fmtNum } from '../../../util.js';
 import { itemPrice, buyItem, lifestyleOf, homeRegen } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
@@ -12,7 +13,7 @@ export function render(app) {
   const s = app.state, p = s.player, lvl = p.star.level, [cat, label] = LIFESTYLE_CATS[tab];
   return frame({
     body: `${header(p.name)}${titleBand('Lifestyle')}
-      <div class="nsd-meters">${meter({ icon: '<span style="font-size:2rem">💎</span>', label: `Lifestyle ${lifestyleOf(p)}`, pct: lifestyleOf(p) })}
+      <div class="nsd-meters">${meter({ icon: '<span style="font-size:2rem">💎</span>', label: `Lifestyle ${fmtNum(lifestyleOf(p), 1)}`, pct: lifestyleOf(p) })}
         ${meter({ icon: '<span style="font-size:2rem">🛌</span>', label: `Erholung +${homeRegen(p)}`, pct: homeRegen(p) * 5 })}</div>
       <div class="nsd-pager"><button data-t="-1">◀</button><b>${label}</b><button data-t="1">▶</button></div>
       <div class="nsd-strip"><span></span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
@@ -20,7 +21,7 @@ export function render(app) {
         const own = p.owned?.includes(it.id);
         return `<div class="nsd-ev ${own ? 'on' : ''}">
           <div class="nsd-ev-main"><div class="nsd-ev-name">${it.icon} ${it.name}</div>
-            <div class="nsd-ev-sub">Lifestyle +${it.ls} · Zufriedenheit +${it.sat}${it.regen ? ` · Erholung +${it.regen} %` : ''}</div>
+            <div class="nsd-ev-sub">Lifestyle +${fmtNum(it.ls, 1)} · Zufriedenheit +${it.sat}${it.regen ? ` · Erholung +${it.regen} %` : ''}</div>
             ${own ? '' : `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it, lvl))}</div>`}</div>
           ${own ? '<div class="nsd-ev-why" style="color:#8dff6a">✔ Gehört dir</div>' : `<button class="nsd-btn" data-buy="${it.id}"><span class="lb">Kaufen</span></button>`}
         </div>`;

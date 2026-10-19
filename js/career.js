@@ -1,7 +1,8 @@
 // New Star Darts (DOM-frei): Karriere-Rahmen – Manager, Fitnesstrainer, Sponsoren (Höher/Niedriger-Verhandlung),
 // Saisonziele, Interviews, Wochen-Update-Daten, Saisonbericht und Auszeichnungen
-import { MANAGERS, TRAINERS, INTERVIEW_QS, REL_ACTIONS } from '../data/team.js';
+import { MANAGERS, TRAINER_TITLES, TRAINER_ICONS, INTERVIEW_QS, REL_ACTIONS } from '../data/team.js';
 import { randomName } from '../data/names.js';
+import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { SPONSORS, SPONSOR_SLOTS } from '../data/sponsors.js';
 import { starPrice, starPayout, starFactor, addRel, addFans, addStarProgress } from './nsd.js';
@@ -16,12 +17,10 @@ export function nameTeam(state, rng = new RNG(state.rng)) {
   const t = team(state), used = new Set();
   t.names ??= {};
   for (const m of MANAGERS) t.names[m.id] ??= randomName(rng, rng.pick(['DE', 'ENG', 'NL', 'IRL']), used);
-  for (const f of TRAINERS) t.names[f.id] ??= `${f.title} ${randomName(rng, rng.pick(['DE', 'ENG', 'NL']), used).split(' ').slice(-1)[0]}`;
   return t.names;
 }
 const named = (state, x) => (x ? { ...x, name: team(state).names?.[x.id] ?? x.name } : null);
 export const managersOf = state => (nameTeam(state), MANAGERS.map(m => named(state, m)));
-export const trainersOf = state => (nameTeam(state), TRAINERS.map(t => named(state, t)));
 
 // ---------- Manager ----------
 export const managerOf = state => named(state, MANAGERS.find(m => m.id === team(state).manager));
@@ -49,14 +48,33 @@ export function managerCut(state, stars) {
 }
 
 // ---------- Fitnesstrainer ----------
-export const trainerOf = state => named(state, TRAINERS.find(t => t.id === team(state).trainer));
-export const trainerFee = (t, level) => starPrice(t.fee, level);
-export const trainerRegen = state => trainerOf(state)?.regen ?? 0;
+// Festpreis für eine Anzahl Wochen (z. B. 5 ★ für 6 Wochen). 3 Angebote, alle 12 Wochen neue (Name, Erholung, Preis, Dauer zufällig).
+export const weekIndex = state => state.date.year * 52 + state.date.week;
+export const OFFER_WEEKS = 12;
+export function trainerOffers(state, rng = new RNG(state.rng)) {
+  const t = team(state);
+  if (!t.trainerOffers || weekIndex(state) >= (t.offersUntil ?? 0)) {
+    const used = new Set(), f = starFactor(state.player.star.level);
+    t.trainerOffers = Array.from({ length: 3 }, (_, i) => {
+      const regen = rng.int(4, 20), weeks = rng.pick([4, 6, 8, 10, 12]);
+      return { id: `f${weekIndex(state)}-${i}`, icon: rng.pick(TRAINER_ICONS), regen, weeks,
+        name: `${rng.pick(TRAINER_TITLES)} ${surname(randomName(rng, rng.pick(['DE', 'ENG', 'NL', 'IRL']), used))}`,
+        price: Math.max(1, Math.round(regen * weeks * 0.08 * rng.float(0.8, 1.25) * f)) };
+    }).sort((a, b) => a.price - b.price);
+    t.offersUntil = weekIndex(state) + OFFER_WEEKS;
+  }
+  return t.trainerOffers;
+}
+export const trainerOf = state => state.player.fitness?.until ? state.player.fitness : null;
+export const trainerWeeksLeft = state => Math.max(0, (trainerOf(state)?.until ?? 0) - weekIndex(state));
 export function hireTrainer(state, id) {
-  const t = named(state, TRAINERS.find(x => x.id === id)), fee = trainerFee(t, state.player.star.level);
-  if ((state.stars ?? 0) < fee) throw new Error('Nicht genug ★ für die erste Woche');
-  team(state).trainer = id;
-  state.player.fitness = { id, name: t.name };
+  const o = trainerOffers(state).find(x => x.id === id);
+  if (!o) throw new Error('Angebot nicht mehr verfügbar');
+  if ((state.stars ?? 0) < o.price) throw new Error('Nicht genug ★');
+  state.stars -= o.price;
+  team(state).trainer = o.id;
+  state.player.fitness = { id: o.id, name: o.name, icon: o.icon, regen: o.regen, until: weekIndex(state) + o.weeks };
+  team(state).trainerOffers = team(state).trainerOffers.filter(x => x.id !== id);
 }
 export function fireTrainer(state) { team(state).trainer = null; state.player.fitness = null; }
 
@@ -212,12 +230,14 @@ export function answerInterview(state, style, rng) {
 // ---------- Wöchentlich (Tour-Modus) ----------
 export function careerWeek(state, rng) {
   const p = state.player, out = { fee: 0, sponsor: 0 };
-  const t = trainerOf(state);
-  if (t) {
-    const fee = trainerFee(t, p.star.level);
-    if ((state.stars ?? 0) >= fee) { state.stars -= fee; out.fee = fee; }
-    else { fireTrainer(state); addNews(state, 'info', `🏃 ${t.name} hat gekündigt`, 'Du konntest die Wochengebühr nicht mehr bezahlen.'); }
+  const t = p.fitness;
+  if (t && (!t.until || weekIndex(state) > t.until)) {           // Paket abgelaufen
+    fireTrainer(state);
+    addNews(state, 'info', `🏃 ${t.name ?? 'Fitnesstrainer'}: Vertrag ausgelaufen`, 'Im Team-Screen gibt es neue Angebote.');
   }
+  const before = team(state).offersUntil;
+  trainerOffers(state, rng);
+  if (before && team(state).offersUntil !== before) addNews(state, 'info', '🏃 Neue Fitnesstrainer verfügbar', 'Drei neue Angebote im Team-Screen – Preise, Dauer und Erholung sind neu.');
   out.sponsor = sponsorWeek(state, rng).paid;
   if (managerOf(state) && p.rel.manager > 0 && rng.chance(0.15)) addRel(p, 'manager', -1);   // will Erfolge sehen
   return out;
