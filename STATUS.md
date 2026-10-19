@@ -4,9 +4,15 @@
 - [x] **Etappe 1 – Grundgerüst & Design**: NSS-Look (Glasdach, eigene Pixel-Zuschauer, graue Glanz-Buttons, grüner Rasen), Titelbildschirm, Spielstände, Optionen (Export/Import), Willkommen, Profil erstellen, Karrierestart mit Tourcard (`newNsdCareer`), Hauptscreen Status, Fähigkeit (0–60), Leben (Beziehungen, Erfolge), Liga (PDC/Pro-Tour-Rangliste). „Spielen“ führt vorerst in den alten Wochenplan bzw. zur nächsten Woche.
 - [x] **Etappe 2 – Spielen**: Wochenansicht (Melden, Weiter +40 % Energie), Turnier-Lobby (VS, Spielen/Simulieren, Ergebnis mit ★ und Star-Status), DartConnect-Liveticker mit Kommentarzeile, Schlüsselmomente selbst werfen (Matchdarts, Entscheidungsleg, Break, Check ab 61) mit Linien + Kreis, Gegner-Matchdarts/180er auf der Scheibe, Energie-Regeln (< 20 %: KI wirft, Malus wächst je Leg), Spielbericht mit Note/Star-Status/Fans, Darts News (Browser-Karte nach Titeln), ★-Preisgeld + ★-Ranglisten.
 - [x] **Etappe 3 – Fähigkeit**: 4 Minispiele (Scoring, Finishing mit Linien + Kreis, Fokus-Memory mit 3 Herzen, Rechnen auf Schema-Scheibe mit Zeitlimit), 20 Level × 3 Sterne je Fähigkeit, Training 55 % Energie, Einstufung nach Profilerstellung, freies Training im Titelmenü, Formverlust mit Vorwarnung, Getränke-Shop (Bier/Schnaps/Wodka, Rausch), Darts-Shop (5 Sets mit Bonus).
-- [ ] Etappe 4 – Leben (Ereignisse, Lifestyle-Shop, Beziehungen)
+- [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [ ] Etappe 5 – Karriere-Rahmen (Star-Status, Ziele, Wochen-Update, Team, Verhandlung, Interview, Saisonbericht, Auszeichnungen)
 - [ ] Etappe 6 – Liga (★-Ranglisten, Spielplan, Last Chance, Aufräumen)
+
+### Annahmen Etappe 4
+- Zufriedenheit wirkt über die Erholung (−10 … +10 % Energie/Woche), nicht direkt auf die Match-Leistung. Startwert 60, ein Neuling ohne Lifestyle pendelt sich bei ~40 ein.
+- Immobilien: keine Miete mehr (alter Wohnen-&-Auto-Screen ruht im Tour-Modus); es zählt nur die beste Immobilie für die Erholung.
+- Ereignisse: 35 % pro Woche, höchstens eins offen; Kosten-Optionen sind ohne genug ★ gesperrt. Manager-/Sponsor-Effekte greifen erst, wenn diese Beziehungen existieren (Etappe 5).
+- Alte Meilensteine (XP) sind im Tour-Modus durch Erfolge mit ★-Belohnung ersetzt.
 
 ### Annahmen Etappe 3
 - Schnaps/Wodka-„Fähigkeit“ = vorübergehender Rausch (+2/+3 auf alle trainierbaren Fähigkeiten) bis Wochenende, nicht dauerhaft – sonst ersetzt Trinken das Training.

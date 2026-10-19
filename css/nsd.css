@@ -396,3 +396,17 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-calc-darts em { width: 100%; text-align: center; color: #ffb3b3; font-style: normal; }
 .nsd-meters.one { grid-template-columns: 1fr; }
 .nsd-memo { width: min(100%, max(220px, calc(100vh - 530px))); width: min(100%, max(220px, calc(100dvh - 530px))); margin: auto; }
+
+/* ===== Etappe 4: Leben ===== */
+.nsd-alert { width: 100%; border: 0; font-size: 1.1rem; cursor: pointer; font-family: var(--nsd-font); color: #ffde3b; animation: nsd-pulse 1.4s ease-in-out infinite; }
+@keyframes nsd-pulse { 50% { filter: brightness(1.35); } }
+.nsd-life { flex-direction: column; gap: 14px; }
+.nsd-life .ic { font-size: 3.4rem; line-height: 1; }
+.nsd-life .txt { font-size: 1.4rem; }
+.nsd-life .opts { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.nsd-life .opts .nsd-btn { min-height: 58px; }
+.nsd-life .opts .nsd-btn .lb { font-size: 1.15rem; display: inline-flex; align-items: center; gap: 6px; }
+.nsd-life .chg { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font-size: 1rem; }
+.nsd-life .chg span { padding: 4px 10px; border-radius: 12px; background: rgba(0,0,0,.35); }
+.nsd-ach td.nm small { display: block; font-size: .75rem; opacity: .7; }
+.nsd-pager b { text-shadow: var(--nsd-shadow); }

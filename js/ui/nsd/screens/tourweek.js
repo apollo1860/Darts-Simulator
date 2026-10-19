@@ -51,6 +51,7 @@ export function mount(root, app) {
   });
   root.querySelector('#w-next').onclick = async () => {
     if (s.activeEvent) return app.go('event');
+    if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
     const open = eventsInWeek(s, s.date.year, s.date.week).filter(e => shownTo(s, e) && eventStatus(s, e).playable);
     if (open.length && !await confirmDialog('Woche beenden?', `${open.map(e => esc(e.name)).join(', ')} – ohne dich.`, 'Weiter')) return;
     const top = s.news[0];
@@ -58,6 +59,7 @@ export function mount(root, app) {
     const fresh = [];
     for (const x of s.news) { if (x === top) break; if (x.type !== 'ranking') fresh.push(x); }
     toast(`KW ${s.date.week} · Energie ${s.player.energy} %${fresh[0] ? ` · ${fresh[0].title}` : ''}`);
+    if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
     app.refresh();
   };
 }

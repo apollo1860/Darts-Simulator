@@ -10,7 +10,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 1. **Grundgerüst & Design** ✅ – Rahmen, Titel, Spielstände, Optionen, Willkommen, Profil erstellen, Status, Fähigkeit, Leben, Liga.
 2. **Spielen** ✅ – Wochenablauf, DartConnect-Liveticker mit Schlüsselmomenten, Kreis-Zielmechanik, Energie-Regeln, Match-Note, News-Seite.
 3. **Fähigkeit** ✅ – Trainings-Minispiele + Einstufung, Getränke-Shop, Darts-Shop.
-4. **Leben** – Beziehungen, Lebens-Ereignisse (Karten), Lifestyle-Shop (Kauf), Erfolge.
+4. **Leben** ✅ – Beziehungen, Lebens-Ereignisse (Karten), Lifestyle-Shop (Kauf), Erfolge.
 5. **Karriere-Rahmen** – Star-Status-Fortschritt, Ziele, wöchentliches Update, Manager/Fitnesstrainer, Sponsor-Verhandlung (Höher/Niedriger), Interview, Saisonbericht, Auszeichnungen.
 6. **Liga** – Ranglisten in ★, Spielplan, Kartenverlust/„Last Chance“, alte Screens entfernen.
 
@@ -39,12 +39,18 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
   - Formverlust (`decayWeek` in `nextWeek`): Warnung ab 7 Wochen, ab 9 Wochen je Woche 35 % Chance auf −1 (ab 13: −2, je 4 Wochen +1), immer letzter Stern des höchsten Levels.
   - Getränke (`DRINKS`): Bier +20 % Energie, Schnaps +25 % + Rausch +2, Wodka +30 % + Rausch +3 + niedrigste bestehende Beziehung +1. Rausch (`player.buzz`) = Bonuspunkte auf alle trainierbaren Fähigkeiten bis Wochenende (`soberUp`). Darts (`DARTS`, 10–350 ★): dauerhafter Bonus solange ausgerüstet (`player.gear`, `player.darts`). Bonus über `skillEffective` (max. 60) in `syncAttrs`, nie auf Mental.
 - **Beziehungen**: Manager, Fans, Freundin, Sponsoren (+ Zufriedenheit, Lifestyle). **Team**: Manager (Agent, Provision), Fitnesstrainer (Energie-Erholung). Kein Casino.
-- **Lifestyle-Shop**: Gegenstände, Fahrzeuge, Immobilien einmalig kaufen (statt Jahresmiete). **Tourcard verloren** → „Last Chance“-Event, sonst Karriereende.
+- **Lifestyle-Shop**: Gegenstände, Fahrzeuge, Immobilien einmalig kaufen (statt Jahresmiete).
+- **Umsetzung Etappe 4** (`js/life.js`, `data/lifestyle.js`, `data/lifeevents.js`, `data/achievements.js`, Screens `lifestyle`, `lifeevent`, `achievements`, `life`):
+  - Shop (`LIFESTYLE`, 14 Artikel, 8–4.200 Basis-★): Lifestyle-Punkte (Summe, max. 100 → `player.lifestyle`), Zufriedenheit sofort, Immobilien Erholung +5/10/15/20 % pro Woche (beste zählt, `homeRegen`). Besitz `player.owned`.
+  - Wöchentliche Erholung `weeklyEnergy` = 40 + beste Immobilie + (Zufriedenheit − 50)/5. Zufriedenheit nähert sich wöchentlich zu 20 % dem Ziel 35 + 0,3·Lifestyle + Freundin (5 + 0,15·Beziehung) + 0,1·Fans + 1,5·Selbstvertrauen (`lifeWeek`).
+  - Ereignis-Karten (`LIFE_EVENTS`, 18 Stück mit Bedingungen): 35 %/Woche, nie zweimal hintereinander, offen in `state.lifeEvent` bis entschieden (Hub-Hinweis, „Spielen“/„Weiter“ führen zuerst dorthin). Optionen mit Effekten (Energie, Zufriedenheit, Fans, Freundin, ★, Trainingsrückstand, Zufallsausgang).
+  - Freundin: über Ereignis „meet“ (60 %), Name in `player.partnerName`, Beziehung −1/Woche, bei 0 Trennung; im Leben-Screen Geschenk (4 Basis-★, +5) oder Schluss machen. Manager/Sponsoren-Beziehungen folgen in Etappe 5.
+  - Erfolge (`ACHIEVEMENTS`, 26): einmalig, Belohnung in ★ × Status-Faktor, geprüft wöchentlich, nach Käufen/Ereignissen und Turnieren (`checkAchievements`), gespeichert in `state.achievements`. **Tourcard verloren** → „Last Chance“-Event, sonst Karriereende.
 
 ### Oberfläche (js/ui/nsd/)
 - `frame.js`: Rahmen (Glasdach, Pixel-Zuschauer oben/unten aus `crowd.js` per Canvas, Geländer), `titleBand`, `darkBar`, `meter` (grüne/rote/graue Glanzbalken mit Icon), `header` (✖ Menü · Name · ? Hilfe), `bar` (untere Leiste, 4 Spalten, `wide` = 2), `card` (Vollbild-Text + ✔), Icons `starIcon`/`heartIcon`/`coin`, `bindHead`.
 - `css/nsd.css`: Schrift Jost (Logo Anton), graue Glanz-Buttons, dunkle Leisten, grüner Rasen (`bg-green`), Tabellen (`.nsd-table`, Zone blau, eigene Zeile grün), Modals im NSD-Look (`body.nsd-on`). Max. 480 px breit (Handy-Hochformat).
-- Router: Screen-Module mit `export const nsd = true` werden randlos gerendert (`.nsd-root`). Screens: `title` (= `menu`), `slots`, `options`, `welcome`, `newprofile`, `intro`, `hub` (= Status), `skills`, `life`, `league`, `week` (= `tourweek.js`: Turniere der Woche, Melden, Weiter), `event` (= `tourevent.js`: Lobby VS, Spielen/Simulieren, Ausgeschieden, Ergebnis), `live` (DartConnect-Liveticker + Zielmechanik), `matchstats` (Spielbericht, Note), `news` (= `newsfeed.js`, Darts News; `{flash:true}` = Schlagzeile als Browser-Karte, nach Titeln), `trainlevels` ({key}), `minigame` ({key, level, mode: train|placement|practice, step}), `placement` ({step}), `practice`, `drinks`, `darts`. Alte Screens (watch, calendar, …) laufen bis zu ihrem Umbau im alten Look weiter.
+- Router: Screen-Module mit `export const nsd = true` werden randlos gerendert (`.nsd-root`). Screens: `title` (= `menu`), `slots`, `options`, `welcome`, `newprofile`, `intro`, `hub` (= Status), `skills`, `life`, `league`, `week` (= `tourweek.js`: Turniere der Woche, Melden, Weiter), `event` (= `tourevent.js`: Lobby VS, Spielen/Simulieren, Ausgeschieden, Ergebnis), `live` (DartConnect-Liveticker + Zielmechanik), `matchstats` (Spielbericht, Note), `news` (= `newsfeed.js`, Darts News; `{flash:true}` = Schlagzeile als Browser-Karte, nach Titeln), `trainlevels` ({key}), `minigame` ({key, level, mode: train|placement|practice, step}), `placement` ({step}), `practice`, `drinks`, `darts`, `lifestyle`, `lifeevent` ({back} bzw. {result}), `achievements`. Alte Screens (watch, calendar, …) laufen bis zu ihrem Umbau im alten Look weiter.
 - Speicher-Schlüssel `newStarDarts.slot.N` (alte Darts-Career-Stände werden nicht übernommen).
 
 ## Arbeitsregeln
@@ -92,6 +98,8 @@ js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP 
 js/nsd.js             New Star Darts: Spielermodell (Fähigkeiten 0–60, Star-Status, Energie, ★, Getränke, Beziehungen), newNsdCareer, syncAttrs, ★-Preistabellen, Energie-/Status-/Noten-Regeln
 js/skilltrain.js      New Star Darts: Training/Minispiel-Parameter, Einstufung, Formverlust, Getränke, Darts-Shop
 data/gear.js          Getränke und Darts (Preise in Basis-★, Boni)
+js/life.js            New Star Darts: Lifestyle-Shop, Zufriedenheit, Erholung, Ereignis-Karten, Freundin, Erfolge
+data/lifestyle.js     Lifestyle-Artikel · data/lifeevents.js Ereignis-Karten · data/achievements.js Erfolge
 js/ui/nsd/            NSD-Oberfläche: frame.js (Bausteine), crowd.js (Pixel-Zuschauer), screens/*.js
 css/nsd.css           NSD-Design
 js/home.js            Wohnen & Auto: Auszug mit 18, Jahresmiete, Wohnungs-Effekte, Auto (Reiserabatt, Wartung)

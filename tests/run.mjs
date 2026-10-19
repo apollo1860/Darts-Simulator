@@ -1081,4 +1081,40 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   const q = { skills: { sco: [3, 2, 1, 0] } }; T.removePoint(q, 'sco'); assert.deepEqual(q.skills.sco, [3, 2, 0, 0]);
 });
 
+test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfolge', async () => {
+  const N = await import('../js/nsd.js');
+  const L = await import('../js/life.js');
+  const { LIFE_EVENTS } = await import('../data/lifeevents.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 18, slot: 1, seed: 12 });
+  const p = s.player, rng = new RNG({ s: 9 });
+  // Shop: einmalig, Lifestyle, beste Immobilie zählt für die Erholung
+  s.stars = 1000;
+  assert.equal(L.weeklyEnergy(p), 40 + 2);                                   // Zufriedenheit 60 → +2
+  L.buyItem(s, 'flat'); L.buyItem(s, 'townhouse'); L.buyItem(s, 'console');
+  assert.throws(() => L.buyItem(s, 'flat'), /Schon/);
+  assert.equal(L.lifestyleOf(p), 6 + 12 + 3); assert.equal(L.homeRegen(p), 10);
+  assert.equal(s.stars, 1000 - 90 - 320 - 12 + 5);                          // + Erfolg „Eigene Immobilie“
+  p.star.level = 21; assert.equal(L.itemPrice({ price: 90 }, 21), 180); p.star.level = 1;
+  assert.ok(s.achievements.home && s.achievements.wheels === undefined);
+  // Ereignisse: Bedingungen, Kosten, Zufall
+  for (const e of LIFE_EVENTS) for (const o of e.opts) assert.ok(o.label && (o.out || o.chance), e.id);
+  s.lifeEvent = { id: 'meet', name: 'Lena' };
+  const v = L.lifeEventView(s); assert.ok(v.text.includes('Lena') && v.opts[0].cost === 2);
+  let r; do { s.lifeEvent = { id: 'meet', name: 'Lena' }; r = L.resolveLifeEvent(s, 0, rng); } while (!(p.rel.partner > 0));
+  assert.equal(p.partnerName, 'Lena'); assert.equal(s.lifeEvent, null); assert.ok(s.achievements.love);
+  assert.ok(LIFE_EVENTS.find(e => e.id === 'dinner').if(p));
+  s.lifeEvent = { id: 'family' }; const e0 = p.energy; p.energy = 50; r = L.resolveLifeEvent(s, 0, rng);
+  assert.equal(p.energy, 60); assert.ok(r.changes.some(c => c.includes('Energie +10')));
+  s.stars = 0; s.lifeEvent = { id: 'birthday' }; assert.throws(() => L.resolveLifeEvent(s, 0, rng), /★/); void e0;
+  // Woche: Freundin −1, Zufriedenheit Richtung Ziel, Karte mit 35 %
+  s.lifeEvent = null; p.rel.partner = 1; L.lifeWeek(s, rng);
+  assert.equal(p.rel.partner, 0); assert.equal(p.partnerName, null); assert.ok(s.news.some(n => n.title.includes('Schluss')));
+  p.satisfaction = 0; L.lifeWeek(s, rng); assert.ok(p.satisfaction > 0);
+  let n = 0; for (let i = 0; i < 200; i++) { s.lifeEvent = null; if (L.rollLifeEvent(s, rng)) n++; }
+  assert.ok(n > 40 && n < 100, `Ereignisse ${n}`);
+  // Wochen-Erholung in nextWeek
+  s.lifeEvent = null; p.energy = 10; p.satisfaction = 50; const before = p.energy; nextWeek(s);
+  assert.equal(p.energy, before + 40 + 10);
+});
+
 console.log(`\n${n} Tests ok`);

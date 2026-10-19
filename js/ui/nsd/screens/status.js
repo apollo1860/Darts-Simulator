@@ -2,7 +2,6 @@
 import { esc } from '../../../util.js';
 import { skillsAvg, SKILL_MAX, starPct } from '../../../nsd.js';
 import { frame, header, meter, starIcon, heartIcon, coin, bar, bindHead } from '../frame.js';
-import { toast } from '../../components.js';
 
 export const nsd = true;
 const HELP = `<p><b>Liga</b>: Ranglisten und Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
@@ -17,6 +16,7 @@ export function render(app) {
       ${meter({ icon: starIcon(p.star?.level ?? 1), label: 'Star-Status', pct: starPct(p) })}
       ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: fit ? 'green' : 'red' })}
     </div>
+    ${s.lifeEvent ? '<button class="nsd-dark nsd-alert" data-go="lifeevent">📬 Ein Ereignis wartet auf dich!</button>' : ''}
     <div class="nsd-strip"><span>Alter ${p.age}</span><span class="mid">Status</span><span class="r">${coin(s.stars ?? 0)}</span></div>
     <div class="nsd-rows">
       <div class="nsd-grid3">
@@ -55,10 +55,9 @@ export function render(app) {
 
 export function mount(root, app) {
   bindHead(root, app, HELP);
-  const soon = what => () => toast(`${what} kommt in Etappe 4.`);
-  root.querySelector('#s-shop').onclick = soon('Der Lifestyle-Shop');
+  root.querySelector('#s-shop').onclick = () => app.go('lifestyle');
   root.querySelector('#s-drinks').onclick = () => app.go('drinks');
   root.querySelector('#s-darts').onclick = () => app.go('darts');
   // Spielen: laufendes Turnier → Turnier, sonst Wochenansicht (Melden / Weiter)
-  root.querySelector('#s-play').onclick = () => app.go(app.state.activeEvent ? 'event' : 'week');
+  root.querySelector('#s-play').onclick = () => app.go(app.state.lifeEvent ? 'lifeevent' : app.state.activeEvent ? 'event' : 'week');
 }

@@ -30,6 +30,7 @@ import { slumpAfterMatch, slumpTitle } from './slump.js';
 import { canSelfPlay, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT,
   matchRating, addRel, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
+import { checkAchievements } from './life.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -727,7 +728,8 @@ function finishEvent(state, inst) {
     t.events++; if (place === 'W') t.titles++; if (place === 'W' || place === 'F') t.finals++;
   }
   state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place, prize: nsd ? 0 : prize, stars: inst.stars ?? 0 });
-  if (!nsd) maybeInterview(state, inst);
+  if (nsd) checkAchievements(state);
+  else maybeInterview(state, inst);
   const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : prize ? fmtEUR(prize) : '';
   if (place === 'W') addNews(state, 'result', `TITEL! ${inst.name} gewonnen`, `Preisgeld: ${money}.`);
   else if (place !== 'CARD') {
@@ -784,6 +786,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     }
     trackTitle(state, inst);
     state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: nsd ? 0 : inst.prize, stars: inst.stars ?? 0 });
+    if (nsd) checkAchievements(state);
     const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : inst.prize ? fmtEUR(inst.prize) : '';
     addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, money ? `Preisgeld: ${money}.` : '');
   }
