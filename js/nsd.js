@@ -13,15 +13,15 @@ export const TRAINABLE = [
   { key: 'cal', label: 'Rechnen', icon: '🧮' },
 ];
 export const SKILLS = [...TRAINABLE, { key: 'men', label: 'Mental', icon: '💪', star: true }];
-// Fähigkeit 0 ≈ etwas unter dem schwächsten Tourcard-Holder (Attribut 82 ≈ 82 Ø), 60 = Weltspitze (100)
-export const ATTR_BASE = 82, ATTR_PER_POINT = 0.3;
+// Fähigkeit 0 ≈ etwas unter dem schwächsten Tourcard-Holder (Attribut 85, Holder ab ~87), 60 = Weltspitze (100)
+export const ATTR_BASE = 85, ATTR_PER_POINT = 0.25;
 export const STAR_MAX = 100;
 // Status-Faktor: Preisgelder UND Preise × (1 + 5 % je Stufe über 1)
 export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
 export const starPrice = (base, level = 1) => Math.max(1, Math.round(base * starFactor(level)));
 export const START_STARS = 25;     // Startguthaben (★ auf Status 1)
 // Star-Status-Fortschritt: je Stufe mehr Punkte nötig (Feinabstimmung Etappe 5)
-export const starNeed = level => Math.round(100 * Math.pow(1.04, Math.max(1, level) - 1));
+export const starNeed = level => Math.round(100 * Math.pow(1.03, Math.max(1, level) - 1));
 export const starPct = p => Math.min(100, ((p.star?.xp ?? 0) / starNeed(p.star?.level ?? 1)) * 100);
 export { NSD_BLOCKED } from '../data/tournaments.js';
 
@@ -67,6 +67,9 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
     gear: null, fitness: null, assessed: false,
   });
   s.stars = START_STARS;
+  // Vorbelegte Ranglisten (€) → Basis-★
+  for (const yr of Object.values(s.rankings.years ?? {})) for (const t of Object.values(yr))
+    for (const id in t) t[id] = Math.round(t[id] / EUR_PER_STAR * 10) / 10;
   syncAttrs(p);
   addNews(s, 'info', `Willkommen auf der Tour, ${first}!`,
     `Über die Q-School ${y - 1} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
@@ -74,3 +77,73 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
 }
 
 export const relLabel = { manager: 'Manager', fans: 'Fans', partner: 'Freundin', sponsors: 'Sponsoren' };
+
+// ---- Sterne-Preisgeld (Basis = Status 1; Auszahlung × starFactor) ----
+// Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).
+export const STAR_PRIZE_WIN = {
+  pc: 20, ws: 30, wsf: 50, et: 40, wcod: 120 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
+  wgp: 150, ec: 150, pcf: 150, gsod: 200, matchplay: 250, pln: 15, plf: 250, wm: 500, youth: 10, challenge: 5, dev: 5,
+};
+export const STAR_SHARES = { F: 0.5, SF: 0.25, QF: 0.12, L16: 0.06, L32: 0.04, L64: 0.02, G3: 0.05, G4: 0.025 };
+export const EUR_PER_STAR = 1000;   // Umrechnung der vorbelegten Ranglisten (2025/26) beim Karrierestart
+export function starPrizeTable(fmtKey) {
+  const W = STAR_PRIZE_WIN[fmtKey];
+  if (!W) return {};
+  if (fmtKey === 'pln') return { W };
+  return { W, ...Object.fromEntries(Object.entries(STAR_SHARES).map(([k, v]) => [k, Math.round(W * v * 10) / 10])) };
+}
+// Auszahlung an den Spieler (mind. 1 ★, wenn es überhaupt etwas gibt)
+export const starPayout = (base, level) => (base > 0 ? Math.max(1, Math.round(base * starFactor(level))) : 0);
+// Anzeige der Ranglisten: so, als hätten alle deinen Status
+export const starShow = (base, level) => Math.round(base * starFactor(level));
+
+// ---- Energie (0–100) ----
+export const ENERGY_WEEK = 40, ENERGY_LOW = 20, ENERGY_PER_LEG = 0.4;
+export const matchEnergy = legs => Math.round(2 + ENERGY_PER_LEG * legs);
+export const canSelfPlay = p => (p.energy ?? 100) >= ENERGY_LOW;
+// Unter 20 %: Malus auf Scoring/Finishing/Fokus, wird im Match mit jedem Leg größer
+export const energyMalus = (energy, legIdx = 0) => {
+  const e = energy - ENERGY_PER_LEG * legIdx;
+  return e >= ENERGY_LOW ? 0 : (ENERGY_LOW - e) * 0.9;
+};
+export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.round((p.energy ?? 100) + n))); return p.energy; }
+
+// ---- Star-Status: Fortschritt aus Matches ----
+// Sieg auf Status 1 ≈ 12 % des Balkens (Bonus: zu null, hoher Average, stärkerer Gegner, große Bühne). Niederlage: kleiner Abzug.
+// Der Balken wächst je Stufe um 3 %, der Gewinn nur linear → jede Stufe dauert länger. Nie unter die erreichte Stufe.
+export const STAR_WEIGHT = { pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
+const starScale = level => 1 + 0.03 * (level - 1);
+export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, cat, fmt }) {
+  const w = (fmt === 'wm' ? 1.6 : STAR_WEIGHT[cat] ?? 1) * starScale(level);
+  if (won) {
+    let g = 12;
+    if (opp === 0) g *= 1.4;
+    g *= Math.max(0.75, Math.min(1.4, 1 + (avg - 88) / 40));     // Average
+    g *= Math.max(0.85, Math.min(1.5, 1 + oppStrength / 20));    // Gegner stärker (+) / schwächer (−)
+    return Math.round(g * w * 10) / 10;
+  }
+  const close = to > 1 ? my / (to - 1) : 0;                      // 1 = knapp verloren
+  return -Math.round((1 + 3 * (1 - close)) * starScale(level) * 10) / 10;
+}
+export const STAR_TITLE = 25;   // Turniersieg (× Gewicht)
+export function addStarProgress(state, pts) {
+  const p = state.player, st = p.star;
+  let ups = 0;
+  st.xp = Math.max(0, Math.round(((st.xp ?? 0) + pts) * 10) / 10);
+  while (st.level < STAR_MAX && st.xp >= starNeed(st.level)) { st.xp = Math.round((st.xp - starNeed(st.level)) * 10) / 10; st.level++; ups++; }
+  if (st.level >= STAR_MAX) st.xp = 0;
+  if (ups) {
+    addNews(state, 'star', `⭐ Star-Status ${st.level}!`,
+      `${st.level <= SKILL_MAX ? `Mental steigt auf ${mentalOf(p)}. ` : ''}Preisgelder und Preise steigen um 5 % je Stufe (jetzt ×${starFactor(st.level).toFixed(2).replace('.', ',')}).`);
+    syncAttrs(p);
+  }
+  return ups;
+}
+
+// ---- Match-Note (1–10) und Fans ----
+export function matchRating({ won, avg, coPct, s180 = 0, my, opp }) {
+  const r = 5 + (avg - 85) / 6 + (coPct - 0.38) * 8 + s180 * 0.25 + (won ? 1 : -0.7) + (my - opp) * 0.15;
+  return Math.round(Math.max(1, Math.min(10, r)) * 10) / 10;
+}
+export function addRel(p, key, n) { p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key]; }
+export const fansAfterMatch = (won, rating) => (won ? 1 + (rating >= 8 ? 1 : 0) : rating < 4 ? -1 : 0);

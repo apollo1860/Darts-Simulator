@@ -2,10 +2,7 @@
 import { esc } from '../../../util.js';
 import { skillsAvg, SKILL_MAX, starPct } from '../../../nsd.js';
 import { frame, header, meter, starIcon, heartIcon, coin, bar, bindHead } from '../frame.js';
-import { toast, confirmDialog } from '../../components.js';
-import { eventsInWeek, shownTo } from '../../../calendar.js';
-import { eventStatus } from '../../../tournaments.js';
-import { nextWeek } from '../../../season.js';
+import { toast } from '../../components.js';
 
 export const nsd = true;
 const HELP = `<p><b>Liga</b>: Ranglisten und Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
@@ -62,15 +59,6 @@ export function mount(root, app) {
   root.querySelector('#s-shop').onclick = soon('Der Shop');
   root.querySelector('#s-drinks').onclick = soon('Der Getränke-Shop');
   root.querySelector('#s-darts').onclick = soon('Der Darts-Shop');
-  // Spielen (bis Etappe 2): laufendes Turnier → Turnier; spielbares Event → Wochenplan; sonst nächste Woche
-  root.querySelector('#s-play').onclick = async () => {
-    const s = app.state;
-    if (s.activeEvent) return app.go('event');                   // laufend oder noch abzuschließen
-    const open = eventsInWeek(s, s.date.year, s.date.week).filter(e => shownTo(s, e) && eventStatus(s, e).playable);
-    if (open.length) return app.go('week');
-    if (!await confirmDialog('Nächste Woche?', 'Diese Woche steht für dich kein Turnier mehr an.', 'Weiter')) return;
-    nextWeek(s); app.save();
-    toast(`KW ${s.date.week} · ${s.news[0]?.title ?? ''}`);
-    app.refresh();
-  };
+  // Spielen: laufendes Turnier → Turnier, sonst Wochenansicht (Melden / Weiter)
+  root.querySelector('#s-play').onclick = () => app.go(app.state.activeEvent ? 'event' : 'week');
 }

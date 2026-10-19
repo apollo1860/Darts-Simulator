@@ -2,14 +2,23 @@
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
 - [x] **Etappe 1 – Grundgerüst & Design**: NSS-Look (Glasdach, eigene Pixel-Zuschauer, graue Glanz-Buttons, grüner Rasen), Titelbildschirm, Spielstände, Optionen (Export/Import), Willkommen, Profil erstellen, Karrierestart mit Tourcard (`newNsdCareer`), Hauptscreen Status, Fähigkeit (0–60), Leben (Beziehungen, Erfolge), Liga (PDC/Pro-Tour-Rangliste). „Spielen“ führt vorerst in den alten Wochenplan bzw. zur nächsten Woche.
-- [ ] Etappe 2 – Spielen (Liveticker, Schlüsselmomente, Kreis-Zielmechanik, Energie, Match-Note, News-Seite, Sterne-Preisgeld)
+- [x] **Etappe 2 – Spielen**: Wochenansicht (Melden, Weiter +40 % Energie), Turnier-Lobby (VS, Spielen/Simulieren, Ergebnis mit ★ und Star-Status), DartConnect-Liveticker mit Kommentarzeile, Schlüsselmomente selbst werfen (Matchdarts, Entscheidungsleg, Break, Check ab 61) mit Linien + Kreis, Gegner-Matchdarts/180er auf der Scheibe, Energie-Regeln (< 20 %: KI wirft, Malus wächst je Leg), Spielbericht mit Note/Star-Status/Fans, Darts News (Browser-Karte nach Titeln), ★-Preisgeld + ★-Ranglisten.
 - [ ] Etappe 3 – Fähigkeit (Minispiele, Einstufung, Getränke, Darts-Shop, Formverlust)
 - [ ] Etappe 4 – Leben (Ereignisse, Lifestyle-Shop, Beziehungen)
 - [ ] Etappe 5 – Karriere-Rahmen (Star-Status, Ziele, Wochen-Update, Team, Verhandlung, Interview, Saisonbericht, Auszeichnungen)
 - [ ] Etappe 6 – Liga (★-Ranglisten, Spielplan, Last Chance, Aufräumen)
 
+### Annahmen Etappe 2
+- Umrechnung geändert: Fähigkeit 0 → Attribut **85** (statt 82; mit 82 gewann ein Neuling praktisch kein Match), +0,25 je Punkt → 60 = 100. Bot-Saison mit Fähigkeiten 0: ~7 Siege in 24 PC-Matches.
+- Keine Reisekosten im Tour-Modus (sonst Sackgasse ohne ★); ★ gehen später an Getränke/Shops.
+- Ranglisten speichern Basis-★ (alle Spieler bekommen die ★-Tabellen); vorbelegte €-Werte 2025/26 ÷ 1.000. Anzeige × eigener Status-Faktor.
+- Youth-WM 10 ★, CT/Dev 5 ★ (nur KI), WS-Finals 50 ★, World Cup 120 ★ je Team (dein Anteil 50 % = 60 ★).
+- Lampenfieber im Tour-Modus aus (Start ist schon nominell der Schwächste). Erfahrung/Selbstvertrauen laufen still weiter.
+- Star-Status-Zahlen (12 je Sieg, Balken +3 %/Stufe) sind vorläufig – Feinabstimmung in Etappe 5.
+- Schlüsselmomente: im Entscheidungsleg wirfst du jede eigene Aufnahme selbst; „Sofort beenden“ simuliert ohne Schlüsselmomente.
+
 ### Annahmen Etappe 1
-- Fähigkeit 0 → Attribut 82 (≈ 82 Ø, knapp unter dem schwächsten Holder ~86 Ø), 60 → 100. Startwerte bis zur Einstufung (Etappe 3): 0, Mental 1.
+- Fähigkeit 0 → Attribut 82 (in Etappe 2 auf 85 angehoben), 60 → 100. Startwerte bis zur Einstufung (Etappe 3): 0, Mental 1.
 - Startguthaben 25 ★, Energie 100 %, Fans 10, Zufriedenheit 60. Euro-Finanzen laufen intern weiter, bis Etappe 2 auf ★ umstellt; Liga zeigt vorerst € an.
 - Google Fonts (Jost, Anton) mit System-Fallbacks. Alte Spielstände (Schlüssel `dartsCareer.slot.N`) bleiben im Browser liegen, werden aber nicht angezeigt.
 

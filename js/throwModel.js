@@ -89,3 +89,24 @@ export function wave(phase) {
   const tri = 1 - 4 * Math.abs(((p + 0.25) % 1) - 0.5);
   return 0.75 * tri + 0.25 * Math.sin(2 * Math.PI * p);
 }
+
+// New Star Darts: Kreis-Zielmechanik – zwei Linien wie beim manuellen Zielen, am Schnittpunkt ein Kreis,
+// in dem der Dart gleichverteilt landet. Kreis aus Scoring (Doppel/Bull: Finishing), Linien aus Fokus.
+// Fähigkeit 0–60 ≙ Attribut 85–100; Druck (Matchdart, Entscheidungsleg) und Ausdauer vergrößern beides.
+const skillEq = v => (v - 85) / 0.25;
+export function circleParams(attrs, m, i, target) {
+  const dbl = isDoubleLabel(target) || target === '25';
+  const sk = skillEq(dbl ? attrs.fin : attrs.sco), fk = skillEq(attrs.foc);
+  const pf = pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);
+  return {
+    radius: clamp(20 - 0.22 * sk, 5, 36) * pf,
+    amp: clamp(40 - 0.25 * fk, 24, 50),
+    freq: clamp(0.95 - 0.004 * fk, 0.65, 1.3) * Math.sqrt(pf),
+    pressure: pf > 1.05,
+  };
+}
+// Gleichverteilter Punkt im Kreis
+export function landInCircle(x, y, r, rng) {
+  const a = rng.next() * 2 * Math.PI, d = r * Math.sqrt(rng.next());
+  return { x: x + Math.cos(a) * d, y: y + Math.sin(a) * d };
+}

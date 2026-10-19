@@ -20,7 +20,7 @@ import { eventStatus } from './tournaments.js';
 import { homeWeek } from './home.js';
 import { slumpWeek } from './slump.js';
 import { expenseWeek } from './expenses.js';
-import { syncAttrs } from './nsd.js';
+import { syncAttrs, addEnergy, ENERGY_WEEK } from './nsd.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -28,21 +28,23 @@ export function nextWeek(state) {
   const { year, week } = state.date;
   const evs = eventsInWeek(state, year, week);
   const ai = simulateWeekAI(state);
-  interviewWeekEnd(state);
-  trainingWeekEnd(state);
-  weeklyRecovery(state);
+  const nsd = state.mode === 'nsd';                      // New Star Darts: alte €-/XP-Nebensysteme ruhen
+  if (!nsd) { interviewWeekEnd(state); trainingWeekEnd(state); weeklyRecovery(state); }
   weekNews(state, evs, ai);
-  if (week >= WEEKS_PER_YEAR) { recordHistory(state); sponsorYearEnd(state); yearEnd(state); }
+  if (week >= WEEKS_PER_YEAR) { recordHistory(state); if (!nsd) sponsorYearEnd(state); yearEnd(state); }
   advanceWeek(state);
-  homeWeek(state);
-  slumpWeek(state);
-  expenseWeek(state);
-  mishapWeek(state);
-  exhibitionWeek(state);
-  sponsorWeek(state);
-  staffWeek(state);
+  if (nsd) addEnergy(state.player, ENERGY_WEEK);
+  else {
+    homeWeek(state);
+    slumpWeek(state);
+    expenseWeek(state);
+    mishapWeek(state);
+    exhibitionWeek(state);
+    sponsorWeek(state);
+    staffWeek(state);
+  }
   trackPeak(state);
-  rankMilestones(state);
+  if (!nsd) rankMilestones(state);
   if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); }
   if (state.mode === 'nsd') syncAttrs(state.player);     // Fähigkeiten bestimmen die Attribute
   return true;

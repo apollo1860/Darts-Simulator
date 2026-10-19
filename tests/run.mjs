@@ -962,9 +962,9 @@ test('New Star Darts: Karrierestart mit Tourcard, Fähigkeiten 0–60, Tour-Modu
   assert.equal(s.mode, 'nsd'); assert.equal(p.name, 'Benny Buchse'); assert.equal(p.tour, 'tour'); assert.equal(p.cardUntil, 2028);
   assert.equal(s.stars, N.START_STARS); assert.equal(p.energy, 100); assert.equal(p.star.level, 1);
   assert.equal(N.skillValue(p, 'sco'), 0); assert.equal(N.skillValue(p, 'men'), 1);           // Mental = Star-Status
-  assert.equal(p.attrs.sco, 82); assert.equal(p.attrs.men, 82.3);
+  assert.equal(p.attrs.sco, 85); assert.equal(p.attrs.men, 85.3);
   N.setStartSkills(p, { sco: 3, fin: 2, foc: 0, cal: 1 });
-  assert.equal(N.skillValue(p, 'sco'), 3); assert.equal(p.attrs.sco, 82.9); assert.equal(N.skillLevel(p, 'fin'), 1);
+  assert.equal(N.skillValue(p, 'sco'), 3); assert.equal(p.attrs.sco, 85.8); assert.equal(N.skillLevel(p, 'fin'), 1);
   p.skills.sco = Array(20).fill(3); N.syncAttrs(p); assert.equal(p.attrs.sco, 100);           // 60 = Weltspitze
   p.star.level = 80; assert.equal(N.mentalOf(p), 60);                                         // Mental max. 60
   assert.equal(N.starFactor(1), 1); assert.equal(N.starPrice(20, 21), 40);                    // +5 % je Stufe
@@ -975,7 +975,63 @@ test('New Star Darts: Karrierestart mit Tourcard, Fähigkeiten 0–60, Tour-Modu
   s.date.week = 6;
   assert.ok(eventStatus(s, eventsInWeek(s, 2027, 6).find(e => e.cat === 'pc')).playable);
   assert.ok(orderOfMerit(s, 'pdc').some(x => x.p.id === 'P'));
-  p.skills.sco = Array(20).fill(1); nextWeek(s); assert.equal(p.attrs.sco, 82 + 0.3 * 20);   // Woche synchronisiert Attribute
+  p.skills.sco = Array(20).fill(1); nextWeek(s); assert.equal(p.attrs.sco, 85 + 0.25 * 20);   // Woche synchronisiert Attribute
+});
+
+test('New Star Darts: ★-Preisgeld, Energie, Star-Status, Note, Schlüsselmomente', async () => {
+  const N = await import('../js/nsd.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 18, slot: 1, seed: 9 });
+  const p = s.player;
+  // Ranglisten in Basis-★ (Startwerte umgerechnet), Preistabellen
+  const top = orderOfMerit(s, 'pdc')[0];
+  assert.ok(top.money > 500 && top.money < 6000, `Top-OOM ${top.money}`);
+  assert.deepEqual(N.starPrizeTable('pc'), { W: 20, F: 10, SF: 5, QF: 2.4, L16: 1.2, L32: 0.8, L64: 0.4, G3: 1, G4: 0.5 });
+  assert.equal(N.STAR_PRIZE_WIN.wm, 2 * N.STAR_PRIZE_WIN.matchplay);
+  assert.equal(N.starPayout(0.4, 1), 1); assert.equal(N.starPayout(0, 1), 0); assert.equal(N.starPayout(20, 21), 40);
+  // Star-Status: Sieg ≈ 10–15 % auf Status 1, Niederlage kleiner, nie unter die Stufe
+  const win = N.starMatchDelta(1, { won: true, my: 6, opp: 4, to: 6, avg: 88, cat: 'pc' });
+  assert.ok(win >= 10 && win <= 15, `Sieg ${win}`);
+  assert.ok(N.starMatchDelta(1, { won: true, my: 6, opp: 0, to: 6, avg: 100, cat: 'pc' }) > win);
+  const loss = N.starMatchDelta(1, { won: false, my: 0, opp: 6, to: 6, avg: 80, cat: 'pc' });
+  assert.ok(loss < 0 && -loss < win && N.starMatchDelta(1, { won: false, my: 5, opp: 6, to: 6, avg: 80, cat: 'pc' }) > loss);
+  N.addStarProgress(s, 105); assert.equal(p.star.level, 2); assert.equal(p.attrs.men, 85.5);
+  N.addStarProgress(s, -50); assert.equal(p.star.level, 2); assert.equal(p.star.xp, 0);
+  assert.ok(N.starNeed(50) > N.starNeed(10));
+  assert.ok(N.matchRating({ won: true, avg: 100, coPct: 0.5, s180: 4, my: 6, opp: 1 }) > N.matchRating({ won: false, avg: 80, coPct: 0.2, my: 1, opp: 6 }));
+  // Energie: Malus erst unter 20 %, wächst je Leg
+  assert.equal(N.energyMalus(25), 0); assert.ok(N.energyMalus(10, 5) > N.energyMalus(10, 0));
+  // PC spielen: keine Reisekosten, ★ nur bei Sieg, Energie sinkt
+  s.date.week = 6;
+  const pc = eventsInWeek(s, 2027, 6).find(e => e.cat === 'pc');
+  assert.equal(eventStatus(s, pc).cost.total, 0);
+  const stars0 = s.stars, e0 = p.energy;
+  enterEvent(s, pc.id);
+  playRound(s); nextRound(s);
+  assert.ok(p.energy < e0);
+  const lm = s.activeEvent.lastMatch;
+  assert.ok(lm.rating >= 1 && lm.rating <= 10 && typeof lm.star === 'number');
+  simulateRest(s);
+  const inst = s.activeEvent, wins = inst.rounds.reduce((n, r) => n + r.matches.filter(m => m.winner === 'P' && !m.bye).length, 0);
+  assert.equal(s.stars - stars0, wins ? N.starPayout(inst.prize, p.star.level) : 0);
+  assert.equal(s.finance.balance, 5000);                                   // € unberührt
+  assert.equal(s.results[0].stars, s.stars - stars0);
+  closeEvent(s);
+  const eW = p.energy; nextWeek(s); assert.equal(p.energy, Math.min(100, eW + N.ENERGY_WEEK));
+  // Schlüsselmomente im Live-Match
+  s.date.week = 7; s.week = { played: false, eventId: null };
+  const pc2 = eventsInWeek(s, 2027, 7).find(e => e.cat === 'pc') ?? eventsInWeek(s, 2027, 8).find(e => e.cat === 'pc');
+  if (pc2) {
+    s.date.week = pc2.week; enterEvent(s, pc2.id);
+    const live = startManualMatch(s), m = live.m;
+    m.turn = live.me; m.rem[live.me] = 32; m.legs[live.me] = m.format.legs - 1;
+    assert.equal(ET.keyMoment(s), 'match');
+    const ap = ET.aimParams(s, 'D16');
+    assert.ok(ap.radius > 5 && ap.radius < 40 && ap.amp > 0);
+    const r = ET.liveHumanDart(s, 0, -166, 'D20');                         // Doppel 20 → kein Check auf 32
+    assert.equal(r.dart.hit.label, 'D20');
+    p.energy = 10; m.visit.darts = []; m.turn = live.me;
+    assert.equal(ET.keyMoment(s), null);                                   // < 20 % Energie: kein Selbstwerfen
+  }
 });
 
 console.log(`\n${n} Tests ok`);

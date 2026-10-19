@@ -4,9 +4,9 @@ import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS, ET_REGIONS, NSD_BLOCKED } from
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
-import { createMatch, throwDart, matchResult, wouldWinMatch } from './matchState.js';
-import { BOGEY } from './board.js';
-import { aiDart, aiSigma } from './throwModel.js';
+import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider } from './matchState.js';
+import { BOGEY, scoreAt } from './board.js';
+import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE } from './world.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, pointsGained } from './player.js';
@@ -27,6 +27,9 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
+import { canSelfPlay, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT,
+  matchRating, addRel, fansAfterMatch } from './nsd.js';
+import { overall } from './player.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -74,6 +77,7 @@ export function eventStatus(state, ev, n = null) {
     const travel = Math.round(levelPrice(ETQ_NIGHT, state.player.level ?? 1) * travelMult(state.player) / 5) * 5;
     cost = { fee: 0, travel, total: travel, addOn: true };
   }
+  if (state.mode === 'nsd') cost = { fee: 0, travel: 0, total: 0 };   // New Star Darts: keine Reisekosten
   const phase = CATEGORIES[ev.cat]?.phase ?? 9;
   const elig = eligibility(state, ev);
   let playable = true, reason = '';
@@ -264,7 +268,7 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     city: ev.city, country: ev.country, year: state.date.year, week: state.date.week,
     count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomTypes(ev, sub),
     isQualifier: !!ev.qualifier && sub === 0, cards: !!fmt.cards,
-    prizes: prizeTable(ev, sub), stopAt: fmt.stopAt ?? 1, fieldSize: field.length,
+    prizes: state.mode === 'nsd' ? starPrizeTable(fk) : prizeTable(ev, sub), stopAt: fmt.stopAt ?? 1, fieldSize: field.length,
     big: withPlayer ? orderOfMerit(state, 'pdc').slice(0, 16).map(x => x.p.id).filter(id => id !== 'P') : [],
     ...(ev.cat === 'wdf' && withPlayer ? { xpBoost: Math.round(rng.float(1.2, 1.6) * 20) / 20 } : {}),
     rounds,
@@ -319,7 +323,12 @@ const attrsOf = (state, id, inst = state.activeEvent) => {
   const base = t ? { ...t.attrs, exp: t.exp } : perf(getPlayer(state, id));
   const m = inst?.rounds?.[inst.current]?.matches.find(x => x.a === id || x.b === id);
   const staged = applyStage(base, stageFactor(inst, m?.a, m?.b));
-  return id === 'P' ? applyNerves(staged, nervesFor(inst, state.player)) : staged;   // Lampenfieber (erste Pro-Tour-Zeit)
+  if (id !== 'P') return staged;
+  if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)
+    const mal = energyMalus(state.player.energy ?? 100, inst?.live?.m?.legIdx ?? 0);
+    return mal ? { ...staged, sco: staged.sco - mal, fin: staged.fin - mal, foc: staged.foc - mal } : staged;
+  }
+  return applyNerves(staged, nervesFor(inst, state.player));   // Lampenfieber (erste Pro-Tour-Zeit)
 };
 
 // Eigenes Match simulieren (Ergebnis wird gespeichert und zurückgegeben)
@@ -409,6 +418,33 @@ export function boardCall(state) {
 }
 export const isBigTreble = hit => hit?.mult === 3 && hit.score >= 54;   // T18/T19/T20
 
+// ---- New Star Darts: Schlüsselmomente selbst werfen ----
+// Zu Beginn einer eigenen Aufnahme: Matchdarts, Entscheidungsleg, Break-Chance (Gegner hat Anwurf), Checks ab 61.
+// Unter 20 % Energie wirft die KI für dich (schlechter werdend).
+export function keyMoment(state) {
+  const live = state.activeEvent?.live, lm = live?.m;
+  if (!lm || lm.done || lm.turn !== live.me || lm.visit.darts.length || !canSelfPlay(state.player)) return null;
+  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r);
+  if (fin && wouldWinMatch(lm, me)) return 'match';
+  if (isDecider(lm)) return 'decider';
+  if (fin && lm.legStarter !== me) return 'break';
+  if (fin && r > 60) return 'finish';
+  return null;
+}
+// Zielparameter (Kreis, Linien) für den eigenen Dart
+export function aimParams(state, target) {
+  const live = state.activeEvent.live;
+  return circleParams(attrsOf(state, 'P'), live.m, live.me, target);
+}
+// Eigener Dart an Position (x, y) in mm
+export function liveHumanDart(state, x, y, target) {
+  const live = state.activeEvent.live, lm = live.m, side = lm.turn;
+  const hit = scoreAt(x, y), ev = throwDart(lm, hit);
+  const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
+  if (visitOver) { live.route = null; tickMods(live, side); }
+  return { ev, dart: { target, x, y, hit }, side, visitOver };
+}
+
 // Temporäre Leistungs-Modifikatoren (Ablenkungen): Multiplikator auf die Streuung, gilt für n Aufnahmen
 export function addMod(live, side, mult, visits) {
   (live.mods ??= []).push({ side, mult, visits });
@@ -449,6 +485,7 @@ function applyResult(m, res) {
 
 // XP gutschreiben (inkl. Trainer-Faktor); Rückgabe = tatsächlich gutgeschriebene XP (für die Anzeige)
 function grantXp(state, xp) {
+  if (state.mode === 'nsd') return 0;                 // New Star Darts: Star-Status statt XP
   const got = Math.round(xp * xpMult(state));
   const ups = addXp(state.player, got);
   if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${pointsGained(state.player.level, ups)} Attributpunkte`, 'Verteile sie im Spielerprofil oder direkt nach dem Turnier.');
@@ -469,6 +506,7 @@ function recordPlayerMatch(state, inst, m, res) {
   }
   const c = state.stats.career;
   state.player.avgReal = c.darts ? Math.round(c.points / c.darts * 300) / 100 : null;
+  if (state.mode === 'nsd') return recordNsdMatch(state, inst, m, res, me, won);
   const f = xpFactor(inst);
   const xp = grantXp(state, Math.round((XP_BASE.match + (won ? XP_BASE.win : 0) + XP_BASE.perRound * Math.min(inst.current, 6)) * f));
   inst.xp += xp;
@@ -499,6 +537,34 @@ function recordPlayerMatch(state, inst, m, res) {
     score: me ? [...res.score].reverse() : res.score, me: s, opp_: o, xp,
   };
 }
+
+// New Star Darts: Energie, Star-Status, Note, Fans (keine XP-/Level-Systeme)
+function recordNsdMatch(state, inst, m, res, me, won) {
+  const p = state.player, s = res.stats[me], o = res.stats[1 - me];
+  const fmt = inst.rounds[inst.current].format, to = fmt.sets ?? fmt.legs;
+  const my = res.score[me], opp = res.score[1 - me];
+  const oppId = me === 0 ? m.b : m.a, oppP = inst.teams?.[oppId] ?? getPlayer(state, oppId);
+  addEnergy(p, -matchEnergy(res.legsTotal[0] + res.legsTotal[1]));
+  const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
+  const star = starMatchDelta(p.star.level, { won, my, opp, to, avg: s.avg, oppStrength, cat: inst.cat, fmt: inst.fmt });
+  const ups = addStarProgress(state, star);
+  const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp });
+  const fans = fansAfterMatch(won, rating);
+  addRel(p, 'fans', fans);
+  // Erfahrung (Clutch) und Selbstvertrauen laufen still weiter
+  const decider = res.score[0] >= to - 1 && res.score[1] >= to - 1;
+  addClutch(p, Math.round((2 + (decider ? 3 : 0) + (decider && won ? 3 : 0)) * xpFactor(inst)));
+  updateMomentum(p, { won, opp: oppP, cat: inst.cat, big: inst.big?.includes(oppId) });
+  if (isRival(state, oppId)) rivalMeeting(state, inst, won, `${my}:${opp}`);
+  if (!won && !inst.rounds[inst.current].isGroup) inst.playerAlive = false;
+  inst.star = Math.round(((inst.star ?? 0) + star) * 10) / 10;
+  inst.lastMatch = {
+    round: inst.rounds[inst.current].name, opp: oppId, won, score: [my, opp], legs: [res.legsTotal[me], res.legsTotal[1 - me]],
+    me: s, opp_: o, xp: 0, rating, star, ups, fans, energy: p.energy,
+  };
+}
+// Siege des Spielers im Turnier (ohne Freilose)
+const playerWins = inst => inst.rounds.reduce((n, r) => n + r.matches.filter(m => m.winner === 'P' && !m.bye && m.a && m.b).length, 0);
 
 // Alle offenen KI-Matches der aktuellen Runde simulieren
 function simRoundMatches(state, round, rng, inst) {
@@ -572,6 +638,7 @@ function settle(state, inst) {
     (inst.places ??= {})[id] = place;
     let prize = inst.prizes[place] ?? 0;
     if (inst.teams && id === 'P') prize = Math.round(prize * teamPrizeShare);   // World Cup: Preisgeld wird geteilt
+    if (id === 'P' && state.mode === 'nsd' && !playerWins(inst)) prize = 0;     // erstes Match verloren → nichts
     if (prize) for (const t of inst.oom) addMoney(state, t, id, prize, year);
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
@@ -628,19 +695,22 @@ function finishEvent(state, inst) {
     addNews(state, 'result', `🎟️ Qualifiziert für ${et.name}!`, 'Über den Host-Nation-Qualifier stehst du nächste Woche im Hauptfeld – melde dich in der Wochenansicht.');
   }
   if (!inst.withPlayer) return;
-  const place = inst.place, prize = inst.prize;
+  const place = inst.place, prize = inst.prize, nsd = state.mode === 'nsd';
   const f = xpFactor(inst);
   // Teilnahme-Bonus: nach jedem Turnier kann trainiert werden
   inst.xp += grantXp(state, Math.round(XP_BASE.event * f));
-  if (place === 'W') { titleMomentum(state.player, inst.cat); slumpTitle(state, inst.cat); }
+  if (place === 'W') { titleMomentum(state.player, inst.cat); if (!nsd) slumpTitle(state, inst.cat); }
   if (place === 'W' || place === 'CARD') {
     inst.xp += grantXp(state, Math.round(XP_BASE.title * f));
   }
-  if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
-  sponsorEventPayout(state, inst);
+  if (nsd) nsdEventEnd(state, inst);
+  else {
+    if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
+    sponsorEventPayout(state, inst);
+    titleMilestones(state, inst);
+    addEventFatigue(state, inst);
+  }
   trackTitle(state, inst);
-  titleMilestones(state, inst);
-  addEventFatigue(state, inst);
   if (inst.isQualifier) {
     if (inst.cat === 'wmreg') {
       const ok = place === 'QUAL' || place === 'W';
@@ -656,12 +726,27 @@ function finishEvent(state, inst) {
   for (const t of [state.stats.career, seasonStats(state, state.date.year)]) {
     t.events++; if (place === 'W') t.titles++; if (place === 'W' || place === 'F') t.finals++;
   }
-  state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place, prize });
-  maybeInterview(state, inst);
-  if (place === 'W') addNews(state, 'result', `TITEL! ${inst.name} gewonnen`, `Preisgeld: ${fmtEUR(prize)}.`);
+  state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place, prize: nsd ? 0 : prize, stars: inst.stars ?? 0 });
+  if (!nsd) maybeInterview(state, inst);
+  const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : prize ? fmtEUR(prize) : '';
+  if (place === 'W') addNews(state, 'result', `TITEL! ${inst.name} gewonnen`, `Preisgeld: ${money}.`);
   else if (place !== 'CARD') {
     const wTxt = inst.winner ? ` Turniersieger: ${getPlayer(state, inst.winner).name}.` : '';
-    addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, `${wTxt.trim()}${prize ? ` Preisgeld: ${fmtEUR(prize)}.` : ''}`.trim());
+    addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, `${wTxt.trim()}${money ? ` Preisgeld: ${money}.` : ''}`.trim());
+  }
+}
+
+// New Star Darts: ★ auszahlen, Titel-Bonus (Star-Status, Fans)
+function nsdEventEnd(state, inst) {
+  const p = state.player;
+  inst.stars = starPayout(inst.prize, p.star.level);
+  state.stars = (state.stars ?? 0) + inst.stars;
+  if (inst.place === 'W' && !inst.isQualifier) {
+    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.cat] ?? 1) * (1 + 0.03 * (p.star.level - 1)) * 10) / 10;
+    inst.star = Math.round(((inst.star ?? 0) + bonus) * 10) / 10;
+    inst.titleStar = bonus;
+    addStarProgress(state, bonus);
+    addRel(p, 'fans', inst.cat === 'major' ? 5 : 3);
   }
 }
 
@@ -689,13 +774,18 @@ export function runAITournament(state, ev, sub, ctx = {}) {
   inst.winner = inst.stopAt === 1 ? inst.survivors[0] : null;
   // Premier League / World Cup ohne Meldung: Spieler spielt automatisch mit
   if (inst.autoPlayer && inst.places?.P) {
-    if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place)})`, 'prize');
-    sponsorEventPayout(state, inst);
+    const nsd = state.mode === 'nsd';
+    if (nsd) nsdEventEnd(state, inst);
+    else {
+      if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place)})`, 'prize');
+      sponsorEventPayout(state, inst);
+      titleMilestones(state, inst);
+      addEventFatigue(state, inst);
+    }
     trackTitle(state, inst);
-    titleMilestones(state, inst);
-    addEventFatigue(state, inst);
-    state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: inst.prize });
-    addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, inst.prize ? `Preisgeld: ${fmtEUR(inst.prize)}.` : '');
+    state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: nsd ? 0 : inst.prize, stars: inst.stars ?? 0 });
+    const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : inst.prize ? fmtEUR(inst.prize) : '';
+    addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, money ? `Preisgeld: ${money}.` : '');
   }
   return inst;
 }

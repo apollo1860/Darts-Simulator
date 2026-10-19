@@ -1,0 +1,290 @@
+// DartConnect-Liveticker (Tour-Modus): Aufnahme für Aufnahme, Schlüsselmomente wirfst du selbst.
+// Zielmechanik: Ziel wählen → vertikale Linie stoppen → horizontale Linie stoppen → Dart landet zufällig im Kreis
+// am Schnittpunkt (Kreis kleiner, je besser die Fähigkeiten). Gegner-Matchdarts werden auf der Scheibe gezeigt.
+import { esc, fmtNum } from '../../../util.js';
+import { getPlayer } from '../../../world.js';
+import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
+import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall, isBigTreble,
+  keyMoment, aimParams, liveHumanDart } from '../../../tournaments.js';
+import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
+import { wave, landInCircle } from '../../../throwModel.js';
+import { RNG } from '../../../rng.js';
+import { canSelfPlay } from '../../../nsd.js';
+import { boardSvg, regionPath } from '../../boardSvg.js';
+import { confirmDialog } from '../../components.js';
+import { frame, bar, bindHead } from '../frame.js';
+
+export const nsd = true;
+const VISIT_MS = 1300, DART_MS = 1000;
+const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
+const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE' };
+const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann zweimal stoppen. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p>';
+const shortName = n => n.trim().split(/\s+/).slice(-1)[0];
+let ui = null;
+
+export function render(app) {
+  const inst = app.state.activeEvent, pm = inst && playerMatch(inst);
+  if (!pm || pm.winner) return frame({ body: '<div class="nsd-card">Kein offenes Match.</div>', bottom: bar([null, null, { go: 'event', icon: '✔', wide: true }]) });
+  const round = inst.rounds[inst.current];
+  return frame({
+    cls: 'fixed', bg: 'grey',
+    body: `<div class="nsd-livehead"><button class="nsd-sq red" data-nsd="menu" aria-label="Menü">✖</button>
+        <div><b>${esc(inst.name)}</b><small>${esc(round.name)}</small></div>
+        <button class="nsd-sq green" data-nsd="help" aria-label="Hilfe">?</button></div>
+      <div class="nsd-live">
+        <div class="dc" id="dc"></div>
+        <div class="nsd-ticker" id="ticker"></div>
+        <div class="nsd-aim hidden" id="aim"></div>
+      </div>`,
+    bottom: bar([{ id: 'l-pause', icon: '⏸', label: 'Pause' }, { id: 'l-fast', icon: '⏩', label: 'Tempo' },
+      { id: 'l-end', icon: '⏭', label: 'Sofort beenden', wide: true }]),
+  });
+}
+
+export function mount(root, app) {
+  bindHead(root, app, HELP);
+  const s = app.state;
+  const live = startManualMatch(s);
+  if (!live) return;
+  app.save();
+  const pm = playerMatch(s.activeEvent);
+  ui = { app, s, live, me: live.me, ids: [pm.a, pm.b], timer: 0, raf: 0, paused: false, fast: false, lines: [],
+    el: root.querySelector('#dc'), ticker: root.querySelector('#ticker'), aimEl: root.querySelector('#aim'), aim: null, show: null };
+  root.querySelector('#l-pause').onclick = e => {
+    ui.paused = !ui.paused;
+    e.currentTarget.querySelector('.lb').textContent = ui.paused ? 'Weiter' : 'Pause';
+    if (!ui.paused && !ui.aim) schedule(300);
+  };
+  root.querySelector('#l-fast').onclick = e => { ui.fast = !ui.fast; e.currentTarget.classList.toggle('on', ui.fast); };
+  root.querySelector('#l-end').onclick = async () => {
+    if (!await confirmDialog('Sofort beenden?', 'Der Rest des Matches wird ohne Anzeige simuliert – ohne deine Schlüsselmomente.', 'Beenden')) return;
+    if (!ui) return;
+    const { s: st, app: ap } = ui;
+    stopAll(); simulateLiveRest(st); nextRound(st); ap.save(); ap.go('matchstats');
+  };
+  document.addEventListener('keydown', onKey);
+  if (!canSelfPlay(s.player)) say('😵 Nicht match-fit – die KI wirft für dich.', 'bad');
+  draw();
+  schedule(700);
+}
+
+export function unmount() { if (!ui) return; stopAll(); document.removeEventListener('keydown', onKey); ui = null; }
+function stopAll() { clearTimeout(ui.timer); cancelAnimationFrame(ui.raf); }
+const wait = ms => (ui.fast ? ms / 3 : ms);
+function schedule(ms) { clearTimeout(ui.timer); ui.timer = setTimeout(step, wait(ms)); }
+const nm = i => shortName(ui.s.activeEvent?.teams?.[ui.ids[i]]?.name ?? getPlayer(ui.s, ui.ids[i])?.name ?? '?');
+
+// ---------- Ablauf ----------
+function step() {
+  if (!ui || ui.paused || ui.aim || ui.show) return;
+  const m = ui.live.m;
+  if (m.done) return finish();
+  ui.starter = m.legStarter; ui.visitStart = m.visit.start;   // für Break-/Finish-Kommentar
+  const key = keyMoment(ui.s);
+  if (key) return startAim(key);
+  if (m.turn !== ui.me && boardCall(ui.s) === 'match') return startShow('match');
+  const side = m.turn, pre = [];
+  let r;
+  do {
+    r = liveDartStep(ui.s); pre.push(r.dart);
+    if (!r.visitOver && side !== ui.me && pre.length === 2 && pre.every(d => isBigTreble(d.hit))) { ui.app.save(); draw(); return startShow('180', pre); }
+  } while (!r.visitOver);
+  afterVisit(r.ev, side);
+}
+
+function afterVisit(ev, side) {
+  ui.app.save();
+  comment(ev, side);
+  draw(ev);
+  if (ui.live.m.done) { ui.timer = setTimeout(() => ui && finish(), wait(VISIT_MS * 1.5)); return; }
+  schedule(ev?.legEnd ? VISIT_MS * 1.6 : VISIT_MS);
+}
+
+// Kommentarzeile
+function comment(ev, side) {
+  if (!ev) return;
+  const who = side === ui.me ? 'Du' : nm(side), mine = side === ui.me;
+  if (ev.legEnd) {
+    const brk = ui.starter !== side, big = ev.checkout && ui.visitStart >= 100 ? ` mit ${ui.visitStart}er-Finish` : '';
+    say(`${ev.matchEnd ? '🏁 Match' : ev.setEnd ? '🏅 Satz' : '✅ Leg'} an ${who}${big}${brk ? ' – BREAK!' : ''}`, mine ? 'good' : 'bad');
+  } else if (ev.visitScore === 180) say(`🔥 ${who}: ONE HUNDRED AND EIGHTY!`, mine ? 'good' : 'bad');
+  else if (ev.bust) say(`💥 ${who}: überworfen`, mine ? 'bad' : 'good');
+  else if (ev.visitScore >= 140) say(`${who}: ${ev.visitScore}`, '');
+}
+function say(text, tone) {
+  ui.lines.unshift({ text, tone });
+  ui.lines.length = Math.min(ui.lines.length, 3);
+  ui.ticker.innerHTML = ui.lines.map((l, i) => `<div class="${l.tone} ${i ? 'old' : ''}">${esc(l.text)}</div>`).join('');
+}
+
+function finish() {
+  const { s, app } = ui;
+  stopAll(); finishManualMatch(s); nextRound(s); app.save();
+  app.go('matchstats');
+}
+
+// ---------- Scheibe (Overlay) ----------
+function boardHtml(head, extra = '') {
+  return `<div class="nsd-aim-head">${head}</div>
+    <div class="nsd-aim-stage" id="stage"><svg id="bsvg" viewBox="-200 -200 400 400" aria-label="Dartscheibe">${boardSvg()}
+      <path class="target-region" id="region" d=""/>
+      <g id="cross" class="crosshair" style="display:none"><circle r="7"/></g>
+      <circle id="circ" class="nsd-circ" r="0" style="display:none"/>
+      <line id="vline" class="aim-line v" x1="0" x2="0" y1="-200" y2="200" style="display:none"/>
+      <line id="hline" class="aim-line h" x1="-200" x2="200" y1="0" y2="0" style="display:none"/>
+      <g id="marks"></g></svg>
+      <div class="board-banner" id="banner"></div></div>${extra}`;
+}
+const $ = id => ui.aimEl.querySelector(id);
+function mark(x, y, mine) {
+  const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
+  g.setAttribute('class', `dart-mark ${mine ? 'me' : 'opp'}`);
+  g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+  g.innerHTML = '<circle r="6"/><circle r="2" class="core"/>';
+  $('#marks').appendChild(g);
+}
+function banner(text, good) { const b = $('#banner'); b.textContent = text; b.className = `board-banner show ${good ? 'leg' : 'bust'}`; }
+function closeOverlay() { ui.aimEl.classList.add('hidden'); ui.aimEl.innerHTML = ''; ui.aim = null; ui.show = null; }
+
+// Gegner-Matchdarts / 180 im Anflug: Dart für Dart zeigen
+function startShow(kind, pre = []) {
+  const m = ui.live.m, side = m.turn;
+  ui.show = { kind, side, start: m.visit?.start ?? m.rem[side], sum: 0 };
+  ui.aimEl.classList.remove('hidden');
+  ui.aimEl.innerHTML = boardHtml(kind === 'match' ? `⚠️ MATCHDARTS · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>` : `🔥 180 IM ANFLUG? · ${esc(nm(side))}`);
+  for (const d of pre) { ui.show.sum += d.hit.score; mark(d.x, d.y, false); }
+  ui.timer = setTimeout(showDart, wait(pre.length ? 1100 : 800));
+}
+function showDart() {
+  if (!ui || ui.paused) { if (ui) ui.timer = setTimeout(showDart, 400); return; }
+  const r = liveDartStep(ui.s), sh = ui.show;
+  sh.sum += r.dart.hit.score;
+  $('#region').setAttribute('d', r.dart.target === 'OUT' ? '' : regionPath(r.dart.target));
+  mark(r.dart.x, r.dart.y, false);
+  ui.app.save(); draw(r.visitOver ? r.ev : null);
+  if (!r.visitOver) { ui.timer = setTimeout(showDart, wait(DART_MS)); return; }
+  const ok = r.ev?.checkout || (sh.kind === '180' && sh.sum === 180 && !r.ev?.bust);
+  banner(r.ev?.checkout ? 'Matchdart verwandelt' : sh.kind === '180' ? (ok ? 'ONE HUNDRED AND EIGHTY!' : `Knapp – ${sh.sum}`) : 'Überstanden!', !ok);
+  ui.timer = setTimeout(() => { if (!ui) return; closeOverlay(); afterVisit(r.ev, sh.side); }, wait(ok ? 1800 : 1400));
+}
+
+// ---------- Selbst werfen ----------
+function startAim(kind) {
+  const m = ui.live.m;
+  ui.aim = { kind, phase: 'pick', target: null, prm: null, fx: 0, fy: 0, t0: 0, ph: 0, rng: new RNG(ui.s.rng) };
+  ui.aimEl.classList.remove('hidden');
+  ui.aimEl.innerHTML = boardHtml(`${KIND[kind]} · Du stehst auf <b id="rem">${m.rem[ui.me]}</b>`,
+    `<div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>
+     <button class="nsd-btn blue nsd-throw" id="throw"><span class="lb">Werfen</span></button>`);
+  $('#stage').addEventListener('pointerdown', onStage);
+  $('#throw').addEventListener('pointerdown', e => { e.preventDefault(); onAction(); });
+  $('#chips').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b && ui.aim?.phase === 'pick') setTarget(b.dataset.t); });
+  nextDart();
+}
+function nextDart() {
+  const m = ui.live.m, a = ui.aim;
+  a.phase = 'pick';
+  $('#rem').textContent = m.rem[ui.me];
+  ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
+  setTarget(suggestTarget(m.rem[ui.me], dartsLeft(m)));
+  $('#throw').querySelector('.lb').textContent = `Werfen (Dart ${m.visit.darts.length + 1})`;
+  $('#throw').disabled = false;
+}
+function setTarget(label) {
+  const a = ui.aim, m = ui.live.m, p = targetPoint(label);
+  a.target = label; a.prm = aimParams(ui.s, label);
+  $('#cross').style.display = ''; $('#cross').setAttribute('transform', `translate(${p.x} ${p.y})`);
+  $('#region').setAttribute('d', regionPath(label));
+  const route = checkoutRoute(m.rem[ui.me], dartsLeft(m));
+  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}`;
+  const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
+  $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${fieldName(t)}</button>`).join('');
+}
+function onKey(e) {
+  if (!ui?.aim || (e.code !== 'Space' && e.code !== 'Enter') || e.target.closest?.('.modal')) return;
+  e.preventDefault(); if (!e.repeat) onAction();
+}
+function onStage(e) {
+  const a = ui?.aim;
+  if (!a) return;
+  if (a.phase === 'v' || a.phase === 'h') { e.preventDefault(); return stopLine(); }
+  if (a.phase !== 'pick') return;
+  const svg = $('#bsvg'), pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  const q = pt.matrixTransform(svg.getScreenCTM().inverse()), h = scoreAt(q.x, q.y);
+  if (h.label !== 'OUT') setTarget(h.label);
+}
+function onAction() {
+  const a = ui?.aim;
+  if (!a || ui.paused) return;
+  if (a.phase === 'pick') startLine('v');
+  else if (a.phase === 'v' || a.phase === 'h') stopLine();
+}
+function linePos(axis, now) {
+  const a = ui.aim, p = targetPoint(a.target), dt = (now - a.t0) / 1000;
+  return (axis === 'v' ? p.x : p.y) + a.prm.amp * wave(a.ph + dt * a.prm.freq * (axis === 'v' ? 1 : 1.13));
+}
+function startLine(axis) {
+  const a = ui.aim, p = targetPoint(a.target);
+  a.phase = axis; a.t0 = performance.now(); a.ph = a.rng.next();
+  const line = $(axis === 'v' ? '#vline' : '#hline'), circ = $('#circ');
+  line.style.display = ''; circ.style.display = ''; circ.setAttribute('r', a.prm.radius.toFixed(1));
+  $('#throw').querySelector('.lb').textContent = 'Stopp';
+  cancelAnimationFrame(ui.raf);
+  const tick = now => {
+    if (!ui?.aim || ui.aim.phase !== axis) return;
+    const pos = linePos(axis, now);
+    if (axis === 'v') { line.setAttribute('transform', `translate(${pos} 0)`); circ.setAttribute('cx', pos); circ.setAttribute('cy', p.y); }
+    else { line.setAttribute('transform', `translate(0 ${pos})`); circ.setAttribute('cx', a.fx); circ.setAttribute('cy', pos); }
+    ui.raf = requestAnimationFrame(tick);
+  };
+  ui.raf = requestAnimationFrame(tick);
+}
+function stopLine() {
+  const a = ui.aim, pos = linePos(a.phase, performance.now());
+  cancelAnimationFrame(ui.raf);
+  if (a.phase === 'v') {
+    a.fx = pos; $('#vline').setAttribute('transform', `translate(${pos} 0)`); $('#vline').classList.add('fixed');
+    return startLine('h');
+  }
+  a.fy = pos; $('#hline').setAttribute('transform', `translate(0 ${pos})`); $('#hline').classList.add('fixed');
+  $('#circ').setAttribute('cy', pos);
+  a.phase = 'busy'; $('#throw').disabled = true;
+  const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
+  const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
+  mark(pt.x, pt.y, true);
+  ui.app.save(); draw(r.visitOver ? r.ev : null);
+  const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
+  banner(txt, !r.ev?.bust);
+  if (!r.visitOver) { ui.timer = setTimeout(() => { if (ui?.aim) { $('#banner').className = 'board-banner'; nextDart(); } }, 700); return; }
+  ui.timer = setTimeout(() => { if (!ui) return; closeOverlay(); afterVisit(r.ev, ui.me); }, r.ev?.checkout ? 1600 : 1200);
+}
+
+// ---------- DartConnect-Tafel ----------
+function draw(ev) {
+  const m = ui.live.m, me = ui.me, op = 1 - me;
+  const visits = m.legVisits ?? [[], []], active = m.done ? -1 : m.turn;
+  const head = (i, side) => `<div class="dc-player ${side} ${active === i ? 'active' : ''}">
+      <div class="dc-name">${m.legStarter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm">${esc(i === me ? ui.s.player.name.split(' ').slice(-1)[0] : nm(i))}</span></div>
+      <div class="dc-scorebox">${side === 'right' ? '' : avgs(i)}<span class="dc-rem">${m.rem[i]}</span>${side === 'right' ? avgs(i) : ''}</div></div>`;
+  const avgs = i => `<div class="dc-avgs"><span class="dc-legavg">${fmtNum(legAverage(m, i), 0)}</span><span class="dc-avg">${fmtNum(liveAverage(m, i), 0)}</span></div>`;
+  const nextRow = active >= 0 ? visits[active].length : -1, rows = Math.max(visits[0].length, visits[1].length, nextRow + 1, 1);
+  const cell = (i, r, side) => {
+    const v = visits[i][r], arrow = active === i && r === nextRow ? `<i class="dc-arrow ${side}"></i>` : '';
+    if (!v) return `<div class="dc-cell ${side}">${arrow}</div>`;
+    const cls = v.checkout ? 'co' : v.bust ? 'bust' : v.score >= 100 ? 'ton' : '';
+    const bogey = !v.checkout && !v.bust && BOGEY.has(v.rem) ? '<small class="dc-bogey">⚠</small>' : '';
+    const isNew = ev?.visitEnd && ev.player === i && r === visits[i].length - 1 ? 'new' : '';
+    return `<div class="dc-cell ${side} ${cls} ${isNew}">${v.bust ? '0' : v.score}${v.checkout ? '<small>✓</small>' : ''}${bogey}</div>`;
+  };
+  let body = '';
+  for (let r = 0; r < rows; r++) body += `<div class="dc-row">${cell(me, r, 'left')}<div class="dc-no">${r + 1}</div>${cell(op, r, 'right')}</div>`;
+  const e = Math.round(ui.s.player.energy ?? 100);
+  ui.el.innerHTML = `<div class="dc-top">${head(me, 'left')}
+      <div class="dc-mid"><div class="dc-badge"><small>Legs</small>${m.legs[me]}:${m.legs[op]}</div>
+        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-legno">⚡ ${e} %</div></div>
+      ${head(op, 'right')}</div>
+    <div class="dc-list" id="dc-list">${body}</div>`;
+  const list = ui.el.querySelector('#dc-list');
+  list.scrollTop = list.scrollHeight;
+}
