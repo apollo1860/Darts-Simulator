@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 13**: WM-Qualifikanten nach der echten Liste 2026 (Jugend-Weltmeister, Dev/CT Platz 2–4, Women's Series 2–5, 21 Qualifier mit 22 Plätzen, Asian Tour 5, PDCNB Pro Tour 2, CDC bester US-Amerikaner/Kanadier, ADA 1, DPNZ 1, Tour Card Holder Qualifier 4); Spieler der Liste in die Nebentour-Pools aufgenommen.
 - [x] **Version 12**: WM-Plätze exakt nach Nutzerliste (48 = Nebentouren 7, Frauen 4, Asien & Ozeanien 11, Europa 8, Amerika 5, Afrika 2, PDPA Qualifier 11).
 - [x] **Version 11**: WM-Plätze neu: Top 40 PDC + Top 40 Pro Tour, CT/Dev Top 2 (ohne Karte) + Jugend-Weltmeister, Frauen 2 (Women's Series) + 2 (Women's World Matchplay), Affiliate-Touren direkt über die Tour-OOM (Asien 6, CDC 4, Nordic & Baltic 3, DPA 2, DPNZ 1), Qualifier Super League, Benelux, Süd-, Ost-, Mitteleuropa, Japan, China, Indien, CDLC, Afrika (2); Rest PDPA Qualifier (meist ~14). Q-School-WM-Qualifier entfernt.
 - [x] **Version 10**: UK Open mit gestaffeltem Einstieg (Runde 1: ab Platz 97 + 8 CT + 8 Dev + Riley's-Amateure, Runde 2: 65–96, Runde 3: 33–64, Runde 4: Top 32) und offener Auslosung ab Runde 4; Grand Slam nach TV-Finalisten (12 Monate), Pro-Tour-Titeln, Nebentouren und neuem Tour Card Holder Qualifier (KW 45); PC Finals über eigene Players-Championship-OOM.
@@ -17,6 +18,12 @@
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Version 13
+- Asian Tour „Platz 1, 3, 4, 5, 7“ = die 5 Besten der Tour, die nicht schon anders qualifiziert sind (Asian Championship, Japan …); ebenso PDCNB Pro Tour 2, CDC je bester US-Amerikaner/Kanadier, ADA 1, DPNZ 1.
+- Wer einen Qualifier gewonnen hat, fehlt in späteren Qualifiern derselben Woche. UK & IRE Qualifier: Spieler ohne Karte + Holder außerhalb der Top 40 PDC/Pro Tour.
+- Neue Pool-Spieler (u. a. Arihara, Muramatsu, Leung, Kam Weng Chen, Nitin Kumar, Sevada, Krueger, Hall, Cameron, Larsson, Pruim, Salate, Munyua) mit geschätzter Position; Coulson/Morris/Klose/Wilson sind bereits Challenge-Tour-Spieler. Ältere Spielstände bekommen fehlende Pool-Spieler nachgerüstet.
+- Women's World Matchplay entfällt als WM-Qualifier (nicht in der Liste).
 
 ### Annahmen Version 12
 - Doppelt Qualifizierte (z. B. Jugend-Weltmeister mit Tourcard in den Top 80) rücken nicht nach – der Platz geht an den PDPA Qualifier (dann 12–14 statt 11).

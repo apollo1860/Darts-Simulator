@@ -14,7 +14,7 @@ import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek, nsdBlocked } from './calendar.js';
 import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches, buildUkOpenRounds, ukOpenMatches } from './bracket.js';
-import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots, wmTourDirect } from './majors.js';
+import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
 import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
@@ -191,9 +191,12 @@ const aiRunnable = (state, ev) => ev.cat !== 'hnq' || hnqPool(state, ev).length 
 // Pool eines internationalen WM-Qualifiers; zu wenige Spieler → fiktive Amateure (Frauen-Qualifier: nur Spielerinnen)
 function wmRegPool(state, ev) {
   const min = Math.max(16, ev.slots * 6);
-  const direct = new Set(wmTourDirect(state));                    // schon über eine Tour qualifiziert → nicht im Qualifier
-  const cands = () => (ev.women ? playersOfTier(state, 'secondary', 'amateur').filter(p => p.woman && !direct.has(p.id))
-    : [...nonCardPros(state), ...playersOfTier(state, 'secondary', 'ddv', 'local', 'amateur')].filter(p => !p.woman && !direct.has(p.id) && ev.nations.includes(p.nation)));
+  // UK & IRE: auch Tourcard-Holder außerhalb der PDC-Top-64 (Associate Members = Spieler ohne Karte)
+  const top = ev.holders ? new Set([...orderOfMerit(state, 'pdc').slice(0, 40), ...orderOfMerit(state, 'protour').slice(0, 40)].map(x => x.p.id)) : null;
+  const holders = ev.holders ? playersOfTier(state, 'tour').filter(p => !top.has(p.id)) : [];   // ohne (voraussichtlich) direkt Qualifizierte
+  const q = qualOf(state), done = new Set([q.wmYouth, ...Object.values(q.wmReg ?? {}).flat()]);   // schon über einen anderen Qualifier dabei
+  const cands = () => (ev.women ? playersOfTier(state, 'secondary', 'amateur').filter(p => p.woman)
+    : [...holders, ...nonCardPros(state), ...playersOfTier(state, 'secondary', 'ddv', 'local', 'amateur')].filter(p => !p.woman && !done.has(p.id) && ev.nations.includes(p.nation)));
   let all = cands();
   for (let i = 0; all.length < min; i++) { addAmateurs(state, ev.nations[i % ev.nations.length], 1, ev.women); all = cands(); }
   return all.map(p => p.id);

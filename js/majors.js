@@ -5,7 +5,7 @@ import { playersOfTier, getPlayer, secondaryOrder, addAmateurs } from './world.j
 import { overall } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { nationName } from '../data/nations.js';
-import { WM_QUALIFIERS, WM_TOURS } from '../data/tournaments.js';
+import { WM_QUALIFIERS } from '../data/tournaments.js';
 import { clamp } from './util.js';
 
 export const MAJOR_CATS = ['major', 'ws', 'pl'];
@@ -17,7 +17,7 @@ export const RULE_TEXT = {
   matchplay: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM', wgp: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM',
   ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Players-Championship-OOM', gsod: "Finale eines TV-Majors (12 Monate), Pro-Tour-Titel, Jugend-Weltmeister, Top 2 Challenge Tour, Top 2 Women's Series oder Grand-Slam-Qualifier",
   gsq: 'Tourcard ohne direkten Grand-Slam-Platz',
-  wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, CT/Dev Top 3, Jugend-Weltmeister, Nebentour, internationaler Qualifier oder PDPA Qualifier',
+  wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, Jugend-Weltmeister, Platz 2–4 CT/Dev, internationaler Qualifier oder Tour Card Holder Qualifier',
   ws: 'Einladung: Top 8 PDC OOM (+ 8 Qualifikanten)', wsf: 'Top 24 der World-Series-Wertung',
   pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten deiner Nation',
 };
@@ -41,21 +41,27 @@ function wmAuto(state) {
   return q.wmAuto;
 }
 
-// WM: alle Plätze außer dem PDPA Qualifier – Top 40 PDC + 40 Pro Tour (rücken nach), Top 3 Dev/CT (ohne Karte), Jugend-Weltmeister,
-// Touren (WM_TOURS: Women's Series 3, Asian Tour 5, DPA 2, DPNZ 1, Nordic & Baltic 3, CDC 3), 14 Qualifier. Doppelt Qualifizierte rücken NICHT nach → mehr TCHQ-Plätze.
+// WM: alle Plätze außer dem Tour Card Holder Qualifier – Top 40 PDC + 40 Pro Tour (rücken nach), Jugend-Weltmeister,
+// Dev/CT-OOM Platz 2–4 und Women's Series Platz 2–5 (ohne Karte), 21 Qualifier (22 Plätze), danach die Touren ohne bereits
+// Qualifizierte: Asian Tour 5, PDCNB Pro Tour 2, CDC bester US-Amerikaner + bester Kanadier, ADA Tour 1, DPNZ 1.
+// Doppelt Qualifizierte rücken NICHT nach → mehr TCHQ-Plätze.
 export function wmDirect(state) {
   const q = qualOf(state), used = new Set(wmAuto(state)), out = [...used];
   const add = ids => { for (const id of ids) if (id && !used.has(id)) { used.add(id); out.push(id); } };
+  const best = (ids, n) => add(ids.filter(id => !used.has(id)).slice(0, n));
   const noCard = ids => ids.filter(id => (id === 'P' ? state.player.tour !== 'tour' : getPlayer(state, id)?.tier !== 'tour'));
-  add(noCard(idsOf(orderOfMerit(state, 'dev'))).slice(0, 3));
-  add(noCard(idsOf(orderOfMerit(state, 'challenge'))).slice(0, 3));
   add([q.wmYouth]);
-  add(wmTourDirect(state));                                        // Women's Series, Asian Tour, DPA, DPNZ, Nordic & Baltic, CDC
+  add(noCard(idsOf(orderOfMerit(state, 'dev'))).slice(1, 4));
+  add(noCard(idsOf(orderOfMerit(state, 'challenge'))).slice(1, 4));
+  add(secondaryOrder(state, 'women').slice(1, 5));
   for (const x of WM_QUALIFIERS) add(q.wmReg?.[x.key] ?? []);
+  const cdc = n => secondaryOrder(state, 'cdc').filter(id => getPlayer(state, id)?.nation === n);
+  best(secondaryOrder(state, 'asia'), 5); best(secondaryOrder(state, 'nb'), 2);
+  best(cdc('US'), 1); best(cdc('CA'), 1);
+  best(secondaryOrder(state, 'dpa'), 1); best(secondaryOrder(state, 'dpnz'), 1);
   return out.slice(0, 126);
 }
 export const wmTchqSlots = state => 128 - wmDirect(state).length;
-export const wmTourDirect = state => Object.entries(WM_TOURS).flatMap(([c, n]) => secondaryOrder(state, c).slice(0, n));
 
 // ---- Grand Slam of Darts (KW 46) ----
 // 1. Sieger + Finalisten aller TV-Majors der letzten 12 Monate, 2. offene Plätze (bis 16): meiste Pro-Tour-Titel (PC/ET) des Jahres,

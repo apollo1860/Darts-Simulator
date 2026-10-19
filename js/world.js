@@ -182,8 +182,10 @@ export function developWorld(state, rng, year) {
 // Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa): tier 'secondary', IDs S…
 // Ø = Basis der Tour − Platz in der Vorjahres-OOM; keine Entwicklung/kein Ruhestand (Pool bleibt bei 8)
 export function addSecondary(players, rng, startYear) {
-  let sNo = 0;
+  const have = new Set(Object.values(players).filter(p => p.tier === 'secondary').map(p => p.name));
+  let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
   for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age], i) => {
+    if (have.has(name)) return;
     const id = `S${++sNo}`, avg = Math.round((c.avgTop - i) * 10) / 10;
     players[id] = { id, name, nation, age: age - (2026 - startYear), avg, tier: 'secondary', circuit, cardUntil: null,
       attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}) };

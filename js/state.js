@@ -143,7 +143,7 @@ export function migrate(s) {
     if (!s.world.players.F1) addWeakPool(s.world, r);
   }
   // Nebentour-Pools (S…) für ältere Stände nachrüsten
-  if (!s.world.players.S1) addSecondary(s.world.players, new RNG(s.rng), s.date.year);
+  addSecondary(s.world.players, new RNG(s.rng), s.date.year);
   s.version = VERSION;
   return s;
 }
