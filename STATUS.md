@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 9**: Eigene Spielerpools für die Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa; je Top 8 der Vorjahres-OOM, Ø nach Platz) – genutzt in Masters-Vorrunde, Grand Slam (2 Plätze Women's Series), WM- und ET-Regionalqualifiern.
 - [x] **Version 8**: Winmau World Masters mit echter Vorrunde (Gruppenphase, K.-o. gegen Platz 25–56, 8 Qualifikanten, Best of 5 Sets); Version steigt ab jetzt mit jedem Push.
 - [x] **Version 7.4**: Zoom-Hilfe direkt am Board per Knopf „🔍 Zoom an/aus“ (statt in den Optionen).
 - [x] **Version 7.3**: Lifestyle-Shop mit 62 Artikeln laut Nutzerliste (Gegenstände, Fahrzeuge, Immobilien bis Burj Khalifa), Fitnesstrainer als Festpreis-Pakete mit alle 12 Wochen wechselnden Angeboten, Zoom nur beim echten Checken.
@@ -14,10 +15,15 @@
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
 
+### Annahmen Version 9
+- Pools aus eigenem Wissen zusammengestellt (OOM 2025, nicht verifiziert); Alter ungefähr. Ø = Basis je Tour (Women 84, Asien 89, CDC 88, Nordic & Baltic 88, DPA 87, Osteuropa 87, DPNZ 86) − 1 je Platz.
+- Nebentour-Spieler entwickeln sich nicht und gehen nicht in Ruhestand (Pool bleibt bei 8); Jahres-OOM = Ø + Zufall (σ 2,5), fest je Jahr (`secondaryOrder`).
+- Masters-Vorrunde: je der Beste der Vorjahres-OOM aus 6 Nebentouren (ohne Osteuropa); JDC = 4 beste Dev-Spieler ≤ 18. Grand Slam: die letzten 2 der 4 Pro-Tour-Nachrücker-Plätze gehen an die Top 2 der Women's Series.
+
 ### Annahmen Version 8
 - Vorrunde liegt in KW 4 (Woche vor dem Hauptturnier) statt „am Vortag“ – der Kalender kennt nur Wochen, und das Hauptfeld braucht die Qualifikanten vorher.
 - 32 Gruppensieger + 32 Gesetzte = Letzte 64; damit genau 8 übrig bleiben, werden Letzte 64, 32 und 16 gespielt (3 K.-o.-Runden).
-- Nebentouren ohne eigene Simulation (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic): jeweils bester Spieler ohne Karte aus der Region bzw. beste Amateurin.
+- Nebentouren ohne eigene Simulation (ab Version 9 mit eigenen Spielerpools).
 
 ### Annahmen Version 7
 - Holder-Liste: Spieler 65–99 der Nutzerliste haben 2026 ihr letztes Kartenjahr (wie Top 64: Verlust außerhalb der Top 64), 100–128 (Q-School 2026) Karte bis 2027. Nationen laut Liste übernommen (u. a. Dolan IRL, Dekker NO, Lukasiak SE, Ljubić HR). Alter = Listenwert − 1.

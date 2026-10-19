@@ -54,7 +54,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63 + 1 + 90);   // + Rivale + schwacher Pool
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63 + 1 + 90 + 56);   // + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -275,7 +275,7 @@ test('Pro Tour: PC-Doppel + ET (Quali → Hauptfeld) + OOM', () => {
   const tq = eventsInWeek(s, 2027, 6).find(e => e.id === 'etq-1');
   assert.ok(tq && tq.extra && tq.etId === 'et-1');
   const direct = ET.etDirect(s);
-  if (direct.includes('P')) assert.equal(eventStatus(s, tq).playable, false);
+  if (direct.includes('P')) { assert.equal(eventStatus(s, tq).playable, false); ET.runAITournament(s, tq); }
   else {
     const st = eventStatus(s, tq);
     assert.ok(st.playable && st.cost.addOn && st.cost.total >= 150 && st.cost.total < 200 && st.cost.fee === 0);   // 150 € × Preisniveau
@@ -1251,6 +1251,33 @@ test('New Star Darts v7: Start 2026, Holder-Liste, Status-Regeln, Meilensteine, 
   assert.ok(s.achievements.self180 && s.achievements.bigfish && s.achievements.hf150 && s.msQueue.includes('bigfish'));
   const st0 = s.stars, xp0 = p.star.xp + p.star.level * 1000; s.selfStats.checkouts = 1; L.checkAchievements(s);
   assert.equal(s.stars, st0); assert.ok(p.star.xp + p.star.level * 1000 > xp0);   // kein Geld, kleines Status-Plus
+});
+
+test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorrunde, Grand Slam, WM-Qualifier', async () => {
+  const N = await import('../js/nsd.js');
+  const { secondaryOrder } = await import('../js/world.js');
+  const { majorField, mastersPrelimField } = await import('../js/majors.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 16 });
+  const sec = playersOfTier(s, 'secondary');
+  assert.equal(sec.length, 56);
+  for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb', 'ee']) {
+    const o = secondaryOrder(s, c, 2025); assert.equal(o.length, 8);
+    assert.deepEqual(o, secondaryOrder(s, c, 2025));                   // fest je Jahr
+  }
+  assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= 75 && p.avg <= 95));
+  // Masters-Vorrunde: je Nebentour der Beste
+  const pf = mastersPrelimField(s, false);
+  assert.equal(pf.pool.filter(id => s.world.players[id]?.tier === 'secondary').length, 6);
+  assert.ok(pf.pool.includes(secondaryOrder(s, 'women', 2025)[0]));
+  // Grand Slam: 2 Spielerinnen der Women's Series
+  s.date.week = 46;
+  const gs = majorField(s, eventsInWeek(s, 2026, 46).find(e => e.id === 'gsod'), false);
+  assert.equal(gs.length, 32); assert.equal(gs.filter(id => s.world.players[id]?.woman).length, 2);
+  // WM-Qualifier: Frauen aus der Women's Series, Asien mit Asian-Tour-Spielern
+  s.date.week = 44;
+  const wq = ET.runAITournament(s, eventsInWeek(s, 2026, 44).find(e => e.id === 'wmq-women'));
+  assert.ok(wq.survivors.length === 4 && wq.survivors.every(id => s.world.players[id].woman));
+  assert.ok(wq.survivors.filter(id => s.world.players[id].tier === 'secondary').length >= 2);
 });
 
 console.log(`\n${n} Tests ok`);

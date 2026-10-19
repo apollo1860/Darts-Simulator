@@ -154,7 +154,7 @@ export function etDirect(state) {
 export const REGION_MIN = 8;
 function regionQualifier(state, ev, key) {
   const nations = ET_REGIONS[key].nations;
-  const cands = () => [...nonCardPros(state), ...playersOfTier(state, 'amateur')].filter(p => nations.includes(p.nation));
+  const cands = () => [...nonCardPros(state), ...playersOfTier(state, 'secondary', 'amateur')].filter(p => !p.woman && nations.includes(p.nation));
   let all = cands();
   for (let i = 0; all.length < REGION_MIN; i++) { addAmateurs(state, nations[i % nations.length], 1); all = cands(); }   // fiktive Amateure
   const pool = all.sort((a, b) => b.avg - a.avg).slice(0, 8);
@@ -191,8 +191,8 @@ const aiRunnable = (state, ev) => ev.cat !== 'hnq' || hnqPool(state, ev).length 
 // Pool eines internationalen WM-Qualifiers; zu wenige Spieler → fiktive Amateure (Frauen-Qualifier: nur Spielerinnen)
 function wmRegPool(state, ev) {
   const min = Math.max(16, ev.slots * 6);
-  const cands = () => (ev.women ? playersOfTier(state, 'amateur').filter(p => p.woman)
-    : [...nonCardPros(state), ...playersOfTier(state, 'ddv', 'local', 'amateur')].filter(p => !p.woman && ev.nations.includes(p.nation)));
+  const cands = () => (ev.women ? playersOfTier(state, 'secondary', 'amateur').filter(p => p.woman)
+    : [...nonCardPros(state), ...playersOfTier(state, 'secondary', 'ddv', 'local', 'amateur')].filter(p => !p.woman && ev.nations.includes(p.nation)));
   let all = cands();
   for (let i = 0; all.length < min; i++) { addAmateurs(state, ev.nations[i % ev.nations.length], 1, ev.women); all = cands(); }
   return all.map(p => p.id);

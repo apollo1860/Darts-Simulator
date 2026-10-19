@@ -1,4 +1,5 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
+import { SECONDARY } from '../data/secondary.js';
 import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
@@ -27,6 +28,7 @@ export function createWorld(rng, startYear = 2027) {
   add(CHALLENGE_PLAYERS, 'C', 'challenge', null);
   add(DEV_PLAYERS, 'D', 'dev', null);
   add(LOCAL_PLAYERS.map(([n, nat, a, avg]) => [n, nat, a, avg - LOCAL_SHIFT]), 'L', 'local', null);
+  addSecondary(players, rng, startYear);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   // Fiktive Spieler (lokale Amateure, fiktive CT-Spieler): Namen je Karriere zufällig aus Vor-/Nachnamen der Nation
   const used = new Set(Object.values(players).filter(p => p.id[0] !== 'L').map(p => p.name));
@@ -158,7 +160,7 @@ function newTalent(state, rng, year) {
 export function developWorld(state, rng, year) {
   const report = { retired: [], talents: [] };
   for (const p of Object.values(state.world.players)) {
-    if (p.tier === 'local' || p.tier === 'ddv' || p.tier === 'amateur' || p.tier === 'retired') continue;
+    if (p.tier === 'local' || p.tier === 'ddv' || p.tier === 'amateur' || p.tier === 'secondary' || p.tier === 'retired') continue;
     const a = p.age;
     if (a < 38 && rng.chance(p.tier === 'tour' ? 0.45 : 0.3)) p.exp = Math.min(EXP_MAX, (p.exp ?? 0) + 1);
     const mean = a <= 20 ? 2.2 : a <= 23 ? 1.4 : a <= 28 ? 0.5 : a <= 34 ? 0 : a <= 40 ? -0.4 : -1;
@@ -175,6 +177,24 @@ export function developWorld(state, rng, year) {
   if (pool.length > POOL_MAX) pool.filter(p => p.age >= 26 && !p.rival).sort((x, y) => x.avg - y.avg)
     .slice(0, pool.length - POOL_MAX).forEach(p => { p.tier = 'retired'; report.quit = (report.quit ?? 0) + 1; });
   return report;
+}
+
+// Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa): tier 'secondary', IDs S…
+// Ø = Basis der Tour − Platz in der Vorjahres-OOM; keine Entwicklung/kein Ruhestand (Pool bleibt bei 8)
+export function addSecondary(players, rng, startYear) {
+  let sNo = 0;
+  for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age], i) => {
+    const id = `S${++sNo}`, avg = Math.round((c.avgTop - i) * 10) / 10;
+    players[id] = { id, name, nation, age: age - (2026 - startYear), avg, tier: 'secondary', circuit, cardUntil: null,
+      attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}) };
+  });
+}
+
+// Jahres-Rangliste einer Nebentour (fest je Jahr/Karriere): Stärkere meist vorn, etwas Zufall
+export function secondaryOrder(state, circuit, year = state.date.year) {
+  const rng = new RNG({ s: hashSeed(`sec|${circuit}|${year}|${state.seed}`) });
+  return Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === circuit)
+    .map(p => ({ p, v: p.avg + rng.normal(0, 2.5) })).sort((a, b) => b.v - a.v).map(x => x.p.id);
 }
 
 // Nach dem Altern: Dev-Spieler ab 24 → Challenge

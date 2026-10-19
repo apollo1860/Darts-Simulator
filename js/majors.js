@@ -1,7 +1,7 @@
 // Majors & Events (DOM-frei): Qualifikation/Felder, World-Cup-Teams, Premier-League-Tabelle.
 // Felder werden in der Event-Woche einmal berechnet und in state.qual[Jahr][eventId] gespeichert.
 import { orderOfMerit, moneyOf } from './rankings.js';
-import { playersOfTier, getPlayer } from './world.js';
+import { playersOfTier, getPlayer, secondaryOrder } from './world.js';
 import { overall } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { nationName } from '../data/nations.js';
@@ -15,7 +15,7 @@ const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999
 export const RULE_TEXT = {
   masters: 'Top 24 der PDC Order of Merit (Tour-Modus: alle Tourcard-Holder, Vorrunden)', ukopen: 'Tourcard oder Top 32 der Challenge-Tour-OOM',
   matchplay: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM', wgp: 'Top 16 PDC OOM oder Top 16 Pro Tour OOM',
-  ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Pro Tour OOM', gsod: 'Top 16 PDC, Top 12 Pro Tour oder Top 2 CT/Dev',
+  ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Pro Tour OOM', gsod: "Top 16 PDC, Top 10 Pro Tour, Top 2 CT/Dev oder Top 2 Women's Series",
   wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, CT/Dev Top 3, Jugend-Weltmeister, internationaler Qualifier oder TCHQ',
   ws: 'Einladung: Top 8 PDC OOM (+ 8 Qualifikanten)', wsf: 'Top 24 der World-Series-Wertung',
   pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten deiner Nation',
@@ -106,20 +106,17 @@ export function scorePlNight(state, inst) {
 const holdersByRank = state => idsOf(orderOfMerit(state, 'pdc')).filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
 // Gesetzt (K.-o.): Platz 25–56. Gruppenphase: Holder ab Platz 57 + Beste der Nebentouren (CT, Dev, Nordic & Baltic, Asien,
 // Nordamerika, Australien, Neuseeland, Frauen) + 4 JDC-Talente (jüngste starke Dev-Spieler)
-const REGIONS = [['SE', 'NO', 'DK', 'FI', 'LT', 'LV', 'EE'], ['JP', 'PH', 'CN', 'IN', 'HK', 'SG', 'MY', 'TH'], ['US', 'CA'], ['AU'], ['NZ']];
 export function mastersPrelimField(state, withPlayer) {
   const h = holdersByRank(state).filter(id => withPlayer || id !== 'P');
   const seeds = h.slice(24, 56), used = new Set(h);
   const pool = h.slice(56);
   const free = id => id && !used.has(id) && (used.add(id), true);
   for (const type of ['challenge', 'dev']) idsOf(orderOfMerit(state, type)).filter(id => id !== 'P' && getPlayer(state, id)?.tier !== 'tour').slice(0, 2).forEach(id => free(id) && pool.push(id));
-  const noCard = [...playersOfTier(state, 'challenge', 'dev', 'amateur')].filter(p => !p.woman);
-  for (const nats of REGIONS) {
-    const best = noCard.filter(p => nats.includes(p.nation) && !used.has(p.id)).sort((a, b) => b.avg - a.avg)[0];
-    if (best) { free(best.id); pool.push(best.id); }
+  // Nebentouren: jeweils der Beste der Vorjahres-OOM (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic)
+  for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb']) {
+    const id = secondaryOrder(state, c, state.date.year - 1).find(x => !used.has(x));
+    if (id) { free(id); pool.push(id); }
   }
-  const woman = playersOfTier(state, 'amateur').filter(p => p.woman && !used.has(p.id)).sort((a, b) => b.avg - a.avg)[0];
-  if (woman) { free(woman.id); pool.push(woman.id); }
   playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => free(p.id) && pool.push(p.id));
   return { seeds, pool };
 }
@@ -146,7 +143,8 @@ function computeField(state, ev) {
       return [...take(ws, 24, used), ...take(pdc, 24 - used.size, used)];
     }
     case 'gsod': return [...take(pdc, 16, used), ...take(pt, 8, used),
-      ...take(idsOf(orderOfMerit(state, 'challenge')), 2, used), ...take(idsOf(orderOfMerit(state, 'dev')), 2, used), ...take(pt, 4, used)];
+      ...take(idsOf(orderOfMerit(state, 'challenge')), 2, used), ...take(idsOf(orderOfMerit(state, 'dev')), 2, used),
+      ...take(secondaryOrder(state, 'women', y - 1), 2, used), ...take(pt, 2, used)];   // 2 Women's Series (Vorjahres-OOM)
     case 'wmq': {                            // Last Chance: alle Holder ohne WM-Platz
       const direct = new Set(wmDirect(state));
       return pdc.filter(id => !direct.has(id) && (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));

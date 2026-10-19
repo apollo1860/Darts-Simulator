@@ -1,7 +1,7 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength } from './world.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary } from './world.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL } from '../data/players.js';
 import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
@@ -142,6 +142,8 @@ export function migrate(s) {
       if (x.id[0] === 'D' && devNames.has(x.name) && !keep.has(x.name) && x.tier !== 'tour') changeStrength(x, -4);
     if (!s.world.players.F1) addWeakPool(s.world, r);
   }
+  // Nebentour-Pools (S…) für ältere Stände nachrüsten
+  if (!s.world.players.S1) addSecondary(s.world.players, new RNG(s.rng), s.date.year);
   s.version = VERSION;
   return s;
 }
