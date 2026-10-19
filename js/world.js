@@ -1,5 +1,5 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
-import { SECONDARY } from '../data/secondary.js';
+import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
 import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
@@ -184,9 +184,10 @@ export function developWorld(state, rng, year) {
 export function addSecondary(players, rng, startYear) {
   const have = new Set(Object.values(players).filter(p => p.tier === 'secondary').map(p => p.name));
   let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
-  for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age], i) => {
+  for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base], i) => {
     if (have.has(name)) return;
-    const id = `S${++sNo}`, avg = Math.round((c.avgTop - i) * 10) / 10;
+    const age = age0 ?? rng.int(25, 45) + (2026 - startYear);
+    const avg = Math.round((base ? base * rng.float(1 - SECONDARY_SPREAD, 1 + SECONDARY_SPREAD) : c.avgTop - i) * 10) / 10, id = `S${++sNo}`;
     players[id] = { id, name, nation, age: age - (2026 - startYear), avg, tier: 'secondary', circuit, cardUntil: null,
       attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}) };
   });

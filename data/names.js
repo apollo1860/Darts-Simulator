@@ -66,7 +66,8 @@ Object.assign(NAME_POOLS, {
 });
 const NATION_POOL = {};
 for (const [k, v] of Object.entries(NAME_POOLS)) if (k !== 'EU') for (const n of v.nations) NATION_POOL[n] ??= k;
-Object.assign(NATION_POOL, { AU: 'EN', NZ: 'EN', CA: 'EN', IM: 'EN', IRL: 'EN', US: 'EN', SCO: 'EN', WAL: 'EN', NIR: 'EN', BE: 'NL', AT: 'DE', CH: 'DE' });
+Object.assign(NATION_POOL, { AU: 'EN', NZ: 'EN', CA: 'EN', IM: 'EN', IRL: 'EN', US: 'EN', SCO: 'EN', WAL: 'EN', NIR: 'EN', BE: 'NL', AT: 'DE', CH: 'DE',
+  UG: 'AF', ZW: 'AF', NA: 'AF', BW: 'AF', BS: 'EN', TT: 'EN', GY: 'EN', JM: 'EN', CL: 'LA', CO: 'LA', LU: 'NL', MT: 'EN' });
 
 // Vornamen für fiktive Spielerinnen (Women's Series)
 export const WOMEN_FIRST = {

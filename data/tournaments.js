@@ -73,7 +73,7 @@ export const WM_QUALIFIERS = [
   { key: 'cdccup', name: 'CDC Continental Cup', nations: ['US', 'CA'], slots: 1, city: 'Las Vegas', country: 'US', overseas: true },
   { key: 'cdcxb', name: 'CDC Cross-Border Challenge', nations: ['US', 'CA'], slots: 1, city: 'Buffalo', country: 'US', overseas: true },
   { key: 'nac', name: 'North American Championship', nations: ['US', 'CA'], slots: 1, city: 'Las Vegas', country: 'US', overseas: true },
-  { key: 'cdlc', name: 'CDLC Tour', nations: ['MX', 'BR', 'AR', 'CL', 'CO'], slots: 1, city: 'Mexiko-Stadt', country: 'MX', overseas: true },
+  { key: 'cdlc', name: 'CDLC Tour', nations: ['MX', 'BR', 'AR', 'CL', 'CO', 'BS', 'TT', 'GY', 'JM'], slots: 1, city: 'Nassau', country: 'BS', overseas: true },
   { key: 'nafrica', name: 'African Darts Group Qualifier – Northern Africa', nations: ['KE', 'EG', 'MA', 'TN', 'UG'], slots: 1, city: 'Nairobi', country: 'KE', overseas: true },
   { key: 'safrica', name: 'African Darts Group Qualifier – Southern Africa', nations: ['ZA', 'ZW', 'NA', 'BW'], slots: 1, city: 'Johannesburg', country: 'ZA', overseas: true },
 ];

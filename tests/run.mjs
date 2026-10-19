@@ -54,7 +54,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63 + 1 + 90 + 69);   // + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63 + 1 + 90 + 81);   // + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -1245,12 +1245,12 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   const { majorField, mastersPrelimField } = await import('../js/majors.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 16 });
   const sec = playersOfTier(s, 'secondary');
-  assert.equal(sec.length, 69);
+  assert.equal(sec.length, 81);
   for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb', 'ee']) {
     const o = secondaryOrder(s, c, 2025); assert.ok(o.length >= 8);
     assert.deepEqual(o, secondaryOrder(s, c, 2025));                   // fest je Jahr
   }
-  assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= 75 && p.avg <= 95));
+  assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= 55 && p.avg <= 100));
   // Masters-Vorrunde: je Nebentour der Beste
   const pf = mastersPrelimField(s, false);
   assert.equal(pf.pool.filter(id => s.world.players[id]?.tier === 'secondary').length, 6);

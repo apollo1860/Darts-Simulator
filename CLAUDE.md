@@ -126,7 +126,7 @@ js/milestones.js      Meilensteine (einmalig, Extra-XP; Match-, Titel- und Rangl
 js/interviews.js      Interviews nach Majors (Floskel-Memory 5×5, Belohnung XP + Clutch)
 js/nsd.js             New Star Darts: Spielermodell (Fähigkeiten 0–60, Star-Status, Energie, ★, Getränke, Beziehungen), newNsdCareer, syncAttrs, ★-Preistabellen, Energie-/Status-/Noten-Regeln
 js/skilltrain.js      New Star Darts: Training/Minispiel-Parameter, Einstufung, Formverlust, Getränke, Darts-Shop
-data/secondary.js     Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa): je Top 8 der Vorjahres-OOM, Ø-Basis; Spieler tier 'secondary' (IDs S…, `circuit`), `secondaryOrder(state, circuit, year)` = Jahres-OOM
+data/secondary.js     Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa): je Top 8 der Vorjahres-OOM, Ø-Basis; Spieler tier 'secondary' (IDs S…, `circuit`), `secondaryOrder(state, circuit, year)` = Jahres-OOM; Spieler mit 4. Wert = fester Nutzer-Ø × (1 ± `SECONDARY_SPREAD` 15 %) je Karriere (cdlc, africa)
 data/gear.js          Getränke und Darts (Preise in Basis-★, Boni)
 js/career.js          New Star Darts: Manager, Fitnesstrainer, Sponsoren (Höher/Niedriger), Saisonziele, Interview, Saisonbericht, Auszeichnungen
 data/team.js          Manager, Fitnesstrainer, Interview-Fragen
