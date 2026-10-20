@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 28**: Zubehör-Preise = Niveau Version 26 + 50 % (Flights ~12/30/40, Premium 80–100, Barrels ~15–45 Basis-★).
 - [x] **Version 27**: Flights boosten alle Fähigkeiten in klaren Stufen (3–6 / 10–15 / 20–25 je Fähigkeit, 3–4 Matches) + Premium-Flight (+35 auf alle, 5 Wochen, ~1.300 Basis-★); Fähigkeiten max. 60; Barrels gezielt und günstiger.
 - [x] **Version 26**: Zubehör-Angebot je Spielstand zufällig aus Namenspools (Flights/Barrels), wechselt alle 12 Wochen (Namen, Boosts 2–9 Punkte, 3–6 Matches), teurer (≈ Punkte × Matches × 0,6 + 3 Basis-★).
 - [x] **Version 25**: Zubehör neu: 3 Flights (Falcon Glide, Viper Fang, Phantom Stealth) + 3 Barrels (Thunder Hammer, Ice Scalpel, Black Titan).
