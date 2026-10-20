@@ -172,25 +172,35 @@ export function equipDarts(state, id) {
 // ---- Zubehör: 3 Flights + 3 Barrels, je Spielstand zufällig, alle 12 Wochen neues Angebot ----
 const KEYS = ['sco', 'fin', 'foc', 'cal'];
 const weekNo = state => state.date.year * 52 + state.date.week;
+// Flights: Boost auf ALLE Fähigkeiten, klar gestaffelt (3–6 / 10–15 / 20–25 je Fähigkeit) + Premium (35, 5 Wochen).
+// Barrels: gezielte Boosts auf einzelne Fähigkeiten. Fähigkeiten bleiben immer bei max. 60.
+const FLIGHT_TIERS = [{ v: [3, 6], m: [3, 4], f: 4 }, { v: [10, 15], m: [3, 4], f: 4.5 }, { v: [20, 25], m: [3, 4], f: 5 }];
+const allSkills = v => Object.fromEntries(KEYS.map(k => [k, v]));
+const pickName = (rng, pool, used) => { let n; do n = `${rng.pick(pool.first)} ${rng.pick(pool.second)}`; while (used.has(n)); used.add(n); return n; };
 function makeItem(rng, kind, tier, used) {
-  const pool = kind === 'Flight' ? FLIGHT_NAMES : BARREL_NAMES;
-  let name;
-  do name = `${rng.pick(pool.first)} ${rng.pick(pool.second)}`; while (used.has(name));
-  used.add(name);
-  const pts = rng.int(...[[2, 3], [4, 5], [6, 8]][tier]) + (kind === 'Barrel' ? 1 : 0);   // Barrels etwas stärker
-  const bonus = {};
-  const n = Math.min(pts, tier + 1), keys = rng.shuffle([...KEYS]).slice(0, n);
+  const id = `${kind[0]}${rng.int(1e5, 9e5)}`;
+  if (kind === 'Flight') {
+    const t = FLIGHT_TIERS[tier], v = rng.int(...t.v), matches = rng.int(...t.m);
+    return { id, icon: '🪶', type: 'Flight', name: pickName(rng, FLIGHT_NAMES, used), matches, bonus: allSkills(v),
+      price: Math.round(v * matches * t.f * rng.float(0.9, 1.1)) };
+  }
+  const pts = rng.int(...[[3, 4], [5, 6], [7, 9]][tier]), n = tier + 1, keys = rng.shuffle([...KEYS]).slice(0, n), bonus = {};
   for (let i = 0; i < pts; i++) { const k = keys[i % n]; bonus[k] = (bonus[k] ?? 0) + 1; }
   const matches = rng.int(3, 4) + tier;
-  return { id: `${kind[0]}${rng.int(1e5, 9e5)}`, icon: kind === 'Flight' ? '🪶' : '🎯', type: kind, name, matches, bonus,
+  return { id, icon: '🎯', type: 'Barrel', name: pickName(rng, BARREL_NAMES, used), matches, bonus,
     price: Math.round(pts * matches * rng.float(0.5, 0.7) + 3) };
+}
+// Premium-Flight: +35 auf alle Fähigkeiten für 5 Wochen
+function premiumFlight(rng, used) {
+  return { id: `P${rng.int(1e5, 9e5)}`, icon: '💎', type: 'Premium-Flight', name: `${pickName(rng, FLIGHT_NAMES, used)} Elite`, weeks: 5,
+    bonus: allSkills(35), price: Math.round(rng.float(1200, 1400)), premium: true };
 }
 export function shopOffers(state, rng = new RNG(state.rng)) {
   const sh = state.shop;
   if (!sh || weekNo(state) >= sh.until) {
     const used = new Set();
     state.shop = { until: weekNo(state) + SHOP_WEEKS,
-      items: [...[0, 1, 2].map(t => makeItem(rng, 'Flight', t, used)), ...[0, 1, 2].map(t => makeItem(rng, 'Barrel', t, used))] };
+      items: [...[0, 1, 2].map(t => makeItem(rng, 'Flight', t, used)), premiumFlight(rng, used), ...[0, 1, 2].map(t => makeItem(rng, 'Barrel', t, used))] };
   }
   return state.shop.items;
 }
@@ -203,16 +213,26 @@ export function buyAccessory(state, id) {
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
   state.stars -= cost;
   const cur = (p.boosts ??= []).find(b => b.id === id);
-  if (cur) cur.left += a.matches; else p.boosts.push({ id, name: a.name, icon: a.icon, bonus: a.bonus, left: a.matches });
+  if (a.weeks) {                                       // Premium: läuft nach Wochen ab, nicht nach Matches
+    const end = weekNo(state) + a.weeks;
+    if (cur) cur.until = Math.max(cur.until, weekNo(state)) + a.weeks; else p.boosts.push({ id, name: a.name, icon: a.icon, bonus: a.bonus, until: end });
+  } else if (cur) cur.left += a.matches; else p.boosts.push({ id, name: a.name, icon: a.icon, bonus: a.bonus, left: a.matches });
   syncAttrs(p);
   return cost;
 }
 // Nach jedem eigenen Match: Laufzeit −1, abgelaufene fallen weg
 export function useBoosts(p) {
   if (!p.boosts?.length) return [];
-  for (const b of p.boosts) b.left--;
-  const gone = p.boosts.filter(b => b.left <= 0).map(b => b.name);
-  p.boosts = p.boosts.filter(b => b.left > 0);
+  for (const b of p.boosts) if (b.left != null) b.left--;
+  const gone = p.boosts.filter(b => b.left != null && b.left <= 0).map(b => b.name);
+  p.boosts = p.boosts.filter(b => b.left == null || b.left > 0);
   syncAttrs(p);
   return gone;
+}
+// Wöchentlich: zeitlich begrenzte Boosts (Premium) auslaufen lassen
+export function expireBoosts(state) {
+  const p = state.player;
+  if (!p.boosts?.some(b => b.until != null && weekNo(state) >= b.until)) return;
+  p.boosts = p.boosts.filter(b => b.until == null || weekNo(state) < b.until);
+  syncAttrs(p);
 }

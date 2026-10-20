@@ -1369,7 +1369,10 @@ test('New Star Darts v24: Zubehör-Boosts für einige Matches', async () => {
   const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
   const p = s.player, a0 = p.attrs.sco; s.stars = 100;
-  const offers = T.shopOffers(s); assert.equal(offers.length, 6); assert.equal(offers.filter(o => o.type === 'Flight').length, 3);
+  const offers = T.shopOffers(s); assert.equal(offers.length, 7); assert.equal(offers.filter(o => o.type === 'Flight').length, 3);
+  const prem = offers.find(o => o.premium); assert.ok(prem && prem.bonus.sco === 35 && prem.weeks === 5);
+  s.stars = 99999; T.buyAccessory(s, prem.id); assert.equal(N.skillEffective(p, 'sco'), Math.min(60, N.skillValue(p, 'sco') + 35));
+  s.date.week += 5; T.expireBoosts(s); assert.ok(!p.boosts.some(b => b.id === prem.id));
   const it = offers.find(o => o.bonus.sco) ?? offers[0], k = Object.keys(it.bonus)[0], a1 = p.attrs[k]; s.stars = 1000;
   T.buyAccessory(s, it.id); assert.equal(N.skillBonus(p, k), it.bonus[k]); assert.ok(p.attrs[k] > a1);
   T.buyAccessory(s, it.id); assert.equal(p.boosts[0].left, 2 * it.matches);

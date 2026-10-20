@@ -5,7 +5,7 @@ import { frame, header, titleBand, darkBar, coin, bar, bindHead } from '../frame
 import { toast } from '../../components.js';
 
 export const nsd = true;
-const bonusTxt = b => TRAINABLE.filter(t => b[t.key]).map(t => `${t.label} +${b[t.key]}`).join(' · ');
+const bonusTxt = b => { const v = TRAINABLE.map(t => b[t.key] ?? 0); return v.every(x => x && x === v[0]) ? `Alle Fähigkeiten +${v[0]}` : TRAINABLE.filter(t => b[t.key]).map(t => `${t.label} +${b[t.key]}`).join(' · '); };
 const HELP = '<p>Zubehör gibt für die nächsten eigenen Matches Bonuspunkte auf Fähigkeiten (max. 60). Nach jedem Match läuft ein Match ab. Nochmal kaufen verlängert die Laufzeit. Alle 12 Wochen wechselt das Angebot (Namen, Boosts, Preise). Preise steigen mit dem Star-Status.</p><p>Dauerhafte Darts gibt es im Darts-Shop.</p>';
 
 export function render(app) {
@@ -14,10 +14,10 @@ export function render(app) {
     body: `${header(p.name)}${titleBand('Shop')}
       <div class="nsd-strip"><span>Zubehör</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       ${act.length ? `${darkBar('Aktiv', 'sm')}<div class="nsd-evs">${act.map(b => `<div class="nsd-ev on"><div class="nsd-ev-main"><div class="nsd-ev-name">${b.icon ?? '🎯'} ${b.name}</div>
-        <div class="nsd-ev-sub">${bonusTxt(b.bonus)} · noch ${b.left} Match${b.left > 1 ? 'es' : ''}</div></div></div>`).join('')}</div>` : ''}
+        <div class="nsd-ev-sub">${bonusTxt(b.bonus)} · ${b.until != null ? `bis KW ${((b.until - 1) % 52) + 1}` : `noch ${b.left} Match${b.left > 1 ? 'es' : ''}`}</div></div></div>`).join('')}</div>` : ''}
       ${darkBar(`Angebot · neu in ${shopWeeksLeft(s)} Wochen`, 'sm')}
       <div class="nsd-evs">${shopOffers(s).map(a => `<div class="nsd-ev"><div class="nsd-ev-main"><div class="nsd-ev-name">${a.icon} ${a.name}</div>
-        <div class="nsd-ev-sub">${a.type} · ${bonusTxt(a.bonus)} · ${a.matches} Matches</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
+        <div class="nsd-ev-sub">${a.type} · ${bonusTxt(a.bonus)} · ${a.weeks ? `${a.weeks} Wochen` : `${a.matches} Matches`}</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
         <button class="nsd-btn" data-buy="${a.id}"><span class="lb">Kaufen</span></button></div>`).join('')}</div>`,
     bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'darts', icon: '🎯', label: 'Darts' }, { go: 'drinks', icon: '🍺', label: 'Getränke', wide: true }]),
   });
