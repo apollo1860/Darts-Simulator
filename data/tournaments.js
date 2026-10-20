@@ -221,7 +221,7 @@ export const FORMATS = {
   wm: { default: { sets: 3, legs: 3 }, byRemaining: { 32: { sets: 4, legs: 3 }, 16: { sets: 4, legs: 3 }, 8: { sets: 5, legs: 3 }, 4: { sets: 6, legs: 3 }, 2: { sets: 7, legs: 3 } } },
   ws: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } } },
   wsf: { default: { legs: 6 }, byRemaining: { 4: { legs: 10 }, 2: { legs: 11 } } },
-  wcod: { group: { legs: 4 }, default: { legs: 4 }, byRemaining: { 8: { legs: 8 }, 4: { legs: 8 }, 2: { legs: 10 } } },
+  wcod: { group: { legs: 4 }, default: { legs: 8 }, byRemaining: { 16: { legs: 8 }, 8: { legs: 8 }, 4: { legs: 8 }, 2: { legs: 10 } } },   // Gruppe Bo7, AF–HF Bo15, Finale Bo19
   pln: { default: { legs: 6 } },
   plf: { default: { legs: 10 }, byRemaining: { 2: { legs: 11 } } },
 };

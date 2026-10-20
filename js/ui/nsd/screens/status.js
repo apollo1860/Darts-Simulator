@@ -1,7 +1,7 @@
 // Hauptscreen (Status): Star-Status, Energie, Alter, Sterne-Geld, Fähigkeiten/Zufriedenheit/Lifestyle, Tour-Status, Shop, Getränke, Darts
 import { esc } from '../../../util.js';
-import { skillsAvg, SKILL_MAX, starPct } from '../../../nsd.js';
-import { frame, header, meter, starIcon, heartIcon, coin, bar, bindHead } from '../frame.js';
+import { skillsAvg, SKILL_MAX, starPct, starNeed } from '../../../nsd.js';
+import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead } from '../frame.js';
 
 export const nsd = true;
 const HELP = `<p><b>Liga</b>: Ranglisten und Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
@@ -13,7 +13,7 @@ export function render(app) {
   return frame({
     body: `${header(p.name)}
     <div class="nsd-meters">
-      ${meter({ icon: starIcon(p.star?.level ?? 1), label: 'Star-Status', pct: starPct(p) })}
+      ${starMeter(app.state, { starIcon, starPct, starNeed })}
       ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: fit ? 'green' : 'red' })}
     </div>
     ${s.lifeEvent ? '<button class="nsd-dark nsd-alert" data-go="lifeevent">📬 Ein Ereignis wartet auf dich!</button>' : ''}
@@ -25,7 +25,7 @@ export function render(app) {
         ${meter({ label: 'Lifestyle', pct: p.lifestyle ?? 0 })}
       </div>
       <div class="nsd-rowpair">
-        <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">🛡️ ${p.tour === 'tour' ? `Tourcard ${p.cardUntil}` : 'Keine Tourcard'}</div>
+        <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">🛡️ ${p.tour === 'tour' ? `Tourcard bis Ende ${p.cardUntil}` : 'Keine Tourcard'}</div>
         <div class="nsd-dark ${fit ? '' : 'red'}">${fit ? 'Match-fit' : 'Nicht fit'}</div>
       </div>
       <div class="nsd-rowpair x">

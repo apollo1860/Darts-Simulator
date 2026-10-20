@@ -341,13 +341,10 @@ export function playerMatch(inst) {
   return inst.rounds[inst.current]?.matches.find(m => (m.a === 'P' || m.b === 'P') && !m.bye) ?? null;
 }
 
-// Leistungsdaten; World Cup: Teamwerte (Durchschnitt beider Spieler)
+// Leistungsdaten; World Cup: Liste der beiden Teamspieler (der Bessere zuerst, sie wechseln sich je Aufnahme ab)
 // Bühne (Majors, große Namen): Erfahrung zählt zusätzlich (form.js)
-const attrsOf = (state, id, inst = state.activeEvent) => {
-  const t = inst?.teams?.[id];
-  const base = t ? { ...t.attrs, exp: t.exp } : perf(getPlayer(state, id));
-  const m = inst?.rounds?.[inst.current]?.matches.find(x => x.a === id || x.b === id);
-  const staged = applyStage(base, stageFactor(inst, m?.a, m?.b));
+const soloAttrs = (state, id, inst, sf) => {
+  const staged = applyStage(perf(getPlayer(state, id)), sf);
   if (id !== 'P') return staged;
   if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)
     const mal = energyMalus(state.player.energy ?? 100, inst?.live?.m?.legIdx ?? 0);
@@ -355,6 +352,21 @@ const attrsOf = (state, id, inst = state.activeEvent) => {
     return mal ? { ...staged, ce, sco: staged.sco - mal, fin: staged.fin - mal, foc: staged.foc - mal } : { ...staged, ce };
   }
   return applyNerves(staged, nervesFor(inst, state.player));   // Lampenfieber (erste Pro-Tour-Zeit)
+};
+const attrsOf = (state, id, inst = state.activeEvent) => {
+  const m = inst?.rounds?.[inst.current]?.matches.find(x => x.a === id || x.b === id);
+  const sf = stageFactor(inst, m?.a, m?.b), t = inst?.teams?.[id];
+  return t ? t.members.map(x => soloAttrs(state, x, inst, sf)) : soloAttrs(state, id, inst, sf);
+};
+// Live: wer wirft gerade für Seite `side`? (Doppel: Wechsel je Aufnahme, der Bessere beginnt jedes Leg)
+const memberIdx = (lm, side, n) => (lm.legVisits?.[side]?.length ?? 0) % n;
+export function liveThrower(state, side) {
+  const inst = state.activeEvent, pm = playerMatch(inst), id = side === 0 ? pm.a : pm.b, t = inst.teams?.[id];
+  return t ? t.members[memberIdx(inst.live.m, side, t.members.length)] : id;
+}
+const liveAttrs = (state, side) => {
+  const inst = state.activeEvent, pm = playerMatch(inst), a = attrsOf(state, side === 0 ? pm.a : pm.b);
+  return Array.isArray(a) ? a[memberIdx(inst.live.m, side, a.length)] : a;
 };
 
 // Eigenes Match simulieren (Ergebnis wird gespeichert und zurückgegeben)
@@ -384,15 +396,13 @@ export function startManualMatch(state) {
 
 // Ein KI-Dart im Live-Match (für den Gegner oder beim Simulieren)
 export function liveAiDart(state, side) {
-  const inst = state.activeEvent, m = playerMatch(inst);
-  const id = side === 0 ? m.a : m.b;
-  return aiDart(inst.live.m, side, attrsOf(state, id), new RNG(state.rng));
+  return aiDart(state.activeEvent.live.m, side, liveAttrs(state, side), new RNG(state.rng));
 }
 
 // Eine komplette Aufnahme per KI (Schnellsimulation zum Zuschauen). Rückgabe: letztes Ereignis
 export function liveAiVisit(state) {
-  const inst = state.activeEvent, pm = playerMatch(inst), lm = inst.live.m;
-  const rng = new RNG(state.rng), side = lm.turn, a = attrsOf(state, side === 0 ? pm.a : pm.b);
+  const inst = state.activeEvent, lm = inst.live.m;
+  const rng = new RNG(state.rng), side = lm.turn, a = liveAttrs(state, side);
   const sig = aiSigma(a), mult = modMult(inst.live, side);
   let ev = null;
   const live = inst.live, mine = side === live.me;
@@ -411,8 +421,8 @@ const xpFactor = inst => inst.xpBoost ?? XP_FACTOR[inst.cat] ?? 1;
 
 // Ein einzelner Dart im Live-Match (für die Scheiben-Anzeige bei Gegner-Matchdarts)
 export function liveDartStep(state) {
-  const inst = state.activeEvent, pm = playerMatch(inst), live = inst.live, lm = live.m;
-  const side = lm.turn, a = attrsOf(state, side === 0 ? pm.a : pm.b), mine = side === live.me;
+  const inst = state.activeEvent, live = inst.live, lm = live.m;
+  const side = lm.turn, a = liveAttrs(state, side), mine = side === live.me;
   const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
   const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
   const dart = aiDart(lm, side, a, new RNG(state.rng), aiSigma(a), modMult(live, side), forced);
@@ -450,6 +460,7 @@ export const isBigTreble = hit => hit?.mult === 3 && hit.score >= 54;   // T18/T
 export function keyMoment(state) {
   const live = state.activeEvent?.live, lm = live?.m;
   if (!lm || lm.done || lm.turn !== live.me || lm.visit.darts.length || !canSelfPlay(state.player)) return null;
+  if (liveThrower(state, live.me) !== 'P') return null;          // Doppel: Partner wirft
   const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r);
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm)) return 'decider';
@@ -462,7 +473,7 @@ export function keyMoment(state) {
 // Zielparameter (Kreis, Linien) für den eigenen Dart
 export function aimParams(state, target) {
   const live = state.activeEvent.live;
-  return circleParams(attrsOf(state, 'P'), live.m, live.me, target);
+  return circleParams(liveAttrs(state, live.me), live.m, live.me, target);
 }
 // Eigener Dart an Position (x, y) in mm
 export function liveHumanDart(state, x, y, target) {
@@ -502,10 +513,9 @@ function tickMods(live, side) {
 
 // Rest des Live-Matches simulieren (dartgenau, beide Seiten mit KI-Modell)
 export function simulateLiveRest(state) {
-  const inst = state.activeEvent, pm = playerMatch(inst), lm = inst.live.m;
+  const lm = state.activeEvent.live.m;
   const rng = new RNG(state.rng);
-  const at = [attrsOf(state, pm.a), attrsOf(state, pm.b)], sig = at.map(a => aiSigma(a));
-  while (!lm.done) throwDart(lm, aiDart(lm, lm.turn, at[lm.turn], rng, sig[lm.turn]).hit);
+  while (!lm.done) { const a = liveAttrs(state, lm.turn); throwDart(lm, aiDart(lm, lm.turn, a, rng, aiSigma(a)).hit); }
   return finishManualMatch(state);
 }
 

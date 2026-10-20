@@ -103,6 +103,10 @@ body.nsd-on::before { display: none; }
 .nsd-meter .fill.green { background: linear-gradient(#5dff3b 0, #29e60e 50%, #0fc400 50%, #20d80a 100%); }
 .nsd-meter .fill.red { background: linear-gradient(#ff6b6b 0, #ff3030 50%, #d40000 50%, #f01a1a 100%); }
 .nsd-meter .fill.grey { background: linear-gradient(#9a9a9a, #6d6d6d); }
+.nsd-meter .fill.grow { transition: width 1.4s cubic-bezier(.2,.8,.3,1); }
+.nsd-meter.growing { animation: nsd-meter-glow 1.5s ease-out; }
+.nsd-meter.lvup .lb { color: #fff36b; }
+@keyframes nsd-meter-glow { 0% { box-shadow: 0 0 0 rgba(93,255,59,0); } 40% { box-shadow: 0 0 14px 3px rgba(93,255,59,.85); } 100% { box-shadow: 0 0 0 rgba(93,255,59,0); } }
 .nsd-meter .lb { position: relative; font-weight: 700; font-size: 1.15rem; padding-left: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nsd-meter .ic { position: absolute; left: -10px; top: 50%; transform: translateY(-50%); z-index: 2; }
 .nsd-meter.big { height: 70px; border-width: 3px; }

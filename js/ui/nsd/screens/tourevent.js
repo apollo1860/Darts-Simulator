@@ -5,8 +5,8 @@ import { getPlayer } from '../../../world.js';
 import { formatLabel } from '../../../matchEngine.js';
 import { rankOf } from '../../../rankings.js';
 import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../../tournaments.js';
-import { starPct, canSelfPlay } from '../../../nsd.js';
-import { frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead } from '../frame.js';
+import { starPct, starNeed, canSelfPlay } from '../../../nsd.js';
+import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead } from '../frame.js';
 
 export const nsd = true;
 const HELP = '<p><b>Spielen</b>: Das Match läuft im DartConnect-Liveticker. Matchdarts, Checks ab 61, Break-Chancen und Entscheidungslegs wirfst du selbst. <b>Simulieren</b>: Ergebnis sofort.</p><p>Unter 20 % Energie wirft die KI für dich – und es wird mit jedem Leg schlechter.</p>';
@@ -51,7 +51,7 @@ export function render(app) {
         <div class="nsd-result">
           <div class="nsd-result-row"><span>Preisgeld</span><b>${coin(inst.stars ?? 0)}</b></div>
           <div class="nsd-result-row"><span>Star-Status</span><b>${(inst.star ?? 0) >= 0 ? '+' : ''}${fmtNum(inst.star ?? 0, 1)}</b></div>
-          ${meter({ icon: starIcon(p.star.level), label: 'Star-Status', pct: starPct(p) })}
+          ${starMeter(app.state, { starIcon, starPct, starNeed })}
           ${energy}
         </div>${myPath(s, inst)}`,
       bottom: bar([null, null, inst.hasNext ? { id: 'e-nextsub', icon: '➡', label: 'Nächstes Turnier', wide: true }

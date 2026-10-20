@@ -1319,6 +1319,23 @@ test('New Star Darts v15: World Cup – 40 Nationen, Top 4 im Achtelfinale, 12 D
   assert.equal(inst.rounds.filter(r => r.isGroup).length, 3);
   assert.ok(Object.values(inst.places).filter(p => p === 'G2').length === 12 && Object.values(inst.places).filter(p => p === 'G3').length === 12);
   assert.deepEqual(inst.oom, []);
+  assert.equal(ko.format.legs, 8); assert.equal(inst.rounds.at(-1).format.legs, 10); assert.equal(inst.rounds[0].format.legs, 4);
+  // Doppel live: Partner wechseln sich je Aufnahme ab, der Bessere beginnt jedes Leg; Schlüsselmomente nur bei eigenen Aufnahmen
+  const j = N.newNsdCareer({ first: 'Taro', last: 'Test', nation: 'JP', age: 20, slot: 1, seed: 8 });
+  j.player.assessed = true; j.date.week = 24; j.week = { played: false, eventId: null };
+  const tm = M.wcTeams(j).P; assert.ok(tm && tm.members.includes('P'));
+  ET.enterEvent(j, 'wcod');
+  ET.startManualMatch(j);
+  const lv = j.activeEvent.live, lm = lv.m, seen = [];
+  for (let k = 0; k < 400 && !lm.done; k++) {
+    if (lm.turn === lv.me) {
+      const who = ET.liveThrower(j, lv.me);
+      seen.push([lm.legVisits[lv.me].length, who]);
+      if (ET.keyMoment(j)) assert.equal(who, 'P');
+    }
+    ET.liveAiVisit(j);
+  }
+  assert.ok(seen.length > 4 && seen.every(([n, who]) => who === tm.members[n % 2]));
 });
 
 console.log(`\n${n} Tests ok`);

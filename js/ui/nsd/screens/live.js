@@ -6,7 +6,7 @@ import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
-  keyMoment, aimParams, liveHumanDart } from '../../../tournaments.js';
+  keyMoment, aimParams, liveHumanDart, liveThrower } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
@@ -90,7 +90,8 @@ export function unmount() { if (!ui) return; stopAll(); document.removeEventList
 function stopAll() { clearTimeout(ui.timer); cancelAnimationFrame(ui.raf); }
 const wait = ms => (ui.fast ? ms / 3 : ms);
 function schedule(ms) { clearTimeout(ui.timer); ui.timer = setTimeout(step, wait(ms)); }
-const nm = i => surname(ui.s.activeEvent?.teams?.[ui.ids[i]]?.name ?? getPlayer(ui.s, ui.ids[i])?.name ?? '?');
+// Doppel (World Cup): Name des Spielers, der gerade für das Team wirft
+const nm = i => surname((ui.s.activeEvent?.teams?.[ui.ids[i]] ? getPlayer(ui.s, liveThrower(ui.s, i))?.name : getPlayer(ui.s, ui.ids[i])?.name) ?? '?');
 
 // ---------- Ablauf ----------
 function step() {
@@ -98,6 +99,7 @@ function step() {
   const m = ui.live.m;
   if (m.done) return finish();
   ui.starter = m.legStarter; ui.visitStart = m.visit.start;   // für Break-/Finish-Kommentar
+  ui.thrower = liveThrower(ui.s, m.turn);                      // Doppel: wer wirft diese Aufnahme
   const key = keyMoment(ui.s);
   if (key) return startAim(key);
   if (m.turn !== ui.me && boardCall(ui.s) === 'match') return startShow('match');
@@ -118,7 +120,7 @@ function afterVisit(ev, side) {
 // Kommentarzeile
 function comment(ev, side) {
   if (!ev) return;
-  const who = side === ui.me ? 'Du' : nm(side), mine = side === ui.me;
+  const mine = side === ui.me, who = mine && ui.thrower === 'P' ? 'Du' : surname(getPlayer(ui.s, ui.thrower)?.name ?? nm(side));
   if (ev.legEnd) {
     const brk = ui.starter !== side, big = ev.checkout && ui.visitStart >= 100 ? ` mit ${ui.visitStart}er-Finish` : '';
     say(`${ev.matchEnd ? '🏁 Match' : ev.setEnd ? '🏅 Satz' : '✅ Leg'} an ${who}${big}${brk ? ' – BREAK!' : ''}`, mine ? 'good' : 'bad');
@@ -165,14 +167,12 @@ function closeOverlay() {
   if (wasAim) normalBar();
 }
 const zoomLabel = () => { const b = $('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 Zoom ${on ? 'an' : 'aus'}`; b.classList.toggle('on', on); } };
-// Zoom-Hilfe: beim Checken auf das Viertel um das Ziel heranzoomen (Scoring: ganze Scheibe)
+// Zoom-Hilfe (Knopf am Board, wird gemerkt): nur das Viertel der Scheibe um das Ziel zeigen, sonst die ganze Scheibe
 function zoomTo(label) {
   const svg = $('#bsvg');
   if (!svg) return;
-  const m = ui.live.m, rem = m.rem[ui.me];   // nur beim echten Checken (Weg vorhanden), nie bei Scoring-Aufnahmen
-  const zoom = getSettings().zoom && ui.aim && ui.aim.kind !== 'scoring' && rem <= 170 && !!checkoutRoute(rem, dartsLeft(m));
-  if (!zoom) return svg.setAttribute('viewBox', '-200 -200 400 400');
-  const p = targetPoint(label), size = 230, h = size / 2;
+  if (!getSettings().zoom || !ui.aim || !label) return svg.setAttribute('viewBox', '-200 -200 400 400');
+  const p = targetPoint(label), size = 200, h = size / 2;
   const cx = Math.max(-200 + h, Math.min(200 - h, p.x)), cy = Math.max(-200 + h, Math.min(200 - h, p.y));
   svg.setAttribute('viewBox', `${(cx - h).toFixed(1)} ${(cy - h).toFixed(1)} ${size} ${size}`);
 }
@@ -303,7 +303,7 @@ function draw(ev) {
   const m = ui.live.m, me = ui.me, op = 1 - me;
   const visits = m.legVisits ?? [[], []], active = m.done ? -1 : m.turn;
   const head = (i, side) => `<div class="dc-player ${side} ${active === i ? 'active' : ''}">
-      <div class="dc-name">${m.legStarter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm">${esc(i === me ? surname(ui.s.player.name) : nm(i))}</span></div>
+      <div class="dc-name">${m.legStarter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm">${esc(i === me && !ui.s.activeEvent?.teams ? surname(ui.s.player.name) : nm(i))}</span></div>
       <div class="dc-scorebox">${side === 'right' ? '' : avgs(i)}<span class="dc-rem">${m.rem[i]}</span>${side === 'right' ? avgs(i) : ''}</div></div>`;
   const avgs = i => `<div class="dc-avgs"><span class="dc-legavg">${fmtNum(legAverage(m, i), 0)}</span><span class="dc-avg">${fmtNum(liveAverage(m, i), 0)}</span></div>`;
   const nextRow = active >= 0 ? visits[active].length : -1, rows = Math.max(visits[0].length, visits[1].length, nextRow + 1, 1);

@@ -13,9 +13,10 @@ export const titleBand = text => `<div class="nsd-title"><span>${text}</span></d
 export const darkBar = (text, extra = '') => `<div class="nsd-dark ${extra}">${text}</div>`;
 
 // Balken mit Icon links, Beschriftung mittig (pct 0–100)
-export function meter({ icon = '', label, pct = 0, tone = 'green', cls = '', title = '' }) {
-  const p = Math.max(0, Math.min(100, pct));
-  return `<div class="nsd-meter ${cls}" ${title ? `title="${esc(title)}"` : ''}><i class="fill ${tone}" style="width:${p}%"></i>${icon ? `<span class="ic">${icon}</span>` : ''}<span class="lb">${label}</span></div>`;
+export function meter({ icon = '', label, pct = 0, tone = 'green', cls = '', title = '', from = null }) {
+  const p = Math.max(0, Math.min(100, pct)), f = from == null ? null : Math.max(0, Math.min(100, from));
+  const fill = f == null || Math.abs(f - p) < 0.5 ? `style="width:${p}%"` : `style="width:${f}%" data-to="${p}"`;   // data-to: Balken wächst (animateMeters)
+  return `<div class="nsd-meter ${cls}" ${title ? `title="${esc(title)}"` : ''}><i class="fill ${tone}" ${fill}></i>${icon ? `<span class="ic">${icon}</span>` : ''}<span class="lb">${label}</span></div>`;
 }
 
 // Kopfzeile: [X] Name [?]
@@ -60,4 +61,22 @@ export function bindHead(root, app, help = '') {
     app.save(); app.go('title');
   });
   root.querySelector('[data-nsd="help"]')?.addEventListener('click', () => modal({ title: 'Hilfe', body: help || 'Keine Hilfe verfügbar.' }));
+}
+
+// Star-Status-Balken: wächst seit der letzten Anzeige sichtbar an (Stufenaufstieg: von 0), dann gilt der Stand als gesehen
+export function starMeter(state, { starIcon: ic, starPct: pctOf, starNeed: need }) {
+  const p = state.player, lv = p.star?.level ?? 1, seen = p.starSeen ?? { level: lv, xp: p.star?.xp ?? 0 };
+  const from = seen.level < lv ? 0 : seen.level > lv ? null : Math.min(100, (seen.xp / need(lv)) * 100);
+  p.starSeen = { level: lv, xp: p.star?.xp ?? 0 };
+  return meter({ icon: ic(lv), label: seen.level < lv ? `Star-Status ⬆ Stufe ${lv}` : 'Star-Status', pct: pctOf(p), from, cls: seen.level < lv ? 'lvup' : '' });
+}
+// Nach dem Einfügen: markierte Balken auf den Zielwert wachsen lassen
+export function animateMeters(root) {
+  const els = root.querySelectorAll('.nsd-meter .fill[data-to]');
+  if (!els.length) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => els.forEach(el => {
+    el.classList.add('grow'); el.parentElement.classList.add('growing');
+    el.style.width = `${el.dataset.to}%`;
+    setTimeout(() => el.parentElement.classList.remove('growing'), 1600);
+  })));
 }

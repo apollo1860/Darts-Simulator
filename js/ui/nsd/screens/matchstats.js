@@ -1,8 +1,8 @@
 // Spielbericht nach jedem eigenen Match: Statistik beider Spieler, Note, Star-Status, Fans, Energie
 import { esc, fmtNum, surname } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
-import { starPct } from '../../../nsd.js';
-import { frame, header, titleBand, darkBar, bar, meter, starIcon, heartIcon, bindHead } from '../frame.js';
+import { starPct, starNeed } from '../../../nsd.js';
+import { starMeter, frame, header, titleBand, darkBar, bar, meter, starIcon, heartIcon, bindHead } from '../frame.js';
 import { nameOf } from './tourevent.js';
 import { getPlayer } from '../../../world.js';
 
@@ -32,7 +32,7 @@ export function render(app) {
       <div class="nsd-result">
         <div class="nsd-result-row"><span>Note</span><b class="nsd-grade ${tone}">${fmtNum(lm.rating, 1)}</b></div>
         <div class="nsd-result-row"><span>Star-Status</span><b>${lm.star >= 0 ? '+' : ''}${fmtNum(lm.star, 1)}${lm.ups ? ' ⬆' : ''}</b></div>
-        ${meter({ icon: starIcon(p.star.level), label: 'Star-Status', pct: starPct(p) })}
+        ${starMeter(app.state, { starIcon, starPct, starNeed })}
         <div class="nsd-result-row"><span>Fans</span><b>${lm.fans > 0 ? '+' : ''}${lm.fans}</b></div>
         ${meter({ icon: heartIcon(), label: `Energie ${lm.energy} %`, pct: lm.energy, tone: lm.energy >= 20 ? 'green' : 'red' })}
       </div>`,
