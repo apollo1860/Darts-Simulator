@@ -4,7 +4,7 @@ import { frame, header, titleBand, darkBar, meter, coin, bar, bindHead } from '.
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
-const HELP = '<p><b>Manager</b>: bekommt Provision auf dein Preisgeld, besorgt dafür mehr und bessere Sponsor-Angebote. Gute Manager nehmen nur Spieler mit Star-Status oder Ranglistenplatz. Verpasste Saisonziele kosten Beziehung – bei 0 kündigt er.</p><p><b>Fitnesstrainer</b>: Festpreis für eine Anzahl Wochen, bringt in dieser Zeit zusätzliche Energie-Erholung. Alle 12 Wochen gibt es neue Angebote.</p>';
+const HELP = '<p><b>Manager</b>: Ohne Manager gibt es keine Sponsoren. Er bekommt Provision auf dein Preisgeld und besorgt Sponsor-Angebote – ein Kumpel aus der Kneipe selten und kleine, ein Profi-Manager oft und große Deals. Gute Manager nehmen nur Spieler mit Star-Status oder Ranglistenplatz. Verpasste Saisonziele kosten Beziehung – bei 0 kündigt er.</p><p><b>Fitnesstrainer</b>: Festpreis für eine Anzahl Wochen, bringt in dieser Zeit zusätzliche Energie-Erholung. Alle 12 Wochen gibt es neue Angebote.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, m = managerOf(s), t = trainerOf(s);
