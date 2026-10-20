@@ -14,9 +14,12 @@ let idx = 0;
 const money = (v, lvl) => fmtStars(starShow(v, lvl));
 const fmtStars = v => v.toLocaleString('de-DE');
 
+// Top 128 – eigene Zeile immer dabei (auch wenn weiter hinten)
+const ownRow = all => { const top = all.slice(0, 128), me = all.find(x => x.p.id === 'P'); return me && !top.includes(me) ? [...top, me] : top; };
+
 export function render(app) {
   const [type, label, zone] = LISTS[idx], s = app.state, pl = type === 'pl';
-  const list = pl ? plTable(s).map((x, i) => ({ rank: i + 1, p: getPlayer(s, x.id), money: x.pts })) : orderOfMerit(s, type).slice(0, 128);
+  const list = pl ? plTable(s).map((x, i) => ({ rank: i + 1, p: getPlayer(s, x.id), money: x.pts })) : ownRow(orderOfMerit(s, type));
   return frame({
     cls: 'fixed', bg: 'grey',
     body: `<div class="nsd-title" style="justify-content:space-between;gap:10px">
