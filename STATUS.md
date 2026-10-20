@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 23**: ★ wieder nur ganze Zahlen: Preise ab Stufe 2 aufgerundet (Bier/Rubbellos 2 ★).
 - [x] **Version 22**: Editor (Screen `editor`, über 🛠️ im Status-Screen oder Optionen): Sterne-Geld, Star-Status, freie Punkte, Fähigkeiten, Energie, Zufriedenheit, Beziehungen, Alter, Tourcard.
 - [x] **Version 21**: Preise steigen mit jeder Star-Stufe sichtbar (+5 %, auf 0,1 ★ gerundet – Bier Stufe 2 = 1,1 ★); Kontostand mit einer Nachkommastelle.
 - [x] **Version 20**: Liga: eigene Zeile wird immer angezeigt (PDC-OOM zeigte nur die Top 128, als Neuling mit Platz ≥ 129 fehlte man).

@@ -144,6 +144,7 @@ export function migrate(s) {
   }
   // Nebentour-Pools (S…) für ältere Stände nachrüsten
   addSecondary(s.world.players, new RNG(s.rng), s.date.year);
+  if (typeof s.stars === 'number') s.stars = Math.round(s.stars);   // ★ nur ganze Zahlen
   s.version = VERSION;
   return s;
 }

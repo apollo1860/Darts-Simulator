@@ -8,7 +8,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 22;
+export const APP_VERSION = 23;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -22,8 +22,8 @@ export const ATTR_BASE = 87.5, ATTR_PER_POINT = 12.5 / 60;
 export const STAR_MAX = 100;
 // Status-Faktor: Preisgelder UND Preise × (1 + 5 % je Stufe über 1)
 export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
-// Preise steigen mit jeder Stufe sichtbar (+5 %), auf 0,1 ★ gerundet (Bier Stufe 2 = 1,1 ★)
-export const starPrice = (base, level = 1) => Math.max(0.1, Math.round(base * starFactor(level) * 10) / 10);
+// Preise in ganzen ★, ab Stufe 2 aufgerundet (+5 %/Stufe): Bier Stufe 1 = 1 ★, ab Stufe 2 = 2 ★
+export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * starFactor(level) * 100) / 100));
 export const START_STARS = 15;     // Startguthaben (★ auf Status 1)
 // Start im Tour-Modus: Saison 2026 direkt nach der Q-School (KW 2)
 export const NSD_START = { year: 2026, week: 3 };
@@ -195,7 +195,7 @@ export function setSkill(p, key, v) {
   p.skills[key] = Array.from({ length: SKILL_LEVELS }, (_, i) => Math.max(0, Math.min(3, v - 3 * i)));
 }
 export const EDIT_FIELDS = [
-  { key: 'stars', label: 'Sterne-Geld ★', min: 0, max: 1e7, get: s => s.stars ?? 0, set: (s, v) => { s.stars = v; } },
+  { key: 'stars', label: 'Sterne-Geld ★', min: 0, max: 1e7, get: s => s.stars ?? 0, set: (s, v) => { s.stars = Math.round(v); } },
   { key: 'level', label: 'Star-Status (Stufe)', min: 1, max: STAR_MAX, get: s => s.player.star.level, set: (s, v) => { s.player.star.level = Math.round(v); s.player.star.xp = 0; s.player.starSeen = null; } },
   { key: 'freePoints', label: 'Freie Fähigkeitspunkte', min: 0, max: 240, get: s => s.player.freePoints ?? 0, set: (s, v) => { s.player.freePoints = Math.round(v); } },
   ...TRAINABLE.map(t => ({ key: `sk_${t.key}`, label: t.label, min: 0, max: SKILL_MAX, get: s => skillValue(s.player, t.key), set: (s, v) => setSkill(s.player, t.key, v) })),

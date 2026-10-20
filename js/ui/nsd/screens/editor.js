@@ -10,7 +10,7 @@ export function render(app) {
   return frame({
     body: `${header(s.player.name)}${titleBand('Editor')}
       <div class="nsd-edit">${EDIT_FIELDS.map(f => `<label class="nsd-edit-row"><span>${f.label}</span>
-        <input type="number" data-k="${f.key}" min="${f.min}" max="${f.max}" step="${f.key === 'stars' ? 0.1 : 1}" value="${Math.round(f.get(s) * 10) / 10}"></label>`).join('')}</div>`,
+        <input type="number" data-k="${f.key}" min="${f.min}" max="${f.max}" step="1" value="${Math.round(f.get(s) * 10) / 10}"></label>`).join('')}</div>`,
     bottom: bar([{ go: 'hub', icon: '✖', label: 'Abbrechen' }, null, { id: 'e-ok', icon: '<span class="nsd-check">✔</span>', label: 'Übernehmen', wide: true }]),
   });
 }
