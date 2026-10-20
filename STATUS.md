@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 19**: Rubbellos-Jackpot 5 % (statt 10 %).
 - [x] **Version 18**: Je Star-Status-Stufe 1 freier Fähigkeitspunkt (Fähigkeiten-Screen ＋); Match-Note wohlwollender (Ø ≥ 90 oder besserer Ø als der Gegner → mind. 6,0, Sieg mind. 5,5); Sponsor-Verhandlung mit Darts-Flight 1–10 (max. 5×, Treffer +8 % auf alle Prämien, jeder Versuch −1 Sponsor-Zufriedenheit, Fehler → Anfangsangebot + genervter Sponsor), Verträge mit Wochenhonorar, Siegprämie, teils 180er-/Major-Prämie.
 - [x] **Version 17**: Startguthaben 15 ★ (statt 5).
 - [x] **Version 16**: World Cup im echten Format (Gruppe Bo7, Achtelfinale–Halbfinale Bo15, Finale Bo19) und als Doppel: die Partner werfen abwechselnd auf einen Score, der Bessere beginnt jedes Leg (Sim + Liveticker, Schlüsselmomente nur bei eigenen Aufnahmen); Zoom-Knopf zeigt jederzeit das Viertel um das Ziel (Standard aus); Star-Status-Balken wächst sichtbar mit Leuchten (Status, Spielbericht, Turnier); Tourcard-Anzeige „bis Ende 2027“ / „für 2 Jahre (2026 und 2027)“.

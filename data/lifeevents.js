@@ -41,7 +41,7 @@ export const LIFE_EVENTS = [
     opts: [{ label: 'Zum Physio', stars: -4, energy: 10, out: 'Gut behandelt, alles locker.' },
       { label: 'Durchbeißen', energy: -15, sat: -3, out: 'Es zieht noch eine Weile.' }] },
   { id: 'scratch', icon: '🎟️', text: 'An der Tanke liegt ein Rubbellos für 1 ★.',
-    opts: [{ label: 'Rubbeln', stars: -1, chance: { p: 0.1, ok: { stars: 20, sat: 5, out: 'Jackpot! Gewinn!' }, fail: { out: 'Niete.' } } },
+    opts: [{ label: 'Rubbeln', stars: -1, chance: { p: 0.05, ok: { stars: 20, sat: 5, out: 'Jackpot! Gewinn!' }, fail: { out: 'Niete.' } } },
       { label: 'Lieber nicht', out: 'Vernünftig.' }] },
   { id: 'family', icon: '👪', text: 'Deine Familie lädt dich übers Wochenende nach Hause ein.',
     opts: [{ label: 'Hinfahren', energy: 10, sat: 6, out: 'Mamas Essen wirkt Wunder.' },
