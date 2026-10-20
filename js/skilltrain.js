@@ -197,7 +197,7 @@ function premiumFlight(rng, used) {
 }
 export function shopOffers(state, rng = new RNG(state.rng)) {
   const sh = state.shop;
-  if (!sh || weekNo(state) >= sh.until) {
+  if (!sh || weekNo(state) >= sh.until || !sh.items.some(x => x.premium)) {   // alte Stände: sofort neues Angebot
     const used = new Set();
     state.shop = { until: weekNo(state) + SHOP_WEEKS,
       items: [...[0, 1, 2].map(t => makeItem(rng, 'Flight', t, used)), premiumFlight(rng, used), ...[0, 1, 2].map(t => makeItem(rng, 'Barrel', t, used))] };
