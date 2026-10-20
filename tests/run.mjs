@@ -1369,9 +1369,9 @@ test('New Star Darts v24: Zubehör-Boosts für einige Matches', async () => {
   const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
   const p = s.player, a0 = p.attrs.sco; s.stars = 100;
-  T.buyAccessory(s, 'fl-pro'); assert.equal(N.skillBonus(p, 'sco'), 2); assert.ok(p.attrs.sco > a0);
-  T.buyAccessory(s, 'fl-pro'); assert.equal(p.boosts[0].left, 10);
-  for (let i = 0; i < 10; i++) T.useBoosts(p);
+  T.buyAccessory(s, 'fl-falcon'); assert.equal(N.skillBonus(p, 'sco'), 2); assert.ok(p.attrs.sco > a0);
+  T.buyAccessory(s, 'fl-falcon'); assert.equal(p.boosts[0].left, 6);
+  for (let i = 0; i < 6; i++) T.useBoosts(p);
   assert.equal(p.boosts.length, 0); assert.equal(p.attrs.sco, a0);
 });
 

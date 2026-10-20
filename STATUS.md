@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 25**: Zubehör neu: 3 Flights (Falcon Glide, Viper Fang, Phantom Stealth) + 3 Barrels (Thunder Hammer, Ice Scalpel, Black Titan).
 - [x] **Version 24**: Zubehör-Shop (Status → Shop): 10 Artikel (Flights, Shafts, Grip-Wachs, Glücks-Cap, Spickzettel, Trikot, Leih-Darts, Profi-Set) mit Fähigkeits-Boost für 2–8 eigene Matches (`player.boosts`, `useBoosts`); Lifestyle-Shop nur noch über Leben.
 - [x] **Version 23**: ★ wieder nur ganze Zahlen: Preise ab Stufe 2 aufgerundet (Bier/Rubbellos 2 ★).
 - [x] **Version 22**: Editor (Screen `editor`, über 🛠️ im Status-Screen oder Optionen): Sterne-Geld, Star-Status, freie Punkte, Fähigkeiten, Energie, Zufriedenheit, Beziehungen, Alter, Tourcard.

@@ -18,7 +18,7 @@ export function render(app) {
         <div class="nsd-ev-sub">${bonusTxt(b.bonus)} · noch ${b.left} Match${b.left > 1 ? 'es' : ''}</div></div></div>`).join('')}</div>` : ''}
       ${darkBar('Angebot', 'sm')}
       <div class="nsd-evs">${ACCESSORIES.map(a => `<div class="nsd-ev"><div class="nsd-ev-main"><div class="nsd-ev-name">${a.icon} ${a.name}</div>
-        <div class="nsd-ev-sub">${bonusTxt(a.bonus)} · ${a.matches} Matches</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
+        <div class="nsd-ev-sub">${a.type} · ${bonusTxt(a.bonus)} · ${a.matches} Matches</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
         <button class="nsd-btn" data-buy="${a.id}"><span class="lb">Kaufen</span></button></div>`).join('')}</div>`,
     bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'darts', icon: '🎯', label: 'Darts' }, { go: 'drinks', icon: '🍺', label: 'Getränke', wide: true }]),
   });
