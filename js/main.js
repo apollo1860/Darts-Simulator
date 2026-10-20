@@ -39,10 +39,11 @@ import * as titles from './ui/nsd/screens/titles.js';
 import * as nstats from './ui/nsd/screens/nstats.js';
 import * as nend from './ui/nsd/screens/nend.js';
 import * as editor from './ui/nsd/screens/editor.js';
+import * as accessories from './ui/nsd/screens/accessories.js';
 
 const SCREENS = { title, menu: title, slots, options, welcome, newprofile, intro, hub: status, skills, life, league,
   week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, lifestyle, lifeevent,
-  achievements, goals, weekly, season, interview, calendar: schedule, tour: titles, stats: nstats, careerEnd: nend, team: nteam, sponsors: nsponsors, editor };
+  achievements, goals, weekly, season, interview, calendar: schedule, tour: titles, stats: nstats, careerEnd: nend, team: nteam, sponsors: nsponsors, editor, accessories };
 const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile', 'practice', 'minigame'];
 // Container je Screen: NSD-Screens randlos, alte Screens im bisherigen Layout
 const wrap = (scr, html, style = '') => {

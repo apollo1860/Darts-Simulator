@@ -8,7 +8,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 23;
+export const APP_VERSION = 24;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -41,7 +41,9 @@ export const skillLevel = (p, key) => (p.skills?.[key] ?? []).reduce((hi, v, i) 
 
 // Bonus durch Darts (ausgerüstet) und Rausch (Schnaps/Wodka, bis Wochenende) – nicht auf Mental
 export const gearOf = p => DARTS.find(d => d.id === p.gear?.id) ?? null;
-export const skillBonus = (p, key) => (key === 'men' ? 0 : (gearOf(p)?.bonus[key] ?? 0) + (p.buzz ?? 0));
+// Zubehör-Boosts (player.boosts = [{id, name, bonus, left}]) gelten für die nächsten eigenen Matches
+export const boostBonus = (p, key) => (p.boosts ?? []).reduce((a, b) => a + (b.bonus?.[key] ?? 0), 0);
+export const skillBonus = (p, key) => (key === 'men' ? 0 : (gearOf(p)?.bonus[key] ?? 0) + (p.buzz ?? 0) + boostBonus(p, key));
 export const skillEffective = (p, key) => Math.min(SKILL_MAX, skillValue(p, key) + skillBonus(p, key));
 
 // Fähigkeiten (inkl. Bonus) → Attribute der Match-Engine

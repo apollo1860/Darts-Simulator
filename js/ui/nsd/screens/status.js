@@ -55,7 +55,7 @@ export function render(app) {
 
 export function mount(root, app) {
   bindHead(root, app, HELP);
-  root.querySelector('#s-shop').onclick = () => app.go('lifestyle');
+  root.querySelector('#s-shop').onclick = () => app.go('accessories');   // Zubehör; Lifestyle nur über Leben
   root.querySelector('#s-drinks').onclick = () => app.go('drinks');
   root.querySelector('#s-darts').onclick = () => app.go('darts');
   // Spielen: laufendes Turnier → Turnier, sonst Wochenansicht (Melden / Weiter)

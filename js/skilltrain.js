@@ -2,6 +2,7 @@
 // Jede trainierbare Fähigkeit: 20 Level × max. 3 Punkte. Erfolg im 1./2./3. Versuch → 3/2/1 Punkte (Level behält das Beste).
 import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, addEnergy, addRel, relLabel } from './nsd.js';
 import { DRINKS, DARTS } from '../data/gear.js';
+import { ACCESSORIES } from '../data/accessories.js';
 import { addNews } from './news.js';
 import { checkoutRoute, BOGEY, labelValue, isDoubleLabel } from './board.js';
 
@@ -165,4 +166,26 @@ export function equipDarts(state, id) {
   if (!p.darts?.includes(id)) throw new Error('Nicht im Besitz');
   p.gear = { id, name: d.name };
   syncAttrs(p);
+}
+
+// ---- Zubehör (Boost für n eigene Matches; gleiches Teil verlängert die Laufzeit) ----
+export const accessoryPrice = (a, level) => starPrice(a.price, level);
+export function buyAccessory(state, id) {
+  const p = state.player, a = ACCESSORIES.find(x => x.id === id);
+  const cost = accessoryPrice(a, p.star.level);
+  if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
+  state.stars -= cost;
+  const cur = (p.boosts ??= []).find(b => b.id === id);
+  if (cur) cur.left += a.matches; else p.boosts.push({ id, name: a.name, icon: a.icon, bonus: a.bonus, left: a.matches });
+  syncAttrs(p);
+  return cost;
+}
+// Nach jedem eigenen Match: Laufzeit −1, abgelaufene fallen weg
+export function useBoosts(p) {
+  if (!p.boosts?.length) return [];
+  for (const b of p.boosts) b.left--;
+  const gone = p.boosts.filter(b => b.left <= 0).map(b => b.name);
+  p.boosts = p.boosts.filter(b => b.left > 0);
+  syncAttrs(p);
+  return gone;
 }
