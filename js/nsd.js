@@ -8,7 +8,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 17;
+export const APP_VERSION = 18;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -155,6 +155,7 @@ export function addStarProgress(state, pts) {
   while (st.level < STAR_MAX && st.xp >= starNeed(st.level)) { st.xp = Math.round((st.xp - starNeed(st.level)) * 10) / 10; st.level++; ups++; }
   if (st.level >= STAR_MAX) st.xp = 0;
   if (ups) {
+    p.freePoints = (p.freePoints ?? 0) + ups;            // je Stufe 1 Fähigkeitspunkt zum Verteilen
     addNews(state, 'star', `⭐ Star-Status ${st.level}!`,
       `${st.level <= SKILL_MAX ? `Mental steigt auf ${mentalOf(p)}. ` : ''}Preisgelder und Preise steigen um 5 % je Stufe (jetzt ×${starFactor(st.level).toFixed(2).replace('.', ',')}).`);
     syncAttrs(p);
@@ -162,10 +163,24 @@ export function addStarProgress(state, pts) {
   return ups;
 }
 
+// Freien Fähigkeitspunkt vergeben: nächster fehlender Stern im niedrigsten nicht vollen Level
+export function spendSkillPoint(p, key) {
+  if (!(p.freePoints > 0)) throw new Error('Keine freien Punkte');
+  const arr = p.skills?.[key];
+  const i = arr ? arr.findIndex(v => v < 3) : -1;
+  if (i < 0) throw new Error('Fähigkeit schon voll');
+  arr[i]++; p.freePoints--;
+  syncAttrs(p);
+  return arr[i];
+}
+
 // ---- Match-Note (1–10) und Fans ----
-export function matchRating({ won, avg, coPct, s180 = 0, my, opp }) {
-  const r = 5 + (avg - 85) / 6 + (coPct - 0.38) * 8 + s180 * 0.25 + (won ? 1 : -0.7) + (my - opp) * 0.15;
-  return Math.round(Math.max(1, Math.min(10, r)) * 10) / 10;
+// Wohlwollend: Ø ab 90 oder höherer Ø als der Gegner (auch bei Niederlage) → mind. 6,0
+export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null }) {
+  let r = 6 + (avg - 85) / 5 + (coPct - 0.33) * 6 + s180 * 0.3 + (won ? 1 : -0.3) + (my - opp) * 0.1;
+  if (avg >= 90 || (oppAvg != null && avg > oppAvg)) r = Math.max(6, r);
+  if (won) r = Math.max(5.5, r);
+  return Math.round(Math.max(2, Math.min(10, r)) * 10) / 10;
 }
 // Fans: Zuwachs wird mit vielen Fans kleiner (100 % ist schwer zu erreichen); Verluste voll
 export const addFans = (p, n) => addRel(p, 'fans', n > 0 ? Math.round(n * Math.max(0.05, (1 - (p.rel.fans ?? 0) / 100) ** 2) * 10) / 10 : n);

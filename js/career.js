@@ -126,31 +126,50 @@ export function sponsorWeek(state, rng) {
     const slot = rng.pick(free), tier = p.star.level >= 30 ? 3 : p.star.level >= 10 ? 2 : 1;
     const name = rng.pick(SPONSORS.filter(x => x.slot === slot && x.tier <= tier)).name;
     const perWeek = Math.max(1, Math.round(sponsorBase(state) * (m?.mult ?? 0.8) * rng.float(0.8, 1.2) * starFactor(p.star.level)));
-    s.offer = { name, slot, perWeek, weeks: 3, length: rng.pick([12, 20, 26, 36, 52]), bonus: 0, card: rng.int(2, 12), streak: 0, done: false };
+    // Prämien: Wochenhonorar + Siegprämie, manchmal 180er-Prämie und/oder Major-Teilnahme
+    s.offer = { name, slot, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
+      s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
+      weeks: 3, length: rng.pick([12, 20, 26, 36, 52]), bonus: 0, card: rng.int(2, 9), steps: 0, mood: 0, annoyed: false, done: false };
     addNews(state, 'info', `🤝 Sponsor-Angebot: ${name}`, `${SPONSOR_SLOTS[slot].label} · ${perWeek} ★ pro Woche für ${s.offer.length} Wochen. Verhandle im Leben-Screen (Sponsoren).`);
   }
   return out;
 }
-// Höher/Niedriger: Karte 1–13, richtig → +15 % (max. 5×), falsch → −10 % und Verhandlung vorbei
+// Verhandlung (Darts-Flight 1–10): Höher/Niedriger, max. 5×. Richtig → alle Prämien +8 %; jeder Versuch kostet etwas
+// Sponsor-Zufriedenheit; falsch → Verhandlung vorbei, nur noch das Anfangsangebot, der Sponsor startet genervt.
+export const NEGO_MAX = 5, NEGO_STEP = 0.08;
 export function negotiate(state, guess, rng) {
   const o = sp(state).offer;
   if (!o || o.done) throw new Error('Kein offenes Angebot');
-  const next = rng.int(1, 13), prev = o.card;
-  const ok = next === prev || (guess === 'higher' ? next > prev : next < prev);
-  o.card = next;
-  if (ok) { o.streak++; o.bonus = Math.min(0.75, o.bonus + 0.15); if (o.streak >= 5) o.done = true; }
-  else { o.bonus = -0.1; o.done = true; }
+  const prev = Math.min(10, o.card);
+  let next = rng.int(1, 10);
+  while (next === prev) next = rng.int(1, 10);
+  const ok = guess === 'higher' ? next > prev : next < prev;
+  o.card = next; o.steps = (o.steps ?? 0) + 1; o.mood = (o.mood ?? 0) - 1;
+  if (ok) { o.bonus = Math.round((o.bonus + NEGO_STEP) * 100) / 100; if (o.steps >= NEGO_MAX) o.done = true; }
+  else { o.bonus = 0; o.annoyed = true; o.done = true; }
   return { ok, prev, next, perWeek: offerValue(o), done: o.done };
 }
-export const offerValue = o => Math.max(1, Math.round(o.perWeek * (1 + o.bonus)));
+const scaled = (v, o) => (v ? Math.max(1, Math.round(v * (1 + (o.bonus ?? 0)))) : 0);
+export const offerValue = o => scaled(o.perWeek, o);
+export const offerTerms = o => ({ perWeek: scaled(o.perWeek, o), win: scaled(o.win, o), s180: scaled(o.s180, o), major: scaled(o.major, o) });
 export function acceptOffer(state) {
   const s = sp(state), o = s.offer, p = state.player;
   if (!o) throw new Error('Kein offenes Angebot');
+  const t = offerTerms(o);
   s.active = s.active.filter(c => c.slot !== o.slot);
-  s.active.push({ name: o.name, slot: o.slot, perWeek: offerValue(o), weeksLeft: o.length });
+  s.active.push({ name: o.name, slot: o.slot, ...t, weeksLeft: o.length });
   s.offer = null;
-  p.rel.sponsors = clamp((p.rel.sponsors || 40) + 5, 0, 100);
-  addNews(state, 'info', `🤝 Unterschrieben: ${o.name}`, `${offerValue(o)} ★ pro Woche für ${o.length} Wochen.`);
+  p.rel.sponsors = clamp((p.rel.sponsors || 40) + (o.annoyed ? -8 : 5) + (o.mood ?? 0), 0, 100);
+  addNews(state, 'info', `🤝 Unterschrieben: ${o.name}`, `${t.perWeek} ★ pro Woche für ${o.length} Wochen${t.win ? `, ${t.win} ★ je Sieg` : ''}${t.s180 ? `, ${t.s180} ★ je 180` : ''}${t.major ? `, ${t.major} ★ je Major-Teilnahme` : ''}.${o.annoyed ? ' Der Sponsor ist nach der Verhandlung leicht genervt.' : ''}`);
+}
+// Prämien nach jedem eigenen Match: Sieg, 180er, Major-Teilnahme (einmal je Turnier)
+export function sponsorMatchPay(state, inst, won, stats) {
+  let sum = 0;
+  const firstMajor = inst.cat === 'major' && !inst.sponsorMajor;
+  for (const c of sp(state).active) sum += (won ? c.win ?? 0 : 0) + (c.s180 ?? 0) * (stats.s180 ?? 0) + (firstMajor ? c.major ?? 0 : 0);
+  if (firstMajor) inst.sponsorMajor = true;
+  if (sum) { state.stars = (state.stars ?? 0) + sum; inst.sponsorPay = (inst.sponsorPay ?? 0) + sum; }
+  return sum;
 }
 export function declineOffer(state) { sp(state).offer = null; }
 

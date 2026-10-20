@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 18**: Je Star-Status-Stufe 1 freier Fähigkeitspunkt (Fähigkeiten-Screen ＋); Match-Note wohlwollender (Ø ≥ 90 oder besserer Ø als der Gegner → mind. 6,0, Sieg mind. 5,5); Sponsor-Verhandlung mit Darts-Flight 1–10 (max. 5×, Treffer +8 % auf alle Prämien, jeder Versuch −1 Sponsor-Zufriedenheit, Fehler → Anfangsangebot + genervter Sponsor), Verträge mit Wochenhonorar, Siegprämie, teils 180er-/Major-Prämie.
 - [x] **Version 17**: Startguthaben 15 ★ (statt 5).
 - [x] **Version 16**: World Cup im echten Format (Gruppe Bo7, Achtelfinale–Halbfinale Bo15, Finale Bo19) und als Doppel: die Partner werfen abwechselnd auf einen Score, der Bessere beginnt jedes Leg (Sim + Liveticker, Schlüsselmomente nur bei eigenen Aufnahmen); Zoom-Knopf zeigt jederzeit das Viertel um das Ziel (Standard aus); Star-Status-Balken wächst sichtbar mit Leuchten (Status, Spielbericht, Turnier); Tourcard-Anzeige „bis Ende 2027“ / „für 2 Jahre (2026 und 2027)“.
 - [x] **Version 15**: World Cup (KW 24) mit 40 Nationen (Europa 25, Asien 9, Nordamerika 2, Ozeanien 2, Afrika 1, Südamerika 1), Top 4 direkt im Achtelfinale, 36 Teams in 12 Dreiergruppen (Gruppensieger weiter), fehlende Spieler = schwache fiktive Amateure; Preisgeld weiter ohne OOM.
@@ -22,6 +23,11 @@
 - [x] **Etappe 4 – Leben**: Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien mit Erholungsbonus), Zufriedenheit mit Wirkung auf die Wochen-Erholung, 18 Ereignis-Karten (Party, Freundin kennenlernen, Dates, Fans, Charity, Presse …), Freundin (Name, Beziehung sinkt ohne Zuwendung, Geschenk/Trennung), 26 Erfolge mit ★-Belohnung.
 - [x] **Etappe 5 – Karriere-Rahmen** (Version 5): Manager (3 Stufen, Provision, Sponsor-Angebote, Beziehung), Fitnesstrainer (Wochengebühr, Erholung), Sponsoren mit Höher/Niedriger-Verhandlung, Saisonziele, Interview nach großen Ergebnissen, Wochen-Update nach jeder Woche, Saisonbericht mit Auszeichnungen. Versionsanzeige im Titelbildschirm.
 - [x] **Etappe 6 – Liga** (Version 6): Liga mit PDC-/Pro-Tour-OOM in ★ und Premier-League-Tabelle, Spielplan im NSS-Look, Titelträger, Statistik, Kartenverlust → „Last Chance“ (Q-School KW 2), sonst Karriereende-Screen; alte UI-Screens entfernt.
+
+### Annahmen Version 18
+- Freier Punkt füllt den nächsten fehlenden Stern im niedrigsten nicht vollen Trainingslevel der gewählten Fähigkeit (nicht Mental).
+- Note neu: 6 + (Ø − 85)/5 + (CO% − 33 %)·6 + 0,3·180er + Sieg 1/Niederlage −0,3 + 0,1·Leg-Differenz, Spanne 2–10.
+- Sponsor-Prämien: Sieg = 50 % des Wochenhonorars, 180er (40 % der Angebote) = 30 %, Major-Teilnahme (30 %) = 200 % (einmal je Major). Genervter Sponsor: Zufriedenheit −8 statt +5 beim Unterschreiben.
 
 ### Annahmen Version 16
 - Tourcard des Neulings bleibt 2 Saisons gültig (2026 + 2027, wie die echten Q-School-Karten 2026 laut Holder-Liste); nur die Anzeige ist jetzt eindeutig. Am Ende 2027: Top 64 → +1 Jahr, sonst Last Chance.

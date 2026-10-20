@@ -1139,7 +1139,7 @@ test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Sais
   let tries = 0; while (!s.nsdSponsors.offer && tries++ < 200) C.sponsorWeek(s, rng);
   const o = s.nsdSponsors.offer; assert.ok(o && o.perWeek >= 1);
   let r; do { r = C.negotiate(s, o.card <= 7 ? 'higher' : 'lower', rng); } while (!r.done);
-  assert.ok(o.bonus === -0.1 || o.bonus > 0);
+  assert.ok(o.steps <= 5 && (o.annoyed ? o.bonus === 0 : o.bonus > 0) && o.card >= 1 && o.card <= 10);
   const val = C.offerValue(o); C.acceptOffer(s);
   assert.equal(s.nsdSponsors.active.length, 1); assert.equal(s.nsdSponsors.active[0].perWeek, val); assert.ok(p.rel.sponsors > 0);
   const st0 = s.stars; C.sponsorWeek(s, rng); assert.ok(s.stars >= st0 + val - 0);
@@ -1336,6 +1336,33 @@ test('New Star Darts v15: World Cup – 40 Nationen, Top 4 im Achtelfinale, 12 D
     ET.liveAiVisit(j);
   }
   assert.ok(seen.length > 4 && seen.every(([n, who]) => who === tm.members[n % 2]));
+});
+
+test('New Star Darts v18: Fähigkeitspunkt je Star-Stufe, wohlwollende Note, Sponsor-Flight mit Prämien', async () => {
+  const N = await import('../js/nsd.js');
+  const C = await import('../js/career.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 9 });
+  const p = s.player, v0 = N.skillValue(p, 'sco');
+  N.addStarProgress(s, N.starNeed(1) + N.starNeed(2));
+  assert.equal(p.freePoints, 2);
+  N.spendSkillPoint(p, 'sco'); assert.equal(N.skillValue(p, 'sco'), v0 + 1); assert.equal(p.freePoints, 1);
+  N.spendSkillPoint(p, 'fin'); assert.throws(() => N.spendSkillPoint(p, 'foc'), /Keine/);
+  // Note: Ø ≥ 90 oder besserer Ø als der Gegner → mind. 6
+  assert.ok(N.matchRating({ won: false, avg: 91, coPct: 0.2, my: 2, opp: 6 }) >= 6);
+  assert.ok(N.matchRating({ won: false, avg: 84, coPct: 0.25, my: 4, opp: 6, oppAvg: 82 }) >= 6);
+  assert.ok(N.matchRating({ won: true, avg: 80, coPct: 0.3, my: 6, opp: 5 }) >= 5.5);
+  // Sponsor: Flight 1–10, max. 5 Versuche, Fehler → Anfangsangebot + genervt
+  s.nsdSponsors = { active: [], offer: { name: 'Test', slot: Object.keys((await import('../data/sponsors.js')).SPONSOR_SLOTS)[0], perWeek: 10, win: 5, s180: 3, major: 0, weeks: 3, length: 12, bonus: 0, card: 5, steps: 0, mood: 0, done: false } };
+  const rng = new RNG({ s: 3 });
+  let r; do { r = C.negotiate(s, s.nsdSponsors.offer.card <= 5 ? 'higher' : 'lower', rng); } while (!r.done);
+  const o = s.nsdSponsors.offer;
+  assert.ok(o.steps <= 5 && o.mood === -o.steps);
+  if (o.annoyed) assert.equal(C.offerTerms(o).perWeek, 10); else assert.ok(C.offerTerms(o).perWeek > 10 && C.offerTerms(o).win > 5);
+  const rel0 = p.rel.sponsors ?? 0; C.acceptOffer(s);
+  const c = s.nsdSponsors.active[0]; assert.ok(c.win >= 5 && c.s180 >= 3);
+  if (o.annoyed) assert.ok(p.rel.sponsors < Math.max(rel0, 40) + 5);
+  const st0 = s.stars, pay = C.sponsorMatchPay(s, { cat: 'major' }, true, { s180: 2 });
+  assert.equal(pay, c.win + 2 * c.s180); assert.equal(s.stars, st0 + pay);
 });
 
 console.log(`\n${n} Tests ok`);

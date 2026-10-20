@@ -31,7 +31,7 @@ import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, e
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
-import { managerCut, maybeInterviewNsd, managerOf } from './career.js';
+import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -600,7 +600,8 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const oppId = me === 0 ? m.b : m.a, oppP = inst.teams?.[oppId] ?? getPlayer(state, oppId);
   addEnergy(p, -matchEnergy(res.legsTotal[0] + res.legsTotal[1]));
   const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
-  const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp });
+  const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp, oppAvg: o.avg });
+  sponsorMatchPay(state, inst, won, s);                // Sponsor-Prämien (Sieg, 180er)
   const star = starMatchDelta(p.star.level, { won, my, opp, to, avg: s.avg, oppStrength, cat: inst.cat, fmt: inst.fmt, rating, oppRank: rankOf(state, 'pdc', oppId) });
   const ups = addStarProgress(state, star);
   const fans = fansAfterMatch(won, rating);
