@@ -121,11 +121,12 @@ export function sponsorWeek(state, rng) {
   // Angebot erzeugen (eins offen, 3 Wochen gültig)
   if (s.offer && --s.offer.weeks <= 0) s.offer = null;
   const free = Object.keys(SPONSOR_SLOTS).filter(k => !s.active.some(c => c.slot === k));
-  const m = managerOf(state), chance = (m ? m.offer : 0.06) + 0.002 * (p.rel.fans ?? 0);
+  // Ohne Manager keine Sponsoren; Kneipen-Kumpel selten und klein, Profi-Manager oft und groß (Sponsorstufe begrenzt)
+  const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) : 0;
   if (!s.offer && free.length && rng.chance(chance)) {
-    const slot = rng.pick(free), tier = p.star.level >= 30 ? 3 : p.star.level >= 10 ? 2 : 1;
+    const slot = rng.pick(free), tier = Math.min(m.tier ?? 3, p.star.level >= 30 ? 3 : p.star.level >= 10 ? 2 : 1);
     const name = rng.pick(SPONSORS.filter(x => x.slot === slot && x.tier <= tier)).name;
-    const perWeek = Math.max(1, Math.round(sponsorBase(state) * (m?.mult ?? 0.8) * rng.float(0.8, 1.2) * starFactor(p.star.level)));
+    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level)));
     // Prämien: Wochenhonorar + Siegprämie, manchmal 180er-Prämie und/oder Major-Teilnahme
     s.offer = { name, slot, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
       s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,

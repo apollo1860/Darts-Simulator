@@ -15,7 +15,7 @@ export function render(app) {
       <div class="nsd-evs">${managersOf(s).map(x => {
         const on = m?.id === x.id, ok = managerOk(s, x);
         return `<div class="nsd-ev ${on ? 'on' : ok ? '' : 'off'}"><div class="nsd-ev-main"><div class="nsd-ev-name">${x.icon} ${x.name}</div>
-          <div class="nsd-ev-sub">${x.info}</div><div class="nsd-ev-sub">Provision ${Math.round(x.cut * 100)} % · Sponsoren ×${String(x.mult).replace('.', ',')}</div>
+          <div class="nsd-ev-sub">${x.info}</div><div class="nsd-ev-sub">Provision ${Math.round(x.cut * 100)} % · Angebote ${Math.round(x.offer * 100)} %/Woche · Beträge ×${String(x.mult).replace('.', ',')} · Sponsoren bis Stufe ${x.tier}</div>
           ${ok ? '' : `<div class="nsd-ev-sub">Ab Star-Status ${x.needStar}${x.needRank ? ` oder PDC Top ${x.needRank}` : ''}</div>`}</div>
           ${on ? '<button class="nsd-btn" id="m-fire"><span class="lb">Entlassen</span></button>' : ok ? `<button class="nsd-btn" data-m="${x.id}"><span class="lb">Holen</span></button>` : ''}</div>`;
       }).join('')}</div>

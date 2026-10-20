@@ -24,7 +24,7 @@ export function render(app, params = {}) {
         ${o.done ? `<div class="nsd-ev-sub">${o.annoyed ? '😠 Verzockt – nur noch das Anfangsangebot, der Sponsor ist genervt.' : 'Mehr ist nicht drin.'}</div>`
           : `<div class="nsd-hl-btns"><button class="nsd-btn" data-g="higher"><span class="lb">▲ Höher</span></button><button class="nsd-btn" data-g="lower"><span class="lb">▼ Niedriger</span></button>
              <div class="nsd-ev-sub">Versuch ${(o.steps ?? 0) + 1} von ${NEGO_MAX}</div></div>`}</div>
-    </div>` : `<div class="nsd-card" style="font-size:1.2rem">Kein offenes Angebot.${managerOf(s) ? '' : ' Ein Manager besorgt dir mehr Angebote.'}</div>`;
+    </div>` : `<div class="nsd-card" style="font-size:1.2rem">Kein offenes Angebot.${managerOf(s) ? '' : ' Ohne Manager bekommst du keine Sponsor-Angebote.'}</div>`;
   return frame({
     body: `${header(p.name)}${titleBand('Sponsoren')}
       ${darkBar(`Laufende Verträge (${sp.active.length}/4)`, 'sm')}

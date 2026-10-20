@@ -1,9 +1,9 @@
 // New Star Darts: Team (fiktiv), Interview-Fragen. Beträge in Basis-★ (× starFactor).
 // Manager: Provision auf Preisgeld, Sponsor-Angebote (Chance/Woche, Betragsfaktor), Voraussetzung Star-Status oder PDC-Rang.
 export const MANAGERS = [
-  { id: 'm1', name: 'Kalle Kröger', icon: '🧔', cut: 0.10, offer: 0.22, mult: 1.0, needStar: 1, needRank: null, info: 'Kumpeltyp aus der Kneipenszene' },
-  { id: 'm2', name: 'Sandra Voss', icon: '👩‍💼', cut: 0.15, offer: 0.32, mult: 1.3, needStar: 10, needRank: 64, info: 'Gut vernetzt bei Sponsoren' },
-  { id: 'm3', name: 'Victor Lennox', icon: '🕴️', cut: 0.20, offer: 0.45, mult: 1.7, needStar: 30, needRank: 16, info: 'Holt die ganz großen Deals' },
+  { id: 'm1', name: 'Kalle Kröger', icon: '🧔', cut: 0.10, offer: 0.08, mult: 0.7, tier: 1, needStar: 1, needRank: null, info: 'Kumpeltyp aus der Kneipenszene' },
+  { id: 'm2', name: 'Sandra Voss', icon: '👩‍💼', cut: 0.15, offer: 0.25, mult: 1.4, tier: 2, needStar: 10, needRank: 64, info: 'Gut vernetzt bei Sponsoren' },
+  { id: 'm3', name: 'Victor Lennox', icon: '🕴️', cut: 0.20, offer: 0.50, mult: 2.5, tier: 3, needStar: 30, needRank: 16, info: 'Holt die ganz großen Deals' },
 ];
 // Fitnesstrainer: zufällige Angebote (career.js: trainerOffers) – Titel und Symbole
 export const TRAINER_TITLES = ['Fitness-Coach', 'Athletiktrainer', 'Physiotherapeut', 'Personal Trainer', 'Sportwissenschaftler Dr.', 'Yoga-Coach', 'Ernährungsberater', 'Mentaltrainer'];
