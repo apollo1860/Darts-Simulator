@@ -488,3 +488,8 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-flight.ok svg { filter: drop-shadow(0 0 7px #2bdc12); } .nsd-flight.bad svg { filter: drop-shadow(0 0 7px #ff3030); }
 .nsd-plus { min-width: 44px; }
 .nsd-line.has-plus { grid-template-columns: 1fr 56px 86px; }
+
+/* Editor */
+.nsd-edit { padding: 6px 10px; display: flex; flex-direction: column; gap: 6px; }
+.nsd-edit-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: rgba(0,0,0,.35); border-radius: 6px; padding: 6px 10px; color: #fff; font-weight: 700; }
+.nsd-edit-row input { width: 110px; font: inherit; font-size: 1.05rem; padding: 6px 8px; border-radius: 4px; border: 2px solid #222; text-align: right; }

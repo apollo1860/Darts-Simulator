@@ -5,7 +5,7 @@ import { frame, titleBand, bar, darkBar } from '../frame.js';
 import { toast } from '../../components.js';
 
 export const nsd = true;
-export function render() {
+export function render(app) {
   const slots = listSlots();
   return frame({
     body: `${titleBand('Optionen')}
@@ -16,6 +16,7 @@ export function render() {
       ${darkBar('Spielstand importieren')}
       <div class="nsd-grid3">${slots.map(s => `<button class="nsd-btn" data-imp="${s.slot}"><span class="lb">Slot ${s.slot}</span>
         <span style="font-size:.8rem;font-weight:600">${s.empty ? 'leer' : 'überschreiben'}</span></button>`).join('')}</div>
+      ${app?.state ? `${darkBar('Aktueller Spielstand')}<button class="nsd-btn" data-go="editor"><span class="ic">🛠️</span><span class="lb">Editor</span></button>` : ''}
       <input type="file" id="o-file" accept="application/json,.json" hidden>
     </div>`,
     bottom: bar([{ go: 'title', icon: '<span style="color:#2bd33a">⬅</span>', label: 'Zurück' }]),

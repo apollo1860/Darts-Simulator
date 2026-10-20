@@ -42,7 +42,7 @@ export function render(app) {
         <div class="nsd-dark ${p.gear ? '' : 'red'}">${p.gear ? esc(p.gear.name) : 'Keine'}</div>
       </div>
     </div>
-    <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="stats">📋 Statistik</button><button data-go="calendar">Spielplan 🗓️ ▶</button></div>
+    <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="stats">📋 Statistik</button><button data-go="editor">🛠️</button><button data-go="calendar">Spielplan 🗓️ ▶</button></div>
     <div class="nsd-strip"><span>Jahr ${yearNo}</span><span class="mid">${s.date.year}</span><span class="r">KW ${s.date.week}</span></div>`,
     bottom: bar([
       { go: 'league', icon: '🏆', label: 'Liga' },

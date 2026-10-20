@@ -8,7 +8,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 21;
+export const APP_VERSION = 22;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -187,3 +187,31 @@ export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null 
 export const addFans = (p, n) => addRel(p, 'fans', n > 0 ? Math.round(n * Math.max(0.05, (1 - (p.rel.fans ?? 0) / 100) ** 2) * 10) / 10 : n);
 export function addRel(p, key, n) { p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key]; }
 export const fansAfterMatch = (won, rating) => (won ? (rating >= 6 ? 1 : 0) + (rating >= 8.5 ? 1 : 0) : rating < 4 ? -1 : 0);
+
+// ---- Editor (Spielstand künstlich anpassen) ----
+// Fähigkeit auf Wert v setzen: Level der Reihe nach mit 3 Sternen füllen
+export function setSkill(p, key, v) {
+  v = Math.max(0, Math.min(SKILL_MAX, Math.round(v)));
+  p.skills[key] = Array.from({ length: SKILL_LEVELS }, (_, i) => Math.max(0, Math.min(3, v - 3 * i)));
+}
+export const EDIT_FIELDS = [
+  { key: 'stars', label: 'Sterne-Geld ★', min: 0, max: 1e7, get: s => s.stars ?? 0, set: (s, v) => { s.stars = v; } },
+  { key: 'level', label: 'Star-Status (Stufe)', min: 1, max: STAR_MAX, get: s => s.player.star.level, set: (s, v) => { s.player.star.level = Math.round(v); s.player.star.xp = 0; s.player.starSeen = null; } },
+  { key: 'freePoints', label: 'Freie Fähigkeitspunkte', min: 0, max: 240, get: s => s.player.freePoints ?? 0, set: (s, v) => { s.player.freePoints = Math.round(v); } },
+  ...TRAINABLE.map(t => ({ key: `sk_${t.key}`, label: t.label, min: 0, max: SKILL_MAX, get: s => skillValue(s.player, t.key), set: (s, v) => setSkill(s.player, t.key, v) })),
+  { key: 'energy', label: 'Energie %', min: 0, max: 100, get: s => s.player.energy ?? 100, set: (s, v) => { s.player.energy = v; } },
+  { key: 'satisfaction', label: 'Zufriedenheit', min: 0, max: 100, get: s => s.player.satisfaction ?? 50, set: (s, v) => { s.player.satisfaction = v; } },
+  ...Object.entries(relLabel).map(([k, l]) => ({ key: `rel_${k}`, label: `Beziehung ${l}`, min: 0, max: 100, get: s => s.player.rel[k] ?? 0,
+    set: (s, v) => { s.player.rel[k] = v; if (k === 'partner' && v > 0) s.player.partnerName ??= 'Lena'; } })),
+  { key: 'age', label: 'Alter', min: 16, max: 70, get: s => s.player.age, set: (s, v) => { s.player.age = Math.round(v); } },
+  { key: 'cardUntil', label: 'Tourcard bis (Jahr)', min: 2026, max: 2100, get: s => s.player.cardUntil ?? s.date.year, set: (s, v) => { s.player.cardUntil = Math.round(v); s.player.tour = 'tour'; } },
+];
+export function applyEdits(state, values) {
+  for (const f of EDIT_FIELDS) {
+    if (!(f.key in values)) continue;
+    const v = Number(values[f.key]);
+    if (!Number.isFinite(v)) continue;
+    f.set(state, Math.max(f.min, Math.min(f.max, v)));
+  }
+  syncAttrs(state.player);
+}
