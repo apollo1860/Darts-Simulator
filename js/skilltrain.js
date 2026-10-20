@@ -2,7 +2,8 @@
 // Jede trainierbare Fähigkeit: 20 Level × max. 3 Punkte. Erfolg im 1./2./3. Versuch → 3/2/1 Punkte (Level behält das Beste).
 import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, addEnergy, addRel, relLabel } from './nsd.js';
 import { DRINKS, DARTS } from '../data/gear.js';
-import { ACCESSORIES } from '../data/accessories.js';
+import { FLIGHT_NAMES, BARREL_NAMES, SHOP_WEEKS } from '../data/accessories.js';
+import { RNG } from './rng.js';
 import { addNews } from './news.js';
 import { checkoutRoute, BOGEY, labelValue, isDoubleLabel } from './board.js';
 
@@ -168,10 +169,36 @@ export function equipDarts(state, id) {
   syncAttrs(p);
 }
 
-// ---- Zubehör (Boost für n eigene Matches; gleiches Teil verlängert die Laufzeit) ----
+// ---- Zubehör: 3 Flights + 3 Barrels, je Spielstand zufällig, alle 12 Wochen neues Angebot ----
+const KEYS = ['sco', 'fin', 'foc', 'cal'];
+const weekNo = state => state.date.year * 52 + state.date.week;
+function makeItem(rng, kind, tier, used) {
+  const pool = kind === 'Flight' ? FLIGHT_NAMES : BARREL_NAMES;
+  let name;
+  do name = `${rng.pick(pool.first)} ${rng.pick(pool.second)}`; while (used.has(name));
+  used.add(name);
+  const pts = rng.int(...[[2, 3], [4, 5], [6, 8]][tier]) + (kind === 'Barrel' ? 1 : 0);   // Barrels etwas stärker
+  const bonus = {};
+  const n = Math.min(pts, tier + 1), keys = rng.shuffle([...KEYS]).slice(0, n);
+  for (let i = 0; i < pts; i++) { const k = keys[i % n]; bonus[k] = (bonus[k] ?? 0) + 1; }
+  const matches = rng.int(3, 4) + tier;
+  return { id: `${kind[0]}${rng.int(1e5, 9e5)}`, icon: kind === 'Flight' ? '🪶' : '🎯', type: kind, name, matches, bonus,
+    price: Math.round(pts * matches * rng.float(0.5, 0.7) + 3) };
+}
+export function shopOffers(state, rng = new RNG(state.rng)) {
+  const sh = state.shop;
+  if (!sh || weekNo(state) >= sh.until) {
+    const used = new Set();
+    state.shop = { until: weekNo(state) + SHOP_WEEKS,
+      items: [...[0, 1, 2].map(t => makeItem(rng, 'Flight', t, used)), ...[0, 1, 2].map(t => makeItem(rng, 'Barrel', t, used))] };
+  }
+  return state.shop.items;
+}
+export const shopWeeksLeft = state => Math.max(1, (state.shop?.until ?? 0) - weekNo(state));
 export const accessoryPrice = (a, level) => starPrice(a.price, level);
 export function buyAccessory(state, id) {
-  const p = state.player, a = ACCESSORIES.find(x => x.id === id);
+  const p = state.player, a = shopOffers(state).find(x => x.id === id);
+  if (!a) throw new Error('Angebot nicht mehr verfügbar');
   const cost = accessoryPrice(a, p.star.level);
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
   state.stars -= cost;

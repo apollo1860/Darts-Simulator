@@ -1369,10 +1369,15 @@ test('New Star Darts v24: Zubehör-Boosts für einige Matches', async () => {
   const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
   const p = s.player, a0 = p.attrs.sco; s.stars = 100;
-  T.buyAccessory(s, 'fl-falcon'); assert.equal(N.skillBonus(p, 'sco'), 2); assert.ok(p.attrs.sco > a0);
-  T.buyAccessory(s, 'fl-falcon'); assert.equal(p.boosts[0].left, 6);
-  for (let i = 0; i < 6; i++) T.useBoosts(p);
-  assert.equal(p.boosts.length, 0); assert.equal(p.attrs.sco, a0);
+  const offers = T.shopOffers(s); assert.equal(offers.length, 6); assert.equal(offers.filter(o => o.type === 'Flight').length, 3);
+  const it = offers.find(o => o.bonus.sco) ?? offers[0], k = Object.keys(it.bonus)[0], a1 = p.attrs[k]; s.stars = 1000;
+  T.buyAccessory(s, it.id); assert.equal(N.skillBonus(p, k), it.bonus[k]); assert.ok(p.attrs[k] > a1);
+  T.buyAccessory(s, it.id); assert.equal(p.boosts[0].left, 2 * it.matches);
+  for (let i = 0; i < 2 * it.matches; i++) T.useBoosts(p);
+  assert.equal(p.attrs[k], a1);
+  s.date.week += 12; assert.notDeepEqual(T.shopOffers(s).map(o => o.name), offers.map(o => o.name));
+  const s2 = N.newNsdCareer({ first: 'X', last: 'Y', nation: 'DE', seed: 77 }); assert.notDeepEqual(T.shopOffers(s2).map(o => o.name), offers.map(o => o.name));
+  assert.equal(p.boosts.length, 0); 
 });
 
 console.log(`\n${n} Tests ok`);
