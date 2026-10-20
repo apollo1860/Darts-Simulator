@@ -71,7 +71,7 @@ export function hireTrainer(state, id) {
   const o = trainerOffers(state).find(x => x.id === id);
   if (!o) throw new Error('Angebot nicht mehr verfügbar');
   if ((state.stars ?? 0) < o.price) throw new Error('Nicht genug ★');
-  state.stars -= o.price;
+  state.stars = Math.round((state.stars - o.price) * 10) / 10;
   team(state).trainer = o.id;
   state.player.fitness = { id: o.id, name: o.name, icon: o.icon, regen: o.regen, until: weekIndex(state) + o.weeks };
   team(state).trainerOffers = team(state).trainerOffers.filter(x => x.id !== id);
@@ -97,7 +97,7 @@ export function doRelAction(state, act) {
   if (act.energy && (p.energy ?? 0) < act.energy) throw new Error(`Zu müde – ${act.energy} % Energie nötig`);
   if (act.stars && (state.stars ?? 0) < act.stars) throw new Error('Nicht genug ★');
   if (act.energy) p.energy = Math.max(0, p.energy - act.energy);
-  if (act.stars) state.stars -= act.stars;
+  if (act.stars) state.stars = Math.round((state.stars - act.stars) * 10) / 10;
   return addRel(p, act.key, act.gain);
 }
 

@@ -19,7 +19,7 @@ export function buyItem(state, id) {
   if (p.owned?.includes(id)) throw new Error('Schon gekauft');
   const cost = itemPrice(it, p.star.level);
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
-  state.stars -= cost;
+  state.stars = Math.round((state.stars - cost) * 10) / 10;
   (p.owned ??= []).push(id);
   p.lifestyle = lifestyleOf(p);
   p.satisfaction = clamp((p.satisfaction ?? 50) + it.sat, 0, 100);

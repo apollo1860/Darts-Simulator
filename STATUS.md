@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 21**: Preise steigen mit jeder Star-Stufe sichtbar (+5 %, auf 0,1 ★ gerundet – Bier Stufe 2 = 1,1 ★); Kontostand mit einer Nachkommastelle.
 - [x] **Version 20**: Liga: eigene Zeile wird immer angezeigt (PDC-OOM zeigte nur die Top 128, als Neuling mit Platz ≥ 129 fehlte man).
 - [x] **Version 19**: Rubbellos-Jackpot 5 % (statt 10 %).
 - [x] **Version 18**: Je Star-Status-Stufe 1 freier Fähigkeitspunkt (Fähigkeiten-Screen ＋); Match-Note wohlwollender (Ø ≥ 90 oder besserer Ø als der Gegner → mind. 6,0, Sieg mind. 5,5); Sponsor-Verhandlung mit Darts-Flight 1–10 (max. 5×, Treffer +8 % auf alle Prämien, jeder Versuch −1 Sponsor-Zufriedenheit, Fehler → Anfangsangebot + genervter Sponsor), Verträge mit Wochenhonorar, Siegprämie, teils 180er-/Major-Prämie.

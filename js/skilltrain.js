@@ -126,7 +126,7 @@ export const drinkPrice = (d, level) => starPrice(d.price, level);
 export function buyDrink(state, id, n = 1) {
   const d = DRINKS.find(x => x.id === id), cost = drinkPrice(d, state.player.star.level) * n;
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
-  state.stars -= cost;
+  state.stars = Math.round((state.stars - cost) * 10) / 10;
   state.player.drinks[id] = (state.player.drinks[id] ?? 0) + n;
   return cost;
 }
@@ -155,7 +155,7 @@ export function buyDarts(state, id) {
   if (p.darts?.includes(id)) throw new Error('Schon gekauft');
   const cost = dartsPrice(d, p.star.level);
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
-  state.stars -= cost;
+  state.stars = Math.round((state.stars - cost) * 10) / 10;
   (p.darts ??= []).push(id);
   equipDarts(state, id);
   return cost;
