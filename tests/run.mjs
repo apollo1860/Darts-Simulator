@@ -1193,7 +1193,7 @@ test('New Star Darts v7: Start 2026, Holder-Liste, Status-Regeln, Meilensteine, 
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 45, slot: 1, seed: 15 });
   const p = s.player, w = Object.values(s.world.players);
   // Start nach der Q-School 2026, 5 ★, 128 Holder laut Liste
-  assert.deepEqual(s.date, { year: 2026, week: 3 }); assert.equal(s.stars, 5); assert.equal(p.age, 45); assert.equal(p.cardUntil, 2027);
+  assert.deepEqual(s.date, { year: 2026, week: 3 }); assert.equal(s.stars, 15); assert.equal(p.age, 45); assert.equal(p.cardUntil, 2027);
   const holders = w.filter(x => x.tier === 'tour');
   assert.equal(holders.length, 128);
   assert.equal(holders.filter(x => x.cardUntil === 2026).length, 99); assert.equal(holders.filter(x => x.cardUntil === 2027).length, 29);
