@@ -8,7 +8,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 16;
+export const APP_VERSION = 17;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -23,7 +23,7 @@ export const STAR_MAX = 100;
 // Status-Faktor: Preisgelder UND Preise × (1 + 5 % je Stufe über 1)
 export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
 export const starPrice = (base, level = 1) => Math.max(1, Math.round(base * starFactor(level)));
-export const START_STARS = 5;      // Startguthaben (★ auf Status 1)
+export const START_STARS = 15;     // Startguthaben (★ auf Status 1)
 // Start im Tour-Modus: Saison 2026 direkt nach der Q-School (KW 2)
 export const NSD_START = { year: 2026, week: 3 };
 // Star-Status-Fortschritt: je Stufe mehr Punkte nötig (Feinabstimmung Etappe 5)

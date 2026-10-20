@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 17**: Startguthaben 15 ★ (statt 5).
 - [x] **Version 16**: World Cup im echten Format (Gruppe Bo7, Achtelfinale–Halbfinale Bo15, Finale Bo19) und als Doppel: die Partner werfen abwechselnd auf einen Score, der Bessere beginnt jedes Leg (Sim + Liveticker, Schlüsselmomente nur bei eigenen Aufnahmen); Zoom-Knopf zeigt jederzeit das Viertel um das Ziel (Standard aus); Star-Status-Balken wächst sichtbar mit Leuchten (Status, Spielbericht, Turnier); Tourcard-Anzeige „bis Ende 2027“ / „für 2 Jahre (2026 und 2027)“.
 - [x] **Version 15**: World Cup (KW 24) mit 40 Nationen (Europa 25, Asien 9, Nordamerika 2, Ozeanien 2, Afrika 1, Südamerika 1), Top 4 direkt im Achtelfinale, 36 Teams in 12 Dreiergruppen (Gruppensieger weiter), fehlende Spieler = schwache fiktive Amateure; Preisgeld weiter ohne OOM.
 - [x] **Version 14**: Pools African Darts Group (7, Kenia/Uganda) und CDLC (7, Karibik/Lateinamerika) mit Nutzer-Average ±15 % Spielraum je Karriere; neue Nationen (u. a. Uganda, Bahamas, Trinidad und Tobago, Guyana).
