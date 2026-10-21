@@ -19,7 +19,7 @@ export function render(app) {
           <td class="nm">${flag(c.id === 'P' ? s.player.nation : c.nation)} ${esc(c.id === 'P' ? s.player.name : c.who)}</td></tr>`).join('')
           || '<tr><td colspan="3" class="c">Noch keine Turniere entschieden.</td></tr>'}
       </table></div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'calendar', icon: '🗓️', label: 'Spielplan' }, { go: 'league', icon: '🏆', label: 'Liga', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'calendar', icon: '🗓️', label: 'Spielplan' }, { go: 'league', icon: '🏆', label: 'Ranglisten', wide: true }]),
   });
 }
 export function mount(root, app) {

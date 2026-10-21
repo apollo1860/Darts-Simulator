@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 31**: Darts-Arena statt Fußball-Optik (dunkle Halle, Lichttraverse mit Scheinwerfern, LED-Bande, Bühne mit Spot/Lichtkegeln und Scheiben-Ringen, Titelbild mit Bühnenboden + Oche statt Rasen, dunkle Modals); eigene SVG-Grafiken für Flights (Farbe nach Stärke: blau/grün/rot, Premium gold) und Barrels im Zubehör-Shop; Menüpunkt „Liga“ heißt jetzt „Ranglisten“.
 - [x] **Version 30**: Pro-Tour-, European-Tour- und Players-Championship-OOM zählen jetzt rollierend 2 Jahre (wie PDC-OOM) und sind für 2024/25 vorbelegt (≈ 40 / 15 / 25 % des PDC-Preisgelds je Holder, ±40 %). Challenge/Dev bleiben 1 Jahr.
 - [x] **Version 29**: Sponsoren nur mit Manager. Kneipen-Kumpel 8 %/Woche, Beträge ×0,7, nur Stufe-1-Sponsoren; Stufe 2: 25 %, ×1,4, bis Stufe 2; Profi: 50 %, ×2,5, alle Sponsoren (Fans erhöhen die Chance leicht).
 - [x] **Version 28**: Zubehör-Preise = Niveau Version 26 + 50 % (Flights ~12/30/40, Premium 80–100, Barrels ~15–45 Basis-★).

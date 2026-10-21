@@ -17,7 +17,7 @@ export function render(app) {
       <tr><th></th>${cols.map(([l]) => `<th>${l}</th>`).join('')}</tr>
       ${rows.map(([l, f]) => `<tr><td class="nm">${l}</td>${cols.map(([, t]) => `<td class="c">${f(t ?? {})}</td>`).join('')}</tr>`).join('')}
     </table></div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'achievements', icon: '⭐', label: 'Erfolge' }, { go: 'league', icon: '🏆', label: 'Liga', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'achievements', icon: '⭐', label: 'Erfolge' }, { go: 'league', icon: '🏆', label: 'Ranglisten', wide: true }]),
   });
 }
 export function mount(root, app) { bindHead(root, app, '<p>Deine Zahlen über die ganze Karriere und je Saison.</p>'); }

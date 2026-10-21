@@ -11,7 +11,7 @@ function draw(w, h, back, seed) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const g = c.getContext('2d'), rng = new RNG(seed);
-  g.fillStyle = back ? '#2a2f6b' : '#d9d5c4';
+  g.fillStyle = back ? '#1d1838' : '#241e44';
   g.fillRect(0, 0, w, h);
   const rows = 3, rowH = Math.floor(h / rows);
   for (let r = 0; r < rows; r++) {

@@ -28,7 +28,7 @@ export function render(app) {
   return frame({
     cls: 'fixed',
     body: `${header(s.player.name)}${titleBand(`Spielplan ${y}`)}<div class="nsd-scroll" id="sc-scroll">${rows}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'league', icon: '🏆', label: 'Liga' }, { go: 'week', icon: '<span style="color:#2bd33a">➡</span>', label: 'Diese Woche', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'league', icon: '🏆', label: 'Ranglisten' }, { go: 'week', icon: '<span style="color:#2bd33a">➡</span>', label: 'Diese Woche', wide: true }]),
   });
 }
 export function mount(root, app) {

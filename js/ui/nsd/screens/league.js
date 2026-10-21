@@ -1,4 +1,4 @@
-// Liga: Ranglisten im NSS-Tabellenlook (PDC-, Pro-Tour-Rangliste in ★, Premier-League-Tabelle), eigene Zeile grün, Zone blau
+// Ranglisten: Ranglisten im NSS-Tabellenlook (PDC-, Pro-Tour-Rangliste in ★, Premier-League-Tabelle), eigene Zeile grün, Zone blau
 import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';

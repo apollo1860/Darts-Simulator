@@ -40,6 +40,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 18**: `player.freePoints` (+1 je Star-Stufe in `addStarProgress`, `spendSkillPoint`); `matchRating(…, oppAvg)` wohlwollend (Ø ≥ 90 / besser als Gegner → ≥ 6); Sponsoren: Angebot `{perWeek, win, s180, major, card 1–10, steps, mood, annoyed}`, `negotiate` (max. `NEGO_MAX` 5, +`NEGO_STEP` 8 %), `offerTerms`, Prämien `sponsorMatchPay` nach jedem eigenen Match.
 - **Editor** (Version 22, Screen `editor`, `EDIT_FIELDS`/`applyEdits`/`setSkill` in nsd.js): Spielstand-Werte direkt setzen; Zugang 🛠️ im Status-Pager und in den Optionen.
 - **Zubehör-Shop** (Version 24, `data/accessories.js`, Screen `accessories` über Status → Shop): Boost auf Fähigkeiten für n eigene Matches (`shopOffers` je 12 Wochen neu aus Namenspools, `state.shop`, `buyAccessory`, `player.boosts`, `boostBonus` in `skillBonus`, `useBoosts` nach jedem eigenen Match). Lifestyle-Shop nur noch über Leben.
+- **Arena-Look** (Version 31): `.bg-green` = dunkle Bühne (Klassenname historisch), Dach = Lichttraverse, `.nsd-rail` = LED-Bande, `.nsd-grass` = Bühnenboden mit Oche. Shop-Grafiken `flightIcon(tier)`/`barrelIcon()` in frame.js. Menüpunkt `league` heißt „Ranglisten“.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

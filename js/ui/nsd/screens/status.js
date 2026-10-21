@@ -4,7 +4,7 @@ import { skillsAvg, SKILL_MAX, starPct, starNeed } from '../../../nsd.js';
 import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead } from '../frame.js';
 
 export const nsd = true;
-const HELP = `<p><b>Liga</b>: Ranglisten und Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
+const HELP = `<p><b>Ranglisten</b>: Order of Merits, Premier League, Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
   <p>Unter 20 % Energie bist du nicht match-fit: Du wirfst keine Schlüsselmomente mehr selbst und spielst immer schlechter.</p>`;
 
 export function render(app) {
@@ -45,7 +45,7 @@ export function render(app) {
     <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="stats">📋 Statistik</button><button data-go="editor">🛠️</button><button data-go="calendar">Spielplan 🗓️ ▶</button></div>
     <div class="nsd-strip"><span>Jahr ${yearNo}</span><span class="mid">${s.date.year}</span><span class="r">KW ${s.date.week}</span></div>`,
     bottom: bar([
-      { go: 'league', icon: '🏆', label: 'Liga' },
+      { go: 'league', icon: '🏆', label: 'Ranglisten' },
       { go: 'skills', icon: '🎯', label: 'Fähigkeit' },
       { go: 'life', icon: '👥', label: 'Leben' },
       { id: 's-play', icon: '<span style="color:#2bd33a">➡</span>', label: 'Spielen' },
