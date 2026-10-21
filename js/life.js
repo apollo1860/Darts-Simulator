@@ -16,11 +16,12 @@ export const ownedItems = p => LIFESTYLE.filter(x => p.owned?.includes(x.id));
 export const workingItems = p => ownedItems(p).filter(x => !p.upkeep?.[x.id]?.broken);
 export const lifestyleOf = p => Math.min(100, Math.round(workingItems(p).reduce((a, x) => a + x.ls, 0) * 10) / 10);   // ganzer Shop = 100
 export const homeRegen = p => Math.max(0, ...workingItems(p).map(x => x.regen ?? 0));
-export const itemPrice = (it, level) => starPrice(it.price, level);
+// Lifestyle-Preise sind fest (Basis-★), sie steigen NICHT mit dem Star-Status (Nutzerwunsch, Version 42)
+export const itemPrice = it => it.price;
 export function buyItem(state, id) {
   const p = state.player, it = LIFESTYLE.find(x => x.id === id);
   if (p.owned?.includes(id)) throw new Error('Schon gekauft');
-  const cost = itemPrice(it, p.star.level);
+  const cost = itemPrice(it);
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
   state.stars = Math.round((state.stars - cost) * 10) / 10;
   (p.owned ??= []).push(id);
@@ -38,7 +39,7 @@ export const REPAIR_WEEKS = [12, 16], REPAIR_PCT = [10, 15];
 const absWeek = s => s.date.year * 52 + s.date.week;
 const newUpkeep = (state, rng) => ({ due: absWeek(state) + rng.int(REPAIR_WEEKS[0], REPAIR_WEEKS[1]), pct: rng.int(REPAIR_PCT[0], REPAIR_PCT[1]) / 100, broken: false });
 export const brokenItems = p => ownedItems(p).filter(x => p.upkeep?.[x.id]?.broken);
-export const repairCost = (p, it) => Math.max(1, Math.ceil(Math.round(itemPrice(it, p.star.level) * (p.upkeep?.[it.id]?.pct ?? 0.1) * 100) / 100));
+export const repairCost = (p, it) => Math.max(1, Math.ceil(Math.round(itemPrice(it) * (p.upkeep?.[it.id]?.pct ?? 0.1) * 100) / 100));
 export const weeksToRepair = (state, id) => { const u = state.player.upkeep?.[id]; return u && !u.broken ? Math.max(0, u.due - absWeek(state)) : 0; };
 export function repairItem(state, id) {
   const p = state.player, it = LIFESTYLE.find(x => x.id === id), u = p.upkeep?.[id];

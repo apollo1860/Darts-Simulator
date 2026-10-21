@@ -8,10 +8,10 @@ import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
 let tab = 0;
-const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Preise steigen mit deinem Star-Status.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises. Solange es kaputt ist, zählt es nicht für Lifestyle und Erholung.</p>';
+const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises. Solange es kaputt ist, zählt es nicht für Lifestyle und Erholung.</p>';
 
 export function render(app) {
-  const s = app.state, p = s.player, lvl = p.star.level, [cat, label] = LIFESTYLE_CATS[tab];
+  const s = app.state, p = s.player, [cat, label] = LIFESTYLE_CATS[tab];
   return frame({
     body: `${header(p.name)}${titleBand('Lifestyle')}
       <div class="nsd-meters">${meter({ icon: '<span style="font-size:2rem">💎</span>', label: `Lifestyle ${fmtNum(lifestyleOf(p), 1)}`, pct: lifestyleOf(p) })}
@@ -25,7 +25,7 @@ export function render(app) {
           <div class="nsd-ls-art">${lifeArt(it.id) || `<span class="nsd-ls-emoji">${it.icon}</span>`}</div>
           <div class="nsd-ev-main"><div class="nsd-ev-name">${it.name}</div>
             <div class="nsd-ev-sub nsd-ls-stats"><span>Lifestyle +${fmtNum(it.ls, 1)}</span><span>Zufriedenheit +${it.sat}</span>${it.regen ? `<span>Erholung +${it.regen} %</span>` : ''}</div>
-            ${!own ? `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it, lvl))}</div>`
+            ${!own ? `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it))}</div>`
               : broken ? `<div class="nsd-ev-sub nsd-bad">🔧 Kaputt – wirkt nicht mehr</div><div class="nsd-ev-sub">Reparatur ${coin(repairCost(p, it))}</div>`
               : `<div class="nsd-ev-sub">Wartung in ca. ${weeks} Woche${weeks === 1 ? '' : 'n'}</div>`}</div>
           ${!own ? `<button class="nsd-btn" data-buy="${it.id}"><span class="lb">Kaufen</span></button>`
@@ -43,7 +43,7 @@ export function mount(root, app) {
   root.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = (tab + +b.dataset.t + LIFESTYLE_CATS.length) % LIFESTYLE_CATS.length; app.refresh(); });
   root.querySelectorAll('[data-buy]').forEach(b => b.onclick = async () => {
     const it = LIFESTYLE.find(x => x.id === b.dataset.buy);
-    if (!await confirmDialog(`${it.name} kaufen?`, `Kostet ${itemPrice(it, s.player.star.level)} ★.`, 'Kaufen')) return;
+    if (!await confirmDialog(`${it.name} kaufen?`, `Kostet ${itemPrice(it)} ★.`, 'Kaufen')) return;
     try { buyItem(s, it.id); app.save(); toast(`${it.icon} ${it.name} gehört jetzt dir!`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   });
   root.querySelectorAll('[data-fix]').forEach(b => b.onclick = async () => {

@@ -1088,7 +1088,7 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   assert.equal(LIFESTYLE.length, 62); assert.ok(Math.abs(LIFESTYLE.reduce((a, x) => a + x.ls, 0) - 100) < 0.5);
   for (const c of ['item', 'vehicle', 'home']) { const pr = LIFESTYLE.filter(x => x.cat === c).map(x => x.price); assert.deepEqual(pr, [...pr].sort((a, b) => a - b)); }
   assert.equal(it('burjkhalifa').price, 10000); assert.equal(it('limeprimeabo').price, 2);
-  p.star.level = 21; assert.equal(L.itemPrice({ price: 90 }, 21), 180); p.star.level = 1;
+  p.star.level = 21; assert.equal(L.itemPrice({ price: 90 }), 90); p.star.level = 1;   // Lifestyle-Preise fest, keine Status-Anpassung
   assert.ok(s.achievements.home && s.achievements.wheels === undefined);
   // Ereignisse: Bedingungen, Kosten, Zufall
   for (const e of LIFE_EVENTS) for (const o of e.opts) assert.ok(o.label && (o.out || o.chance), e.id);
@@ -1496,7 +1496,7 @@ test('New Star Darts v41: Lifestyle-Produkte gehen alle 12–16 Wochen kaputt, R
   assert.equal(L.brokenItems(p).length, 0);                                         // nach 11 Wochen noch nichts kaputt
   for (let w = 0; w < 6; w++) { s.date.week++; L.upkeepWeek(s, rng); }              // nach 17 Wochen ist alles einmal fällig gewesen
   assert.equal(L.brokenItems(p).length, 4); assert.equal(L.lifestyleOf(p), 0); assert.equal(L.homeRegen(p), 0);
-  const rolex = L.ownedItems(p).find(x => x.id === 'rolex'), cost = L.repairCost(p, rolex), price = L.itemPrice(rolex, p.star.level);
+  const rolex = L.ownedItems(p).find(x => x.id === 'rolex'), cost = L.repairCost(p, rolex), price = L.itemPrice(rolex);
   assert.ok(cost >= price * 0.1 - 1 && cost <= Math.ceil(price * 0.15), `Reparatur ${cost} von ${price}`);
   assert.equal(L.repairCost(p, L.ownedItems(p).find(x => x.id === 'dartscheibe')), 1);   // mindestens 1 ★
   const st = s.stars; L.repairItem(s, 'rolex');
