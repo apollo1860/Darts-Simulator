@@ -8,7 +8,7 @@ import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
 let tab = 0;
-const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises. Solange es kaputt ist, zählt es nicht für Lifestyle und Erholung.</p>';
+const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p>💎 Lifestyle-Punkte · 😊 Zufriedenheit · 🛌 Energie-Erholung pro Woche.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises. Solange es kaputt ist, zählt es nicht für Lifestyle und Erholung.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, [cat, label] = LIFESTYLE_CATS[tab];
@@ -24,7 +24,7 @@ export function render(app) {
         return `<div class="nsd-ev nsd-ls ${it.cat === 'home' ? 'home' : ''} ${own && !broken ? 'on' : ''} ${broken ? 'broken' : ''}">
           <div class="nsd-ls-art">${lifeArt(it.id) || `<span class="nsd-ls-emoji">${it.icon}</span>`}</div>
           <div class="nsd-ev-main"><div class="nsd-ev-name">${it.name}</div>
-            <div class="nsd-ev-sub nsd-ls-stats"><span>Lifestyle +${fmtNum(it.ls, 1)}</span><span>Zufriedenheit +${it.sat}</span>${it.regen ? `<span>Erholung +${it.regen} %</span>` : ''}</div>
+            <div class="nsd-ev-sub nsd-ls-stats"><span title="Lifestyle">💎 +${fmtNum(it.ls, 1)}</span><span title="Zufriedenheit">😊 +${it.sat}</span>${it.regen ? `<span title="Erholung pro Woche">🛌 +${it.regen} %</span>` : ''}</div>
             ${!own ? `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it))}</div>`
               : broken ? `<div class="nsd-ev-sub nsd-bad">🔧 Kaputt – wirkt nicht mehr</div><div class="nsd-ev-sub">Reparatur ${coin(repairCost(p, it))}</div>`
               : `<div class="nsd-ev-sub">Wartung in ca. ${weeks} Woche${weeks === 1 ? '' : 'n'}</div>`}</div>

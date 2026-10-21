@@ -94,3 +94,7 @@ root.addEventListener('click', e => {
 
 window.app = app; // Debug
 app.go('title');
+
+// Feste Anzeige: Pinch-Zoom (iOS-Gesten, Mehrfach-Berührung) und Verschieben der Seite unterbinden
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, e => e.preventDefault());
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });

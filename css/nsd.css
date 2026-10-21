@@ -518,12 +518,12 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-art-more { margin-top: 12px; font-size: .85rem; font-weight: 700; color: #666; }
 /* Lifestyle-Shop: eigene Illustrationen (Gegenstände/Fahrzeuge als Kachel, Immobilien als Szene) */
 .nsd-art { display: block; width: 100%; height: 100%; }
-.nsd-ls { grid-template-columns: 84px 1fr auto; }
+.nsd-ls { grid-template-columns: 84px minmax(0, 1fr) 100px; }   /* feste Knopfspalte: alle „Kaufen“-Knöpfe auf einer Linie */
 .nsd-ls-art { width: 84px; height: 84px; border-radius: 8px; overflow: hidden; padding: 3px;
   background: linear-gradient(#e6e6e6 0, #d4d4d4 50%, #bdbdbd 50%, #cecece 100%); border: 1px solid #f4f4f4; box-shadow: 0 2px 3px rgba(0,0,0,.4); }
 .nsd-ls-emoji { display: flex; height: 100%; align-items: center; justify-content: center; font-size: 2.6rem; }
 /* Immobilien: gleiche Anordnung wie Gegenstände/Fahrzeuge (Bild links, Text, Kaufen rechts), Bild als breitere Szene */
-.nsd-ls.home { grid-template-columns: 112px 1fr auto; }
+.nsd-ls.home { grid-template-columns: 112px minmax(0, 1fr) 100px; }
 .nsd-ls.home .nsd-ls-art { width: 112px; height: 84px; padding: 0; }
 .nsd-ls-stats { gap: 0 8px; }
 .nsd-ls-stats span { white-space: nowrap; }
@@ -531,3 +531,18 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-bad { color: #ffb0a8; }
 .nsd-ev.broken .nsd-ls-art { filter: grayscale(.8) brightness(.8); }
 .nsd-ls .nsd-btn[data-fix] { padding: 0 8px; } .nsd-ls .nsd-btn[data-fix] .lb { font-size: 1rem; }
+
+.nsd-ls .nsd-btn { width: 100%; padding: 0 6px; }
+.nsd-ls .nsd-ev-why { max-width: none; width: 100%; text-align: center; }
+.nsd-ls .nsd-ev-name { font-size: 1.1rem; overflow-wrap: break-word; hyphens: auto; }
+.nsd-ls .nsd-ev-main { min-width: 0; }
+.nsd-ls-stats span { white-space: nowrap; }
+/* Feste Anzeige: kein seitliches Wischen, kein Zoomen/Verschieben der Seite */
+html, body { overflow-x: hidden; overscroll-behavior: none; }
+body.nsd-on, .nsd-root { touch-action: pan-y; }
+.nsd-main { overflow-x: hidden; }
+@media (max-width: 380px) {
+  .nsd-ls { grid-template-columns: 72px minmax(0, 1fr) 92px; } .nsd-ls.home { grid-template-columns: 96px minmax(0, 1fr) 92px; }
+  .nsd-ls-art { width: 72px; height: 72px; } .nsd-ls.home .nsd-ls-art { width: 96px; height: 72px; }
+  .nsd-ls .nsd-ev-name { font-size: 1rem; }
+}
