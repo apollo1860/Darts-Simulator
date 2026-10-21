@@ -1432,6 +1432,11 @@ test('New Star Darts v35: European Tour wie echt (48 Spieler, 16 Gesetzte ab Run
   assert.equal(inst.rounds[0].name, 'Letzte 48'); assert.equal(inst.rounds[0].matches.filter(m => !m.bye).length, 16);
   assert.deepEqual(inst.rounds.map(r => r.matches.length), [32, 16, 8, 4, 2, 1]);
   assert.deepEqual(inst.rounds.map(r => r.format.legs), [6, 6, 6, 6, 7, 8]);
+  // Aus im ersten Match: Vorqualifizierte (Gesetzte/Pro Tour) ohne OOM-Geld, alle anderen mit; „Letzte 48“-Verlierer bekommen 2 (Tsd.)
+  const pre = new Set(inst.preQual);
+  assert.equal(pre.size, 32);
+  const l48 = inst.rounds[0].matches.filter(m => !m.bye).map(m => (m.winner === m.a ? m.b : m.a));
+  for (const id of l48) assert.equal(s.rankings.years[2026].pdc?.[id] ?? 0, pre.has(id) ? 0 : 2, id);
 });
 
 console.log(`\n${n} Tests ok`);

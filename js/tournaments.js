@@ -299,6 +299,7 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomTypes(ev, sub),
     isQualifier: !!ev.qualifier && sub === 0, cards: !!fmt.cards,
     prizes: state.mode === 'nsd' ? starPrizeTable(fk) : prizeTable(ev, sub), stopAt: fmt.stopAt ?? 1, fieldSize: field.length,
+    preQual: ev.cat === 'et' ? (({ seeds, pt }) => [...seeds, ...pt])(etEntrants(state, ev, withPlayer)) : null,   // ET: über die Ranglisten vorqualifiziert
     big: withPlayer ? orderOfMerit(state, 'pdc').slice(0, 16).map(x => x.p.id).filter(id => id !== 'P') : [],
     ...(ev.cat === 'wdf' && withPlayer ? { xpBoost: Math.round(rng.float(1.2, 1.6) * 20) / 20 } : {}),
     rounds,
@@ -717,8 +718,10 @@ function settle(state, inst) {
     (inst.places ??= {})[id] = place;
     let prize = inst.prizes[place] ?? 0;
     if (inst.teams && id === 'P') prize = Math.round(prize * teamPrizeShare);   // World Cup: Preisgeld wird geteilt
-    if (id === 'P' && state.mode === 'nsd' && !playerWins(inst)) prize = 0;     // erstes Match verloren → nichts
-    if (prize) for (const t of inst.oom) addMoney(state, t, id, prize, year);
+    if (id === 'P' && state.mode === 'nsd' && !playerWins(inst) && inst.cat !== 'et') prize = 0;     // erstes Match verloren → nichts (ET: Geld wird gezahlt)
+    // ET-Regel: wer über die Ranglisten vorqualifiziert ist und das erste Match verliert, bekommt das Geld, aber keine OOM-Punkte
+    const oomPrize = inst.preQual?.includes(id) && !inst.rounds.some(r => r.matches.some(m => m.winner === id && !m.bye && m.a && m.b)) ? 0 : prize;
+    if (oomPrize) for (const t of inst.oom) addMoney(state, t, id, oomPrize, year);
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
