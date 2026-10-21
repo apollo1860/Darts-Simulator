@@ -3,7 +3,7 @@ import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { frame, bar, arrowIcon } from '../frame.js';
-import { starShow } from '../../../nsd.js';
+import { starShow, PL_LEAGUE_PAY } from '../../../nsd.js';
 import { plTable } from '../../../majors.js';
 import { getPlayer } from '../../../world.js';
 
@@ -13,6 +13,9 @@ let idx = 0;
 // Ranglisten in ★: Basiswerte × dein Status-Faktor (als hätten alle deinen Status)
 const money = (v, lvl) => fmtStars(starShow(v, lvl));
 const fmtStars = v => v.toLocaleString('de-DE');
+
+// Premier League: Platz 5–8 fest (PL_LEAGUE_PAY), Platz 1–4 spielen die Play-offs um 350/170/110
+const plPrize = (rank, lvl) => (PL_LEAGUE_PAY[rank] ? fmtStars(starShow(PL_LEAGUE_PAY[rank], lvl)) : 'Play-offs');
 
 // Top 128 – eigene Zeile immer dabei (auch wenn weiter hinten)
 const ownRow = all => { const top = all.slice(0, 128), me = all.find(x => x.p.id === 'P'); return me && !top.includes(me) ? [...top, me] : top; };
@@ -27,9 +30,9 @@ export function render(app) {
         <span style="display:flex;flex-direction:column;gap:6px"><button class="nsd-sq green" data-l="-1">▲</button><button class="nsd-sq green" data-l="1">▼</button></span>
       </div>
       <div class="nsd-scroll" id="lg-scroll"><table class="nsd-table">
-        <tr><th>Pos</th><th style="text-align:left">Name</th><th class="alt num">${pl ? 'Punkte' : 'Preisgeld ★'}</th></tr>
+        <tr><th>Pos</th><th style="text-align:left">Name</th><th class="alt num">${pl ? 'Punkte' : 'Preisgeld ★'}</th>${pl ? '<th class="alt num">Preis ★</th>' : ''}</tr>
         ${list.map(x => `<tr class="${x.p.id === 'P' ? 'me' : x.rank <= zone ? 'zone' : ''}" ${x.p.id === 'P' ? 'id="lg-me"' : ''}>
-          <td class="c">${x.rank}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td><td class="num">${pl ? x.money : money(x.money, s.player.star.level)}</td></tr>`).join('')}
+          <td class="c">${x.rank}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td><td class="num">${pl ? x.money : money(x.money, s.player.star.level)}</td>${pl ? `<td class="num">${plPrize(x.rank, s.player.star.level)}</td>` : ''}</tr>`).join('')}
       </table></div>`,
     bottom: bar([
       { go: 'hub', icon: '🏠', label: 'Start' },
