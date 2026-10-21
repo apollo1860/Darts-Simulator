@@ -527,3 +527,7 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-ls.home .nsd-ls-art { width: 112px; height: 84px; padding: 0; }
 .nsd-ls-stats { gap: 0 8px; }
 .nsd-ls-stats span { white-space: nowrap; }
+.nsd-ev.broken { border-color: #ff6a5a; }
+.nsd-bad { color: #ffb0a8; }
+.nsd-ev.broken .nsd-ls-art { filter: grayscale(.8) brightness(.8); }
+.nsd-ls .nsd-btn[data-fix] { padding: 0 8px; } .nsd-ls .nsd-btn[data-fix] .lb { font-size: 1rem; }

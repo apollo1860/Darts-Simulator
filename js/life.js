@@ -5,14 +5,17 @@ import { ACHIEVEMENTS } from '../data/achievements.js';
 import { starPrice, starPayout, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
+import { RNG } from './rng.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fill = (txt, p) => txt.replaceAll('{partner}', p.partnerName ?? 'Sie');
 
 // ---- Lifestyle-Shop ----
 export const ownedItems = p => LIFESTYLE.filter(x => p.owned?.includes(x.id));
-export const lifestyleOf = p => Math.min(100, Math.round(ownedItems(p).reduce((a, x) => a + x.ls, 0) * 10) / 10);   // ganzer Shop = 100
-export const homeRegen = p => Math.max(0, ...ownedItems(p).map(x => x.regen ?? 0));
+// Nur intakte Dinge zählen (kaputte wirken erst nach der Reparatur wieder)
+export const workingItems = p => ownedItems(p).filter(x => !p.upkeep?.[x.id]?.broken);
+export const lifestyleOf = p => Math.min(100, Math.round(workingItems(p).reduce((a, x) => a + x.ls, 0) * 10) / 10);   // ganzer Shop = 100
+export const homeRegen = p => Math.max(0, ...workingItems(p).map(x => x.regen ?? 0));
 export const itemPrice = (it, level) => starPrice(it.price, level);
 export function buyItem(state, id) {
   const p = state.player, it = LIFESTYLE.find(x => x.id === id);
@@ -21,11 +24,43 @@ export function buyItem(state, id) {
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
   state.stars = Math.round((state.stars - cost) * 10) / 10;
   (p.owned ??= []).push(id);
+  (p.upkeep ??= {})[id] = newUpkeep(state, new RNG(state.rng));
   p.lifestyle = lifestyleOf(p);
   p.satisfaction = clamp((p.satisfaction ?? 50) + it.sat, 0, 100);
   addNews(state, 'info', `${it.icon} Gekauft: ${it.name}`, `Lifestyle jetzt ${p.lifestyle}.${it.regen ? ` Zuhause erholst du dich besser: +${it.regen} % Energie pro Woche.` : ''}`);
   checkAchievements(state);
   return cost;
+}
+
+// ---- Wartung: Lifestyle-Produkte gehen alle 12–16 Wochen kaputt, die Reparatur kostet 10–15 % des Kaufpreises (min. 1 ★) ----
+// p.upkeep[id] = { due (absolute Woche), pct (Anteil am Preis, je Produkt fest), broken }. Kaputte Produkte zählen nicht für Lifestyle/Erholung.
+export const REPAIR_WEEKS = [12, 16], REPAIR_PCT = [10, 15];
+const absWeek = s => s.date.year * 52 + s.date.week;
+const newUpkeep = (state, rng) => ({ due: absWeek(state) + rng.int(REPAIR_WEEKS[0], REPAIR_WEEKS[1]), pct: rng.int(REPAIR_PCT[0], REPAIR_PCT[1]) / 100, broken: false });
+export const brokenItems = p => ownedItems(p).filter(x => p.upkeep?.[x.id]?.broken);
+export const repairCost = (p, it) => Math.max(1, Math.ceil(Math.round(itemPrice(it, p.star.level) * (p.upkeep?.[it.id]?.pct ?? 0.1) * 100) / 100));
+export const weeksToRepair = (state, id) => { const u = state.player.upkeep?.[id]; return u && !u.broken ? Math.max(0, u.due - absWeek(state)) : 0; };
+export function repairItem(state, id) {
+  const p = state.player, it = LIFESTYLE.find(x => x.id === id), u = p.upkeep?.[id];
+  if (!it || !u?.broken) throw new Error('Nichts zu reparieren');
+  const cost = repairCost(p, it);
+  if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
+  state.stars = Math.round((state.stars - cost) * 10) / 10;
+  p.upkeep[id] = newUpkeep(state, new RNG(state.rng));
+  p.lifestyle = lifestyleOf(p);
+  addNews(state, 'info', `🔧 Repariert: ${it.name}`, `Kostete ${cost} ★ – er funktioniert wieder. Die nächste Wartung steht in ${REPAIR_WEEKS[0]}–${REPAIR_WEEKS[1]} Wochen an.`);
+  return cost;
+}
+// Wöchentlich: fällige Produkte gehen kaputt (alte Spielstände ohne Wartungsdaten bekommen einen Termin)
+export function upkeepWeek(state, rng) {
+  const p = state.player, now = absWeek(state);
+  for (const it of ownedItems(p)) {
+    const u = (p.upkeep ??= {})[it.id] ??= newUpkeep(state, rng);
+    if (u.broken || now < u.due) continue;
+    u.broken = true;
+    addNews(state, 'info', `🔧 ${it.name} ist kaputt`, `Ohne Reparatur zählt er nicht mehr für Lifestyle${it.regen ? ' und Erholung' : ''}. Kosten: ${repairCost(p, it)} ★ (Leben → Lifestyle).`);
+  }
+  p.lifestyle = lifestyleOf(p);
 }
 
 // ---- Wöchentliche Erholung: Basis 40 + bestes Zuhause + Fitnesstrainer + Zufriedenheit (−10 … +10) ----
@@ -111,6 +146,7 @@ export function breakUp(state, news = true) {
 export function lifeWeek(state, rng) {
   const p = state.player;
   if (p.rel.partner > 0) { addRel(p, 'partner', -1); if (p.rel.partner <= 0) breakUp(state); }
+  upkeepWeek(state, rng);
   const s = p.satisfaction ?? 50;
   p.satisfaction = Math.round(clamp(s + (satisfactionTarget(p) - s) * 0.08, 0, 100) * 10) / 10;   // langsam
   p.lifestyle = lifestyleOf(p);

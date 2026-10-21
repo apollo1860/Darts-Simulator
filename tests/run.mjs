@@ -1481,4 +1481,31 @@ test('New Star Darts v38: Grand Slam 48 Spieler (16 Dreiergruppen), Masters-Vorr
   assert.equal(T.placeLabel('L128', 'major', 'wm'), 'Letzte 128'); assert.equal(T.placeLabel('L128', 'major', 'uk-open'), 'Runde 2');
 });
 
+test('New Star Darts v41: Lifestyle-Produkte gehen alle 12–16 Wochen kaputt, Reparatur 10–15 % des Preises', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), { RNG } = await import('../js/rng.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
+  const p = s.player; s.stars = 100000;
+  for (const id of ['dartscheibe', 'fahrrad', 'haus', 'rolex']) L.buyItem(s, id);
+  const abs = () => s.date.year * 52 + s.date.week, t0 = abs(), ls0 = L.lifestyleOf(p), reg0 = L.homeRegen(p);
+  for (const id of ['dartscheibe', 'fahrrad', 'haus', 'rolex']) {
+    const u = p.upkeep[id]; assert.ok(u.due - t0 >= 12 && u.due - t0 <= 16, id); assert.ok(u.pct >= 0.1 && u.pct <= 0.15); assert.equal(u.broken, false);
+  }
+  assert.equal(ls0, L.lifestyleOf(p)); assert.ok(reg0 > 0);
+  const rng = new RNG({ s: 7 });
+  for (let w = 0; w < 11; w++) { s.date.week++; L.upkeepWeek(s, rng); }
+  assert.equal(L.brokenItems(p).length, 0);                                         // nach 11 Wochen noch nichts kaputt
+  for (let w = 0; w < 6; w++) { s.date.week++; L.upkeepWeek(s, rng); }              // nach 17 Wochen ist alles einmal fällig gewesen
+  assert.equal(L.brokenItems(p).length, 4); assert.equal(L.lifestyleOf(p), 0); assert.equal(L.homeRegen(p), 0);
+  const rolex = L.ownedItems(p).find(x => x.id === 'rolex'), cost = L.repairCost(p, rolex), price = L.itemPrice(rolex, p.star.level);
+  assert.ok(cost >= price * 0.1 - 1 && cost <= Math.ceil(price * 0.15), `Reparatur ${cost} von ${price}`);
+  assert.equal(L.repairCost(p, L.ownedItems(p).find(x => x.id === 'dartscheibe')), 1);   // mindestens 1 ★
+  const st = s.stars; L.repairItem(s, 'rolex');
+  assert.equal(st - s.stars, cost); assert.equal(L.brokenItems(p).length, 3); assert.ok(L.lifestyleOf(p) > 0);
+  assert.ok(p.upkeep.rolex.due - abs() >= 12 && p.upkeep.rolex.due - abs() <= 16);
+  assert.throws(() => L.repairItem(s, 'rolex')); s.stars = 0; assert.throws(() => L.repairItem(s, 'haus'), /Nicht genug/);
+  // alte Spielstände ohne Wartungsdaten bekommen einen Termin
+  const old = N.newNsdCareer({ first: 'X', last: 'Y', nation: 'DE', seed: 5 }); old.player.owned = ['handy']; L.upkeepWeek(old, new RNG({ s: 1 }));
+  assert.ok(old.player.upkeep.handy.due > old.date.year * 52);
+});
+
 console.log(`\n${n} Tests ok`);
