@@ -55,6 +55,6 @@ export function mount(root, app) {
   root.querySelector('#k-form').onclick = () => {
     const rs = app.state.results.slice(0, 8);
     modal({ title: 'Form', body: rs.length ? `<table class="nsd-table">${rs.map(r =>
-      `<tr><td class="nm">${esc(r.name)}</td><td class="c">${esc(placeLabel(r.place, r.cat))}</td></tr>`).join('')}</table>` : '<p>Noch keine Turniere gespielt.</p>' });
+      `<tr><td class="nm">${esc(r.name)}</td><td class="c">${esc(placeLabel(r.place, r.cat, r.eventId))}</td></tr>`).join('')}</table>` : '<p>Noch keine Turniere gespielt.</p>' });
   };
 }

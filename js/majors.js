@@ -67,7 +67,8 @@ export const wmTchqSlots = state => 128 - wmDirect(state).length;
 // 1. Sieger + Finalisten aller TV-Majors der letzten 12 Monate, 2. offene Plätze (bis 16): meiste Pro-Tour-Titel (PC/ET) des Jahres,
 // 3. Nebentouren: Jugend-Weltmeister, Top 2 Challenge Tour (ohne Karte), Top 2 Women's Series, 4. Rest: Tour Card Holder Qualifier (KW 45)
 const GS_TV = ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm', 'pl-final', 'ws-final'];
-const GS_PDC = 16, GS_SECONDARY = 5, GS_WEEK = 46;
+// 48 Spieler (ab 2026): bis 40 direkt (höchstens 35 über TV-Finale/Pro-Tour-Titel/Rangliste + 5 Nebentouren), mindestens 8 über den Qualifier
+const GS_PDC = 35, GS_SECONDARY = 5, GS_WEEK = 46, GS_FIELD = 48, GS_MIN_QUAL = 8;
 const active = (state, id) => id === 'P' || (getPlayer(state, id) && getPlayer(state, id).tier !== 'retired');
 export function gsDirect(state) {
   const q = qualOf(state), y = state.date.year;
@@ -79,6 +80,7 @@ export function gsDirect(state) {
   for (const c of state.champions?.[y] ?? []) if ((c.cat === 'pc' || c.cat === 'et') && c.week < GS_WEEK) titles[c.id] = (titles[c.id] ?? 0) + 1;
   const ptMoney = id => moneyOf(state, 'protour', id);
   pdc.push(...take(Object.keys(titles).filter(id => active(state, id)).sort((a, b) => titles[b] - titles[a] || ptMoney(b) - ptMoney(a)), GS_PDC - pdc.length, used));
+  pdc.push(...take(holderIds(state, idsOf(orderOfMerit(state, 'pdc'))), GS_PDC - pdc.length, used));   // Rest: Platzierung in der PDC-Rangliste
   const ct = idsOf(orderOfMerit(state, 'challenge')).filter(id => id === 'P' ? state.player.tour !== 'tour' : getPlayer(state, id)?.tier !== 'tour');
   const sec = [...take([q.wmYouth].filter(Boolean), 1, used), ...take(ct, 2, used), ...take(secondaryOrder(state, 'women', y), 2, used)];
   const out = { pdc, sec };
@@ -86,7 +88,7 @@ export function gsDirect(state) {
   return out;
 }
 // Restplätze für den Qualifier (Jugend-Weltmeister-Platz ist immer reserviert)
-export const gsQualSlots = state => Math.max(2, 32 - gsDirect(state).pdc.length - GS_SECONDARY);
+export const gsQualSlots = state => Math.max(GS_MIN_QUAL, GS_FIELD - gsDirect(state).pdc.length - GS_SECONDARY);
 const holderIds = (state, ids) => ids.filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
 
 // ---- UK Open: 160 Spieler = alle Holder nach Rangliste + Top 8 CT/Dev-OOM (ohne Karte, Vorjahr) + Riley's-Amateure ----
@@ -203,8 +205,8 @@ function computeField(state, ev) {
     case 'gsod': {                           // Töpfe nach PDC-Rangliste, Nebentouren zuletzt
       const d = gsDirect(state);
       [...d.pdc, ...d.sec].forEach(id => used.add(id));
-      const main = [...d.pdc, ...take(qualOf(state).gsqSurvivors ?? [], 32 - used.size, used)];
-      main.push(...take(holderIds(state, pdc), 32 - used.size, used));      // fehlende Plätze: PDC-Rangliste
+      const main = [...d.pdc, ...take(qualOf(state).gsqSurvivors ?? [], GS_FIELD - used.size, used)];
+      main.push(...take(holderIds(state, pdc), GS_FIELD - used.size, used));      // fehlende Plätze: PDC-Rangliste
       const rk = id => { const i = pdc.indexOf(id); return i < 0 ? 999 : i; };
       return [...main.sort((a, b) => rk(a) - rk(b)), ...d.sec];
     }

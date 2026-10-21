@@ -9,7 +9,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 37;
+export const APP_VERSION = 38;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -108,7 +108,7 @@ export const EUR_PER_STAR = 1000;   // Umrechnung der vorbelegten Ranglisten (20
 // Feste Preistabellen der echten PDC-Events 2026 (Basis-★ = Tsd. £; Sieger siehe STAR_PRIZE_WIN). Gezahlt wird je Runde des Ausscheidens –
 // auch für Verlierer der 1. Runde. Fehlender Schlüssel = kein Geld (Players Championship: Letzte 128, UK Open: Letzte 160).
 //   ET 230 Tsd. (L64 = Runde 1 „Letzte 48“) · PC 150 je Turnier · Masters 500 (Hauptfeld) · UK Open 750 · Matchplay 1.000 · WGP 750 · EC 750
-//   PC Finals 750 · Grand Slam 1.000 (48 Spieler; hier 32 mit G3/G4) · World Cup 500 je Team · WS 100 je Event · WS Finals 450 · WM 5.000 · PL 1.250
+//   Masters-Vorrunde (Letzte 64/32/16: 0,75/1/2,5) · PC Finals 750 · Grand Slam 1.000 (48 Spieler in 16 Dreiergruppen) · World Cup 500 je Team · WS 100 je Event · WS Finals 450 · WM 5.000 · PL 1.250
 const WGP_TABLE = { F: 80, SF: 50, QF: 35, L16: 20, L32: 7.5 };
 export const STAR_PRIZE_FIXED = {
   et: { F: 15, SF: 10, QF: 8, L16: 5, L32: 3.5, L64: 2 },
@@ -120,14 +120,17 @@ export const STAR_PRIZE_FIXED = {
   matchplay: { F: 125, SF: 65, QF: 35, L16: 22.5, L32: 12.5 },
   wgp: WGP_TABLE, ec: WGP_TABLE,
   pcf: { F: 70, SF: 40, QF: 27.5, L16: 15, L32: 7, L64: 4 },
-  gsod: { F: 100, SF: 60, QF: 35, L16: 20, G3: 5, G4: 5 },
+  gsod: { F: 100, SF: 60, QF: 35, L16: 20, L32: 12.5, G3: 5 },
   wcod: { F: 48, SF: 30, QF: 20, L16: 10, G2: 6, G3: 5 },
   wm: { F: 400, SF: 200, QF: 100, L16: 60, L32: 35, L64: 25, L128: 15 },
   plf: { F: 170, SF: 110 },
+  mastersq: { L16: 2.5, L32: 1, L64: 0.75 },   // Masters-Vorrunde: Geld erst ab der K.-o.-Phase (Letzte 64), Gruppenphase ohne
 };
+// Premier League: Platz 5–8 der Tabelle (Platz 1–4 spielen die Play-offs: 350/170/110)
+export const PL_LEAGUE_PAY = { 5: 95, 6: 90, 7: 85, 8: 80 };
 export function starPrizeTable(fmtKey) {
   const W = STAR_PRIZE_WIN[fmtKey];
-  if (!W) return {};
+  if (!W) return STAR_PRIZE_FIXED[fmtKey] ?? {};              // z. B. Masters-Vorrunde: nur feste Beträge ab der K.-o.-Phase
   if (fmtKey === 'pln') return { W };
   if (STAR_PRIZE_FIXED[fmtKey]) return { W, ...STAR_PRIZE_FIXED[fmtKey] };
   const shares = fmtKey === 'ukopen' ? { ...STAR_SHARES, L96: 0.01, L128: 0.005 } : fmtKey === 'wcod' ? { ...STAR_SHARES, G2: 0.04, G3: 0.02 } : STAR_SHARES;   // UK Open: Runde 2/3, World Cup: Gruppe

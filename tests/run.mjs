@@ -367,7 +367,7 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   assert.ok(q.wmReg.uki.every(id => ['ENG', 'SCO', 'WAL', 'NIR', 'IRL'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wm.slice(0, 32).every((id, i) => id === q.wmAuto[i]));                       // Top 32 PDC gesetzt
-  assert.equal(q.gsod.length, 32); assert.ok(Object.keys(q.wcTeams).length >= 8);
+  assert.equal(q.gsod.length, 48); assert.ok(Object.keys(q.wcTeams).length >= 8);
   const pl = s.pl[2027]; assert.equal(pl.nights, 16);
   assert.equal(Object.values(pl.points).reduce((a, b) => a + b, 0), 16 * (5 + 3 + 2 + 2));
   // Majors fließen in die PDC OOM: Weltmeister hat ≥ 1,17 Mio. € im Jahr 2027
@@ -383,14 +383,15 @@ test('Grand Slam mit Spieler: Gruppenphase → K.-o.', () => {
   s.date.week = 46;
   enterEvent(s, 'gsod');
   const inst = s.activeEvent;
-  assert.equal(inst.groups.length, 8); assert.ok(inst.rounds[0].isGroup);
+  assert.equal(inst.groups.length, 16); assert.ok(inst.groups.every(g => g.length === 3)); assert.ok(inst.rounds[0].isGroup);
+  assert.deepEqual(inst.rounds.map(r => r.name).slice(0, 4), ['Gruppenphase · Spieltag 1', 'Gruppenphase · Spieltag 2', 'Gruppenphase · Spieltag 3', 'Letzte 32']);
   let guard = 0;
   while (!inst.done && guard++ < 20) {
     if (inst.playerAlive && playerMatch(inst)) playRound(s); else simulateRoundAI(s);
     nextRound(s);
   }
   assert.ok(inst.done);
-  assert.ok(['W', 'F', 'SF', 'QF', 'L16', 'G3', 'G4'].includes(inst.place), inst.place);
+  assert.ok(['W', 'F', 'SF', 'QF', 'L16', 'L32', 'G3'].includes(inst.place), inst.place);
   closeEvent(s);
 });
 
@@ -1258,7 +1259,7 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   // Grand Slam: 2 Spielerinnen der Women's Series
   s.date.week = 46;
   const gs = majorField(s, eventsInWeek(s, 2026, 46).find(e => e.id === 'gsod'), false);
-  assert.equal(gs.length, 32); assert.equal(gs.filter(id => s.world.players[id]?.woman).length, 2);
+  assert.equal(gs.length, 48); assert.equal(gs.filter(id => s.world.players[id]?.woman).length, 2);
   // WM-Qualifier: Frauen aus der Women's Series, Asien mit Asian-Tour-Spielern
   s.date.week = 47;
   const wq = ET.runAITournament(s, eventsInWeek(s, 2026, 47).find(e => e.id === 'wmq-asiach'));
@@ -1288,10 +1289,10 @@ test('New Star Darts v10: UK Open (gestaffelter Einstieg, offene Auslosung), Gra
   assert.ok(s.champions[2026].find(c => c.eventId === 'uk-open').runnerUp);
   while (s.date.week < 47) assert.ok(nextWeek(s));
   const q = M.qualOf(s), d = q.gsDirect;
-  assert.ok(d && d.pdc.length === 16 && d.sec.length === 5);
+  assert.ok(d && d.pdc.length === 35 && d.sec.length === 5);
   assert.ok(d.sec.includes(q.wmYouth) && d.sec.filter(id => s.world.players[id]?.circuit === 'women').length === 2);
-  assert.equal(q.gsqSurvivors.length, 32 - 16 - 5);
-  assert.equal(q.gsod.length, 32); assert.equal(new Set(q.gsod).size, 32);
+  assert.equal(q.gsqSurvivors.length, 48 - 35 - 5);
+  assert.equal(q.gsod.length, 48); assert.equal(new Set(q.gsod).size, 48);
   assert.ok([...d.pdc, ...d.sec, ...q.gsqSurvivors].every(id => q.gsod.includes(id)));
   const tv = s.champions[2026].filter(c => ['masters', 'uk-open', 'matchplay'].includes(c.eventId));
   assert.ok(tv.every(c => q.gsod.includes(c.id)));
@@ -1451,6 +1452,33 @@ test('New Star Darts v37: echte Preistabellen aller PDC-Events 2026 (Summe = Pre
   assert.equal(sum('plf') + 95 + 90 + 85 + 80 + 16 * N.STAR_PRIZE_WIN.pln, 1250);
   assert.equal(N.starPrizeTable('wm').L128, 15); assert.equal(N.starPrizeTable('masters').L32, 5); assert.equal(N.starPrizeTable('matchplay').L32, 12.5);
   assert.equal(N.starPrizeTable('pc').L128, undefined); assert.equal(N.starPrizeTable('ukopen').L160, undefined);   // dort gibt es nichts
+});
+
+test('New Star Darts v38: Grand Slam 48 Spieler (16 Dreiergruppen), Masters-Vorrunde mit Geld ab Letzte 64, Premier League Platz 5–8', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), M = await import('../js/majors.js'), D = await import('../data/tournaments.js'), C = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
+  // Grand Slam: 16 Gruppen à 3, 3 Spieltage mit je 16 Spielen, danach Letzte 32 (16 Spiele)
+  s.date.week = 46;
+  const gs = C.findEvent(s, 'gsod', 2026, 46) ?? D.CALENDAR.find(e => e.id === 'gsod'), g = T.runAITournament(s, gs, 0);
+  assert.equal(g.fieldSize, 48); assert.equal(g.groups.length, 16);
+  assert.deepEqual(g.rounds.map(r => r.matches.length), [16, 16, 16, 16, 8, 4, 2, 1]);
+  const cnt = k => Object.values(g.places).filter(p => p === k).length;
+  assert.equal(cnt('G3'), 16); assert.equal(cnt('L32'), 16); assert.equal(cnt('L16'), 8); assert.equal(cnt('W'), 1);
+  const t = N.starPrizeTable('gsod');
+  assert.equal(t.W + t.F + 2 * t.SF + 4 * t.QF + 8 * t.L16 + 16 * t.L32 + 16 * t.G3, 1000);
+  // Masters-Vorrunde: Geld erst in der K.-o.-Phase (Letzte 64/32/16), Gruppenphase ohne; 8 Qualifikanten
+  s.date.week = 4;
+  const mq = C.findEvent(s, 'masters-q', 2026, 4) ?? D.CALENDAR.find(e => e.id === 'masters-q'), q = T.runAITournament(s, mq, 0);
+  assert.deepEqual(q.prizes, { L16: 2.5, L32: 1, L64: 0.75 });
+  const pc = k => Object.values(q.places).filter(p => p === k).length;
+  assert.equal(pc('L64'), 32); assert.equal(pc('L32'), 16); assert.equal(pc('L16'), 8); assert.equal(pc('QUAL'), 8); assert.ok(pc('NQ') > 0);
+  // Premier League: Platz 5–8 der Tabelle werden ausgezahlt (95/90/85/80), Spieler auf Platz 7 → 85
+  const ids = Object.values(s.world.players).filter(p => p.tier === 'tour').slice(0, 7).map(p => p.id);
+  s.pl = { 2026: { players: [...ids, 'P'], points: Object.fromEntries([...ids, 'P'].map((id, i) => [id, 30 - (id === 'P' ? 5 : i)])), legs: {}, nights: 16 } };
+  s.date.week = 22; const st0 = s.stars;
+  T.runAITournament(s, C.findEvent(s, 'pl-final', 2026, 22) ?? D.CALENDAR.find(e => e.id === 'pl-final'), 0);
+  assert.equal(M.plTable(s).findIndex(x => x.id === 'P') + 1, 7); assert.equal(s.stars - st0, 85); assert.equal(s.results[0].place, 'P7');
+  assert.equal(T.placeLabel('L128', 'major', 'wm'), 'Letzte 128'); assert.equal(T.placeLabel('L128', 'major', 'uk-open'), 'Runde 2');
 });
 
 console.log(`\n${n} Tests ok`);

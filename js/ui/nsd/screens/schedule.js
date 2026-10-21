@@ -20,7 +20,7 @@ export function render(app) {
       <div class="evs">${evs.map(e => {
         const r = res.find(x => x.week === week && (x.eventId === e.id || x.name.startsWith(e.name.split(' & ')[0])));
         const ok = !past && eligibility(s, e).ok;
-        const tag = r ? `<span class="res">${esc(placeLabel(r.place, r.cat))}${r.stars ? ` ${coin(r.stars)}` : ''}</span>`
+        const tag = r ? `<span class="res">${esc(placeLabel(r.place, r.cat, r.eventId))}${r.stars ? ` ${coin(r.stars)}` : ''}</span>`
           : past ? '' : `<span class="st ${ok ? 'ok' : ''}">${ok ? 'offen' : 'nicht qualifiziert'}</span>`;
         return `<div class="ev"><span class="nm">${flag(e.country)} ${esc(e.name)}</span>${tag}</div>`;
       }).join('')}</div></div>`;

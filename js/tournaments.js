@@ -14,7 +14,7 @@ import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek, nsdBlocked } from './calendar.js';
 import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches, buildUkOpenRounds, ukOpenMatches } from './bracket.js';
-import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
+import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, plTable, plState, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
 import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
@@ -27,7 +27,7 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
-import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT,
+import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
@@ -103,10 +103,13 @@ export function eventStatus(state, ev, n = null) {
 
 const PLACE_LABEL = {
   W: 'Sieger', F: 'Finale', SF: 'Halbfinale', QF: 'Viertelfinale', L16: 'Achtelfinale', L32: 'Letzte 32',
-  L64: 'Letzte 64', L96: 'Runde 3', L128: 'Runde 2', L160: 'Runde 1', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
+  L64: 'Letzte 64', L96: 'Letzte 96', L128: 'Letzte 128', L160: 'Letzte 160', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
   QUAL: 'Qualifiziert', NQ: 'Nicht qualifiziert', G2: 'Gruppenphase (2.)', G3: 'Gruppenphase (3.)', G4: 'Gruppenphase (4.)',
+  P5: 'Premier League: 5. Platz', P6: 'Premier League: 6. Platz', P7: 'Premier League: 7. Platz', P8: 'Premier League: 8. Platz',
 };
-export const placeLabel = (k, cat) => (k === 'L64' && cat === 'et' ? 'Letzte 48' : PLACE_LABEL[k] ?? k);   // ET: 1. Runde = Letzte 48
+const UK_LABEL = { L96: 'Runde 3', L128: 'Runde 2', L160: 'Runde 1' };
+// ET: 1. Runde = Letzte 48; UK Open: Runde 1–3 (evId = Event-ID)
+export const placeLabel = (k, cat, evId) => (k === 'L64' && cat === 'et' ? 'Letzte 48' : evId === 'uk-open' && UK_LABEL[k]) || PLACE_LABEL[k] || k;
 
 const fmtKey = (ev, sub = 0) => ev.subFmts?.[sub] ?? ev.fmt ?? ev.cat;
 // Ranglisten, in die das Preisgeld fließt
@@ -286,9 +289,9 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     const rest = field.slice(4), pots = [0, 1, 2].map(k => rng.shuffle(rest.slice(k * 12, k * 12 + 12)));
     groups = Array.from({ length: 12 }, (_, g) => pots.map(p => p[g]).filter(Boolean)).filter(g => g.length);
     rounds = buildPrelimRounds(groups, fmt, 16, 'Gruppenphase · Spieltag');
-  } else if (ev.groups) {        // Grand Slam: 4 Töpfe à 8 → 8 Gruppen
-    const pots = [0, 1, 2, 3].map(k => rng.shuffle(field.slice(k * 8, k * 8 + 8)));
-    groups = Array.from({ length: 8 }, (_, g) => pots.map(p => p[g]).filter(Boolean));
+  } else if (ev.groups) {        // Grand Slam (48 Spieler): 3 Töpfe à 16 → 16 Dreiergruppen, Top 2 → Letzte 32
+    const pots = [0, 1, 2].map(k => rng.shuffle(field.slice(k * 16, k * 16 + 16)));
+    groups = Array.from({ length: 16 }, (_, g) => pots.map(p => p[g]).filter(Boolean));
     rounds = buildGroupRounds(groups, fmt);
   } else if (fk === 'ukopen') ({ rounds, entry: ukEntry } = buildUkOpenRounds(field, fmt, rng));   // gestaffelter Einstieg
   else rounds = buildRounds(field, fmt);
@@ -713,7 +716,7 @@ function settle(state, inst) {
   const year = state.date.year;
   for (const id of ids) {
     const place = survivors.includes(id) ? (inst.cards ? 'CARD' : inst.stopAt > 1 ? 'QUAL' : 'W')
-      : inst.isQualifier ? 'NQ' : ((inst.groups && groupPlace(inst.rounds, inst.groups, id, inst.teams ? 1 : 2)) || placeOf(inst.rounds, id));
+      : inst.isQualifier ? (inst.cat === 'mastersq' && placeOf(inst.rounds, id)) || 'NQ' : ((inst.groups && groupPlace(inst.rounds, inst.groups, id, inst.teams ? 1 : 2)) || placeOf(inst.rounds, id));
     (inst.places ??= {})[id] = place;
     let prize = inst.prizes[place] ?? 0;
     if (inst.teams && id === 'P') prize = Math.round(prize * teamPrizeShare);   // World Cup: Preisgeld wird geteilt
@@ -745,10 +748,22 @@ function settle(state, inst) {
     rivalTitle(state, inst, survivors[0]);
   }
   if (inst.fmt === 'pln') scorePlNight(state, inst);
+  if (inst.fmt === 'plf') plLeaguePayout(state);
   if (inst.cards) {                                          // Q-School: Tourcards
     for (const id of survivors) awardCard(state, id, year + 1, `${inst.baseName} ${year}`);
     addNews(state, 'draw', `${inst.name}: Tourcards vergeben`, survivors.map(id => getPlayer(state, id).name).join(', '));
   }
+}
+
+// Premier League: Platz 5–8 der Tabelle (ohne Play-offs) bekommen Geld – relevant, wenn der Spieler dabei ist und dort landet
+function plLeaguePayout(state) {
+  if (state.mode !== 'nsd' || !plState(state).players?.includes('P')) return;
+  const rank = plTable(state).findIndex(x => x.id === 'P') + 1, base = PL_LEAGUE_PAY[rank];
+  if (!base) return;
+  const gross = starPayout(base, state.player.star.level), net = gross - managerCut(state, gross);
+  state.stars = (state.stars ?? 0) + net;
+  state.results.unshift({ year: state.date.year, week: state.date.week, eventId: 'pl-final', name: 'Premier League', cat: 'pl', place: `P${rank}`, prize: 0, stars: net });
+  addNews(state, 'result', `Premier League: ${rank}. Platz`, `Platz ${rank} der Tabelle bringt ${net} ★ – für die Play-offs hat es nicht gereicht.`);
 }
 
 export function awardCard(state, id, until, via) {
@@ -788,7 +803,7 @@ function finishEvent(state, inst) {
   }
   if (nsd) nsdEventEnd(state, inst);
   else {
-    if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place, inst.cat)})`, 'prize');
+    if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place, inst.cat, inst.eventId)})`, 'prize');
     sponsorEventPayout(state, inst);
     titleMilestones(state, inst);
     addEventFatigue(state, inst);
@@ -824,7 +839,7 @@ function finishEvent(state, inst) {
   if (nsd) eventArticle(state, inst, place);
   if (place !== 'W' && place !== 'CARD') {
     const wTxt = inst.winner ? ` Turniersieger: ${getPlayer(state, inst.winner).name}.` : '';
-    addNews(state, 'result', `${inst.name}: ${placeLabel(place, inst.cat)}`, `${wTxt.trim()}${money ? ` Preisgeld: ${money}.` : ''}`.trim());
+    addNews(state, 'result', `${inst.name}: ${placeLabel(place, inst.cat, inst.eventId)}`, `${wTxt.trim()}${money ? ` Preisgeld: ${money}.` : ''}`.trim());
   }
 }
 
@@ -891,7 +906,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     const nsd = state.mode === 'nsd';
     if (nsd) nsdEventEnd(state, inst);
     else {
-      if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place, inst.cat)})`, 'prize');
+      if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place, inst.cat, inst.eventId)})`, 'prize');
       sponsorEventPayout(state, inst);
       titleMilestones(state, inst);
       addEventFatigue(state, inst);
@@ -900,7 +915,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: nsd ? 0 : inst.prize, stars: inst.stars ?? 0 });
     if (nsd) checkAchievements(state);
     const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : inst.prize ? fmtEUR(inst.prize) : '';
-    addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place, inst.cat)} (automatisch simuliert)`, money ? `Preisgeld: ${money}.` : '');
+    addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place, inst.cat, inst.eventId)} (automatisch simuliert)`, money ? `Preisgeld: ${money}.` : '');
     if (nsd) eventArticle(state, inst, inst.place);
   }
   return inst;

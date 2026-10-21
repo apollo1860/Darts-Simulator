@@ -137,7 +137,7 @@ export const CALENDAR = [
   { id: 'ec', cat: 'major', fmt: 'ec', name: 'European Championship', week: 42, city: 'Dortmund', country: 'DE', note: 'Top 32 der European-Tour-Wertung' },
   { id: 'youth-wm', cat: 'dev', fmt: 'youth', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24 · zählt nicht zur Dev-OOM', noOom: true },
   { id: 'gs-quali', cat: 'major', fmt: 'gsq', name: 'Grand Slam Tour Card Holder Qualifier', week: 45, city: 'Wigan', country: 'ENG', noOom: true, note: 'Tourcard-Holder ohne direkten Grand-Slam-Platz · alle Restplätze' },
-  { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '32 Spieler: TV-Finalisten, Pro-Tour-Titel, Nebentouren, Qualifier · Gruppenphase + K.-o.' },
+  { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '48 Spieler in 16 Dreiergruppen: TV-Finalisten, Pro-Tour-Titel, Nebentouren, Qualifier · Gruppenphase + K.-o. (Top 2)' },
   { id: 'pcf', cat: 'major', fmt: 'pcf', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG', note: 'Top 64 der Players-Championship-OOM' },
   { id: 'wm-quali', cat: 'major', fmt: 'wmq', name: 'PDC Tour Card Holder Qualifier (WM)', week: 49, city: 'Milton Keynes', country: 'ENG', noOom: true, note: 'Last Chance: Tourcard-Holder ohne WM-Platz · alle Restplätze (mind. 2)' },
   // Internationale WM-Qualifier (je Region, nur ohne Tourcard; laufen sonst im Hintergrund)

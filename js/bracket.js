@@ -85,14 +85,15 @@ export function placeOf(rounds, id) {
   return null;
 }
 
-// ---- Gruppenphase (Grand Slam): Gruppen à 4, jeder gegen jeden, Top 2 → K.-o. ----
-const GROUP_DAYS = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
+// ---- Gruppenphase (Grand Slam): Gruppen à 3 (ab 2026: 16 Gruppen) oder 4, jeder gegen jeden, Top 2 → K.-o. ----
+const GROUP_DAYS = { 3: [[[0, 1]], [[0, 2]], [[1, 2]]], 4: [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]] };
 export const GROUP_NAMES = 'ABCDEFGH';
 
 export function buildGroupRounds(groups, fmt) {
-  const rounds = GROUP_DAYS.map((day, d) => ({
-    name: `Gruppenphase · Spieltag ${d + 1}`, remaining: groups.length * 4, isGroup: true, format: fmt.group,
-    matches: groups.flatMap((g, gi) => day.map(([x, y]) => ({ a: g[x], b: g[y], winner: null, score: null, group: gi }))),
+  const size = Math.max(...groups.map(g => g.length)) >= 4 ? 4 : 3;
+  const rounds = GROUP_DAYS[size].map((day, d) => ({
+    name: `Gruppenphase · Spieltag ${d + 1}`, remaining: groups.length * size, isGroup: true, format: fmt.group,
+    matches: groups.flatMap((g, gi) => day.filter(([x, y]) => g[x] && g[y]).map(([x, y]) => ({ a: g[x], b: g[y], winner: null, score: null, group: gi }))),
   }));
   for (let rem = groups.length * 2; rem > 1; rem /= 2) {
     rounds.push({ name: fmt.sections ? (rem / 2 === fmt.stopAt ? 'Entscheidungsspiel' : `Runde ${rounds.length + 1}`) : ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
