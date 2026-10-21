@@ -5,11 +5,11 @@ import { overall } from './player.js';
 
 export const OOM_TYPES = {
   pdc: { label: 'PDC Order of Merit', short: 'PDC', years: 2, cards: 64 },
-  protour: { label: 'Pro Tour OOM', short: 'Pro Tour', years: 1 },
-  pco: { label: 'Players Championship OOM', short: 'PC', years: 1, hidden: true },   // nur Players Championships (→ PC Finals)
+  protour: { label: 'Pro Tour OOM', short: 'Pro Tour', years: 2 },
+  pco: { label: 'Players Championship OOM', short: 'PC', years: 2, hidden: true },   // nur Players Championships (→ PC Finals)
   challenge: { label: 'Challenge Tour OOM', short: 'Challenge', years: 1, cards: 2 },
   dev: { label: 'Development Tour OOM', short: 'Dev', years: 1, cards: 2 },
-  eto: { label: 'European Tour OOM', short: 'ET', years: 1, hidden: true },
+  eto: { label: 'European Tour OOM', short: 'ET', years: 2, hidden: true },
   ws: { label: 'World Series', short: 'WS', years: 1, hidden: true },
 };
 
@@ -58,9 +58,13 @@ export const rankOf = (state, type, id, year) => orderOfMerit(state, type, year)
 // Startwerte PDC OOM (Saisons vor Karrierestart), damit die erste Rangliste nicht leer ist.
 // Top 64 nach Listenreihenfolge (≈ 2,8 Mio. € · Rang^−0,8), übrige 2026er Tour-Spieler 30–150 Tsd. €.
 export function seedRankings(state, rng, startYear) {
+  // PDC-Preisgeld der 2 Vorjahre; Pro Tour (~40 %), ET (~15 %) und Players Championships (~25 %) als Anteil davon (alle 2 Jahre rollierend)
   const add = (id, total) => {
-    addMoney(state, 'pdc', id, Math.round(total * 0.4 / 50) * 50, startYear - 2);
-    addMoney(state, 'pdc', id, Math.round(total * 0.6 / 50) * 50, startYear - 1);
+    for (const [type, share] of [['pdc', 1], ['protour', 0.4], ['eto', 0.15], ['pco', 0.25]]) {
+      const t = total * share * (type === 'pdc' ? 1 : rng.float(0.6, 1.4));
+      addMoney(state, type, id, Math.round(t * 0.4 / 50) * 50, startYear - 2);
+      addMoney(state, type, id, Math.round(t * 0.6 / 50) * 50, startYear - 1);
+    }
   };
   for (const p of Object.values(state.world.players)) {
     const n = +p.id.slice(1);
