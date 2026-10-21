@@ -9,7 +9,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 33;
+export const APP_VERSION = 34;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -86,7 +86,7 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
   s.stars = START_STARS;
   // Vorbelegte Ranglisten (€) → Basis-★
   for (const yr of Object.values(s.rankings.years ?? {})) for (const t of Object.values(yr))
-    for (const id in t) t[id] = Math.round(t[id] / EUR_PER_STAR * 10) / 10;
+    for (const id in t) t[id] = Math.round(t[id] / EUR_PER_STAR * 100) / 100;
   syncAttrs(p);
   setGoals(s);
   nameTeam(s);

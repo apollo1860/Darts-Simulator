@@ -43,6 +43,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Arena-Look** (Version 31): `.bg-green` = dunkle Bühne (Klassenname historisch), Dach = Lichttraverse, `.nsd-rail` = LED-Bande, `.nsd-grass` = Bühnenboden mit Oche. Shop-Grafiken `flightIcon(tier)`/`barrelIcon()` in frame.js. Menüpunkt `league` heißt „Ranglisten“.
 - **Layout & Artikel** (Version 32): `.nsd` immer 100dvh, `.nsd-main` scrollt (untere Leiste fix). Website-Artikel `js/articles.js` (`titleArticle`, `finalArticle`, `wmTicketArticle`, `rankArticle` mit `flags.rankArticle`, `nineArticle`, `starArticle`, `cardArticle`, `plArticle`) → `state.articles` + News-Typ `article`; Screen `news` mit `{article:true, back}` zeigt die Warteschlange (✔ = nächster), `continueWeek` in weekly.js.
 - **Buttons** (Version 33): Weiter/✔/Zurück immer über `arrowIcon(left?)`/`checkIcon()` aus frame.js (SVG), nie Emoji.
+- **Startliste & 2-Jahres-OOM** (Version 34): `START_OOM_2026` (95 Plätze, ★ = Tsd. £) → `seedRankings`; `moneyOf` für `years: 2`: Jahr + Vorjahr + Vor-Vorjahr × `oldYearWeight` (KW 3 = 1 … KW 52 = 0). Bei Gleichstand steht der Spieler hinten. Shop-Grafiken: `js/ui/nsd/art/` (`lifeArt(id)`; `art(id, viewBox, draw)` mit `lin`/`rad`-Verläufen, BOX 100×100, WIDE 160×100).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

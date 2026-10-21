@@ -2,6 +2,7 @@
 // state.rankings.years[year][type][id] = Betrag
 import { playersOfTier, nonCardPros, DEV_MAX_AGE } from './world.js';
 import { overall } from './player.js';
+import { START_OOM_2026 } from '../data/players.js';
 
 export const OOM_TYPES = {
   pdc: { label: 'PDC Order of Merit', short: 'PDC', years: 2, cards: 64 },
@@ -39,37 +40,38 @@ export function devHolders(state, year = state.date.year) {
   return orderOfMerit(state, 'pdc', year).filter(x => x.rank > 64 && x.p.age <= DEV_MAX_AGE).map(x => x.p);
 }
 
+// 2-Jahres-Wertungen (PDC wie echt): Vorjahr voll, das Jahr davor läuft im Verlauf der Saison aus
+// (zu Saisonbeginn KW 3 = 100 %, KW 52 = 0 %) → die Startliste zeigt die vollen 2 Jahre, am Saisonende zählen genau 2 Saisons.
+export const oldYearWeight = (state, year) => (year === state.date.year ? Math.max(0, 1 - Math.max(0, state.date.week - 3) / 49) : 0);
 export function moneyOf(state, type, id, year = state.date.year) {
-  let sum = 0;
-  for (let y = year - OOM_TYPES[type].years + 1; y <= year; y++) sum += state.rankings.years?.[y]?.[type]?.[id] ?? 0;
-  return sum;
+  const b = y => state.rankings.years?.[y]?.[type]?.[id] ?? 0;
+  return OOM_TYPES[type].years < 2 ? b(year) : b(year) + b(year - 1) + oldYearWeight(state, year) * b(year - 2);
 }
 
-// Sortiert nach Preisgeld; Gleichstand (z. B. noch keine Turniere) → Spielstärke
+// Sortiert nach Preisgeld; Gleichstand (z. B. noch keine Turniere) → Spielstärke (der Spieler steht bei Gleichstand hinten)
 export function orderOfMerit(state, type, year = state.date.year) {
   const list = members(state, type, year).map(p => ({ p, money: moneyOf(state, type, p.id, year), ovr: overall(p.attrs) }));
   // Spieler mit Preisgeld, die nicht mehr im Teilnehmerkreis sind (z. B. Karte gewonnen), bleiben sichtbar
-  list.sort((a, b) => b.money - a.money || b.ovr - a.ovr);
+  list.sort((a, b) => b.money - a.money || (a.p.id === 'P') - (b.p.id === 'P') || b.ovr - a.ovr);   // bei Gleichstand: Spieler zuletzt, sonst nach Stärke
   return list.map((x, i) => ({ ...x, rank: i + 1 }));
 }
 
 export const rankOf = (state, type, id, year) => orderOfMerit(state, type, year).find(x => x.p.id === id)?.rank ?? null;
 
 // Startwerte PDC OOM (Saisons vor Karrierestart), damit die erste Rangliste nicht leer ist.
-// Top 64 nach Listenreihenfolge (≈ 2,8 Mio. € · Rang^−0,8), übrige 2026er Tour-Spieler 30–150 Tsd. €.
+// Top 64 + auslaufende Karten (Plätze 65–95) laut echter Startliste START_OOM_2026 (Tsd. £ = ★); Neuzugänge ohne PDC-Preisgeld.
 export function seedRankings(state, rng, startYear) {
   // PDC-Preisgeld der 2 Vorjahre; Pro Tour (~40 %), ET (~15 %) und Players Championships (~25 %) als Anteil davon (alle 2 Jahre rollierend)
   const add = (id, total) => {
     for (const [type, share] of [['pdc', 1], ['protour', 0.4], ['eto', 0.15], ['pco', 0.25]]) {
-      const t = total * share * (type === 'pdc' ? 1 : rng.float(0.6, 1.4));
-      addMoney(state, type, id, Math.round(t * 0.4 / 50) * 50, startYear - 2);
-      addMoney(state, type, id, Math.round(t * 0.6 / 50) * 50, startYear - 1);
+      const t = total * share * (type === 'pdc' ? 1 : rng.float(0.6, 1.4)), old = Math.round(t * 0.4 / 50) * 50;
+      addMoney(state, type, id, old, startYear - 2);          // dieser Anteil läuft im Lauf der Saison aus
+      addMoney(state, type, id, Math.round(t) - old, startYear - 1);
     }
   };
   for (const p of Object.values(state.world.players)) {
-    const n = +p.id.slice(1);
-    if (p.id[0] === 'T') add(p.id, 2800000 * Math.pow(n, -0.8));
-    else if (p.id[0] === 'X' || p.id[0] === 'N') add(p.id, rng.float(30000, 150000) * (p.id[0] === 'N' ? 0.4 : 1));
+    const n = +p.id.slice(1), k = p.id[0] === 'T' ? n - 1 : p.id[0] === 'X' ? 63 + n : -1;   // Platz − 1 in der Startliste
+    if (k >= 0 && START_OOM_2026[k]) add(p.id, START_OOM_2026[k][1] * 1000);
   }
   state.rankings.seeded = true;
 }

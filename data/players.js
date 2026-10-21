@@ -62,6 +62,34 @@ export const TOUR_NEW_2026 = [
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
 export const QSCHOOL_UK_2026 = ['Rhys Griffin', 'Adam Leek', 'Carl Sneyd', 'Niall Culleton', 'Tom Sykes', 'Shane McGuirk', 'Charlie Manby',
   'Samuel Price', 'Stephen Burton', 'Mervyn King', 'Tyler Thorpe', 'Stephen Rosney', 'David Sharp'];
+// PDC Order of Merit (gesamt, 2 Jahre) zu Beginn der Saison 2026 in Tsd. £ = Basis-★ (1 ★ = 1.000). Reihenfolge = Platz 1–95:
+// Plätze 1–64 = TOUR_TOP64 (T1–T64), 65–95 = TOUR_EXPIRING (X1–X31); Neu-2026-Spieler (N) hatten noch kein PDC-Preisgeld.
+export const START_OOM_2026 = [
+  ['Luke Littler', 2770.5], ['Luke Humphries', 1172], ['Gian van Veen', 912.5], ['Michael van Gerwen', 691.25],
+  ['Jonny Clayton', 625], ['Gary Anderson', 609.5], ['Stephen Bunting', 593.75], ['Ryan Searle', 568],
+  ['Josh Rock', 555.5], ['Danny Noppert', 550.75], ['James Wade', 544.25], ['Gerwyn Price', 521],
+  ['Chris Dobey', 505.25], ['Nathan Aspinall', 460], ['Martin Schindler', 458.25], ['Ross Smith', 447.75],
+  ['Damon Heta', 439], ['Jermaine Wattimena', 423], ['Mike De Decker', 413.5], ['Rob Cross', 389],
+  ['Luke Woodhouse', 383], ['Dave Chisnall', 362.5], ['Daryl Gurney', 346.5], ['Ryan Joyce', 345],
+  ['Dimitri Van den Bergh', 335.25], ['Cameron Menzies', 325.25], ['Ritchie Edhouse', 324], ['Krzysztof Ratajski', 322.5],
+  ['Wessel Nijman', 320.75], ['Dirk van Duijvenbode', 319.75], ['Peter Wright', 311.5], ['Michael Smith', 303.5],
+  ['Andrew Gilding', 300], ['Ricardo Pietreczko', 293], ['Joe Cullen', 275], ['Raymond van Barneveld', 246],
+  ['Martin Lukeman', 226.5], ['Kevin Doets', 219], ['Callan Rydz', 189], ['Ricky Evans', 188],
+  ['Brendan Dolan', 183.25], ['Niels Zonneveld', 182.75], ['William O\'Connor', 182.25], ['Scott Williams', 173.75],
+  ['Madars Razma', 162.5], ['Mickey Mansell', 159.25], ['Gabriel Clemens', 154.25], ['James Hurrell', 147],
+  ['Connor Scutt', 144.75], ['Justin Hood', 139.75], ['Jeffrey de Graaf', 139.5], ['Ian White', 134.5],
+  ['Alan Soutar', 131.5], ['Niko Springer', 129.75], ['Mensur Suljovic', 127.75], ['Ryan Meikle', 125.5],
+  ['Richard Veenstra', 117.25], ['Keane Barry', 116.25], ['Nick Kenny', 114.5], ['Kim Huybrechts', 108],
+  ['Thibault Tricole', 106.25], ['Lukas Wenig', 101.25], ['Rob Owen', 95.5], ['Mario Vandenbogaerde', 94.75],
+  ['Karel Sedlacek', 83], ['Bradley Brooks', 78.75], ['Cam Crabtree', 73], ['Wesley Plaisier', 68.5],
+  ['Sebastian Bialecki', 63.75], ['Max Hopp', 58.25], ['Adam Lipscombe', 56.75], ['Dominik Gruellich', 44.25],
+  ['Cor Dekker', 41.25], ['Maik Kuivenhoven', 26], ['Andy Boulton', 26], ['Tavis Dudeney', 24.5],
+  ['Oskar Lukasiak', 24.5], ['Darryl Pilgrim', 24.25], ['Tom Bissell', 20.25], ['Christian Kist', 20],
+  ['Leon Weber', 19.75], ['Dennie Olde Kalter', 18.5], ['Jim Long', 17.25], ['Thomas Lovely', 17.25],
+  ['Marvin van Velzen', 17.25], ['Viktor Tingstrom', 16], ['Adam Warner', 15.5], ['Greg Ritchie', 13.5],
+  ['Adam Paxton', 11.75], ['Maximilian Czerwinski', 11.25], ['Tytus Kanik', 9.25], ['Stefaan Henderyck', 8.5],
+  ['Rusty-Jake Rodriguez', 7.5], ['Pero Ljubic', 5.25], ['Kai Gotthardt', 5],
+];
 export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
 
 // --- Challenge Tour (nur ohne Tourcard): Nutzerliste CT-OOM, Plätze 1–75 ---

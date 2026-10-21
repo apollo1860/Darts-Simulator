@@ -1396,4 +1396,21 @@ test('New Star Darts v32: Website-Artikel zu besonderen Ereignissen', async () =
   const old = newCareer({ name: 'Old', nation: 'DE', seed: 1 }); A.plArticle(old); assert.equal(old.articles, undefined);
 });
 
+test('New Star Darts v34: echte PDC-Startliste 2026 (★), 2-Jahres-Wertung läuft im Jahr aus', async () => {
+  const N = await import('../js/nsd.js'), R = await import('../js/rankings.js'), P = await import('../data/players.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
+  const norm = x => x.replace(/ü/g, 'ue').replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter((t, i, a) => i === 0 || i === a.length - 1).map((t, i) => (i ? t : t.slice(0, 3))).join(' ');
+  const list = R.orderOfMerit(s, 'pdc');
+  assert.equal(P.START_OOM_2026.length, 95);
+  P.START_OOM_2026.forEach(([name, val], i) => {
+    const x = list.find(y => norm(y.p.name) === norm(name));                      // Gleichstände sortieren nach Stärke
+    assert.ok(x, name); assert.ok(Math.abs(x.money - val) < 0.06, `${name}: ${x.money} ≠ ${val}`);
+    assert.ok(Math.abs(list[i].money - val) < 0.06, `Platz ${i + 1}`);
+  });
+  assert.ok(list.slice(95, 128).every(x => x.money === 0)); assert.equal(R.rankOf(s, 'pdc', 'P'), 129);
+  const lit = list[0].p.id, full = R.moneyOf(s, 'pdc', lit);
+  s.date.week = 28; const mid = R.moneyOf(s, 'pdc', lit); s.date.week = 52; const end = R.moneyOf(s, 'pdc', lit);
+  assert.ok(mid < full && mid > end); assert.ok(Math.abs(end / full - 0.6) < 0.01);       // am Saisonende nur noch 2025 (60 %)
+});
+
 console.log(`\n${n} Tests ok`);

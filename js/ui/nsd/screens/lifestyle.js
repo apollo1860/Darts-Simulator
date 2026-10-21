@@ -1,6 +1,7 @@
 // Lifestyle-Shop: Gegenstände, Fahrzeuge, Immobilien einmalig kaufen (Lifestyle, Zufriedenheit, Immobilien: Energie-Erholung)
 import { LIFESTYLE, LIFESTYLE_CATS } from '../../../../data/lifestyle.js';
 import { fmtNum } from '../../../util.js';
+import { lifeArt } from '../art/index.js';
 import { itemPrice, buyItem, lifestyleOf, homeRegen } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
@@ -19,8 +20,9 @@ export function render(app) {
       <div class="nsd-strip"><span></span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       <div class="nsd-evs">${LIFESTYLE.filter(x => x.cat === cat).map(it => {
         const own = p.owned?.includes(it.id);
-        return `<div class="nsd-ev ${own ? 'on' : ''}">
-          <div class="nsd-ev-main"><div class="nsd-ev-name">${it.icon} ${it.name}</div>
+        return `<div class="nsd-ev nsd-ls ${it.cat === 'home' ? 'home' : ''} ${own ? 'on' : ''}">
+          <div class="nsd-ls-art">${lifeArt(it.id) || `<span class="nsd-ls-emoji">${it.icon}</span>`}</div>
+          <div class="nsd-ev-main"><div class="nsd-ev-name">${it.name}</div>
             <div class="nsd-ev-sub">Lifestyle +${fmtNum(it.ls, 1)} · Zufriedenheit +${it.sat}${it.regen ? ` · Erholung +${it.regen} %` : ''}</div>
             ${own ? '' : `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it, lvl))}</div>`}</div>
           ${own ? '<div class="nsd-ev-why" style="color:#8dff6a">✔ Gehört dir</div>' : `<button class="nsd-btn" data-buy="${it.id}"><span class="lb">Kaufen</span></button>`}
