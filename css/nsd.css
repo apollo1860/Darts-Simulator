@@ -13,15 +13,15 @@ body.nsd-on::before { display: none; }
   display: flex; flex-direction: column; background: #15112a; color: #fff;
   box-shadow: 0 0 30px rgba(0,0,0,.35);
 }
-/* Hallendecke: Lichttraverse mit Scheinwerfern (Darts-Arena) */
+/* Hallendecke: flache Lichttraverse mit Scheinwerfern (Darts-Arena) */
 .nsd-roof {
-  flex: 0 0 56px;
+  flex: 0 0 26px;
   background:
-    radial-gradient(circle at 14px 34px, #fffbe6 0 3px, rgba(255,240,190,.55) 4px, transparent 11px) 0 0 / 56px 56px,
-    radial-gradient(circle at 42px 34px, #fffbe6 0 3px, rgba(150,200,255,.45) 4px, transparent 11px) 0 0 / 56px 56px,
-    linear-gradient(transparent 24px, #3a3556 24px 26px, transparent 26px 42px, #3a3556 42px 44px, transparent 44px),
-    linear-gradient(60deg, transparent 47%, rgba(90,84,130,.6) 48% 52%, transparent 53%) 0 24px / 20px 20px repeat-x,
-    linear-gradient(-60deg, transparent 47%, rgba(90,84,130,.6) 48% 52%, transparent 53%) 0 24px / 20px 20px repeat-x,
+    radial-gradient(circle at 14px 13px, #fffbe6 0 2.6px, rgba(255,240,190,.55) 3.4px, transparent 9px) 0 0 / 56px 26px,
+    radial-gradient(circle at 42px 13px, #fffbe6 0 2.6px, rgba(150,200,255,.45) 3.4px, transparent 9px) 0 0 / 56px 26px,
+    linear-gradient(transparent 7px, #3a3556 7px 9px, transparent 9px 17px, #3a3556 17px 19px, transparent 19px),
+    linear-gradient(60deg, transparent 47%, rgba(90,84,130,.6) 48% 52%, transparent 53%) 0 9px / 8px 8px repeat-x,
+    linear-gradient(-60deg, transparent 47%, rgba(90,84,130,.6) 48% 52%, transparent 53%) 0 9px / 8px 8px repeat-x,
     linear-gradient(#07060f, #1a1530);
 }
 .nsd-crowd {
@@ -32,7 +32,7 @@ body.nsd-on::before { display: none; }
 .nsd-crowd.top { background-image: var(--crowd-top); border-top-color: #222; }
 .nsd-crowd.bottom { background-image: var(--crowd-bottom); border-bottom-color: #222; }
 /* LED-Bande vor der Bühne */
-.nsd-rail { flex: 0 0 14px; background: linear-gradient(90deg, #0b2a4a, #10406e 30%, #6a1050 70%, #0b2a4a); border-top: 2px solid #19d3ff; border-bottom: 1px solid #000; box-shadow: 0 0 10px rgba(25,211,255,.45); }
+.nsd-rail { flex: 0 0 10px; background: linear-gradient(90deg, #0b2a4a, #10406e 30%, #6a1050 70%, #0b2a4a); border-top: 2px solid #19d3ff; border-bottom: 1px solid #000; box-shadow: 0 0 10px rgba(25,211,255,.45); }
 
 .nsd-main { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; }
 .nsd-main > * { flex-shrink: 0; }
@@ -507,11 +507,10 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-edit-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: rgba(0,0,0,.35); border-radius: 6px; padding: 6px 10px; color: #fff; font-weight: 700; }
 .nsd-edit-row input { width: 110px; font: inherit; font-size: 1.05rem; padding: 6px 8px; border-radius: 4px; border: 2px solid #222; text-align: right; }
 .nsd-gfx { vertical-align: middle; margin-right: 4px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
-/* Kleine Bildschirme: Deko oben/unten schmaler, damit mehr Inhalt sichtbar bleibt */
-@media (max-height: 740px) {
-  .nsd-roof { flex-basis: 30px; } .nsd-crowd { flex-basis: 30px; } .nsd-rail { flex-basis: 8px; }
-  .nsd-bar .nsd-btn { min-height: 70px; }
-}
+/* Kleinere Bildschirme: Deko oben/unten schrittweise schmaler, damit der Inhalt ohne Scrollen passt */
+@media (max-height: 830px) { .nsd-crowd { flex-basis: 32px; } .nsd-rail { flex-basis: 8px; } }
+@media (max-height: 780px) { .nsd-roof { flex-basis: 20px; } .nsd-crowd { flex-basis: 26px; } .nsd-bar .nsd-btn { min-height: 74px; } }
+@media (max-height: 700px) { .nsd-roof { flex-basis: 16px; } .nsd-crowd { flex-basis: 22px; } .nsd-bar .nsd-btn { min-height: 66px; } }
 /* Website-Artikel (darts-news.de) */
 .nsd-art-photo { height: 120px; display: flex; align-items: center; justify-content: center;
   background: radial-gradient(ellipse 60% 70% at 50% 0, rgba(255,236,190,.45), transparent 70%), radial-gradient(ellipse at 50% 40%, #3a2f6e, #120e24 75%); }
