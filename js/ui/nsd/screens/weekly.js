@@ -1,6 +1,6 @@
 // Wochen-Update nach „Weiter“: Energie, Sponsoren, Trainer, Nachrichten der Woche
 import { esc } from '../../../util.js';
-import { frame, titleBand, darkBar, coin, bar } from '../frame.js';
+import { frame, titleBand, darkBar, coin, bar, checkIcon } from '../frame.js';
 
 export const nsd = true;
 export function render(app, params = {}) {
@@ -15,7 +15,7 @@ export function render(app, params = {}) {
     cls: 'fixed',
     body: `${titleBand(`Woche ${s.date.week} · ${s.date.year}`)}<div class="nsd-scroll"><div class="nsd-result">${rows}</div>
       ${news.length ? darkBar('Neuigkeiten', 'sm') : ''}${news.map(n => `<div class="nsd-news"><div class="ic">📰</div><div><div class="t">${esc(n.title)}</div>${n.text ? `<div class="x">${esc(n.text)}</div>` : ''}</div></div>`).join('')}</div>`,
-    bottom: bar([null, null, { id: 'w-ok', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    bottom: bar([null, null, { id: 'w-ok', icon: checkIcon(), wide: true }]),
   });
 }
 export function mount(root, app) {

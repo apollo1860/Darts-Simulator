@@ -5,7 +5,7 @@ import { newNsdCareer } from '../../../nsd.js';
 import { saveGame, listSlots } from '../../../state.js';
 import { randomSeed } from '../../../rng.js';
 import { esc } from '../../../util.js';
-import { frame, titleBand, darkBar, bar } from '../frame.js';
+import { frame, titleBand, darkBar, bar, arrowIcon, checkIcon } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
@@ -30,7 +30,7 @@ export function render() {
             `<button class="nsd-btn ${form.hand === h ? 'blue' : ''}" data-h="${h}"><span class="lb">${l}</span></button>`).join('')}</div></div>
       </div>
     </div>`,
-    bottom: bar([{ go: 'slots', icon: '<span style="color:#2bd33a">⬅</span>', label: 'Zurück' }, null, { id: 'p-ok', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    bottom: bar([{ go: 'slots', icon: arrowIcon(true), label: 'Zurück' }, null, { id: 'p-ok', icon: checkIcon(), wide: true }]),
   });
 }
 

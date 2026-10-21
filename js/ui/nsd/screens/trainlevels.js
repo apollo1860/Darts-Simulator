@@ -1,7 +1,7 @@
 // Training einer Fähigkeit: 20 Level mit je 3 Sternen; Level wählen → Minispiel (kostet 55 % Energie)
 import { TRAINABLE, SKILL_LEVELS, skillValue, skillBonus } from '../../../nsd.js';
 import { TRAIN_ENERGY, levelPoints, levelOpen, canTrain, startTraining, nextLevel, decayWarn } from '../../../skilltrain.js';
-import { frame, header, titleBand, meter, heartIcon, starIcon, bar, bindHead } from '../frame.js';
+import { frame, header, titleBand, meter, heartIcon, starIcon, bar, bindHead, arrowIcon } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
@@ -23,8 +23,8 @@ export function render(app, params = {}) {
       <div class="nsd-pager"><button data-k="${TRAINABLE[(idx + 3) % 4].key}">◀ ${TRAINABLE[(idx + 3) % 4].label}</button><button data-k="${TRAINABLE[(idx + 1) % 4].key}">${TRAINABLE[(idx + 1) % 4].label} ▶</button></div>
       <div class="nsd-lvls">${tiles}</div>
       ${(p.idle?.[key] ?? 0) >= decayWarn(p.age) ? `<div class="nsd-warn">⚠️ Seit ${p.idle[key]} Wochen nicht trainiert – Sterne in Gefahr!</div>` : ''}`,
-    bottom: bar([{ go: 'skills', icon: '◀', label: 'Zurück' }, { go: 'drinks', icon: '🍺', label: 'Trinken' },
-      { id: 't-next', icon: '<span style="color:#2bd33a">➡</span>', label: nl ? `Level ${nl}` : 'Alles perfekt', wide: true, disabled: !nl }]),
+    bottom: bar([{ go: 'skills', icon: arrowIcon(true), label: 'Zurück' }, { go: 'drinks', icon: '🍺', label: 'Trinken' },
+      { id: 't-next', icon: arrowIcon(), label: nl ? `Level ${nl}` : 'Alles perfekt', wide: true, disabled: !nl }]),
   });
 }
 

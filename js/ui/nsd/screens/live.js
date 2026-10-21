@@ -13,7 +13,7 @@ import { RNG } from '../../../rng.js';
 import { canSelfPlay, skillEffective } from '../../../nsd.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { confirmDialog } from '../../components.js';
-import { frame, bar, bindHead } from '../frame.js';
+import { frame, bar, bindHead, checkIcon } from '../frame.js';
 
 export const nsd = true;
 const VISIT_MS = 1300, DART_MS = 1000;
@@ -25,7 +25,7 @@ let ui = null;
 
 export function render(app) {
   const inst = app.state.activeEvent, pm = inst && playerMatch(inst);
-  if (!pm || pm.winner) return frame({ body: '<div class="nsd-card">Kein offenes Match.</div>', bottom: bar([null, null, { go: 'event', icon: '✔', wide: true }]) });
+  if (!pm || pm.winner) return frame({ body: '<div class="nsd-card">Kein offenes Match.</div>', bottom: bar([null, null, { go: 'event', icon: checkIcon(), wide: true }]) });
   const round = inst.rounds[inst.current];
   return frame({
     cls: 'fixed', bg: 'grey',

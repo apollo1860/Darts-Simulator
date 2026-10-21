@@ -1,7 +1,7 @@
 // Optionen: Spielstände exportieren / importieren
 import { listSlots, loadGame, exportGame, importGame, saveGame } from '../../../state.js';
 import { esc } from '../../../util.js';
-import { frame, titleBand, bar, darkBar } from '../frame.js';
+import { frame, titleBand, bar, darkBar, arrowIcon } from '../frame.js';
 import { toast } from '../../components.js';
 
 export const nsd = true;
@@ -19,7 +19,7 @@ export function render(app) {
       ${app?.state ? `${darkBar('Aktueller Spielstand')}<button class="nsd-btn" data-go="editor"><span class="ic">🛠️</span><span class="lb">Editor</span></button>` : ''}
       <input type="file" id="o-file" accept="application/json,.json" hidden>
     </div>`,
-    bottom: bar([{ go: 'title', icon: '<span style="color:#2bd33a">⬅</span>', label: 'Zurück' }]),
+    bottom: bar([{ go: 'title', icon: arrowIcon(true), label: 'Zurück' }]),
   });
 }
 export function mount(root, app) {

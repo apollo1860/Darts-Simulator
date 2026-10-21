@@ -2,7 +2,7 @@
 import { esc, fmtNum, surname } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { starPct, starNeed } from '../../../nsd.js';
-import { starMeter, frame, header, titleBand, darkBar, bar, meter, starIcon, heartIcon, bindHead } from '../frame.js';
+import { starMeter, frame, header, titleBand, darkBar, bar, meter, starIcon, heartIcon, bindHead, checkIcon } from '../frame.js';
 import { nameOf } from './tourevent.js';
 import { getPlayer } from '../../../world.js';
 
@@ -11,7 +11,7 @@ const HELP = '<p>Die <b>Note</b> (1–10) ergibt sich aus Average, Checkout-Quot
 
 export function render(app) {
   const s = app.state, inst = s.activeEvent, lm = inst?.lastMatch, p = s.player;
-  if (!lm) return frame({ body: header(p.name), bottom: bar([null, null, { go: 'event', icon: '<span class="nsd-check">✔</span>', wide: true }]) });
+  if (!lm) return frame({ body: header(p.name), bottom: bar([null, null, { go: 'event', icon: checkIcon(), wide: true }]) });
   const a = lm.me, b = lm.opp_;
   const row = (label, x, y) => `<tr><td class="c">${x}</td><td class="c lbl">${label}</td><td class="c">${y}</td></tr>`;
   const pct = v => `${fmtNum((v ?? 0) * 100, 1)} %`;
@@ -36,7 +36,7 @@ export function render(app) {
         <div class="nsd-result-row"><span>Fans</span><b>${lm.fans > 0 ? '+' : ''}${lm.fans}</b></div>
         ${meter({ icon: heartIcon(), label: `Energie ${lm.energy} %`, pct: lm.energy, tone: lm.energy >= 20 ? 'green' : 'red' })}
       </div>`,
-    bottom: bar([null, null, { go: 'event', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    bottom: bar([null, null, { go: 'event', icon: checkIcon(), wide: true }]),
   });
 }
 

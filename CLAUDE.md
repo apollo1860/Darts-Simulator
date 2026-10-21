@@ -42,6 +42,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Zubehör-Shop** (Version 24, `data/accessories.js`, Screen `accessories` über Status → Shop): Boost auf Fähigkeiten für n eigene Matches (`shopOffers` je 12 Wochen neu aus Namenspools, `state.shop`, `buyAccessory`, `player.boosts`, `boostBonus` in `skillBonus`, `useBoosts` nach jedem eigenen Match). Lifestyle-Shop nur noch über Leben.
 - **Arena-Look** (Version 31): `.bg-green` = dunkle Bühne (Klassenname historisch), Dach = Lichttraverse, `.nsd-rail` = LED-Bande, `.nsd-grass` = Bühnenboden mit Oche. Shop-Grafiken `flightIcon(tier)`/`barrelIcon()` in frame.js. Menüpunkt `league` heißt „Ranglisten“.
 - **Layout & Artikel** (Version 32): `.nsd` immer 100dvh, `.nsd-main` scrollt (untere Leiste fix). Website-Artikel `js/articles.js` (`titleArticle`, `finalArticle`, `wmTicketArticle`, `rankArticle` mit `flags.rankArticle`, `nineArticle`, `starArticle`, `cardArticle`, `plArticle`) → `state.articles` + News-Typ `article`; Screen `news` mit `{article:true, back}` zeigt die Warteschlange (✔ = nächster), `continueWeek` in weekly.js.
+- **Buttons** (Version 33): Weiter/✔/Zurück immer über `arrowIcon(left?)`/`checkIcon()` aus frame.js (SVG), nie Emoji.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

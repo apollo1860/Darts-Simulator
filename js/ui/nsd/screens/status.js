@@ -1,7 +1,7 @@
 // Hauptscreen (Status): Star-Status, Energie, Alter, Sterne-Geld, Fähigkeiten/Zufriedenheit/Lifestyle, Tour-Status, Shop, Getränke, Darts
 import { esc } from '../../../util.js';
 import { skillsAvg, SKILL_MAX, starPct, starNeed } from '../../../nsd.js';
-import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead } from '../frame.js';
+import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead, arrowIcon } from '../frame.js';
 
 export const nsd = true;
 const HELP = `<p><b>Ranglisten</b>: Order of Merits, Premier League, Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
@@ -48,7 +48,7 @@ export function render(app) {
       { go: 'league', icon: '🏆', label: 'Ranglisten' },
       { go: 'skills', icon: '🎯', label: 'Fähigkeit' },
       { go: 'life', icon: '👥', label: 'Leben' },
-      { id: 's-play', icon: '<span style="color:#2bd33a">➡</span>', label: 'Spielen' },
+      { id: 's-play', icon: arrowIcon(), label: 'Spielen' },
     ]),
   });
 }

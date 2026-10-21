@@ -6,7 +6,7 @@ import { formatLabel } from '../../../matchEngine.js';
 import { rankOf } from '../../../rankings.js';
 import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../../tournaments.js';
 import { starPct, starNeed, canSelfPlay } from '../../../nsd.js';
-import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead } from '../frame.js';
+import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead, arrowIcon, checkIcon } from '../frame.js';
 
 export const nsd = true;
 const HELP = '<p><b>Spielen</b>: Das Match läuft im DartConnect-Liveticker. Matchdarts, Checks ab 61, Break-Chancen und Entscheidungslegs wirfst du selbst. <b>Simulieren</b>: Ergebnis sofort.</p><p>Unter 20 % Energie wirft die KI für dich – und es wird mit jedem Leg schlechter.</p>';
@@ -54,8 +54,8 @@ export function render(app) {
           ${starMeter(app.state, { starIcon, starPct, starNeed })}
           ${energy}
         </div>${myPath(s, inst)}`,
-      bottom: bar([null, null, inst.hasNext ? { id: 'e-nextsub', icon: '➡', label: 'Nächstes Turnier', wide: true }
-        : { id: 'e-close', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+      bottom: bar([null, null, inst.hasNext ? { id: 'e-nextsub', icon: arrowIcon(), label: 'Nächstes Turnier', wide: true }
+        : { id: 'e-close', icon: checkIcon(), wide: true }]),
     });
   }
   if (pm && !pm.winner) {
@@ -68,7 +68,7 @@ export function render(app) {
           ${lm ? `<div class="nsd-warn ok">Laufendes Match: ${lm.format.sets ? `Sätze ${lm.sets[inst.live.me]}:${lm.sets[1 - inst.live.me]} · ` : ''}Legs ${lm.legs[inst.live.me]}:${lm.legs[1 - inst.live.me]}</div>` : ''}
         </div>${myPath(s, inst)}`,
       bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { id: 'e-sim', icon: '⚡', label: 'Simulieren' },
-        { go: 'live', icon: '<span style="color:#2bd33a">➡</span>', label: lm ? 'Weiterspielen' : 'Spielen', wide: true }]),
+        { go: 'live', icon: arrowIcon(), label: lm ? 'Weiterspielen' : 'Spielen', wide: true }]),
     });
   }
   const lm = inst.lastMatch;

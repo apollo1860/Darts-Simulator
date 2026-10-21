@@ -1,7 +1,7 @@
 // Darts News: Nachrichten-Feed im NSS-Stil; article = Website-Artikel aus state.articles (Titel, Finale, WM-Ticket …) als Browser-Karte
 import { esc } from '../../../util.js';
 import { markAllRead } from '../../../news.js';
-import { frame, header, titleBand, bar, bindHead } from '../frame.js';
+import { frame, header, titleBand, bar, bindHead, checkIcon } from '../frame.js';
 import { continueWeek } from './weekly.js';
 
 export const nsd = true;
@@ -17,7 +17,7 @@ export function render(app, params = {}) {
   if (art) return frame({
     cls: 'fixed',
     body: `${header(s.player.name)}${titleBand('Darts News')}<div class="nsd-scroll">${browser(art, s.articles.length - 1)}</div>`,
-    bottom: bar([null, null, { id: 'n-ok', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    bottom: bar([null, null, { id: 'n-ok', icon: checkIcon(), wide: true }]),
   });
   const rows = s.news.slice(0, 40).map(n => `<div class="nsd-news ${n.read ? '' : 'new'}">
       <div class="ic">${ICON[n.type] ?? '📰'}</div>
@@ -26,7 +26,7 @@ export function render(app, params = {}) {
   return frame({
     cls: 'fixed',
     body: `${header(s.player.name)}${titleBand('Darts News')}<div class="nsd-scroll">${rows || '<div class="nsd-card">Noch keine Nachrichten.</div>'}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { go: 'life', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { go: 'life', icon: checkIcon(), wide: true }]),
   });
 }
 

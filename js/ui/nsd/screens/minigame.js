@@ -7,7 +7,7 @@ import { wave, landInCircle } from '../../../throwModel.js';
 import { TRAINABLE, skillEffective } from '../../../nsd.js';
 import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
-import { frame, titleBand, darkBar, bar, heartIcon, starIcon } from '../frame.js';
+import { frame, titleBand, darkBar, bar, heartIcon, starIcon, arrowIcon } from '../frame.js';
 
 export const nsd = true;
 let g = null;   // Laufzeit-Zustand
@@ -30,7 +30,7 @@ export function render(app, params = {}) {
       <div class="nsd-mg" id="mg"></div>
       <div class="nsd-mg-result hidden" id="res"></div>`,
     bottom: bar([{ id: 'mg-quit', icon: '✖', label: mode === 'practice' ? 'Ende' : 'Aufgeben' }, null,
-      { id: 'mg-act', icon: '<span style="color:#2bd33a">➡</span>', label: 'Los', wide: true }]),
+      { id: 'mg-act', icon: arrowIcon(), label: 'Los', wide: true }]),
   });
 }
 

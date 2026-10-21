@@ -3,14 +3,14 @@ import { esc } from '../../../util.js';
 import { RNG } from '../../../rng.js';
 import { INTERVIEW_QS } from '../../../../data/team.js';
 import { answerInterview } from '../../../career.js';
-import { frame, titleBand, bar } from '../frame.js';
+import { frame, titleBand, bar, checkIcon } from '../frame.js';
 import { toast } from '../../components.js';
 
 export const nsd = true;
 const PLACE = { W: 'Turniersieg', F: 'Finale', SF: 'Halbfinale' };
 export function render(app, params = {}) {
   const iv = app.state.interview;
-  if (!iv) return frame({ body: titleBand('Interview'), bottom: bar([null, null, { id: 'iv-end', icon: '✔', wide: true }]) });
+  if (!iv) return frame({ body: titleBand('Interview'), bottom: bar([null, null, { id: 'iv-end', icon: checkIcon(), wide: true }]) });
   const last = params.last, done = iv.answers.length >= iv.qs.length, q = INTERVIEW_QS[iv.qs[iv.answers.length]];
   return frame({
     body: `${titleBand('🎤 Interview')}<div class="nsd-card nsd-life">
@@ -19,7 +19,7 @@ export function render(app, params = {}) {
       ${done ? `<div class="txt">Danke für das Gespräch!</div><div class="chg"><span>Star-Status +${iv.total}</span></div>`
         : `<div class="txt">„${esc(q.q)}“</div><div class="opts">${q.a.map((a, i) => `<button class="nsd-btn" data-a="${i}"><span class="lb">${esc(a)}</span></button>`).join('')}</div>`}
     </div>`,
-    bottom: done ? bar([null, null, { id: 'iv-end', icon: '<span class="nsd-check">✔</span>', wide: true }]) : '',
+    bottom: done ? bar([null, null, { id: 'iv-end', icon: checkIcon(), wide: true }]) : '',
   });
 }
 export function mount(root, app) {

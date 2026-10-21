@@ -3,7 +3,7 @@ import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { yearSchedule, shownTo } from '../../../calendar.js';
 import { eligibility, placeLabel } from '../../../tournaments.js';
-import { frame, header, titleBand, coin, bar, bindHead } from '../frame.js';
+import { frame, header, titleBand, coin, bar, bindHead, arrowIcon } from '../frame.js';
 
 export const nsd = true;
 const HELP = '<p>Alle Turniere der Saison. <b>Grün</b> = du bist dabei bzw. darfst dich melden, <b>grau</b> = (noch) nicht qualifiziert. Majors, European Tour und Premier League hängen von den Ranglisten ab – die Felder stehen erst in der Turnierwoche fest.</p>';
@@ -28,7 +28,7 @@ export function render(app) {
   return frame({
     cls: 'fixed',
     body: `${header(s.player.name)}${titleBand(`Spielplan ${y}`)}<div class="nsd-scroll" id="sc-scroll">${rows}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'league', icon: '🏆', label: 'Ranglisten' }, { go: 'week', icon: '<span style="color:#2bd33a">➡</span>', label: 'Diese Woche', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'league', icon: '🏆', label: 'Ranglisten' }, { go: 'week', icon: arrowIcon(), label: 'Diese Woche', wide: true }]),
   });
 }
 export function mount(root, app) {

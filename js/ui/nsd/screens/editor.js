@@ -1,6 +1,6 @@
 // Editor: Spielstand künstlich anpassen (Geld, Star-Status, Fähigkeiten, Energie, Zufriedenheit, Beziehungen, Alter, Tourcard)
 import { EDIT_FIELDS, applyEdits } from '../../../nsd.js';
-import { frame, header, titleBand, bar, bindHead } from '../frame.js';
+import { frame, header, titleBand, bar, bindHead, checkIcon } from '../frame.js';
 import { toast } from '../../components.js';
 
 export const nsd = true;
@@ -11,7 +11,7 @@ export function render(app) {
     body: `${header(s.player.name)}${titleBand('Editor')}
       <div class="nsd-edit">${EDIT_FIELDS.map(f => `<label class="nsd-edit-row"><span>${f.label}</span>
         <input type="number" data-k="${f.key}" min="${f.min}" max="${f.max}" step="1" value="${Math.round(f.get(s) * 10) / 10}"></label>`).join('')}</div>`,
-    bottom: bar([{ go: 'hub', icon: '✖', label: 'Abbrechen' }, null, { id: 'e-ok', icon: '<span class="nsd-check">✔</span>', label: 'Übernehmen', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '✖', label: 'Abbrechen' }, null, { id: 'e-ok', icon: checkIcon(), label: 'Übernehmen', wide: true }]),
   });
 }
 export function mount(root, app) {

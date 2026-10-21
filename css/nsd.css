@@ -91,7 +91,7 @@ body.nsd-on::before { display: none; }
 .nsd-btn.row .lb { font-size: 1.4rem; flex: 1; text-align: center; }
 .nsd-btn.on { background: linear-gradient(#6cff4a 0, #35e81a 50%, #12c800 50%, #2bdc12 100%); border-color: #109000; }
 .nsd-btn.blue { background: linear-gradient(#d4d4ff 0, #b9b9f6 50%, #9e9ee8 50%, #b2b2f2 100%); border-color: #7a7ac4; }
-.nsd-check { color: #2bd33a; font-size: 3rem !important; text-shadow: 0 2px 0 #106b16, 0 0 2px #0a4a0e; }
+.nsd-gfx2 { display: block; max-width: 100%; height: auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,.4)); }
 
 /* Untere Leiste */
 .nsd-bar {

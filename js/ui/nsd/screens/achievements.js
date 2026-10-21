@@ -2,7 +2,7 @@
 import { ACHIEVEMENTS, MS_CATS } from '../../../../data/achievements.js';
 import { msStarPoints } from '../../../life.js';
 import { esc } from '../../../util.js';
-import { frame, header, titleBand, bar, bindHead } from '../frame.js';
+import { frame, header, titleBand, bar, bindHead, checkIcon } from '../frame.js';
 
 export const nsd = true;
 export function render(app) {
@@ -17,7 +17,7 @@ export function render(app) {
   return frame({
     cls: 'fixed',
     body: `${header(s.player.name)}${titleBand(`Meilensteine ${n}/${ACHIEVEMENTS.length}`)}<div class="nsd-scroll">${groups}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'stats', icon: '📋', label: 'Statistik' }, { go: 'life', icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'stats', icon: '📋', label: 'Statistik' }, { go: 'life', icon: checkIcon(), wide: true }]),
   });
 }
 export function mount(root, app) {

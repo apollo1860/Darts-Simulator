@@ -6,7 +6,7 @@ import { eventsInWeek, shownTo } from '../../../calendar.js';
 import { eventStatus, enterEvent } from '../../../tournaments.js';
 import { nextWeek } from '../../../season.js';
 import { STAR_PRIZE_WIN, starPayout } from '../../../nsd.js';
-import { frame, header, titleBand, darkBar, bar, coin, bindHead } from '../frame.js';
+import { frame, header, titleBand, darkBar, bar, coin, bindHead, arrowIcon } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
@@ -37,7 +37,7 @@ export function render(app) {
       { go: 'hub', icon: '🏠', label: 'Start' },
       { go: 'calendar', icon: '🗓️', label: 'Spielplan' },
       { go: 'news', icon: '📰', label: 'News' },
-      { id: 'w-next', icon: '<span style="color:#2bd33a">➡</span>', label: 'Weiter' },
+      { id: 'w-next', icon: arrowIcon(), label: 'Weiter' },
     ]),
   });
 }

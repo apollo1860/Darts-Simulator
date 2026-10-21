@@ -17,6 +17,13 @@ export const flightIcon = (tier = 0, size = 34) => { const [a, b] = FLIGHT_COLOR
 export const barrelIcon = (size = 34) => `<svg class="nsd-gfx" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="bg-tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f3f5"/><stop offset=".5" stop-color="#9aa3ad"/><stop offset="1" stop-color="#4b535c"/></linearGradient></defs>
   <g transform="rotate(-35 20 20)"><path d="M3 20 H9" stroke="#c9ced3" stroke-width="2" stroke-linecap="round"/><rect x="9" y="15" width="20" height="10" rx="4" fill="url(#bg-tg)" stroke="#2a2f36" stroke-width="1.4"/>
   ${[13, 16, 19, 22, 25].map(x => `<path d="M${x} 15.6 V24.4" stroke="#2a2f36" stroke-width="1.1" opacity=".7"/>`).join('')}<path d="M29 20 H37" stroke="#cfd5db" stroke-width="3" stroke-linecap="round"/></g></svg>`;
+// Weiter-Pfeil und Häkchen: grüner Glanzverlauf mit dunkler Kontur (links = gespiegelter Pfeil)
+export const arrowIcon = (left = false) => `<svg class="nsd-gfx2" width="60" height="45" viewBox="0 0 56 42" aria-hidden="true"${left ? ' style="transform:scaleX(-1)"' : ''}><defs><linearGradient id="ag-arrow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6f08c"/><stop offset=".5" stop-color="#52b638"/><stop offset="1" stop-color="#2f8a22"/></linearGradient></defs>
+  <path d="M3 14 H31 V3.5 L53 21 L31 38.5 V28 H3 Z" fill="url(#ag-arrow)" stroke="#1d5a12" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M6 16.5 H33.5 V9 L46 19 H6 Z" fill="#fff" opacity=".28"/></svg>`;
+export const checkIcon = () => `<svg class="nsd-gfx2" width="80" height="62" viewBox="0 0 62 48" aria-hidden="true"><defs><linearGradient id="ag-check" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a6ec7a"/><stop offset=".5" stop-color="#4fb335"/><stop offset="1" stop-color="#2a8420"/></linearGradient></defs>
+  <path d="M3 25 L12 18 L22 29 L55 4 L59 8 L25 44 L20 44 Z" fill="url(#ag-check)" stroke="#1d5a12" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M12 20.5 L22 30 L54 6.5 L24 31 Z" fill="#fff" opacity=".3"/></svg>`;
 export const coin = n => `<span class="nsd-coin">${starIcon('', 'sm')}${typeof n === 'number' ? (Math.round(n * 10) / 10).toLocaleString('de-DE') : n}</span>`;
 
 // ---- Bausteine ----
@@ -61,7 +68,7 @@ export function frame({ body, bottom = '', bg = 'green', cls = '' }) {   // cls 
 export function card(text, { okId = 'nsd-ok', left = null } = {}) {
   return frame({
     body: `<div class="nsd-card"><div>${text}</div></div>`,
-    bottom: bar([left, null, { id: okId, icon: '<span class="nsd-check">✔</span>', wide: true }]),
+    bottom: bar([left, null, { id: okId, icon: checkIcon(), wide: true }]),
   });
 }
 

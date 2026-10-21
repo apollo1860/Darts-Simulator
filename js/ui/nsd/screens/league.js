@@ -2,7 +2,7 @@
 import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
-import { frame, bar } from '../frame.js';
+import { frame, bar, arrowIcon } from '../frame.js';
 import { starShow } from '../../../nsd.js';
 import { plTable } from '../../../majors.js';
 import { getPlayer } from '../../../world.js';
@@ -35,7 +35,7 @@ export function render(app) {
       { go: 'hub', icon: '🏠', label: 'Start' },
       { go: 'calendar', icon: '🗓️', label: 'Spielplan' },
       { go: 'tour', icon: '🎫', label: 'Titel' },
-      { go: 'week', icon: '<span style="color:#2bd33a">➡</span>', label: 'Weiter' },
+      { go: 'week', icon: arrowIcon(), label: 'Weiter' },
     ]),
   });
 }

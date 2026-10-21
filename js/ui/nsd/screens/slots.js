@@ -2,7 +2,7 @@
 import { listSlots, loadGame, deleteSlot } from '../../../state.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
-import { frame, titleBand, bar, starIcon, coin } from '../frame.js';
+import { frame, titleBand, bar, starIcon, coin, arrowIcon } from '../frame.js';
 import { confirmDialog, toast } from '../../components.js';
 
 export const nsd = true;
@@ -19,7 +19,7 @@ export function render() {
         <div class="nsd-grid2"><button class="nsd-btn" data-load="${s.slot}"><span class="lb">Laden</span></button>
           <button class="nsd-btn" data-del="${s.slot}"><span class="lb" style="color:#ff6b6b">Löschen</span></button></div>`).join('')}
     </div>`,
-    bottom: bar([{ go: 'title', icon: '<span style="color:#2bd33a">⬅</span>', label: 'Zurück' }]),
+    bottom: bar([{ go: 'title', icon: arrowIcon(true), label: 'Zurück' }]),
   });
 }
 export function mount(root, app) {

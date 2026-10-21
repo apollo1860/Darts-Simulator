@@ -3,7 +3,7 @@ import { SPONSOR_SLOTS } from '../../../../data/sponsors.js';
 import { negotiate, acceptOffer, declineOffer, offerTerms, managerOf, NEGO_MAX } from '../../../career.js';
 import { RNG } from '../../../rng.js';
 import { esc } from '../../../util.js';
-import { frame, header, titleBand, darkBar, coin, bar, bindHead } from '../frame.js';
+import { frame, header, titleBand, darkBar, coin, bar, bindHead, checkIcon } from '../frame.js';
 import { toast } from '../../components.js';
 
 export const nsd = true;
@@ -31,7 +31,7 @@ export function render(app, params = {}) {
       <div class="nsd-evs">${sp.active.map(c => `<div class="nsd-ev"><div class="nsd-ev-main"><div class="nsd-ev-name">${SPONSOR_SLOTS[c.slot].icon} ${esc(c.name)}</div>
         <div class="nsd-ev-sub">${terms({ perWeek: c.perWeek, win: c.win ?? 0, s180: c.s180, major: c.major })} · noch ${c.weeksLeft} Wochen</div></div></div>`).join('') || '<div class="nsd-ev-sub" style="padding:4px 6px">Noch keine Sponsoren.</div>'}</div>
       ${darkBar('Angebot', 'sm')}${offer}`,
-    bottom: bar(o ? [{ id: 'o-no', icon: '✖', label: 'Ablehnen' }, { go: 'team', icon: '💼', label: 'Team' }, { id: 'o-yes', icon: '<span class="nsd-check">✔</span>', label: 'Unterschreiben', wide: true }]
+    bottom: bar(o ? [{ id: 'o-no', icon: '✖', label: 'Ablehnen' }, { go: 'team', icon: '💼', label: 'Team' }, { id: 'o-yes', icon: checkIcon(), label: 'Unterschreiben', wide: true }]
       : [{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'life', icon: '👥', label: 'Leben' }, { go: 'team', icon: '💼', label: 'Team', wide: true }]),
   });
 }
