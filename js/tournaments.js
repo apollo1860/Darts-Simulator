@@ -638,7 +638,6 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   };
 }
 // Siege des Spielers im Turnier (ohne Freilose)
-const playerWins = inst => inst.rounds.reduce((n, r) => n + r.matches.filter(m => m.winner === 'P' && !m.bye && m.a && m.b).length, 0);
 
 // Alle offenen KI-Matches der aktuellen Runde simulieren
 function simRoundMatches(state, round, rng, inst) {
@@ -718,7 +717,6 @@ function settle(state, inst) {
     (inst.places ??= {})[id] = place;
     let prize = inst.prizes[place] ?? 0;
     if (inst.teams && id === 'P') prize = Math.round(prize * teamPrizeShare);   // World Cup: Preisgeld wird geteilt
-    if (id === 'P' && state.mode === 'nsd' && !playerWins(inst) && inst.cat !== 'et') prize = 0;     // erstes Match verloren → nichts (ET: Geld wird gezahlt)
     // ET-Regel: wer über die Ranglisten vorqualifiziert ist und das erste Match verliert, bekommt das Geld, aber keine OOM-Punkte
     const oomPrize = inst.preQual?.includes(id) && !inst.rounds.some(r => r.matches.some(m => m.winner === id && !m.bye && m.a && m.b)) ? 0 : prize;
     if (oomPrize) for (const t of inst.oom) addMoney(state, t, id, oomPrize, year);

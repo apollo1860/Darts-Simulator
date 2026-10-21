@@ -9,7 +9,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 36;
+export const APP_VERSION = 37;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -100,13 +100,31 @@ export const relLabel = { manager: 'Manager', fans: 'Fans', partner: 'Freundin',
 // ---- Sterne-Preisgeld (Basis = Status 1; Auszahlung × starFactor) ----
 // Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).
 export const STAR_PRIZE_WIN = {
-  pc: 20, ws: 30, wsf: 50, et: 35, wcod: 120 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
-  wgp: 150, ec: 150, pcf: 150, gsod: 200, matchplay: 250, pln: 15, plf: 250, wm: 500, youth: 10, challenge: 5, dev: 5,
+  pc: 15, ws: 30, wsf: 100, et: 35, wcod: 100 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
+  wgp: 150, ec: 150, pcf: 130, gsod: 200, matchplay: 225, pln: 10, plf: 350, wm: 1000, youth: 10, challenge: 5, dev: 5,
 };
 export const STAR_SHARES = { F: 0.5, SF: 0.25, QF: 0.12, L16: 0.06, L32: 0.04, L64: 0.02, G3: 0.05, G4: 0.025 };
 export const EUR_PER_STAR = 1000;   // Umrechnung der vorbelegten Ranglisten (2025/26) beim Karrierestart
-// Feste Preistabellen echter Events (Basis-★ = Tsd. £): European Tour 2026 (230 Tsd. £ gesamt; L64 = Verlierer der 1. Runde, Letzte 48)
-export const STAR_PRIZE_FIXED = { et: { F: 15, SF: 10, QF: 8, L16: 5, L32: 3.5, L64: 2 } };
+// Feste Preistabellen der echten PDC-Events 2026 (Basis-★ = Tsd. £; Sieger siehe STAR_PRIZE_WIN). Gezahlt wird je Runde des Ausscheidens –
+// auch für Verlierer der 1. Runde. Fehlender Schlüssel = kein Geld (Players Championship: Letzte 128, UK Open: Letzte 160).
+//   ET 230 Tsd. (L64 = Runde 1 „Letzte 48“) · PC 150 je Turnier · Masters 500 (Hauptfeld) · UK Open 750 · Matchplay 1.000 · WGP 750 · EC 750
+//   PC Finals 750 · Grand Slam 1.000 (48 Spieler; hier 32 mit G3/G4) · World Cup 500 je Team · WS 100 je Event · WS Finals 450 · WM 5.000 · PL 1.250
+const WGP_TABLE = { F: 80, SF: 50, QF: 35, L16: 20, L32: 7.5 };
+export const STAR_PRIZE_FIXED = {
+  et: { F: 15, SF: 10, QF: 8, L16: 5, L32: 3.5, L64: 2 },
+  pc: { F: 10, SF: 6.5, QF: 4, L16: 3, L32: 2, L64: 1.25 },
+  ws: { F: 16, SF: 10, QF: 5, L16: 1.75 },
+  wsf: { F: 60, SF: 30, QF: 17.5, L16: 10, L32: 5 },
+  masters: { F: 50, SF: 30, QF: 17.5, L16: 10, L32: 5 },
+  ukopen: { F: 60, SF: 35, QF: 20, L16: 12.5, L32: 7.5, L64: 3, L96: 2, L128: 1.25 },
+  matchplay: { F: 125, SF: 65, QF: 35, L16: 22.5, L32: 12.5 },
+  wgp: WGP_TABLE, ec: WGP_TABLE,
+  pcf: { F: 70, SF: 40, QF: 27.5, L16: 15, L32: 7, L64: 4 },
+  gsod: { F: 100, SF: 60, QF: 35, L16: 20, G3: 5, G4: 5 },
+  wcod: { F: 48, SF: 30, QF: 20, L16: 10, G2: 6, G3: 5 },
+  wm: { F: 400, SF: 200, QF: 100, L16: 60, L32: 35, L64: 25, L128: 15 },
+  plf: { F: 170, SF: 110 },
+};
 export function starPrizeTable(fmtKey) {
   const W = STAR_PRIZE_WIN[fmtKey];
   if (!W) return {};

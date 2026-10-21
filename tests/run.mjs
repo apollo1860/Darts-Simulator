@@ -973,8 +973,8 @@ test('New Star Darts: ★-Preisgeld, Energie, Star-Status, Note, Schlüsselmomen
   // Ranglisten in Basis-★ (Startwerte umgerechnet), Preistabellen
   const top = orderOfMerit(s, 'pdc')[0];
   assert.ok(top.money > 500 && top.money < 6000, `Top-OOM ${top.money}`);
-  assert.deepEqual(N.starPrizeTable('pc'), { W: 20, F: 10, SF: 5, QF: 2.4, L16: 1.2, L32: 0.8, L64: 0.4, G3: 1, G4: 0.5 });
-  assert.equal(N.STAR_PRIZE_WIN.wm, 2 * N.STAR_PRIZE_WIN.matchplay);
+  assert.deepEqual(N.starPrizeTable('pc'), { W: 15, F: 10, SF: 6.5, QF: 4, L16: 3, L32: 2, L64: 1.25 });
+  assert.equal(N.STAR_PRIZE_WIN.wm, 1000);
   assert.equal(N.starPayout(0.4, 1), 1); assert.equal(N.starPayout(0, 1), 0); assert.equal(N.starPayout(20, 21), 40);
   // Star-Status: Sieg ≈ 10–15 % auf Status 1, Niederlage kleiner, nie unter die Stufe
   const win = N.starMatchDelta(1, { won: true, my: 6, opp: 4, to: 6, avg: 88, cat: 'pc' });
@@ -1437,6 +1437,20 @@ test('New Star Darts v35: European Tour wie echt (48 Spieler, 16 Gesetzte ab Run
   assert.equal(pre.size, 32);
   const l48 = inst.rounds[0].matches.filter(m => !m.bye).map(m => (m.winner === m.a ? m.b : m.a));
   for (const id of l48) assert.equal(s.rankings.years[2026].pdc?.[id] ?? 0, pre.has(id) ? 0 : 2, id);
+});
+
+test('New Star Darts v37: echte Preistabellen aller PDC-Events 2026 (Summe = Preisfonds, Verlierer der 1. Runde bekommen Geld)', async () => {
+  const N = await import('../js/nsd.js');
+  const cnt = { W: 1, F: 1, SF: 2, QF: 4, L16: 8, L32: 16, L64: 32, L96: 32, L128: 64 };
+  const sum = (k, extra = {}, counts = {}) => { const t = N.starPrizeTable(k), c = { ...cnt, ...counts, ...extra };
+    return Object.entries(t).reduce((a, [p, v]) => a + v * (c[p] ?? 0), 0); };
+  assert.equal(sum('pc'), 150); assert.equal(sum('ws'), 100); assert.equal(sum('wsf'), 450);
+  assert.equal(sum('ukopen', {}, { L128: 32 }), 750); assert.equal(sum('matchplay'), 1000);
+  assert.equal(sum('wgp'), 750); assert.equal(sum('ec'), 750); assert.equal(sum('pcf'), 750);
+  assert.equal(sum('wm', {}, { L128: 64 }), 5000); assert.equal(sum('wcod', { G2: 12, G3: 12 }), 500);
+  assert.equal(sum('plf') + 95 + 90 + 85 + 80 + 16 * N.STAR_PRIZE_WIN.pln, 1250);
+  assert.equal(N.starPrizeTable('wm').L128, 15); assert.equal(N.starPrizeTable('masters').L32, 5); assert.equal(N.starPrizeTable('matchplay').L32, 12.5);
+  assert.equal(N.starPrizeTable('pc').L128, undefined); assert.equal(N.starPrizeTable('ukopen').L160, undefined);   // dort gibt es nichts
 });
 
 console.log(`\n${n} Tests ok`);
