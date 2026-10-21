@@ -28,8 +28,7 @@ export function mount(root, app) {
     try { const last = answerInterview(s, +b.dataset.a, new RNG(s.rng)); app.save(); app.go('interview', { last }); } catch (e) { toast(e.message, 'error'); }
   });
   root.querySelector('#iv-end')?.addEventListener('click', () => {
-    const win = s.interview?.place === 'W';
     s.interview = null; app.save();
-    app.go(win ? 'news' : 'hub', win ? { flash: true } : undefined);
+    app.go(s.articles?.length ? 'news' : 'hub', { article: true });
   });
 }

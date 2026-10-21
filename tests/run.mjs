@@ -1383,4 +1383,17 @@ test('New Star Darts v24: Zubehör-Boosts für einige Matches', async () => {
   assert.equal(p.boosts.length, 0); 
 });
 
+test('New Star Darts v32: Website-Artikel zu besonderen Ereignissen', async () => {
+  const N = await import('../js/nsd.js'), A = await import('../js/articles.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
+  s.articles = [];
+  A.titleArticle(s, { event: 'Players Championship 1', cat: 'pc', fmt: 'pc', opp: 'Luke Humphries', score: [8, 6], stars: 20, titles: 1 });
+  assert.equal(s.articles.length, 1); assert.match(s.articles[0].text, /Humphries/); assert.equal(s.news[0].type, 'article');
+  A.rankArticle(s, 60); A.rankArticle(s, 50); assert.equal(s.articles.length, 2);        // Top 64 nur einmal
+  A.rankArticle(s, 30); assert.equal(s.flags.rankArticle, 32);
+  assert.equal(A.starArticle(s, 3), null); A.starArticle(s, 5); A.nineArticle(s, 'UK Open', 'X');
+  assert.equal(s.articles.length, 4);                                                    // Warteschlange max. 4
+  const old = newCareer({ name: 'Old', nation: 'DE', seed: 1 }); A.plArticle(old); assert.equal(old.articles, undefined);
+});
+
 console.log(`\n${n} Tests ok`);

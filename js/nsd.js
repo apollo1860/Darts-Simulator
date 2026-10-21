@@ -4,11 +4,12 @@
 // Die Match-Engine arbeitet weiter mit Perzentil-Attributen → syncAttrs() rechnet Fähigkeiten um.
 import { newCareer } from './state.js';
 import { addNews } from './news.js';
+import { starArticle } from './articles.js';
 import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 31;
+export const APP_VERSION = 32;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -162,6 +163,7 @@ export function addStarProgress(state, pts) {
     addNews(state, 'star', `⭐ Star-Status ${st.level}!`,
       `${st.level <= SKILL_MAX ? `Mental steigt auf ${mentalOf(p)}. ` : ''}Preisgelder und Preise steigen um 5 % je Stufe (jetzt ×${starFactor(st.level).toFixed(2).replace('.', ',')}).`);
     syncAttrs(p);
+    starArticle(state, st.level);
   }
   return ups;
 }

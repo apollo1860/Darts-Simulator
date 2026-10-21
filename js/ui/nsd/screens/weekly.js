@@ -20,10 +20,15 @@ export function render(app, params = {}) {
 }
 export function mount(root, app) {
   root.querySelector('#w-ok').onclick = () => {
-    const s = app.state;
-    if (s.ended) return app.go('careerEnd');
-    if (s.seasonReport && !s.seasonReport.seen) return app.go('season');
-    if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
-    app.go('week');
+    if (app.state.articles?.length) return app.go('news', { article: true, back: 'continue' });   // erst Website-Artikel
+    continueWeek(app);
   };
+}
+// Nach dem Wochen-Update weiter: Karriereende → Saisonbericht → Ereignis → Wochenansicht
+export function continueWeek(app) {
+  const s = app.state;
+  if (s.ended) return app.go('careerEnd');
+  if (s.seasonReport && !s.seasonReport.seen) return app.go('season');
+  if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
+  app.go('week');
 }

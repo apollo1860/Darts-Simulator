@@ -5,6 +5,7 @@ import { simulateWeekAI, awardCard } from './tournaments.js';
 import { orderOfMerit, OOM_TYPES, rankOf, devHolders } from './rankings.js';
 import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
+import { rankArticle, cardArticle, plArticle } from './articles.js';
 import { WEEKS_PER_YEAR } from './util.js';
 import { plTable, plState } from './majors.js';
 import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
@@ -73,6 +74,7 @@ function weekNews(state, evs, ai) {
       const invited = pl.players.includes('P');
       addNews(state, invited ? 'result' : 'info', invited ? '🎤 Einladung zur Premier League!' : `Premier League ${y}: Teilnehmer`,
         pl.players.map(id => getPlayer(state, id).name).join(', '));
+      if (invited) plArticle(state);
     }
     addNews(state, 'ranking', `Premier League nach Spieltag ${night}`,
       plTable(state).slice(0, 4).map((x, i) => `${i + 1}. ${getPlayer(state, x.id).name} ${x.pts} P.`).join(' · '));
@@ -87,6 +89,8 @@ function weekNews(state, evs, ai) {
   if (p.tour === 'tour' && evs.some(e => (e.cat === 'pc' || e.cat === 'et') && e.startsThisWeek)) {
     addNews(state, 'ranking', `PDC Order of Merit: Platz ${rankOf(state, 'pdc', 'P', y)}`,
       `Pro Tour OOM: Platz ${rankOf(state, 'protour', 'P', y)}. Top 64 der PDC OOM: Tourcard am Saisonende um 1 Jahr verlängert.`);
+    const r = rankOf(state, 'pdc', 'P', y);
+    if (r) rankArticle(state, r);
   }
   for (const type of ['challenge', 'dev']) {
     if (!evs.some(e => e.cat === type && !e.noOom && e.startsThisWeek)) continue;
@@ -108,10 +112,12 @@ export function lastChanceCheck(state) {
   if (state.player.tour === 'tour') {
     (state.flags ??= {}).lastChance = true;
     addNews(state, 'result', '🎉 Zurück auf der Tour!', 'Die Last Chance genutzt – deine neue Tourcard gilt bis Ende ' + state.player.cardUntil + '.');
+    cardArticle(state, 'back');
     return;
   }
   state.ended = true;
   addNews(state, 'info', '🏁 Karriereende', 'Ohne Tourcard ist deine Profikarriere vorbei.');
+  cardArticle(state, 'end');
 }
 
 // Jahresabschluss (vor dem Jahreswechsel)
@@ -144,6 +150,7 @@ export function yearEnd(state) {
       if (state.mode === 'nsd') {                          // New Star Darts: letzte Chance Q-School, sonst Karriereende
         state.lastChance = { year: y + 1 };
         addNews(state, 'ranking', '⚠️ Tourcard verloren – LAST CHANCE', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). In KW 2 ${y + 1} hast du eine letzte Chance: Erreiche an einem Q-School-Tag das Halbfinale – sonst ist deine Karriere vorbei.`);
+        cardArticle(state, 'lost', x.rank);
       } else addNews(state, 'ranking', 'Tourcard verloren', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). Zurück zur Q-School.`);
     } else { pl.tier = 'challenge'; pl.cardUntil = null; }
   }

@@ -33,6 +33,7 @@ import { overall } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
 import { useBoosts } from './skilltrain.js';
+import { titleArticle, finalArticle, wmTicketArticle, nineArticle } from './articles.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
@@ -603,6 +604,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
   const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp, oppAvg: o.avg });
   sponsorMatchPay(state, inst, won, s);                // Sponsor-Prämien (Sieg, 180er)
+  if (s.bestLeg && s.bestLeg <= 9) nineArticle(state, inst.name, oppP?.name);
   useBoosts(p);                                        // Zubehör-Boosts: ein Match weniger
   const star = starMatchDelta(p.star.level, { won, my, opp, to, avg: s.avg, oppStrength, cat: inst.cat, fmt: inst.fmt, rating, oppRank: rankOf(state, 'pdc', oppId) });
   const ups = addStarProgress(state, star);
@@ -798,6 +800,7 @@ function finishEvent(state, inst) {
     if (inst.cat === 'wmreg') {
       const ok = place === 'QUAL' || place === 'W';
       addNews(state, 'result', ok ? `🎟️ WM-Ticket! ${inst.name}` : `${inst.name}: nicht qualifiziert`, ok ? 'Du spielst im Dezember die Weltmeisterschaft im Ally Pally.' : 'Kein WM-Platz – nächstes Jahr wieder.');
+      if (ok) wmTicketArticle(state, inst.name);
       if (!ok) state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.baseName, cat: inst.cat, place, prize: 0 });
       return;
     }
@@ -814,10 +817,28 @@ function finishEvent(state, inst) {
   else maybeInterview(state, inst);
   const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : prize ? fmtEUR(prize) : '';
   if (place === 'W') addNews(state, 'result', `TITEL! ${inst.name} gewonnen`, `Preisgeld: ${money}.`);
-  else if (place !== 'CARD') {
+  if (nsd) eventArticle(state, inst, place);
+  if (place !== 'W' && place !== 'CARD') {
     const wTxt = inst.winner ? ` Turniersieger: ${getPlayer(state, inst.winner).name}.` : '';
     addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, `${wTxt.trim()}${money ? ` Preisgeld: ${money}.` : ''}`.trim());
   }
+}
+
+// New Star Darts: Website-Artikel nach Titel / verlorenem Major-Finale / WM-Quali (Tour Card Holder Qualifier)
+function finalInfo(state, inst) {
+  const last = inst.rounds?.[inst.rounds.length - 1];
+  const mine = id => id === 'P' || !!getPlayer(state, id)?.members?.includes?.('P');
+  const m = last?.matches?.find(x => x.b && x.score && (mine(x.a) || mine(x.b)));
+  if (!m) return {};
+  const meA = mine(m.a);
+  return { opp: getPlayer(state, meA ? m.b : m.a)?.name ?? null, score: meA ? m.score : [m.score[1], m.score[0]] };
+}
+function eventArticle(state, inst, place) {
+  if (inst.eventId === 'wm-quali') { if (place === 'QUAL' || place === 'W') wmTicketArticle(state, 'den Tour Card Holder Qualifier'); return; }
+  if (inst.isQualifier || inst.plNight) return;
+  const big = MAJOR_CATS.includes(inst.cat) || inst.fmt === 'wm';
+  if (place === 'W') titleArticle(state, { event: inst.name, cat: inst.cat, fmt: inst.fmt, stars: inst.stars ?? 0, titles: state.stats.career.titles, ...finalInfo(state, inst) });
+  else if (place === 'F' && big) { const f = finalInfo(state, inst); if (f.opp) finalArticle(state, { event: inst.name, fmt: inst.fmt, ...f }); }
 }
 
 // New Star Darts: ★ auszahlen, Titel-Bonus (Star-Status, Fans)
@@ -876,6 +897,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     if (nsd) checkAchievements(state);
     const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : inst.prize ? fmtEUR(inst.prize) : '';
     addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, money ? `Preisgeld: ${money}.` : '');
+    if (nsd) eventArticle(state, inst, inst.place);
   }
   return inst;
 }

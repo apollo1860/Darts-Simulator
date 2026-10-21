@@ -87,9 +87,8 @@ export function mount(root, app) {
   on('#e-rest', () => { simulateRest(s); app.save(); app.refresh(); });
   on('#e-nextsub', () => { nextSub(s); app.save(); app.refresh(); });
   on('#e-close', () => {
-    const win = s.activeEvent.place === 'W' && !s.activeEvent.isQualifier;
     closeEvent(s); app.save();
     if (s.interview) return app.go('interview');
-    app.go(win ? 'news' : 'hub', win ? { flash: true } : undefined);
+    app.go(s.articles?.length ? 'news' : 'hub', { article: true });
   });
 }

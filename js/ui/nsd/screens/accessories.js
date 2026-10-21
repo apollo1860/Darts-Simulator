@@ -18,7 +18,7 @@ export function render(app) {
       <div class="nsd-strip"><span>Zubehör</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       ${act.length ? `${darkBar('Aktiv', 'sm')}<div class="nsd-evs">${act.map(b => `<div class="nsd-ev on"><div class="nsd-ev-main"><div class="nsd-ev-name">${gfx(b)}${b.name}</div>
         <div class="nsd-ev-sub">${bonusTxt(b.bonus)} · ${b.until != null ? `bis KW ${((b.until - 1) % 52) + 1}` : `noch ${b.left} Match${b.left > 1 ? 'es' : ''}`}</div></div></div>`).join('')}</div>` : ''}
-      ${darkBar(`Angebot · neu in ${shopWeeksLeft(s)} Wochen`, 'sm')}
+      ${darkBar(`Angebot · neu in ${shopWeeksLeft(s)} Woche${shopWeeksLeft(s) > 1 ? 'n' : ''}`, 'sm')}
       <div class="nsd-evs">${shopOffers(s).map(a => `<div class="nsd-ev"><div class="nsd-ev-main"><div class="nsd-ev-name">${gfx(a)}${a.name}</div>
         <div class="nsd-ev-sub">${a.type} · ${bonusTxt(a.bonus)} · ${a.weeks ? `${a.weeks} Wochen` : `${a.matches} Matches`}</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
         <button class="nsd-btn" data-buy="${a.id}"><span class="lb">Kaufen</span></button></div>`).join('')}</div>`,
