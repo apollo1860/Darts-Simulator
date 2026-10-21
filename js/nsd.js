@@ -9,7 +9,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 34;
+export const APP_VERSION = 35;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -100,15 +100,18 @@ export const relLabel = { manager: 'Manager', fans: 'Fans', partner: 'Freundin',
 // ---- Sterne-Preisgeld (Basis = Status 1; Auszahlung × starFactor) ----
 // Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).
 export const STAR_PRIZE_WIN = {
-  pc: 20, ws: 30, wsf: 50, et: 40, wcod: 120 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
+  pc: 20, ws: 30, wsf: 50, et: 35, wcod: 120 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
   wgp: 150, ec: 150, pcf: 150, gsod: 200, matchplay: 250, pln: 15, plf: 250, wm: 500, youth: 10, challenge: 5, dev: 5,
 };
 export const STAR_SHARES = { F: 0.5, SF: 0.25, QF: 0.12, L16: 0.06, L32: 0.04, L64: 0.02, G3: 0.05, G4: 0.025 };
 export const EUR_PER_STAR = 1000;   // Umrechnung der vorbelegten Ranglisten (2025/26) beim Karrierestart
+// Feste Preistabellen echter Events (Basis-★ = Tsd. £): European Tour 2026 (230 Tsd. £ gesamt; L64 = Verlierer der 1. Runde, Letzte 48)
+export const STAR_PRIZE_FIXED = { et: { F: 15, SF: 10, QF: 8, L16: 5, L32: 3.5, L64: 2 } };
 export function starPrizeTable(fmtKey) {
   const W = STAR_PRIZE_WIN[fmtKey];
   if (!W) return {};
   if (fmtKey === 'pln') return { W };
+  if (STAR_PRIZE_FIXED[fmtKey]) return { W, ...STAR_PRIZE_FIXED[fmtKey] };
   const shares = fmtKey === 'ukopen' ? { ...STAR_SHARES, L96: 0.01, L128: 0.005 } : fmtKey === 'wcod' ? { ...STAR_SHARES, G2: 0.04, G3: 0.02 } : STAR_SHARES;   // UK Open: Runde 2/3, World Cup: Gruppe
   return { W, ...Object.fromEntries(Object.entries(shares).map(([k, v]) => [k, Math.round(W * v * 10) / 10])) };
 }

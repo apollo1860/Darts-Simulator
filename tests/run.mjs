@@ -1413,4 +1413,25 @@ test('New Star Darts v34: echte PDC-Startliste 2026 (★), 2-Jahres-Wertung läu
   assert.ok(mid < full && mid > end); assert.ok(Math.abs(end / full - 0.6) < 0.01);       // am Saisonende nur noch 2025 (60 %)
 });
 
+test('New Star Darts v35: European Tour wie echt (48 Spieler, 16 Gesetzte ab Runde 2, Preistabelle 230 Tsd., Absagen)', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), D = await import('../data/tournaments.js'), C = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
+  const tab = N.starPrizeTable('et');
+  assert.equal(tab.W + tab.F + 2 * tab.SF + 4 * tab.QF + 8 * tab.L16 + 16 * tab.L32 + 16 * tab.L64, 230);   // 35/15/10/8/5/3,5/2
+  assert.equal(T.placeLabel('L64', 'et'), 'Letzte 48'); assert.equal(T.placeLabel('L64', 'pc'), 'Letzte 64');
+  let withdrawn = 0;
+  for (const ev of D.CALENDAR.filter(e => e.cat === 'et')) {
+    const e = T.etEntrants(s, ev, false), all = Object.values(e).flat();
+    assert.equal(all.length, 48); assert.equal(new Set(all).size, 48);
+    assert.equal(e.seeds.length, 16); assert.deepEqual(e, T.etEntrants(s, ev, false));                      // stabil
+    withdrawn += T.etSeeds(s, false).filter(id => !e.seeds.includes(id)).length;
+  }
+  assert.ok(withdrawn > 0, 'es gibt Absagen mit Nachrückern');
+  const ev = C.findEvent(s, 'et-1', 2026, 7) ?? D.CALENDAR.find(e => e.id === 'et-1'); s.date.week = ev.week;
+  const inst = T.runAITournament(s, ev, 0);
+  assert.equal(inst.rounds[0].name, 'Letzte 48'); assert.equal(inst.rounds[0].matches.filter(m => !m.bye).length, 16);
+  assert.deepEqual(inst.rounds.map(r => r.matches.length), [32, 16, 8, 4, 2, 1]);
+  assert.deepEqual(inst.rounds.map(r => r.format.legs), [6, 6, 6, 6, 7, 8]);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -33,7 +33,7 @@ export function buildRounds(seeded, fmt) {
   }
   const rounds = [];
   for (let rem = size; rem > (fmt.stopAt ?? 1); rem /= 2) {
-    rounds.push({ name: fmt.sections ? (rem / 2 === fmt.stopAt ? 'Entscheidungsspiel' : `Runde ${rounds.length + 1}`) : ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
+    rounds.push({ name: fmt.sections ? (rem / 2 === fmt.stopAt ? 'Entscheidungsspiel' : `Runde ${rounds.length + 1}`) : fmt.seeds && !rounds.length && seeded.length < rem && seeded.length > rem / 2 ? `Letzte ${seeded.length}` : ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
   }
   rounds[0].matches = first;
   return rounds;

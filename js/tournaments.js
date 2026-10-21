@@ -106,7 +106,7 @@ const PLACE_LABEL = {
   L64: 'Letzte 64', L96: 'Runde 3', L128: 'Runde 2', L160: 'Runde 1', L256: 'Letzte 256', CARD: 'Tourcard gewonnen',
   QUAL: 'Qualifiziert', NQ: 'Nicht qualifiziert', G2: 'Gruppenphase (2.)', G3: 'Gruppenphase (3.)', G4: 'Gruppenphase (4.)',
 };
-export const placeLabel = k => PLACE_LABEL[k] ?? k;
+export const placeLabel = (k, cat) => (k === 'L64' && cat === 'et' ? 'Letzte 48' : PLACE_LABEL[k] ?? k);   // ET: 1. Runde = Letzte 48
 
 const fmtKey = (ev, sub = 0) => ev.subFmts?.[sub] ?? ev.fmt ?? ev.cat;
 // Ranglisten, in die das Preisgeld fließt
@@ -143,8 +143,11 @@ function prizeTable(ev, sub = 0) {
 // Fehlende Qualifikanten werden über die Pro-Tour-Rangliste aufgefüllt. Ergebnisse der Qualifier: qual[year].et[etId].
 const isHolder = (state, id) => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour');
 export const etStore = (state, etId) => ((qualOf(state).et ??= {})[etId] ??= {});
-export function etSeeds(state, includeP) {
-  return orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => (includeP || id !== 'P') && isHolder(state, id)).slice(0, FORMATS.et.seeds);
+// Absagen: ein paar direkt Qualifizierte sagen je Event ab (fest je Event/Jahr/Spieler); der Spieler selbst nie. Nachrücker über die Ranglisten.
+export const ET_WITHDRAW = 0.06;
+export const etWithdrawn = (state, ev, id) => id !== 'P' && new RNG({ s: hashSeed(`${ev.id}|${state.date.year}|wd|${id}`) }).chance(ET_WITHDRAW);
+export function etSeeds(state, includeP, ev = null) {
+  return orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => (includeP || id !== 'P') && isHolder(state, id) && !(ev && etWithdrawn(state, ev, id))).slice(0, FORMATS.et.seeds);
 }
 // Direkt qualifiziert (Top 16 PDC + Top 16 Pro Tour) – diese spielen keinen TCHQ
 export function etDirect(state) {
@@ -166,16 +169,16 @@ function regionQualifier(state, ev, key) {
 }
 export function etEntrants(state, ev, withPlayer) {
   const st = etStore(state, ev.id), ok = id => !!id && (id !== 'P' || withPlayer);
-  const seeds = etSeeds(state, withPlayer), taken = new Set(seeds);
+  const seeds = etSeeds(state, withPlayer, ev), taken = new Set(seeds);
   const take = (ids, n) => {
     const out = [];
     for (const id of ids) { if (out.length >= n) break; if (ok(id) && !taken.has(id)) { taken.add(id); out.push(id); } }
     return out;
   };
-  const ptOrder = orderOfMerit(state, 'protour').map(x => x.p.id).filter(id => isHolder(state, id));
+  const ptOrder = orderOfMerit(state, 'protour').map(x => x.p.id).filter(id => isHolder(state, id) && !etWithdrawn(state, ev, id));
   const pt = take(ptOrder, 16), tchq = take(st.tchq ?? [], 10), hnq = take(st.hnq ?? [], 4);
   const region = take(Object.keys(ET_REGIONS).map(k => st[k] ?? regionQualifier(state, ev, k)), 2);
-  const fill = take([...ptOrder, ...orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => isHolder(state, id))], 48 - taken.size);
+  const fill = take([...ptOrder, ...orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => isHolder(state, id) && !etWithdrawn(state, ev, id))], 48 - taken.size);
   return { seeds, pt, tchq, hnq, region, fill };
 }
 // HNQ-Pool: Spieler ohne Karte, DDV/lokal der Gastgebernation (HNQ-Sieger sind schon qualifiziert)
@@ -784,7 +787,7 @@ function finishEvent(state, inst) {
   }
   if (nsd) nsdEventEnd(state, inst);
   else {
-    if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place)})`, 'prize');
+    if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place, inst.cat)})`, 'prize');
     sponsorEventPayout(state, inst);
     titleMilestones(state, inst);
     addEventFatigue(state, inst);
@@ -820,7 +823,7 @@ function finishEvent(state, inst) {
   if (nsd) eventArticle(state, inst, place);
   if (place !== 'W' && place !== 'CARD') {
     const wTxt = inst.winner ? ` Turniersieger: ${getPlayer(state, inst.winner).name}.` : '';
-    addNews(state, 'result', `${inst.name}: ${placeLabel(place)}`, `${wTxt.trim()}${money ? ` Preisgeld: ${money}.` : ''}`.trim());
+    addNews(state, 'result', `${inst.name}: ${placeLabel(place, inst.cat)}`, `${wTxt.trim()}${money ? ` Preisgeld: ${money}.` : ''}`.trim());
   }
 }
 
@@ -887,7 +890,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     const nsd = state.mode === 'nsd';
     if (nsd) nsdEventEnd(state, inst);
     else {
-      if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place)})`, 'prize');
+      if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place, inst.cat)})`, 'prize');
       sponsorEventPayout(state, inst);
       titleMilestones(state, inst);
       addEventFatigue(state, inst);
@@ -896,7 +899,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: nsd ? 0 : inst.prize, stars: inst.stars ?? 0 });
     if (nsd) checkAchievements(state);
     const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : inst.prize ? fmtEUR(inst.prize) : '';
-    addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place)} (automatisch simuliert)`, money ? `Preisgeld: ${money}.` : '');
+    addNews(state, 'result', `${inst.name}: ${placeLabel(inst.place, inst.cat)} (automatisch simuliert)`, money ? `Preisgeld: ${money}.` : '');
     if (nsd) eventArticle(state, inst, inst.place);
   }
   return inst;

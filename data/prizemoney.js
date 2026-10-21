@@ -15,7 +15,7 @@ export const PRIZES = {
   qschool:   {},
   // Pro Tour je Turnier (2025er Werte £ → € gerundet). ET: L64 = Verlierer der 1. Runde (Letzte 48)
   pc:        { W: 17500, F: 11500, SF: 6000, QF: 4000, L16: 3000, L32: 1750, L64: 1150 },
-  et:        { W: 35000, F: 14000, SF: 10000, QF: 7000, L16: 4500, L32: 3000, L64: 1500 },
+  et:        { W: 35000, F: 15000, SF: 10000, QF: 8000, L16: 5000, L32: 3500, L64: 2000 },   // 2026: 230.000 £ gesamt
   etq:       {},
   // Majors & Events (Phase 5, £ → € gerundet). G3/G4 = Gruppendritter/-vierter
   masters:   { W: 70000, F: 35000, SF: 23000, QF: 15000, L16: 10000, L32: 6000 },

@@ -47,7 +47,7 @@ export function render(app) {
   if (inst.done) {
     const win = inst.place === 'W';
     return frame({
-      body: `${head}${darkBar(win ? '🏆 TURNIERSIEG!' : esc(placeLabel(inst.place)), win ? '' : 'sm')}
+      body: `${head}${darkBar(win ? '🏆 TURNIERSIEG!' : esc(placeLabel(inst.place, inst.cat)), win ? '' : 'sm')}
         <div class="nsd-result">
           <div class="nsd-result-row"><span>Preisgeld</span><b>${coin(inst.stars ?? 0)}</b></div>
           <div class="nsd-result-row"><span>Star-Status</span><b>${(inst.star ?? 0) >= 0 ? '+' : ''}${fmtNum(inst.star ?? 0, 1)}</b></div>
