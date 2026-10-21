@@ -522,5 +522,8 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-ls-art { width: 84px; height: 84px; border-radius: 8px; overflow: hidden; padding: 3px;
   background: linear-gradient(#e6e6e6 0, #d4d4d4 50%, #bdbdbd 50%, #cecece 100%); border: 1px solid #f4f4f4; box-shadow: 0 2px 3px rgba(0,0,0,.4); }
 .nsd-ls-emoji { display: flex; height: 100%; align-items: center; justify-content: center; font-size: 2.6rem; }
-.nsd-ls.home { grid-template-columns: 1fr auto; }
-.nsd-ls.home .nsd-ls-art { grid-column: 1 / -1; width: 100%; height: auto; aspect-ratio: 160 / 85; padding: 0; border-radius: 6px; }
+/* Immobilien: gleiche Anordnung wie Gegenstände/Fahrzeuge (Bild links, Text, Kaufen rechts), Bild als breitere Szene */
+.nsd-ls.home { grid-template-columns: 112px 1fr auto; }
+.nsd-ls.home .nsd-ls-art { width: 112px; height: 84px; padding: 0; }
+.nsd-ls-stats { gap: 0 8px; }
+.nsd-ls-stats span { white-space: nowrap; }

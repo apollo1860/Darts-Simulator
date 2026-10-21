@@ -23,7 +23,7 @@ export function render(app) {
         return `<div class="nsd-ev nsd-ls ${it.cat === 'home' ? 'home' : ''} ${own ? 'on' : ''}">
           <div class="nsd-ls-art">${lifeArt(it.id) || `<span class="nsd-ls-emoji">${it.icon}</span>`}</div>
           <div class="nsd-ev-main"><div class="nsd-ev-name">${it.name}</div>
-            <div class="nsd-ev-sub">Lifestyle +${fmtNum(it.ls, 1)} · Zufriedenheit +${it.sat}${it.regen ? ` · Erholung +${it.regen} %` : ''}</div>
+            <div class="nsd-ev-sub nsd-ls-stats"><span>Lifestyle +${fmtNum(it.ls, 1)}</span><span>Zufriedenheit +${it.sat}</span>${it.regen ? `<span>Erholung +${it.regen} %</span>` : ''}</div>
             ${own ? '' : `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it, lvl))}</div>`}</div>
           ${own ? '<div class="nsd-ev-why" style="color:#8dff6a">✔ Gehört dir</div>' : `<button class="nsd-btn" data-buy="${it.id}"><span class="lb">Kaufen</span></button>`}
         </div>`;
