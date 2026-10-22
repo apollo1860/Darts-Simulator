@@ -1508,4 +1508,46 @@ test('New Star Darts v41: Lifestyle-Produkte gehen alle 12–16 Wochen kaputt, R
   assert.ok(old.player.upkeep.handy.due > old.date.year * 52);
 });
 
+test('New Star Darts v45: World Matchplay Bo19/21/31/33/35, Board-Momente in langen Matches seltener', async () => {
+  const N = await import('../js/nsd.js');
+  const mk = seed => { const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; return s; };
+  // Format: Runde 1 Bo19, Achtelfinale Bo21, Viertelfinale Bo31, Halbfinale Bo33, Finale Bo35
+  const s0 = mk(8); s0.date.week = 29;
+  const inst = ET.runAITournament(s0, eventsInWeek(s0, 2026, 29).find(e => e.id === 'matchplay'));
+  assert.deepEqual(inst.rounds.map(r => [r.name, 2 * r.format.legs - 1]), [['Letzte 32', 19], ['Achtelfinale', 21], ['Viertelfinale', 31], ['Halbfinale', 33], ['Finale', 35]]);
+  // Live-Match mit gegebenem Format: KI spielt beide Seiten, gezählt werden die Schlüsselmomente des Spielers
+  const play = (legs, seed) => {
+    const s = mk(seed); s.date.week = 6; s.week = { played: false, eventId: null };
+    ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+    const live = ET.startManualMatch(s), lm = live.m, perLeg = {}; lm.format = { legs };
+    let tot = 0;
+    for (let k = 0; k < 3000 && !lm.done; k++) {
+      s.player.energy = 100;
+      if (lm.turn === live.me && !lm.visit.darts.length) {
+        const late = ET.lateMatch(lm), kk = ET.keyMoment(s);
+        if (kk) {
+          tot++;
+          if (['break', 'finish', 'scoring'].includes(kk)) perLeg[lm.legIdx] = (perLeg[lm.legIdx] ?? 0) + 1;
+          if (kk === 'scoring' && legs > 6) assert.ok(late, 'Scoring in langen Matches nur in der Schlussphase');
+        }
+      }
+      ET.liveAiVisit(s);
+    }
+    return { tot, legs: lm.legIdx, maxLeg: Math.max(0, ...Object.values(perLeg)) };
+  };
+  const long = [1, 2, 3, 4].map(sd => play(18, sd)), short = [1, 2, 3, 4].map(sd => play(3, sd));
+  assert.ok(long.every(r => r.maxLeg <= 1), 'höchstens ein Break-/Check-Moment je Leg');
+  const avg = (a, f) => a.reduce((n, r) => n + f(r), 0) / a.length;
+  assert.ok(avg(long, r => r.tot) <= 13, `First-to-18: ${avg(long, r => r.tot)} Momente`);
+  assert.ok(avg(long, r => r.tot / r.legs) < avg(short, r => r.tot / r.legs) / 2, 'pro Leg deutlich seltener als im kurzen Match');
+  // Board-Schaltung bei großen Finishes: lange Matches seltener, Matchdarts immer
+  const s = mk(8); s.date.week = 6; s.week = { played: false, eventId: null };
+  ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+  const live = ET.startManualMatch(s), lm = live.m, me = live.me;
+  const calls = fmt => { lm.format = fmt; lm.legs = [0, 0]; lm.sets = [0, 0]; lm.turn = me; lm.visit = { start: 121, darts: [] }; let h = 0; for (let i = 0; i < 400; i++) { lm.rem[me] = 121; if (boardCall(s) === 'finish') h++; } return h; };
+  const hShort = calls({ legs: 6 }), hLong = calls({ legs: 18 });
+  assert.ok(hLong > 20 && hLong < 80 && hShort > 100, `kurz ${hShort}, lang ${hLong}`);
+  lm.legs[me] = 17; lm.rem[me] = 32; lm.visit = { start: 32, darts: [] }; assert.equal(boardCall(s), 'match');
+});
+
 console.log(`\n${n} Tests ok`);

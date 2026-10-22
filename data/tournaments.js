@@ -210,7 +210,7 @@ export const FORMATS = {
   // Majors & Events (Phase 5)
   masters: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   ukopen: { default: { legs: 6 }, byRemaining: { 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
-  matchplay: { default: { legs: 10 }, byRemaining: { 16: { legs: 11 }, 8: { legs: 13 }, 4: { legs: 17 }, 2: { legs: 18 } } },
+  matchplay: { default: { legs: 10 }, byRemaining: { 16: { legs: 11 }, 8: { legs: 16 }, 4: { legs: 17 }, 2: { legs: 18 } } },   // R1 Bo19, AF Bo21, VF Bo31, HF Bo33, F Bo35
   wgp: { default: { sets: 2, legs: 3 }, byRemaining: { 16: { sets: 3, legs: 3 }, 8: { sets: 3, legs: 3 }, 4: { sets: 4, legs: 3 }, 2: { sets: 5, legs: 3 } } },
   ec: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   gsod: { group: { legs: 5 }, default: { legs: 10 }, byRemaining: { 8: { legs: 16 }, 4: { legs: 16 }, 2: { legs: 16 } } },
