@@ -1,5 +1,5 @@
 // New Star Darts: Lebens-Ereignisse (Karten). Je Woche 35 % Chance auf eins (wenn keins offen ist).
-// if(p, state) = Bedingung; Optionen mit Effekten: energy, sat, fans, partner, manager, sponsors, stars (Basis-★, × Status-Faktor; negativ = Kosten),
+// {preis} im Text = Kosten der ersten kostenpflichtigen Option (mit Status-Faktor); if(p, state) = Bedingung; Optionen mit Effekten: energy, sat, fans, partner, manager, sponsors, stars (Basis-★, × Status-Faktor; negativ = Kosten),
 // idle (true = Trainingsrückstand zurücksetzen), single (Beziehung endet), meet (neue Freundin, Startwert), chance {p, ok, fail}.
 // Texte: {partner} = Name der Freundin. Aktionen (Auftritte, Feiern …) kosten immer 60 % Energie (nur ab 60 % wählbar);
 // Beziehungs-Änderungen durch Ereignisse sind auf ±2 begrenzt (life.js).
@@ -40,7 +40,7 @@ export const LIFE_EVENTS = [
   { id: 'strain', icon: '🩹', text: 'Dein Wurfarm zwickt – eine leichte Zerrung.',
     opts: [{ label: 'Zum Physio', stars: -4, energy: 10, out: 'Gut behandelt, alles locker.' },
       { label: 'Durchbeißen', energy: -15, sat: -3, out: 'Es zieht noch eine Weile.' }] },
-  { id: 'scratch', icon: '🎟️', text: 'An der Tanke liegt ein Rubbellos für 1 ★.',
+  { id: 'scratch', icon: '🎟️', text: 'An der Tanke liegt ein Rubbellos für {preis} ★.',
     opts: [{ label: 'Rubbeln', stars: -1, chance: { p: 0.05, ok: { stars: 20, sat: 5, out: 'Jackpot! Gewinn!' }, fail: { out: 'Niete.' } } },
       { label: 'Lieber nicht', out: 'Vernünftig.' }] },
   { id: 'family', icon: '👪', text: 'Deine Familie lädt dich übers Wochenende nach Hause ein.',

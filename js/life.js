@@ -94,7 +94,8 @@ export function lifeEventView(state) {
   const le = state.lifeEvent, ev = le && eventById(le.id);
   if (!ev) return null;
   const p = { ...state.player, partnerName: le.name ?? state.player.partnerName };
-  return { icon: ev.icon, text: fill(ev.text, p), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
+  const paid = ev.opts.find(o => o.stars < 0), price = paid ? starPrice(-paid.stars, state.player.star.level) : 0;   // Preis im Text = Preis im Knopf
+  return { icon: ev.icon, text: fill(ev.text, p).replaceAll('{preis}', price), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
     energy: o.energy < 0 ? -o.energy : 0, tired: o.energy < 0 && (state.player.energy ?? 0) < -o.energy })) };
 }
 // Effekte anwenden; Rückgabe: Liste lesbarer Änderungen

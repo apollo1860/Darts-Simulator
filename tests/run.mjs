@@ -1615,4 +1615,14 @@ test('New Star Darts v52: Abwechslung bei den Rest-Punkten vor dem Check (nicht 
   assert.ok(top / tot <= 0.12, `häufigster Rest ${top} von ${tot}`);                                           // vorher 161 in ≈ 15 % der Fälle
 });
 
+test('New Star Darts v53: Preis im Ereignis-Text = Preis im Knopf', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js');
+  const s = N.newNsdCareer({ first: 'R', last: 'R', nation: 'DE', age: 20, slot: 1, seed: 3 });
+  for (const lvl of [1, 11, 30]) {
+    s.player.star.level = lvl; s.lifeEvent = { id: 'scratch', name: null };
+    const v = L.lifeEventView(s), btn = v.opts.find(o => o.cost);
+    assert.equal(btn.cost, N.starPrice(1, lvl)); assert.ok(v.text.includes(`für ${btn.cost} ★`) && !v.text.includes('{preis}'), v.text);
+  }
+});
+
 console.log(`\n${n} Tests ok`);
