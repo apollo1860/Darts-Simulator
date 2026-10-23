@@ -157,14 +157,21 @@ function newTalent(state, rng, year) {
 }
 
 // Am Jahresende (vor Alterung): Entwicklung, Ruhestand, Nachwuchs, Dev→Challenge ab 24
+export const BREAKOUT_P = 0.06, SLUMP_P = 0.04;   // Chance je Jahr auf ein Durchbruch- (bis 30 J.) bzw. Einbruchjahr
 export function developWorld(state, rng, year) {
-  const report = { retired: [], talents: [] };
+  const report = { retired: [], talents: [], breakouts: [], slumps: [] };
   for (const p of Object.values(state.world.players)) {
     if (p.tier === 'local' || p.tier === 'ddv' || p.tier === 'amateur' || p.tier === 'secondary' || p.tier === 'retired') continue;
     const a = p.age;
     if (a < 38 && rng.chance(p.tier === 'tour' ? 0.45 : 0.3)) p.exp = Math.min(EXP_MAX, (p.exp ?? 0) + 1);
     const mean = a <= 20 ? 2.2 : a <= 23 ? 1.4 : a <= 28 ? 0.5 : a <= 34 ? 0 : a <= 40 ? -0.4 : -1;
-    changeStrength(p, rng.normal(mean, 1.4));
+    // Durchbruch-/Einbruchjahre (selten, deutlich größer als der normale Jahreswandel): Jüngere explodieren eher, Ältere brechen eher ein.
+    // Durchbrüche werden nahe der Weltspitze kleiner (Ø 106 = Grenze).
+    let jump = 0;
+    if (rng.chance(a <= 30 ? BREAKOUT_P : BREAKOUT_P / 3)) jump = rng.float(4, 8) * clamp((106 - p.avg) / 12, 0.25, 1);
+    else if (rng.chance(a >= 33 ? SLUMP_P * 2 : SLUMP_P)) jump = -rng.float(3, 6.5);
+    changeStrength(p, rng.normal(mean, 1.4) + jump);
+    if (jump) (jump > 0 ? report.breakouts : report.slumps).push({ id: p.id, name: p.name, jump, tier: p.tier });
     // Ruhestand: ab 45 steigend, ohne Tourcard eher
     const pRet = a < 45 ? 0 : (a - 44) * (p.tier === 'tour' ? 0.02 : 0.05);
     if (rng.chance(pRet)) { report.retired.push(p.name); p.tier = 'retired'; p.cardUntil = null; }   // bleibt für Historie erhalten

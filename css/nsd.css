@@ -314,6 +314,10 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-table.nsd-stats th { color: #fff; text-shadow: var(--nsd-shadow); }
 .nsd-table.nsd-stats td.lbl { background: linear-gradient(#7b7b7b, #5b5b5b); color: #fff; text-shadow: var(--nsd-shadow); }
 .nsd-table.nsd-path td, .nsd-table.nsd-stats td { padding: 7px 6px; }
+.nsd-table.nsd-path { font-size: 1rem; }
+.nsd-table.nsd-path td.rd { white-space: nowrap; }
+.nsd-table.nsd-path td.nm { max-width: 112px; }
+.nsd-table.nsd-path td.c { padding-left: 4px; padding-right: 4px; }
 
 /* Liveticker */
 .nsd-livehead { display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; gap: 8px; padding: 6px 8px; text-align: center; text-shadow: var(--nsd-shadow); }

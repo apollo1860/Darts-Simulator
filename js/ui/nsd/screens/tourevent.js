@@ -14,6 +14,9 @@ const HELP = '<p><b>Spielen</b>: Das Match läuft im DartConnect-Liveticker. Mat
 export const nameOf = (s, id) => s.activeEvent?.teams?.[id]?.name ?? getPlayer(s, id)?.name ?? '?';
 const nationOf = (s, id) => (id === 'P' ? s.player.nation : getPlayer(s, id)?.nation);
 
+// Rundenname für schmale Tabellen: „Gruppenphase · Spieltag 2“ → „Gruppe · Sp. 2“
+const shortRound = n => n.replace('Gruppenphase', 'Gruppe').replace('Spieltag', 'Sp.');
+
 // Eigene Matches dieses Turniers
 function myPath(s, inst) {
   const rows = [];
@@ -21,7 +24,7 @@ function myPath(s, inst) {
     const m = r.matches.find(x => (x.a === 'P' || x.b === 'P') && !x.bye && x.winner);
     if (!m) continue;
     const me = m.a === 'P' ? 0 : 1, opp = me ? m.a : m.b, won = m.winner === 'P';
-    rows.push(`<tr><td>${esc(r.name)}</td><td class="nm">${flag(nationOf(s, opp))} ${esc(nameOf(s, opp))}</td><td class="c">${m.score[me]}:${m.score[1 - me]}</td><td class="c">${won ? '✔' : '✖'}</td></tr>`);
+    rows.push(`<tr><td class="rd">${esc(shortRound(r.name))}</td><td class="nm">${flag(nationOf(s, opp))} ${esc(nameOf(s, opp))}</td><td class="c">${m.score[me]}:${m.score[1 - me]}</td><td class="c">${won ? '✔' : '✖'}</td></tr>`);
   }
   return rows.length ? `<table class="nsd-table nsd-path">${rows.join('')}</table>` : '';
 }

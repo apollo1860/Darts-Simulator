@@ -1550,4 +1550,28 @@ test('New Star Darts v45: World Matchplay Bo19/21/31/33/35, Board-Momente in lan
   lm.legs[me] = 17; lm.rem[me] = 32; lm.visit = { start: 32, darts: [] }; assert.equal(boardCall(s), 'match');
 });
 
+test('New Star Darts v47: Durchbruch-/Einbruchjahre der KI-Welt, Saisonbilanz-News', async () => {
+  const N = await import('../js/nsd.js'), W = await import('../js/world.js'), { RNG } = await import('../js/rng.js');
+  let ups = 0, downs = 0, maxUp = 0, maxDown = 0;
+  for (const seed of [1, 2, 3, 4, 5]) {
+    const s = N.newNsdCareer({ first: 'D', last: 'Y', nation: 'DE', age: 20, slot: 1, seed });
+    const rep = W.developWorld(s, new RNG(s.rng), 2026);
+    assert.ok(Array.isArray(rep.breakouts) && Array.isArray(rep.slumps));
+    for (const b of rep.breakouts) { assert.ok(b.jump >= 1 && b.jump <= 8); ups++; maxUp = Math.max(maxUp, b.jump); }
+    for (const b of rep.slumps) { assert.ok(b.jump <= -3 && b.jump >= -6.5); downs++; maxDown = Math.min(maxDown, b.jump); }
+    assert.ok(Object.values(s.world.players).every(p => p.avg >= 30 && p.avg <= 108));
+  }
+  assert.ok(ups > 20 && downs > 15, `Durchbrüche ${ups}, Einbrüche ${downs}`);          // ca. 4 % jährlich bei einigen Hundert Spielern
+  assert.ok(maxUp >= 5 && maxDown <= -4);
+  // Jahresabschluss: News zu Aufsteigern/Absteigern der Tour erscheinen (sofern es welche gab)
+  const { yearEnd } = await import('../js/season.js');
+  let seen = false;
+  for (const seed of [11, 12, 13, 14]) {
+    const s = N.newNsdCareer({ first: 'D', last: 'Y', nation: 'DE', age: 20, slot: 1, seed }); s.date.week = 52;
+    yearEnd(s);
+    if (s.news.some(x => /^(Durchbruch|Formkrise)/.test(x.title))) seen = true;
+  }
+  assert.ok(seen);
+});
+
 console.log(`\n${n} Tests ok`);

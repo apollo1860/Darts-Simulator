@@ -159,6 +159,11 @@ export function yearEnd(state) {
   rivalYearEnd(state, rng, y);
   addNews(state, 'info', `Saisonbilanz ${y}`,
     `Neue Tourcards: ${lines.join(', ') || '–'}. Karte verloren: ${lost.length} Spieler. Rücktritte: ${dev.retired.length}${dev.retired.length ? ` (u. a. ${dev.retired.slice(0, 3).join(', ')})` : ''}. Neue Talente: ${dev.talents.length}.`);
+  // Formsprünge der KI-Welt: die größten Aufsteiger und Absteiger der Tour
+  const tourJump = (list, sign) => list.filter(x => x.tier === 'tour').sort((a, b) => sign * (b.jump - a.jump)).slice(0, 3);
+  const up = tourJump(dev.breakouts, 1), down = tourJump(dev.slumps, -1);
+  if (up.length) addNews(state, 'info', `Durchbruch ${y + 1}: Diese Profis legen zu`, `${up.map(x => `${x.name} (+${x.jump.toFixed(1)} Ø)`).join(', ')} – nach starker Vorbereitung gelten sie als Aufsteiger der kommenden Saison.`);
+  if (down.length) addNews(state, 'info', `Formkrise ${y + 1}: Diese Profis schwächeln`, `${down.map(x => `${x.name} (${x.jump.toFixed(1)} Ø)`).join(', ')} – nach Verletzungen oder Motivationsproblemen sind sie schwer einzuschätzen.`);
 }
 
 function newSeasonNews(state) {
