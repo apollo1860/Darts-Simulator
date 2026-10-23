@@ -250,12 +250,14 @@ export function majorField(state, ev, withPlayer) {
 
 export const autoPlayer = (state, ev) => (ev.cat === 'pl' || ev.team) && majorField(state, ev, true).includes('P');
 
+const RANK_NOTE = { pcf: [['pco', 'PC-OOM-Platz']], ec: [['eto', 'ET-OOM-Platz']], matchplay: [['pdc', 'PDC-Platz'], ['protour', 'Pro-Tour-Platz']], wgp: [['pdc', 'PDC-Platz'], ['protour', 'Pro-Tour-Platz']] };
 export function majorEligibility(state, ev) {
   const field = majorField(state, ev, true);
   if (field.includes('P')) return { ok: true };
   const rule = RULE_TEXT[ev.fmt] ?? 'Qualifikation nötig';
   const p = state.player;
-  const rank = p.tour === 'tour' ? ` (du: PDC-Platz ${orderOfMerit(state, 'pdc').findIndex(x => x.p.id === 'P') + 1})` : '';
+  const types = RANK_NOTE[ev.fmt] ?? [['pdc', 'PDC-Platz']];     // die Rangliste(n), nach denen sich das Feld richtet
+  const rank = p.tour === 'tour' ? ` (du: ${types.map(([t, l]) => `${l} ${orderOfMerit(state, t).findIndex(x => x.p.id === 'P') + 1}`).join(' · ')})` : '';
   return { ok: false, reason: `${rule}${rank}` };
 }
 

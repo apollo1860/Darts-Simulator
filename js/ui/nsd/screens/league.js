@@ -1,4 +1,4 @@
-// Ranglisten: Ranglisten im NSS-Tabellenlook (PDC-, Pro-Tour-Rangliste in ★, Premier-League-Tabelle), eigene Zeile grün, Zone blau
+// Ranglisten: Ranglisten im NSS-Tabellenlook (PDC-, Pro-Tour-, Players-Championship-, European-Tour-Rangliste in ★, Premier-League-Tabelle), eigene Zeile grün, Zone blau
 import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
@@ -8,7 +8,8 @@ import { plTable } from '../../../majors.js';
 import { getPlayer } from '../../../world.js';
 
 export const nsd = true;
-const LISTS = [['pdc', 'PDC Order of Merit', 64], ['protour', 'Pro Tour Order of Merit', 0], ['pl', 'Premier League', 4]];
+// Zone = Qualifikationsplätze: PC Finals Top 64 der PC-OOM, European Championship Top 32 der ET-OOM
+const LISTS = [['pdc', 'PDC Order of Merit', 64], ['protour', 'Pro Tour Order of Merit', 0], ['pco', 'Players Championship OOM', 64], ['eto', 'European Tour OOM', 32], ['pl', 'Premier League', 4]];
 let idx = 0;
 // Ranglisten in ★: Basiswerte × dein Status-Faktor (als hätten alle deinen Status)
 const money = (v, lvl) => fmtStars(starShow(v, lvl));
