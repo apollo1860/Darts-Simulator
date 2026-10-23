@@ -1623,6 +1623,13 @@ test('New Star Darts v53: Preis im Ereignis-Text = Preis im Knopf', async () => 
     const v = L.lifeEventView(s), btn = v.opts.find(o => o.cost);
     assert.equal(btn.cost, N.starPrice(1, lvl)); assert.ok(v.text.includes(`für ${btn.cost} ★`) && !v.text.includes('{preis}'), v.text);
   }
+  // Rubbellos-Jackpot wächst wie der Einsatz → Erwartungswert (5 %) bleibt ≈ Einsatz
+  const jackpot = L.eventById('scratch').opts[0].chance.ok;
+  for (const lvl of [1, 11, 30]) {
+    s.player.star.level = lvl; s.stars = 0; L.applyEffects(s, jackpot);
+    assert.equal(s.stars, Math.round(20 * N.priceFactor(lvl)));
+    assert.ok(0.05 * s.stars >= N.starPrice(1, lvl) - 1 && 0.05 * s.stars <= N.starPrice(1, lvl), `Status ${lvl}: EW ${0.05 * s.stars} vs Preis ${N.starPrice(1, lvl)}`);
+  }
 });
 
 console.log(`\n${n} Tests ok`);
