@@ -9,7 +9,7 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 49;
+export const APP_VERSION = 50;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -23,8 +23,11 @@ export const ATTR_BASE = 87.5, ATTR_PER_POINT = 12.5 / 60;
 export const STAR_MAX = 100;
 // Status-Faktor: Preisgelder UND Preise × (1 + 5 % je Stufe über 1)
 export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
-// Preise in ganzen ★, ab Stufe 2 aufgerundet (+5 %/Stufe): Bier Stufe 1 = 1 ★, ab Stufe 2 = 2 ★
-export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * starFactor(level) * 100) / 100));
+// Preise (Ausgaben außer Lifestyle) wachsen stärker als die Einnahmen: +25 % je Stufe (Nutzerwunsch, Version 50);
+// ganze ★, aufgerundet: Bier Status 1 = 1 ★, Status 11 = 4 ★, Status 30 = 9 ★
+export const PRICE_STEP = 0.25;
+export const priceFactor = (level = 1) => 1 + PRICE_STEP * (Math.max(1, level) - 1);
+export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * priceFactor(level) * 100) / 100));
 export const START_STARS = 15;     // Startguthaben (★ auf Status 1)
 // Start im Tour-Modus: Saison 2026 direkt nach der Q-School (KW 2)
 export const NSD_START = { year: 2026, week: 3 };
@@ -185,7 +188,7 @@ export function addStarProgress(state, pts) {
   if (ups) {
     p.freePoints = (p.freePoints ?? 0) + ups;            // je Stufe 1 Fähigkeitspunkt zum Verteilen
     addNews(state, 'star', `⭐ Star-Status ${st.level}!`,
-      `${st.level <= SKILL_MAX ? `Mental steigt auf ${mentalOf(p)}. ` : ''}Preisgelder und Preise steigen um 5 % je Stufe (jetzt ×${starFactor(st.level).toFixed(2).replace('.', ',')}).`);
+      `${st.level <= SKILL_MAX ? `Mental steigt auf ${mentalOf(p)}. ` : ''}Preisgelder steigen um 5 % je Stufe (jetzt ×${starFactor(st.level).toFixed(2).replace('.', ',')}), Preise um 25 % (jetzt ×${priceFactor(st.level).toFixed(2).replace('.', ',')}).`);
     syncAttrs(p);
     starArticle(state, st.level);
   }

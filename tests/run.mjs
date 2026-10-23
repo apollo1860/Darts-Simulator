@@ -956,7 +956,7 @@ test('New Star Darts: Karrierestart mit Tourcard, Fähigkeiten 0–60, Tour-Modu
   assert.equal(N.skillValue(p, 'sco'), 3); assert.equal(p.attrs.sco, A(3)); assert.equal(N.skillLevel(p, 'fin'), 1);
   p.skills.sco = Array(20).fill(3); N.syncAttrs(p); assert.equal(p.attrs.sco, 100);           // 60 = Weltspitze
   p.star.level = 80; assert.equal(N.mentalOf(p), 60);                                         // Mental max. 60
-  assert.equal(N.starFactor(1), 1); assert.equal(N.starPrice(20, 21), 40);                    // +5 % je Stufe
+  assert.equal(N.starFactor(1), 1); assert.equal(N.starFactor(21), 2); assert.equal(N.starPrice(20, 21), 120);   // Einnahmen +5 %, Preise +25 % je Stufe
   // keine lokalen/Amateur-Turniere, Pro Tour spielbar
   const w1 = eventsInWeek(s, 2026, 1);
   assert.ok(w1.some(e => e.cat === 'local') && !w1.filter(e => shownTo(s, e)).some(e => e.cat === 'local'));
@@ -1057,7 +1057,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   assert.equal(p.buzz, 3); assert.equal(p.attrs.sco, A(6)); assert.equal(p.attrs.men, A(1));   // kein Mental-Bonus
   assert.equal(r.rel, 'fans'); assert.equal(p.rel.fans, fans + 1);
   assert.throws(() => T.drink(s, 'schnaps', rng));
-  p.star.level = 21; assert.equal(T.drinkPrice({ price: 5 }, 21), 10);
+  p.star.level = 21; assert.equal(T.drinkPrice({ price: 5 }, 21), 30);
   // Darts: Bonus solange ausgerüstet
   s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 3 + 3 + 2);
   T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, A(5));
