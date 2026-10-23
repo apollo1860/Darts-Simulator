@@ -63,7 +63,7 @@ function maybeMiscalc(target, rem, ce, rng) {
 // KI-Dart: Ziel wählen + werfen. Rückgabe {target, x, y, hit}
 export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced = null) {
   // forced = vom Spieler gewählter Weg (keine Rechenfehler); attrs.ce = eigene Fehlerquote (Tour-Modus, aus Rechnen 0–60)
-  const target = forced ?? maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m)), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng);
+  const target = forced ?? maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng);
   const p = targetPoint(target);
   const base = isDoubleLabel(target) ? sig.dbl : sig.score;
   const s = base * mult * pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);

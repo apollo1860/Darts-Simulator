@@ -1589,4 +1589,30 @@ test('New Star Darts v51: mehr Board-Momente in langen Matches, WM immer das 1,2
   assert.ok(0.8 * ET.boardRate(wm, L(3, 3)) < 1);
 });
 
+test('New Star Darts v52: Abwechslung bei den Rest-Punkten vor dem Check (nicht immer 161/141/121)', async () => {
+  const B = await import('../js/board.js'), N = await import('../js/nsd.js');
+  assert.equal(B.suggestTarget(400), 'T20'); assert.equal(B.suggestTarget(400, 3, 0.9), 'T20');            // ohne mix deterministisch
+  assert.equal(B.suggestTarget(400, 3, 0.05), 'T19'); assert.equal(B.suggestTarget(400, 3, B.VARIETY_T19 + 0.01), 'T18');
+  assert.equal(B.suggestTarget(120, 3, 0.05), B.suggestTarget(120, 3));                                       // Check-Phase unverändert
+  const cnt = {}; let tot = 0;
+  for (let seed = 1; seed <= 60; seed++) {
+    const s = N.newNsdCareer({ first: 'V', last: 'V', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true;
+    s.date.week = 6; s.week = { played: false, eventId: null };
+    ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+    const live = ET.startManualMatch(s), lm = live.m; lm.format = { legs: 3 };
+    let leg = -1;
+    for (let k = 0; k < 4000 && !lm.done; k++) {
+      s.player.energy = 100;
+      if (lm.turn === live.me && !lm.visit.darts.length && lm.legIdx !== leg) {
+        const kk = ET.keyMoment(s);
+        if (kk === 'break' || kk === 'finish') { leg = lm.legIdx; const r = lm.rem[live.me]; cnt[r] = (cnt[r] ?? 0) + 1; tot++; }
+      }
+      ET.liveAiVisit(s);
+    }
+  }
+  const top = Math.max(...Object.values(cnt));
+  assert.ok(tot > 100 && Object.keys(cnt).length >= 55, `${tot} Momente, ${Object.keys(cnt).length} verschiedene Reste`);
+  assert.ok(top / tot <= 0.12, `häufigster Rest ${top} von ${tot}`);                                           // vorher 161 in ≈ 15 % der Fälle
+});
+
 console.log(`\n${n} Tests ok`);

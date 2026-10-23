@@ -222,7 +222,7 @@ function nextDart() {
   a.phase = 'pick';
   $('#rem').textContent = m.rem[ui.me];
   ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
-  const sug = suggestTarget(m.rem[ui.me], dartsLeft(m));
+  const sug = suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next());
   setTarget(miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng));         // schwaches Rechnen: Vorschlag manchmal falsch
   $t().querySelector('.lb').textContent = `Werfen (Dart ${m.visit.darts.length + 1})`;
   $t().disabled = false;

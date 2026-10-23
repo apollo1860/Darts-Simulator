@@ -82,10 +82,13 @@ function leaveScore(l) {
 }
 
 // Empfohlenes Ziel für den nächsten Dart
-export function suggestTarget(rem, dartsLeft = 3) {
+// mix (0…1, Zufallszahl des Aufrufers, optional): in der reinen Scoring-Phase (> 230) gelegentlich T19/T18 statt T20 – sonst bleibt der
+// Rest immer ein Vielfaches von 20 unter 501 und fast jedes Leg endet in der Check-Phase auf 161/141/121/101 …
+export const VARIETY_T19 = 0.12, VARIETY_T18 = 0.03;
+export function suggestTarget(rem, dartsLeft = 3, mix = null) {
   const route = rem <= 170 ? checkoutRoute(rem, dartsLeft) : null;
   if (route) return route[0];
-  if (rem > 230) return 'T20';
+  if (rem > 230) return mix == null || mix >= VARIETY_T19 + VARIETY_T18 ? 'T20' : mix < VARIETY_T19 ? 'T19' : 'T18';
   // Stelldart: bestes Rest-Ergebnis, bei Gleichstand mehr Punkte
   let bestL = 'T20', bestS = -Infinity;
   for (const s of SETUP) {
