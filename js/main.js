@@ -3,6 +3,7 @@ import { saveGame } from './state.js';
 import { toast, modal } from './ui/components.js';
 import { flushMilestones } from './ui/nsd/msToast.js';
 import { animateMeters } from './ui/nsd/frame.js';
+import { APP_VERSION } from './nsd.js';
 // New Star Darts
 import * as title from './ui/nsd/screens/title.js';
 import * as slots from './ui/nsd/screens/slots.js';
@@ -98,3 +99,22 @@ app.go('title');
 // Feste Anzeige: Pinch-Zoom (iOS-Gesten, Mehrfach-Berührung) und Verschieben der Seite unterbinden
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, e => e.preventDefault());
 document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+
+// Update-Hinweis: als Home-Bildschirm-App bleibt eine alte Version oft tagelang im Speicher. Beim Zurückkehren (und alle 10 Min.)
+// wird die aktuelle Versionsnummer vom Server geholt; ist sie höher, erscheint oben ein Hinweis – Tippen speichert und lädt neu.
+async function checkUpdate() {
+  if (document.getElementById('nsd-update')) return;
+  try {
+    const txt = await (await fetch(`js/nsd.js?_=${Date.now()}`, { cache: 'no-store' })).text();
+    const v = +(/APP_VERSION\s*=\s*(\d+)/.exec(txt)?.[1] ?? 0);
+    if (!(v > APP_VERSION)) return;
+    const b = document.createElement('button');
+    b.id = 'nsd-update'; b.className = 'nsd-update';
+    b.textContent = `🔄 Neue Version ${v} verfügbar – hier tippen zum Aktualisieren`;
+    b.onclick = () => { app.save(); location.reload(); };
+    document.body.appendChild(b);
+  } catch { /* offline: egal */ }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+setInterval(checkUpdate, 10 * 60 * 1000);
+setTimeout(checkUpdate, 3000);

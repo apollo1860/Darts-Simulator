@@ -550,3 +550,8 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
   .nsd-ls-art { width: 72px; height: 72px; } .nsd-ls.home .nsd-ls-art { width: 96px; height: 72px; }
   .nsd-ls .nsd-ev-name { font-size: 1rem; }
 }
+
+/* Update-Hinweis (neue Version online) */
+.nsd-update { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top) + 6px); z-index: 9999; width: min(460px, calc(100% - 16px));
+  padding: 10px 12px; border: 0; border-radius: 10px; background: linear-gradient(#6cff4a, #12c800); color: #062; font: 800 .95rem var(--nsd-font); text-align: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,.5); cursor: pointer; }
