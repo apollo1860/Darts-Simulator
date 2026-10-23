@@ -459,7 +459,7 @@ export function boardCall(state) {
   if (r > 170 || BOGEY.has(r)) return null;
   if (wouldWinMatch(lm, side)) return 'match';
   if (side === live.me && live.route) return 'finish';
-  return r > 60 && new RNG(state.rng).chance(BOARD_FINISH_CHANCE * (lateMatch(lm) ? 1 : boardPace(lm))) ? 'finish' : null;
+  return r > 60 && new RNG(state.rng).chance(BOARD_FINISH_CHANCE * (lateMatch(lm) || boardPace(lm) >= 1 ? 1 : boardRate(state, lm))) ? 'finish' : null;
 }
 export const isBigTreble = hit => hit?.mult === 3 && hit.score >= 54;   // T18/T19/T20
 
@@ -480,11 +480,14 @@ export function keyMoment(state) {
 }
 // Lange Matches (First-to ab 7, Sätze zählen mit ihren Legs): Board-Momente seltener und gezielter, damit sich die Partie nicht zieht.
 // Matchdarts und Entscheidungsleg bleiben immer. Break/Check: höchstens ein Moment je Leg; ob ein Leg ein „Board-Leg“ ist, wird
-// einmal ausgewürfelt (Chance 0,8 × 6 / Länge, z. B. First-to-10 ≈ 48 %, First-to-18 ≈ 27 %). Scoring-Aufnahmen gibt es nur noch
+// einmal ausgewürfelt (Chance 0,8 × 1,5 × 6 / Länge, z. B. First-to-10 ≈ 72 %, First-to-18 ≈ 40 %). Scoring-Aufnahmen gibt es nur noch
 // in der Schlussphase, wenn jemand einen Matchdart-Leg hat – dort ist jedes Leg ein Board-Leg.
-export const LONG_MATCH = 6;
+// Version 51 (Nutzerwunsch): etwas mehr Momente (× BOARD_MORE); bei der WM immer das 1,2fache wie bei gleich langen Formaten (× WM_BOARD).
+export const LONG_MATCH = 6, BOARD_MORE = 1.5, WM_BOARD = 1.2;
 export const matchLen = lm => lm.format.legs * (lm.format.sets || 1);
 export const boardPace = lm => Math.min(1, LONG_MATCH / matchLen(lm));
+// Häufigkeitsfaktor für Board-Momente in langen Matches (1 = kurze Matches, ungedrosselt)
+export const boardRate = (state, lm) => (boardPace(lm) >= 1 ? 1 : boardPace(lm) * BOARD_MORE * (state.activeEvent?.fmt === 'wm' ? WM_BOARD : 1));
 export const lateMatch = lm => wouldWinMatch(lm, 0) || wouldWinMatch(lm, 1);
 function paced(state, lm, me, chance = 1) {
   const live = state.activeEvent.live, pace = boardPace(lm), key = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`;
@@ -493,7 +496,7 @@ function paced(state, lm, me, chance = 1) {
     const late = lateMatch(lm);
     if (live.kmLeg === lm.legIdx || (chance < 1 && !late)) return false; // höchstens ein Moment je Leg, Scoring nur in der Schlussphase
     if (!late) {
-      if (live.kmRoll?.leg !== lm.legIdx) live.kmRoll = { leg: lm.legIdx, on: new RNG(state.rng).chance(0.8 * pace) };
+      if (live.kmRoll?.leg !== lm.legIdx) live.kmRoll = { leg: lm.legIdx, on: new RNG(state.rng).chance(Math.min(1, 0.8 * boardRate(state, lm))) };
       if (!live.kmRoll.on) return false;
     }
   }

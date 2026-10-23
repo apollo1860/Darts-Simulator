@@ -1538,7 +1538,7 @@ test('New Star Darts v45: World Matchplay Bo19/21/31/33/35, Board-Momente in lan
   const long = [1, 2, 3, 4].map(sd => play(18, sd)), short = [1, 2, 3, 4].map(sd => play(3, sd));
   assert.ok(long.every(r => r.maxLeg <= 1), 'höchstens ein Break-/Check-Moment je Leg');
   const avg = (a, f) => a.reduce((n, r) => n + f(r), 0) / a.length;
-  assert.ok(avg(long, r => r.tot) <= 13, `First-to-18: ${avg(long, r => r.tot)} Momente`);
+  assert.ok(avg(long, r => r.tot) <= 16, `First-to-18: ${avg(long, r => r.tot)} Momente`);
   assert.ok(avg(long, r => r.tot / r.legs) < avg(short, r => r.tot / r.legs) / 2, 'pro Leg deutlich seltener als im kurzen Match');
   // Board-Schaltung bei großen Finishes: lange Matches seltener, Matchdarts immer
   const s = mk(8); s.date.week = 6; s.week = { played: false, eventId: null };
@@ -1572,6 +1572,21 @@ test('New Star Darts v47: Durchbruch-/Einbruchjahre der KI-Welt, Saisonbilanz-Ne
     if (s.news.some(x => /^(Durchbruch|Formkrise)/.test(x.title))) seen = true;
   }
   assert.ok(seen);
+});
+
+test('New Star Darts v51: mehr Board-Momente in langen Matches, WM immer das 1,2fache', () => {
+  const pc = { activeEvent: { fmt: 'pc' } }, wm = { activeEvent: { fmt: 'wm' } };
+  const L = (legs, sets) => ({ format: sets ? { sets, legs } : { legs } });
+  assert.equal(ET.boardRate(pc, L(3)), 1); assert.equal(ET.boardRate(pc, L(6)), 1);        // kurze Matches unverändert
+  for (const len of [7, 9, 10, 16, 21, 35]) {
+    const base = ET.boardRate(pc, L(len)), w = ET.boardRate(wm, L(len));
+    assert.ok(Math.abs(base - 6 / len * ET.BOARD_MORE) < 1e-9 && base > 6 / len, `Länge ${len}`);   // mehr als die reine 6/Länge-Drosselung
+    assert.ok(Math.abs(w / base - 1.2) < 1e-9);                                                  // WM = 1,2 × gleich langes anderes Format
+  }
+  // WM-Sätze (7 Sätze à 3 Legs = Länge 21) vs. First-to-21 anderswo
+  assert.ok(Math.abs(ET.boardRate(wm, L(3, 7)) / ET.boardRate(pc, L(21)) - 1.2) < 1e-9);
+  // Chance je Leg bleibt auch bei der kürzesten WM-Runde (3 Sätze × 3 Legs) unter 100 %
+  assert.ok(0.8 * ET.boardRate(wm, L(3, 3)) < 1);
 });
 
 console.log(`\n${n} Tests ok`);
