@@ -179,3 +179,5 @@ export function finalizeStats(s) {
 }
 
 export const formatLabel = f => f.sets ? `Best of ${f.sets * 2 - 1} Sets` : `Best of ${f.legs * 2 - 1} Legs`;
+// Zeilen fürs Scoreboard: bei Sätzen zusätzlich die Legs je Satz
+export const formatLines = f => (f.sets ? [formatLabel(f), `Satz: Best of ${f.legs * 2 - 1}`] : [`Best of ${f.legs * 2 - 1}`, 'Legs']);

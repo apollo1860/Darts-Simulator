@@ -515,6 +515,7 @@
 }
 .dc-badge small { display: block; font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
 .dc-sets { font-size: .75rem; color: #ddd; font-weight: 700; }
+.dc-fmt { font-size: .62rem; color: #fff; font-weight: 800; text-align: center; line-height: 1.25; white-space: nowrap; }
 .dc-legno { font-size: .7rem; color: #aaa; }
 .dc-list { max-height: min(52vh, 520px); overflow-y: auto; padding: 6px 0 14px; scroll-behavior: smooth; }
 .dc-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr); align-items: center; }

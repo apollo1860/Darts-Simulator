@@ -5,6 +5,7 @@ import { esc, fmtNum, surname } from '../../../util.js';
 import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
+import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart, liveThrower } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
@@ -30,7 +31,7 @@ export function render(app) {
   return frame({
     cls: 'fixed', bg: 'grey',
     body: `<div class="nsd-livehead"><button class="nsd-sq red" data-nsd="menu" aria-label="Menü">✖</button>
-        <div><b>${esc(inst.name)}</b><small>${esc(round.name)}</small></div>
+        <div><b>${esc(inst.name)}</b><small>${esc(round.name)} · ${formatLabel(round.format)}</small></div>
         <button class="nsd-sq green" data-nsd="help" aria-label="Hilfe">?</button></div>
       <div class="nsd-live">
         <div class="dc" id="dc"></div>
@@ -320,7 +321,7 @@ function draw(ev) {
   const e = Math.round(ui.s.player.energy ?? 100);
   ui.el.innerHTML = `<div class="dc-top">${head(me, 'left')}
       <div class="dc-mid"><div class="dc-badge"><small>Legs</small>${m.legs[me]}:${m.legs[op]}</div>
-        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-legno">⚡ ${e} %</div></div>
+        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-fmt">${formatLines(m.format).join('<br>')}</div><div class="dc-legno">⚡ ${e} %</div></div>
       ${head(op, 'right')}</div>
     <div class="dc-list" id="dc-list">${body}</div>`;
   const list = ui.el.querySelector('#dc-list');
