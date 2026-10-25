@@ -1674,4 +1674,27 @@ test('New Star Darts v57: UK Open – Spieler mit spätem Einstieg (Rang 1–96)
   i2.playerAlive = false; i2.current = 3; assert.equal(ET.repairActiveEvent(s2), false);          // wirklich ausgeschieden (Einstieg schon erfolgt) bleibt so
 });
 
+test('New Star Darts v58: alle Turnierarten – nach der Meldung gibt es ein Match, niemand ist vor seinem ersten Match „ausgeschieden“', async () => {
+  const N = await import('../js/nsd.js'), { orderOfMerit, addMoney } = await import('../js/rankings.js');
+  const played = inst => inst.rounds.some(r => r.matches.some(m => (m.a === 'P' || m.b === 'P') && m.winner && !m.bye));
+  const bad = [], cats = new Set();
+  for (const target of [1, 24, 60, 100]) {
+    const base = N.newNsdCareer({ first: 'S', last: 'W', nation: 'DE', age: 24, slot: 1, seed: 21 }); base.player.assessed = true; base.player.energy = 100;
+    for (const t of ['pdc', 'protour', 'pco', 'eto']) addMoney(base, t, 'P', (orderOfMerit(base, t).filter(x => x.p.id !== 'P')[Math.min(target, 120) - 1]?.money ?? 0) + 0.5, base.date.year);
+    for (let w = 3; w <= 52; w++) {
+      const s0 = JSON.parse(JSON.stringify(base)); s0.date.week = w; s0.week = { played: false, eventId: null };
+      for (const ev of eventsInWeek(s0, s0.date.year, w)) {
+        if (!eventStatus(s0, ev).playable) continue;
+        const s = JSON.parse(JSON.stringify(s0)); ET.enterEvent(s, ev.id); cats.add(ev.fmt ?? ev.cat);
+        const inst = s.activeEvent;
+        if (!inst.done && (!ET.playerMatch(inst) || !inst.playerAlive)) bad.push(`Rang ${target} ${ev.id}: kein Match bzw. ausgeschieden (Runde ${inst.current})`);
+        ET.simulateRest(s);
+        if (!s.activeEvent.done || (!played(s.activeEvent) && ev.fmt !== 'pln')) bad.push(`Rang ${target} ${ev.id}: Turnier ohne eigenes Match beendet`);
+      }
+    }
+  }
+  assert.deepEqual(bad, []);
+  for (const f of ['ukopen', 'masters', 'mastersq', 'gsod', 'wm', 'pcf', 'ec', 'matchplay', 'wgp']) assert.ok(cats.has(f), `${f} abgedeckt`);
+});
+
 console.log(`\n${n} Tests ok`);
