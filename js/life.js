@@ -52,6 +52,24 @@ export function repairItem(state, id) {
   addNews(state, 'info', `🔧 Repariert: ${it.name}`, `Kostete ${cost} ★ – er funktioniert wieder. Die nächste Wartung steht in ${REPAIR_WEEKS[0]}–${REPAIR_WEEKS[1]} Wochen an.`);
   return cost;
 }
+// Alles auf einmal reparieren: ab 2 kaputten Produkten ca. 5 % Rabatt auf die Summe (mind. 1 ★ gespart)
+export const REPAIR_ALL_DISCOUNT = 0.05;
+export function repairAllInfo(p) {
+  const list = brokenItems(p), sum = list.reduce((a, x) => a + repairCost(p, x), 0);
+  const saved = list.length >= 2 ? Math.min(sum - list.length, Math.max(1, Math.round(sum * REPAIR_ALL_DISCOUNT))) : 0;
+  return { list, sum, saved, cost: sum - saved };
+}
+export function repairAll(state) {
+  const p = state.player, { list, sum, saved, cost } = repairAllInfo(p);
+  if (!list.length) throw new Error('Nichts zu reparieren');
+  if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
+  state.stars = Math.round((state.stars - cost) * 10) / 10;
+  const rng = new RNG(state.rng);
+  for (const it of list) p.upkeep[it.id] = newUpkeep(state, rng);
+  p.lifestyle = lifestyleOf(p);
+  addNews(state, 'info', `🔧 Alles repariert (${list.length} Produkte)`, `${list.map(x => x.name).join(', ')} – ${cost} ★${saved ? ` statt ${sum} ★ (−${saved} ★ Sammelrabatt)` : ''}. Die nächste Wartung steht in ${REPAIR_WEEKS[0]}–${REPAIR_WEEKS[1]} Wochen an.`);
+  return { count: list.length, cost, saved, sum };
+}
 // Wöchentlich: fällige Produkte gehen kaputt (alte Spielstände ohne Wartungsdaten bekommen einen Termin)
 export function upkeepWeek(state, rng) {
   const p = state.player, now = absWeek(state);

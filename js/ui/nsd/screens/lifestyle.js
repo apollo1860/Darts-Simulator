@@ -2,13 +2,13 @@
 import { LIFESTYLE, LIFESTYLE_CATS } from '../../../../data/lifestyle.js';
 import { fmtNum } from '../../../util.js';
 import { lifeArt } from '../art/index.js';
-import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, weeksToRepair, brokenItems } from '../../../life.js';
+import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, weeksToRepair, brokenItems } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
 let tab = 0;
-const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p>💎 Lifestyle-Punkte · 😊 Zufriedenheit · 🛌 Energie-Erholung pro Woche.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises. Solange es kaputt ist, zählt es nicht für Lifestyle und Erholung.</p>';
+const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p>💎 Lifestyle-Punkte · 😊 Zufriedenheit · 🛌 Energie-Erholung pro Woche.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises; „Alles reparieren“ spart bei mehreren kaputten Produkten ca. 5 %. Solange es kaputt ist, zählt es nicht für Lifestyle und Erholung.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, [cat, label] = LIFESTYLE_CATS[tab];
@@ -18,7 +18,8 @@ export function render(app) {
         ${meter({ icon: '<span style="font-size:2rem">🛌</span>', label: `Erholung +${homeRegen(p)}`, pct: homeRegen(p) * 5 })}</div>
       <div class="nsd-pager"><button data-t="-1">◀</button><b>${label}</b><button data-t="1">▶</button></div>
       <div class="nsd-strip"><span></span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
-      ${brokenItems(p).length ? `<div class="nsd-dark nsd-alert">🔧 ${brokenItems(p).length} kaputt – Reparatur ${brokenItems(p).reduce((a, x) => a + repairCost(p, x), 0)} ★ gesamt</div>` : ''}
+      ${brokenItems(p).length ? `<div class="nsd-dark nsd-alert">🔧 ${brokenItems(p).length} kaputt – Reparatur ${repairAllInfo(p).sum} ★ gesamt</div>` : ''}
+      ${repairAllInfo(p).list.length >= 2 ? `<button class="nsd-btn nsd-fixall" id="fixall"><span class="lb">🔧 Alles reparieren ${coin(repairAllInfo(p).cost)} <small>−${repairAllInfo(p).saved} ★ gespart</small></span></button>` : ''}
       <div class="nsd-evs">${LIFESTYLE.filter(x => x.cat === cat).map(it => {
         const own = p.owned?.includes(it.id), broken = own && p.upkeep?.[it.id]?.broken, weeks = own && !broken ? weeksToRepair(s, it.id) : 0;
         return `<div class="nsd-ev nsd-ls ${it.cat === 'home' ? 'home' : ''} ${own && !broken ? 'on' : ''} ${broken ? 'broken' : ''}">
@@ -46,6 +47,12 @@ export function mount(root, app) {
     if (!await confirmDialog(`${it.name} kaufen?`, `Kostet ${itemPrice(it)} ★.`, 'Kaufen')) return;
     try { buyItem(s, it.id); app.save(); toast(`${it.icon} ${it.name} gehört jetzt dir!`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   });
+  const all = root.querySelector('#fixall');
+  if (all) all.onclick = async () => {
+    const { list, sum, saved, cost } = repairAllInfo(s.player);
+    if (!await confirmDialog('Alles reparieren?', `${list.length} Produkte für ${cost} ★ statt ${sum} ★ (${saved} ★ Sammelrabatt).`, 'Reparieren')) return;
+    try { repairAll(s); app.save(); toast(`🔧 ${list.length} Produkte repariert (−${saved} ★)`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
+  };
   root.querySelectorAll('[data-fix]').forEach(b => b.onclick = async () => {
     const it = LIFESTYLE.find(x => x.id === b.dataset.fix), cost = repairCost(s.player, it);
     if (!await confirmDialog(`${it.name} reparieren?`, `Kostet ${cost} ★.`, 'Reparieren')) return;

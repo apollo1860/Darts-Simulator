@@ -1632,4 +1632,22 @@ test('New Star Darts v53: Preis im Ereignis-Text = Preis im Knopf', async () => 
   }
 });
 
+test('New Star Darts v55: Alles reparieren mit ca. 5 % Sammelrabatt', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js');
+  const s = N.newNsdCareer({ first: 'R', last: 'R', nation: 'DE', age: 20, slot: 1, seed: 6 }); const p = s.player; s.stars = 100000;
+  for (const id of ['dartscheibe', 'fahrrad', 'haus', 'rolex']) L.buyItem(s, id);
+  assert.throws(() => L.repairAll(s), /Nichts zu reparieren/);
+  p.upkeep.haus.broken = true;                                                      // 1 Produkt: kein Rabatt
+  let i = L.repairAllInfo(p); assert.equal(i.list.length, 1); assert.equal(i.saved, 0); assert.equal(i.cost, i.sum);
+  for (const id of ['dartscheibe', 'fahrrad', 'rolex']) p.upkeep[id].broken = true;  // alle 4 kaputt
+  i = L.repairAllInfo(p);
+  assert.equal(i.list.length, 4); assert.equal(i.sum, i.list.reduce((a, x) => a + L.repairCost(p, x), 0));
+  assert.ok(i.saved >= 1 && Math.abs(i.saved - i.sum * 0.05) <= 1 && i.cost === i.sum - i.saved);
+  const st0 = s.stars, r = L.repairAll(s);
+  assert.equal(st0 - s.stars, r.cost); assert.equal(r.count, 4); assert.equal(L.brokenItems(p).length, 0); assert.ok(L.lifestyleOf(p) > 0);
+  assert.ok(Object.values(p.upkeep).every(u => !u.broken && u.due > s.date.year * 52 + s.date.week));
+  s.stars = 0; p.upkeep.haus.broken = true; p.upkeep.rolex.broken = true; assert.throws(() => L.repairAll(s), /Nicht genug/);
+  assert.equal(L.brokenItems(p).length, 2);                                          // nichts abgebucht, nichts repariert
+});
+
 console.log(`\n${n} Tests ok`);

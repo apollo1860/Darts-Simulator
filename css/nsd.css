@@ -555,3 +555,5 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .nsd-update { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top) + 6px); z-index: 9999; width: min(460px, calc(100% - 16px));
   padding: 10px 12px; border: 0; border-radius: 10px; background: linear-gradient(#6cff4a, #12c800); color: #062; font: 800 .95rem var(--nsd-font); text-align: center;
   box-shadow: 0 4px 14px rgba(0,0,0,.5); cursor: pointer; }
+.nsd-fixall { width: 100%; margin: 6px 0 2px; }
+.nsd-fixall small { font-size: .75em; opacity: .85; margin-left: 4px; }

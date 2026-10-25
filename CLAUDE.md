@@ -53,7 +53,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Ranglisten-Screen** (Version 49): `LISTS` in league.js = PDC OOM (Zone 64), Pro Tour OOM, Players Championship OOM (`pco`, Zone 64 = PC Finals), European Tour OOM (`eto`, Zone 32 = EC), Premier League. `RANK_NOTE` (majors.js) nennt in der Qualifikationsnotiz den passenden Rang.
 - **Update-Hinweis** (Version 48): `checkUpdate` in main.js vergleicht `APP_VERSION` mit der ungecachten `js/nsd.js` (bei Rückkehr in die App + alle 10 Min.) und zeigt `.nsd-update` (Tippen = speichern + `location.reload()`).
 - **Lifestyle-Preise fest** (Version 42): `itemPrice(it)` = `it.price`, keine Status-Anpassung (auch Reparatur).
-- **Wartung** (Version 41): Lifestyle-Produkte (`p.upkeep[id] = {due, pct, broken}`) gehen alle 12–16 Wochen kaputt (`upkeepWeek` in `lifeWeek`), Reparatur `repairItem` kostet 10–15 % des Preises (`repairCost`, mind. 1 ★); kaputt = zählt nicht in `lifestyleOf`/`homeRegen` (`workingItems`).
+- **Wartung** (Version 41): Lifestyle-Produkte (`p.upkeep[id] = {due, pct, broken}`) gehen alle 12–16 Wochen kaputt (`upkeepWeek` in `lifeWeek`), Reparatur `repairItem` kostet 10–15 % des Preises (`repairCost`, mind. 1 ★); kaputt = zählt nicht in `lifestyleOf`/`homeRegen` (`workingItems`). Version 55: „Alles reparieren“ (`repairAll`, ab 2 kaputten Produkten ca. 5 % Rabatt, `REPAIR_ALL_DISCOUNT`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
