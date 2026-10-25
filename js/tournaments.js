@@ -679,6 +679,17 @@ export function simulateRoundAI(state) {
   simRoundMatches(state, inst.rounds[inst.current], new RNG(state.rng), inst);
 }
 
+// UK Open: Index der Runde, in der der Spieler einsteigt (0 = Runde 1)
+const ukEntryRound = inst => +(Object.keys(inst.ukEntry ?? {}).find(k => inst.ukEntry[k].includes('P')) ?? 0);
+// Reparatur für Spielstände bis Version 56: UK-Open-Einsteiger (Rang 1–96) galten schon vor ihrer Einstiegsrunde als ausgeschieden
+export function repairActiveEvent(state) {
+  const inst = state.activeEvent;
+  if (!inst?.ukEntry || inst.done || inst.playerAlive || !inst.withPlayer || ukEntryRound(inst) <= inst.current) return false;   // sonst wirklich ausgeschieden
+  inst.playerAlive = true;
+  skipPlayerByes(state);
+  return true;
+}
+
 // Nächste Runde anlegen (Gruppen → K.-o. bzw. Gewinner paaren)
 function advance(inst) {
   inst.current++;
@@ -686,7 +697,8 @@ function advance(inst) {
   if (r.isGroup) return;
   if (inst.ukEntry) {                       // UK Open: Neueinsteiger bzw. offene Auslosung
     r.matches = ukOpenMatches(prev, inst.ukEntry[inst.current] ?? [], new RNG({ s: hashSeed(`${inst.eventId}|${inst.year}|${inst.current}`) }), inst.current >= 3);
-    if (inst.withPlayer && inst.playerAlive && !r.matches.some(m => m.a === 'P' || m.b === 'P')) inst.playerAlive = false;
+    // Erst ab der eigenen Einstiegsrunde zählt „kein Match“ als ausgeschieden (Rang 1–96 steigen in Runde 2–4 ein)
+    if (inst.withPlayer && inst.playerAlive && inst.current >= ukEntryRound(inst) && !r.matches.some(m => m.a === 'P' || m.b === 'P')) inst.playerAlive = false;
     return;
   }
   r.matches = prev.isGroup ? (inst.prelimSeeds ? prelimKoMatches(inst.rounds, inst.groups, inst.prelimSeeds, new RNG({ s: hashSeed(`${inst.eventId}|${inst.year}`) }))

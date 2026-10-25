@@ -1650,4 +1650,28 @@ test('New Star Darts v55: Alles reparieren mit ca. 5 % Sammelrabatt', async () =
   assert.equal(L.brokenItems(p).length, 2);                                          // nichts abgebucht, nichts repariert
 });
 
+test('New Star Darts v57: UK Open – Spieler mit spätem Einstieg (Rang 1–96) sind nicht „ausgeschieden“, bevor sie spielen', async () => {
+  const N = await import('../js/nsd.js'), { orderOfMerit, addMoney } = await import('../js/rankings.js');
+  for (const [target, round] of [[1, 3], [20, 3], [40, 2], [80, 1], [96, 1]]) {
+    const s = N.newNsdCareer({ first: 'U', last: 'K', nation: 'DE', age: 24, slot: 1, seed: 11 }); s.player.assessed = true;
+    s.date.week = 10; s.week = { played: false, eventId: null };
+    const other = orderOfMerit(s, 'pdc').filter(x => x.p.id !== 'P');
+    addMoney(s, 'pdc', 'P', (other[target - 1]?.money ?? 0) + 0.5, s.date.year);
+    ET.enterEvent(s, eventsInWeek(s, 2026, 10).find(e => e.id === 'uk-open').id);
+    const inst = s.activeEvent, pm = ET.playerMatch(inst);
+    assert.equal(inst.playerAlive, true, `Rang ${target}`); assert.ok(pm && !pm.winner, `Rang ${target}: Gegner sichtbar`);
+    assert.equal(inst.current, round, `Rang ${target} steigt in Runde ${round + 1} ein`);
+    ET.simulateRest(s);                                             // Turnier läuft sauber bis zum Ende
+    assert.ok(s.activeEvent.done && s.activeEvent.place, `Rang ${target}: Platzierung ${s.activeEvent.place}`);
+  }
+  // Reparatur alter Spielstände: zu Unrecht „ausgeschieden“ vor der Einstiegsrunde → wieder im Turnier
+  const s2 = N.newNsdCareer({ first: 'U', last: 'K', nation: 'DE', age: 24, slot: 1, seed: 11 }); s2.player.assessed = true; s2.date.week = 10; s2.week = { played: false, eventId: null };
+  addMoney(s2, 'pdc', 'P', (orderOfMerit(s2, 'pdc').filter(x => x.p.id !== 'P')[19]?.money ?? 0) + 0.5, s2.date.year);
+  ET.enterEvent(s2, eventsInWeek(s2, 2026, 10).find(e => e.id === 'uk-open').id);
+  const i2 = s2.activeEvent; i2.current = 1; i2.playerAlive = false;                           // so sah der Fehler im Spielstand aus
+  assert.equal(ET.repairActiveEvent(s2), true); assert.equal(i2.playerAlive, true); assert.equal(i2.current, 3); assert.ok(ET.playerMatch(i2));
+  assert.equal(ET.repairActiveEvent(s2), false);                                                   // idempotent
+  i2.playerAlive = false; i2.current = 3; assert.equal(ET.repairActiveEvent(s2), false);          // wirklich ausgeschieden (Einstieg schon erfolgt) bleibt so
+});
+
 console.log(`\n${n} Tests ok`);

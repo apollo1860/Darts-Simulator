@@ -1,5 +1,6 @@
 // Spielstände: laden, löschen, neue Karriere
 import { listSlots, loadGame, deleteSlot } from '../../../state.js';
+import { repairActiveEvent } from '../../../tournaments.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { frame, titleBand, bar, starIcon, coin, arrowIcon } from '../frame.js';
@@ -28,6 +29,7 @@ export function mount(root, app) {
     const s = loadGame(+b.dataset.load);
     if (!s) return toast('Spielstand defekt', 'error');
     app.state = s;
+    if (repairActiveEvent(s)) app.save();                // alter Fehler: UK-Open-Einstieg zu Unrecht „ausgeschieden“
     app.go(s.ended ? 'careerEnd' : (s.activeEvent ? 'event' : 'hub'));
   });
   root.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
