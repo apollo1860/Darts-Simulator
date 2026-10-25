@@ -97,7 +97,7 @@ export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
 // (spielen ohnehin CT mit; Average = max(Dev, CT)). Danach 30 fiktive Europäer (~66–72 Ø) als Kanonenfutter.
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
 export const CHALLENGE_PLAYERS = [
-  ['Joe Hunt', 'ENG', 30, 91.0], ['Derek Coulson', 'ENG', 33, 90.9], ['Tommy Morris', 'ENG', 25, 90.7],
+  ['Joe Hunt', 'ENG', 30, 91.0], ['Derek Coulson', 'WAL', 33, 90.9], ['Tommy Morris', 'ENG', 25, 90.7],
   ['Daniel Klose', 'DE', 40, 90.6], ['Tommy Lishman', 'ENG', 30, 90.3], ['Jack Aldridge', 'ENG', 28, 90.2],
   ['Jack Tweddell', 'ENG', 27, 90.0], ['Daniel Ayres', 'ENG', 35, 89.9], ['Aden Kirk', 'ENG', 24, 89.7],
   ['Harry Ward', 'ENG', 26, 89.6], ['Steve Lennon', 'IRL', 33, 89.5], ['Patrik Williams', 'ENG', 31, 89.2],

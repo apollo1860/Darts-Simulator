@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 56**: Derek Coulson (Challenge-Tour-Liste, `data/players.js`) ist Waliser (WAL) statt Engländer.
 - [x] **Version 55**: Lifestyle: Knopf „🔧 Alles reparieren“ (erscheint ab 2 kaputten Produkten, unter der Warnleiste): alle auf einmal für die Summe minus Sammelrabatt von ca. 5 % (`REPAIR_ALL_DISCOUNT`, mind. 1 ★ gespart, `repairAllInfo`/`repairAll` in life.js; Anzeige „−n ★ gespart“, Bestätigungsdialog, eine News). Bei nur 1 kaputten Produkt gibt es keinen Rabatt (Einzel-Knopf). Nicht genug ★ → nichts wird repariert.
 - [x] **Version 54**: Rubbellos-Jackpot wächst mit dem Preis: Effekt-Flag `priced` (data/lifeevents.js, `applyEffects` in life.js) → Gewinn = 20 ★ × `priceFactor(Stufe)` statt × Einnahmen-Faktor; Erwartungswert (5 %) ≈ Einsatz auf jeder Stufe (Status 1: 20 ★, Status 11: 70 ★, Status 30: 165 ★).
 - [x] **Version 53**: Ereignis „Rubbellos“: Text nannte fest „1 ★“, der Knopf den Preis mit Status-Faktor (Status 11 = 4 ★). Ereignis-Texte können jetzt `{preis}` enthalten (Kosten der ersten kostenpflichtigen Option, `lifeEventView` in life.js) → Text und Knopf zeigen immer denselben Preis. Hinweis: Der Rubbellos-Jackpot (20 ★ × Einnahmen-Faktor, 5 %) wächst langsamer als der Preis (+25 %/Stufe) – ab höherem Status ist das Los ein schlechtes Geschäft (in Version 54 behoben).
