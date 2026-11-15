@@ -6,7 +6,7 @@ import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS, CONTROVERSY_KINDS, CONTROVERSY_PARAMS } from '../data/controversial.js';
-import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS } from '../data/sponsorsreal.js';
+import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS, SPONSOR_PAY, scaleSponsorPay } from '../data/sponsorsreal.js';
 import { starPrice, starPayout, starFactor, priceFactor, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
@@ -107,8 +107,9 @@ export function doRelAction(state, act) {
 
 // ---------- Sponsoren ----------
 // Version 71: Sponsoren nach Branchen – ältere Spielstände (Vertragsplätze) bekommen die Branche über den Markennamen
+export { SPONSOR_PAY, scaleSponsorPay };   // Version 93: alle Sponsorbeträge × SPONSOR_PAY (data/sponsorsreal.js)
 const sp = state => {
-  const s = (state.nsdSponsors ??= { active: [], offer: null });
+  const s = (state.nsdSponsors ??= { active: [], offer: null, payV: 2 });
   for (const c of [...s.active, s.offer]) if (c && !c.branche) c.branche = brancheOfName(c.name);
   return s;
 };
@@ -161,7 +162,7 @@ export function sponsorWeek(state, rng) {
   const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng) : null;
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
-    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * sp0.pay));
+    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * sp0.pay * SPONSOR_PAY));
     // Prämien: Wochenhonorar + Siegprämie, manchmal 180er-Prämie und/oder Major-Teilnahme
     s.offer = { name, branche, real: sp0.real, fame: sp0.fame, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
       s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
@@ -179,7 +180,7 @@ function controversialOffer(state, m, rng) {
   s.cAt ??= wk + rng.int(CONTROVERSY_FIRST[0], CONTROVERSY_FIRST[1]);
   if (s.cOffer || hasControversial(state) || wk < s.cAt) return;
   const b = rng.pick(CONTROVERSIAL.filter(x => x.name !== s.cLast)); s.cLast = b.name;
-  const perWeek = Math.max(2, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * CONTROVERSIAL_PAY));
+  const perWeek = Math.max(2, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * CONTROVERSIAL_PAY * SPONSOR_PAY));
   s.cOffer = { name: b.name, sector: b.sector, tag: b.tag, perWeek, win: Math.max(1, Math.round(perWeek * 0.4)), weeks: CONTROVERSY_OFFER_WEEKS, length: rng.pick(CONTROVERSY_LENGTHS) };
   s.cAt = wk + rng.int(CONTROVERSY_GAP[0], CONTROVERSY_GAP[1]);
   addNews(state, 'info', `⚠️ Umstrittenes Sponsor-Angebot: ${b.name}`, `${b.tag} · ${perWeek} ★ pro Woche für ${s.cOffer.length} Wochen – sehr gut bezahlt, aber Fans und andere Sponsoren könnten verärgert reagieren. Entscheide im Sponsoren-Screen.`);

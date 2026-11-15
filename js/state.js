@@ -3,6 +3,7 @@ import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary } from './world.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES } from '../data/players.js';
+import { scaleSponsorPay } from '../data/sponsorsreal.js';
 import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
@@ -147,6 +148,7 @@ export function migrate(s) {
   addSecondary(s.world.players, new RNG(s.rng), s.date.year);
   for (const x of Object.values(s.world.players)) if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name];   // Nationen korrigiert (Version 69/88, Nutzerhinweise: `NATION_FIXES`)
   if (typeof s.stars === 'number') s.stars = Math.round(s.stars);   // ★ nur ganze Zahlen
+  scaleSponsorPay(s);                                                // Version 93: Sponsorbeträge × 0,7 (laufende Verträge einmalig)
   s.version = VERSION;
   return s;
 }

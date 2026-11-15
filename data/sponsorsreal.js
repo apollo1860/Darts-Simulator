@@ -4,6 +4,17 @@
 // Bis Star-Status 10 gibt es nur kleine fiktive Sponsoren (SMALL_SPONSORS, zahlen wenig); ab Status 11 kommen die echten Marken der Stufe 11 dazu,
 // ab 20 und ab 40 jeweils weitere (mit leichtem Fokus auf den zuletzt freigeschalteten). fame = Bekanntheit 1–5: je bekannter, desto besser die Bezahlung.
 export const SPONSOR_MAX = 5;
+// Version 93 (Nutzerwunsch „Sponsorenzahlungen etwas zu hoch“): alle Sponsorbeträge × SPONSOR_PAY – Wochenhonorar und damit auch Sieg-/180er-/Major-Prämien,
+// normale und umstrittene Verträge (career.js). Laufende Verträge und offene Angebote älterer Spielstände werden beim Laden einmal angepasst (`payV`).
+export const SPONSOR_PAY = 0.7;
+export function scaleSponsorPay(state) {
+  const s = state.nsdSponsors;
+  if (!s || s.payV === 2) return false;
+  const f = v => (v > 0 ? Math.max(1, Math.round(v * SPONSOR_PAY)) : v);
+  for (const c of [...(s.active ?? []), s.offer, s.cOffer]) if (c) for (const k of ['perWeek', 'win', 's180', 'major']) if (c[k] != null) c[k] = f(c[k]);
+  s.payV = 2;
+  return true;
+}
 export const REAL_FROM = [11, 20, 40];                       // Star-Status, ab dem die Marken der jeweiligen Stufe angeboten werden
 export const FAME_PAY = [0, 0.7, 0.9, 1.15, 1.4, 1.7];       // Bezahlfaktor je Bekanntheit (Index = fame)
 export const SMALL_PAY = 0.5;                                // kleine fiktive Sponsoren zahlen nur halb so viel wie ein „normaler“

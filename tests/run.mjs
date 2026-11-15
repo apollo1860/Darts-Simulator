@@ -2085,7 +2085,7 @@ test('New Star Darts v70/71: echte Marken nach Branchen – eine Branche je Spon
   // Bezahlung: kleine Marken wenig, bekannte mehr, je Bekanntheit steigend
   assert.ok(R.SMALL_PAY < R.FAME_PAY[1]); for (let f = 2; f <= 5; f++) assert.ok(R.FAME_PAY[f] > R.FAME_PAY[f - 1]);
   const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 20, slot: 1, seed: 6 }); s.team = { manager: 'm3', trainer: null }; s.player.star.level = 15; s.player.rel.fans = 50;
-  C.nameTeam(s); const ratio = { small: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, m = C.managerOf(s), unit = C.sponsorBase(s) * m.mult * N.starFactor(15);
+  C.nameTeam(s); const ratio = { small: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, m = C.managerOf(s), unit = C.sponsorBase(s) * m.mult * N.starFactor(15) * R.SPONSOR_PAY;   // Version 93: alle Beträge × SPONSOR_PAY
   for (let k = 0; k < 4000; k++) { s.nsdSponsors = { active: [], offer: null }; C.sponsorWeek(s, rng); const o = s.nsdSponsors.offer; if (o) { assert.ok(typeof o.real === 'boolean' && o.fame >= 0 && o.branche === br(o.name)); (o.real ? ratio[o.fame] : ratio.small).push(o.perWeek / unit); } }
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
   for (const f of [2, 3, 4, 5]) assert.ok(Math.abs(mean(ratio[f]) - R.FAME_PAY[f]) < 0.12, `Bekanntheit ${f}: ${mean(ratio[f])} statt ${R.FAME_PAY[f]}`);
@@ -2134,7 +2134,7 @@ test('New Star Darts v73: umstrittene Sponsoren – ab Status 25, alle 1–2 Jah
   // Angebot verfällt nach 4 Wochen; Bezahlung deutlich über normal
   const t = mk(30); t.nsdSponsors = { active: [], offer: null, cAt: 0 }; let o = null; for (let k = 0; k < 5 && !o; k++) { tick(t); C.sponsorWeek(t, rng); o = t.nsdSponsors.cOffer; }
   assert.ok(o && o.weeks === 4, 'Angebot da'); for (let k = 0; k < 4; k++) { tick(t); C.sponsorWeek(t, rng); } assert.equal(t.nsdSponsors.cOffer, null, 'verfällt');
-  const unit = C.sponsorBase(t) * C.managerOf(t).mult * N.starFactor(30), pays = [];
+  const unit = C.sponsorBase(t) * C.managerOf(t).mult * N.starFactor(30) * R.SPONSOR_PAY, pays = [];
   for (let k = 0; k < 600; k++) { t.nsdSponsors = { active: [], offer: null, cAt: 0 }; tick(t); C.sponsorWeek(t, rng); if (t.nsdSponsors.cOffer) pays.push(t.nsdSponsors.cOffer.perWeek / unit); }
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length; assert.ok(Math.abs(mean(pays) - X.CONTROVERSIAL_PAY) < 0.2, `Bezahlfaktor ${mean(pays)}`);
   // Annehmen: außerhalb der Branchenregel und der 5 Plätze, Fans sofort −3, nur ein umstrittener Vertrag
@@ -2396,6 +2396,23 @@ test('New Star Darts v89: Manager – Frauen-Symbol mit Frauenname, Männer-Symb
     C.nameTeam(old); assert.ok(women.has(first(old.team.names.m2)), old.team.names.m2); assert.equal(old.team.names.m1, keep.m1); assert.equal(old.team.names.m3, keep.m3);
     const again = old.team.names.m2; C.nameTeam(old); assert.equal(old.team.names.m2, again, 'danach stabil');
   }
+});
+
+test('New Star Darts v93: Sponsorenzahlungen × 0,7 – neue Angebote und (einmalig) laufende Verträge älterer Spielstände', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), R = await import('../data/sponsorsreal.js'), ST = await import('../js/state.js');
+  assert.equal(R.SPONSOR_PAY, 0.7); assert.equal(C.SPONSOR_PAY, 0.7);
+  // ältere Spielstände: laufende Verträge, offenes Angebot und umstrittenes Angebot werden beim Laden einmal angepasst
+  const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 9 });
+  s.nsdSponsors = { active: [{ name: 'Würth', branche: 'bau', perWeek: 100, win: 50, s180: 30, major: 0, weeksLeft: 20 }, { name: 'Klein', branche: 'mode', perWeek: 1, win: 1, s180: 0, major: 2, weeksLeft: 5 }],
+    offer: { name: 'Tipico', branche: 'wetten', perWeek: 40, win: 20, s180: 0, major: 80, weeks: 2 }, cOffer: { name: 'Gazprom', perWeek: 200, win: 80, weeks: 3 } };
+  ST.migrate(s);
+  assert.deepEqual(s.nsdSponsors.active.map(c => [c.perWeek, c.win, c.s180, c.major]), [[70, 35, 21, 0], [1, 1, 0, 1]]);
+  assert.deepEqual([s.nsdSponsors.offer.perWeek, s.nsdSponsors.offer.win, s.nsdSponsors.offer.major], [28, 14, 56]); assert.equal(s.nsdSponsors.cOffer.perWeek, 140);
+  ST.migrate(s); assert.equal(s.nsdSponsors.active[0].perWeek, 70, 'nur einmal');
+  // neue Karrieren/neue Verträge werden nicht noch einmal gekürzt
+  const f = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 10 }); f.team = { manager: 'm3', trainer: null }; C.nameTeam(f); f.player.star.level = 30;
+  const rng = new RNG(4); let o = null; for (let k = 0; k < 200 && !o; k++) { C.sponsorWeek(f, rng); o = f.nsdSponsors.offer; }
+  assert.ok(o && f.nsdSponsors.payV === 2); const pw = o.perWeek; ST.migrate(f); assert.equal(f.nsdSponsors.offer.perWeek, pw);
 });
 
 console.log(`\n${n} Tests ok`);
