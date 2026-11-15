@@ -610,19 +610,19 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .nsd-zoomtog.corner { position: absolute; top: 4px; right: 4px; margin: 0; z-index: 3; padding: 5px 10px; font-size: .9rem; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
 
 /* TV-Spielstandsanzeige beim Werfen (Version 90, Nutzervorlage) */
-.tvsb { border-radius: 8px; overflow: hidden; font-family: var(--nsd-font); text-shadow: none; box-shadow: 0 3px 10px rgba(0,0,0,.55); flex: none; }
+.tvsb { border-radius: 7px; overflow: hidden; font-family: var(--nsd-font); text-shadow: none; box-shadow: 0 3px 10px rgba(0,0,0,.55); flex: none; width: 86%; max-width: 340px; align-self: center; }   /* Version 91: etwas kleiner */
 .tvsb-head, .tvsb-row, .tvsb-foot { display: flex; align-items: stretch; }
-.tvsb-head { background: linear-gradient(90deg, #2f49d8 0, #5a3fe0 55%, #b24be6 100%); color: #fff; font-weight: 600; font-size: .92rem; line-height: 24px; padding-left: 10px; }
+.tvsb-head { background: linear-gradient(90deg, #2f49d8 0, #5a3fe0 55%, #b24be6 100%); color: #fff; font-weight: 600; font-size: .78rem; line-height: 19px; padding-left: 8px; }
 .tvsb-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tvsb-col { width: 38px; text-align: center; flex: none; }
-.tvsb-col.w { width: 60px; }
-.tvsb-row { background: #ececf1; color: #16182a; height: 32px; line-height: 32px; border-top: 1px solid #c4c5d0; }
-.tvsb-ind { width: 22px; flex: none; text-align: center; color: #7a3fe0; font-size: .8rem; }
-.tvsb-name { flex: 1; min-width: 0; font-weight: 600; font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tvsb-flag { flex: none; padding: 0 10px; font-size: 1.15rem; }
-.tvsb-box { width: 38px; flex: none; text-align: center; background: #2c2f3e; color: #fff; font-weight: 700; font-size: 1.15rem; border-left: 1px solid #454961; }
-.tvsb-rem { width: 60px; flex: none; text-align: center; background: #1b1d29; color: #86efe6; font-weight: 700; font-size: 1.2rem; border-left: 1px solid #454961; }
-.tvsb-foot { background: #24262f; color: #fff; font-size: .82rem; line-height: 22px; padding: 0 10px; border-top: 1px solid #3a3d4c; }
+.tvsb-col { width: 30px; text-align: center; flex: none; }
+.tvsb-col.w { width: 48px; }
+.tvsb-row { background: #ececf1; color: #16182a; height: 25px; line-height: 25px; border-top: 1px solid #c4c5d0; }
+.tvsb-ind { width: 18px; flex: none; text-align: center; color: #7a3fe0; font-size: .68rem; }
+.tvsb-name { flex: 1; min-width: 0; font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvsb-flag { flex: none; padding: 0 8px; font-size: .95rem; }
+.tvsb-box { width: 30px; flex: none; text-align: center; background: #2c2f3e; color: #fff; font-weight: 700; font-size: .95rem; border-left: 1px solid #454961; }
+.tvsb-rem { width: 48px; flex: none; text-align: center; background: #1b1d29; color: #86efe6; font-weight: 700; font-size: 1rem; border-left: 1px solid #454961; }
+.tvsb-foot { background: #24262f; color: #fff; font-size: .7rem; line-height: 17px; padding: 0 8px; border-top: 1px solid #3a3d4c; }
 .tvsb-logo { flex: none; font-weight: 800; letter-spacing: .3px; text-transform: lowercase; }
 .tvsb-logo b { background: #fff; color: #24262f; padding: 0 4px; margin-left: 3px; border-radius: 2px; }
 .nsd-aim-info:empty { display: none; }
