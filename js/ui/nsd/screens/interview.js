@@ -7,10 +7,10 @@ import { toast } from '../../components.js';
 
 export const nsd = true;
 const PLACE = { W: 'Turniersieg', F: 'Finale', SF: 'Halbfinale', WM: 'vor dem ersten Match', NQ: 'nicht qualifiziert' };
-const FX = [['fans', 'Fans'], ['star', 'Status'], ['manager', 'Manager'], ['sponsors', 'Sponsoren'], ['partner', 'Freundin'], ['mom', 'Selbstvertrauen'], ['sat', 'Zufriedenheit'], ['nerves', 'WM-Nervosität']];
-const num = v => `${v > 0 ? '+' : '−'}${String(Math.abs(v)).replace('.', ',')}`;
+const FX = [['fans', 'Fans'], ['star', 'Status'], ['manager', 'Manager'], ['sponsors', 'Sponsoren'], ['partner', 'Freundin'], ['mom', 'Selbstvertrauen'], ['sat', 'Zufriedenheit'], ['energy', 'Energie'], ['nerves', 'WM-Nervosität']];
+const num = (v, k) => `${v > 0 ? '+' : '−'}${String(Math.abs(v)).replace('.', ',')}${k === 'energy' ? ' %' : ''}`;
 // Nervosität: weniger ist gut → Farben umgekehrt
-const fxList = fx => FX.filter(([k]) => fx?.[k]).map(([k, l]) => `<span class="${(k === 'nerves' ? -fx[k] : fx[k]) > 0 ? 'pos' : 'neg'}">${l} ${num(fx[k])}</span>`).join('');
+const fxList = fx => FX.filter(([k]) => fx?.[k]).map(([k, l]) => `<span class="${(k === 'nerves' ? -fx[k] : fx[k]) > 0 ? 'pos' : 'neg'}">${l} ${num(fx[k], k)}</span>`).join('');
 
 export function render(app, params = {}) {
   const s = app.state, iv = interviewView(s, new RNG(s.rng));

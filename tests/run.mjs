@@ -1911,4 +1911,31 @@ test('New Star Darts v65: Interview-Antworten mit Gegensätzen Manager ↔ Freun
   assert.ok(!r2.fx.partner && r2.fx.sat > 0 && p.satisfaction > sat0, JSON.stringify(r2.fx));
 });
 
+test('New Star Darts v66: jede Interview-Antwort hat Plus und Minus über alle Bereiche (Fans, Status, Sponsoren, Energie …)', async () => {
+  const C = await import('../js/career.js'), T = await import('../data/talk.js');
+  const rng = new RNG(3), CORE = ['fans', 'star', 'mom', 'sat', 'energy'];   // wirken für jeden (auch ohne Manager/Freundin/Sponsor)
+  const eff = (a, ctx) => { const { e } = C.toneEffect(a.tone, ctx, rng); for (const [k, v] of Object.entries(a.fx ?? {})) e[k] = (e[k] ?? 0) + v; return e; };
+  const good = (k, v) => (k === 'nerves' ? -v : v);
+  const pairs = new Set(), signs = {};
+  for (const set of [T.RESULT_QS, T.PAULKE_IN, T.PAULKE_OUT]) for (const q of set) for (const a of q.a) {
+    for (const mood of [-1, 0, 1]) for (const backed of [false, true]) for (const level of [3, 20, 40]) for (let k = 0; k < 4; k++) {
+      const e = eff(a, { mood, backed, level });
+      assert.ok(CORE.some(x => e[x] < 0), `kein Nachteil: „${a.t}“ (Stimmung ${mood}, ${backed ? 'mit' : 'ohne'} Ergebnis, Status ${level})`);
+    }
+    const e = eff(a, { mood: 0, backed: false, level: 10 }), ks = Object.keys(e).filter(k => e[k]);
+    if (a.tone !== 'cocky') assert.ok(CORE.some(x => e[x] > 0), `kein Vorteil: „${a.t}“`);
+    for (const k of ks) (signs[k] ??= new Set()).add(Math.sign(good(k, e[k])));
+    for (const p of ks.filter(k => good(k, e[k]) > 0)) for (const m of ks.filter(k => good(k, e[k]) < 0)) pairs.add(`${p}>${m}`);
+  }
+  assert.ok(pairs.size >= 40, `nur ${pairs.size} verschiedene Plus/Minus-Paare`);
+  for (const k of C.IV_KEYS) assert.ok(signs[k]?.has(1) && signs[k]?.has(-1), `${k} nicht in beide Richtungen`);
+  for (const [p, m] of [['fans', 'sponsors'], ['sponsors', 'fans'], ['fans', 'energy'], ['star', 'sat'], ['sat', 'star'], ['mom', 'nerves'], ['manager', 'partner'], ['partner', 'manager'], ['fans', 'mom'], ['energy', 'sat']])
+    assert.ok(pairs.has(`${p}>${m}`), `Gegensatz ${p} ↔ ${m} fehlt`);
+  // Energie wirkt im Spiel
+  const N = await import('../js/nsd.js'), s = N.newNsdCareer({ first: 'E', last: 'N', nation: 'DE', age: 20, slot: 1, seed: 2 }); s.flags ??= {};
+  const iv = C.preWmInterview(s, rng, true); iv.qs[0] = { set: 'in', i: T.PAULKE_IN.findIndex(q => q.q.startsWith('Wie verbringst')), perm: [0, 1, 2, 3] };
+  s.player.energy = 80; const r = C.answerInterview(s, 2, rng);   // Pubs in Nord-London: Fans +, Energie −
+  assert.ok(r.fx.energy < 0 && s.player.energy < 80 && r.fx.fans > 0, JSON.stringify(r.fx));
+});
+
 console.log(`\n${n} Tests ok`);

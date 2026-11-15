@@ -6,7 +6,7 @@ import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { SPONSORS, SPONSOR_SLOTS } from '../data/sponsors.js';
-import { starPrice, starPayout, starFactor, priceFactor, addRel, addFans, addStarProgress } from './nsd.js';
+import { starPrice, starPayout, starFactor, priceFactor, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { getPlayer } from './world.js';
@@ -223,7 +223,7 @@ export function settleGoals(state) {
 // (−1/0/+1, nur in der Einleitung angedeutet) und etwas Zufall – es gibt keine immer richtige Antwort, fast jede hat Plus und Minus.
 // Die Antworten erscheinen gemischt. Vor der WM wirken die Antworten zusätzlich auf die Nervosität bei der WM (`player.wmMind`).
 const IV_SETS = { result: RESULT_QS, in: PAULKE_IN, out: PAULKE_OUT };
-export const IV_KEYS = ['fans', 'star', 'manager', 'sponsors', 'partner', 'mom', 'nerves', 'sat'];
+export const IV_KEYS = ['fans', 'star', 'manager', 'sponsors', 'partner', 'mom', 'nerves', 'sat', 'energy'];
 // Aktuelle (oder k-te) Frage mit Antworten in Anzeige-Reihenfolge
 export function ivQuestion(iv, k = iv.answers.length) {
   const q = iv.qs[k], src = q && IV_SETS[q.set]?.[q.i];
@@ -259,18 +259,18 @@ export function toneEffect(tone, { mood = 0, backed = false, level = 1 }, rng) {
   let ok = true;
   switch (tone) {
     // Achse Karriere ↔ Privatleben (Version 65): was den Manager freut (Fokus, Ehrgeiz, Professionalität), ärgert oft die Freundin – und umgekehrt
-    case 'humble': Object.assign(e, { fans: rookie ? 2 : 1, star: rookie ? 3 : top ? 0 : 2, sponsors: level >= 20 ? -1 : 0, nerves: -0.3, mom: backed ? -0.5 : 0, partner: 1 }); ok = !top; break;
+    case 'humble': Object.assign(e, { fans: rookie ? 2 : 1, star: rookie ? 3 : top ? 0 : 2, sponsors: level >= 20 ? -1 : 0, nerves: -0.3, mom: backed ? -1 : -0.5, partner: 1 }); ok = !top; break;   // kleinmachen kostet Selbstvertrauen
     case 'confident': Object.assign(e, { star: backed ? 5 : 2, fans: mood < 0 ? 0 : 1, manager: 1, partner: -1, mom: 0.5, nerves: 0.2 }); ok = backed; break;
     case 'cocky': ok = rng.chance(clamp(0.2 + (backed ? 0.3 : 0) + 0.15 * mood + (top ? 0.1 : 0), 0.05, 0.85));
-      Object.assign(e, ok ? { fans: 3, star: 7, sponsors: 2, manager: 1, partner: -1, mom: 1, nerves: 0.5 } : { fans: -3, star: -2, manager: -2, partner: -1, sponsors: -2, mom: -1, nerves: 0.8 }); break;
+      Object.assign(e, ok ? { fans: 3, star: 7, sponsors: 2, manager: 1, partner: -1, mom: 1, nerves: 0.5, sat: -1 } : { fans: -3, star: -2, manager: -2, partner: -1, sponsors: -2, mom: -1, nerves: 0.8 }); break;
     case 'funny': Object.assign(e, mood > 0 ? { fans: 3, star: 2, sat: 2, nerves: -0.4, partner: 1 } : mood === 0 ? { fans: 1, star: 1, sat: 1, nerves: -0.3, partner: 1 } : { fans: -1, nerves: -0.2 }); ok = mood >= 0;
       e.manager = -1;                                                    // Manager findet es unseriös
       if (level >= 20) e.sponsors -= 1;                                  // Sponsoren wollen Seriosität
       break;
     case 'honest': Object.assign(e, { fans: mood < 0 ? 3 : mood > 0 ? 1 : 2, star: 2, manager: -2, partner: 1, sponsors: -1, mom: -0.5, nerves: -0.2 }); break;
-    case 'evasive': Object.assign(e, { fans: mood < 0 ? -2 : -1, manager: 1, sponsors: 1, partner: -1, nerves: -0.1 }); ok = mood >= 0; break;
+    case 'evasive': Object.assign(e, { fans: mood < 0 ? -2 : -1, manager: 1, sponsors: 1, partner: -1, nerves: -0.1, sat: 1 }); ok = mood >= 0; break;
     case 'emotional': Object.assign(e, { fans: mood < 0 ? 1 : 2, star: top ? 0 : 1, sat: 3, partner: 3, manager: -1, nerves: -0.2, mom: -0.5, sponsors: mood < 0 ? -1 : 0 }); ok = mood >= 0; break;   // weich: weniger Killerinstinkt
-    case 'fiery': Object.assign(e, { star: backed ? 5 : 2, fans: mood >= 0 ? 2 : -2, mom: 1.5, nerves: 0.6, manager: 1, partner: -1, sponsors: backed ? 1 : 0 }); ok = mood >= 0; break;
+    case 'fiery': Object.assign(e, { star: backed ? 5 : 2, fans: mood >= 0 ? 2 : -2, mom: 1.5, nerves: 0.6, manager: 1, partner: -1, sponsors: backed ? 1 : 0, sat: -1 }); ok = mood >= 0; break;
   }
   if (e.star && rng.chance(0.5)) e.star += rng.pick([-1, 1]);       // etwas Zufall
   return { e, ok };
@@ -295,6 +295,7 @@ function applyIvEffect(state, e, iv) {
   else if (e.partner) e.sat = (e.sat ?? 0) + Math.sign(e.partner) * Math.ceil(Math.abs(e.partner) / 2);   // ohne Freundin: Privatleben → Zufriedenheit
   if (e.mom) { p.momentum = clamp(Math.round(((p.momentum ?? 0) + e.mom) * 10) / 10, -10, 10); out.mom = e.mom; }
   if (e.sat) { p.satisfaction = clamp((p.satisfaction ?? 50) + e.sat, 0, 100); out.sat = e.sat; }
+  if (e.energy) { addEnergy(p, e.energy); out.energy = e.energy; }
   if (e.nerves && iv.kind === 'paulke' && iv.qualified) {
     const before = p.wmMind?.year === iv.year ? p.wmMind.nerves : 0;
     p.wmMind = { year: iv.year, nerves: clamp(Math.round((before + e.nerves) * 100) / 100, -1.5, 2) };
