@@ -1058,7 +1058,12 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   assert.equal(p.buzz, 3); assert.equal(p.attrs.sco, A(6)); assert.equal(p.attrs.men, A(1));   // kein Mental-Bonus
   assert.equal(r.rel, 'fans'); assert.equal(p.rel.fans, fans + 1);
   assert.throws(() => T.drink(s, 'schnaps', rng));
-  p.star.level = 21; assert.equal(T.drinkPrice({ price: 5 }, 21), 30);
+  // Version 78: Getränke-Schlüssel – Bier Status 1 = 1 ★, Status 40 = 120 ★ (Schnaps ×3, Wodka ×5), danach +5 %/Stufe
+  assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 120);
+  assert.equal(T.drinkPrice({ price: 3 }, 40), 360); assert.equal(T.drinkPrice({ price: 5 }, 40), 600); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 120 ** (20 / 39)));
+  let prev = 0; for (let l = 1; l <= 100; l++) { const f = N.drinkFactor(l); assert.ok(f > prev, `Faktor steigt (${l})`); prev = f; }
+  assert.ok(Math.abs(N.drinkFactor(41) / N.drinkFactor(40) - 1.05) < 1e-9); assert.ok(N.drinkFactor(100) < 2500);
+  p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 380); p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
   // Darts: Bonus solange ausgerüstet
   s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 3 + 3 + 2);
   T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, A(5));

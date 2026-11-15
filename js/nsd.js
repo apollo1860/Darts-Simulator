@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 77;
+export const APP_VERSION = 78;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -25,10 +25,18 @@ export const STAR_MAX = 100;
 // Status-Faktor: Preisgelder UND Preise × (1 + 5 % je Stufe über 1)
 export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
 // Preise (Ausgaben außer Lifestyle) wachsen stärker als die Einnahmen: +25 % je Stufe (Nutzerwunsch, Version 50);
-// ganze ★, aufgerundet: Bier Status 1 = 1 ★, Status 11 = 4 ★, Status 30 = 9 ★
+// ganze ★, aufgerundet (gilt nicht für Getränke – die haben seit Version 78 den eigenen Schlüssel `drinkFactor`, unten)
 export const PRICE_STEP = 0.25;
 export const priceFactor = (level = 1) => 1 + PRICE_STEP * (Math.max(1, level) - 1);
 export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * priceFactor(level) * 100) / 100));
+// Getränke-Preisschlüssel (Version 78, Nutzerwunsch): Bier Status 1 = 1 ★, Status 40 = 120 ★. Bis Status 40 wächst der Faktor geometrisch
+// (120^((Stufe−1)/39) ≈ +13,06 % je Stufe; Status 11 ≈ 3,4, 21 ≈ 11,6, 30 ≈ 35), danach +5 % je Stufe (wie die Einnahmen), sonst wären es bei Status 100 > 190.000 ★.
+// Gilt nur für Getränke (Bier 1 / Schnaps 3 / Wodka 5 Basis-★); alle anderen Preise laufen weiter über `priceFactor`.
+export const DRINK_ANCHOR = { level: 40, price: 120 }, DRINK_TAIL = 0.05;
+export const drinkFactor = (level = 1) => {
+  const L = Math.max(1, level), { level: a, price } = DRINK_ANCHOR;
+  return L <= a ? Math.pow(price, (L - 1) / (a - 1)) : price * Math.pow(1 + DRINK_TAIL, L - a);
+};
 export const START_STARS = 15;     // Startguthaben (★ auf Status 1)
 // Start im Tour-Modus: Saison 2026 direkt nach der Q-School (KW 2)
 export const NSD_START = { year: 2026, week: 3 };
@@ -213,7 +221,7 @@ export function addStarProgress(state, pts) {
   if (ups) {
     p.freePoints = (p.freePoints ?? 0) + ups;            // je Stufe 1 Fähigkeitspunkt zum Verteilen
     addNews(state, 'star', `⭐ Star-Status ${st.level}!`,
-      `${st.level <= SKILL_MAX ? `Mental steigt auf ${mentalOf(p)}. ` : ''}Preisgelder steigen um 5 % je Stufe (jetzt ×${starFactor(st.level).toFixed(2).replace('.', ',')}), Preise um 25 % (jetzt ×${priceFactor(st.level).toFixed(2).replace('.', ',')}).`);
+      `${st.level <= SKILL_MAX ? `Mental steigt auf ${mentalOf(p)}. ` : ''}Preisgelder steigen um 5 % je Stufe (jetzt ×${starFactor(st.level).toFixed(2).replace('.', ',')}), Preise um 25 % (jetzt ×${priceFactor(st.level).toFixed(2).replace('.', ',')}). Ein Bier kostet jetzt ${Math.max(1, Math.round(drinkFactor(st.level)))} ★.`);
     syncAttrs(p);
     starArticle(state, st.level);
   }
