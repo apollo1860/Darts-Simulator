@@ -32,13 +32,15 @@ function addScoreBand(s, pts) {
 }
 
 // Einen Dart werten. hit = {label, score, double}. Rückgabe: Ereignis
-export function throwDart(m, hit) {
+// pos (optional): Position des Darts in mm – wer steckt, wird für die „Verbauung“ (obstruction.js) bis zum Aufnahmeende gemerkt
+export function throwDart(m, hit, pos = null) {
   if (m.done) return null;
   m.legPoints ??= [0, 0]; m.legVisits ??= [[], []];   // ältere Spielstände
   const t = m.turn, s = m.stats[t];
   const r = m.rem[t];
   const after = r - hit.score;
   m.visit.darts.push(hit.label);
+  if (pos && hit.label !== 'OUT' && hit.label !== 'BOUNCER') (m.visit.tips ??= []).push({ x: pos.x, y: pos.y });
   m.legDarts[t]++;
   if (onDouble(r)) s.coAtt++;
   const ev = { player: t, hit, bust: false, checkout: false, visitEnd: false, legEnd: false, matchEnd: false };

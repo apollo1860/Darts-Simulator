@@ -36,7 +36,7 @@ export function labelValue(label) {
   return label[0] === 'T' ? 3 * n : label[0] === 'D' ? 2 * n : n;
 }
 export const isDoubleLabel = l => l === 'BULL' || l[0] === 'D';
-export const fieldName = l => (l === 'BULL' ? 'Bull' : l === '25' ? '25' : l === 'OUT' ? 'Daneben' : l[0] === 'S' ? l.slice(1) : l);
+export const fieldName = l => (l === 'BULL' ? 'Bull' : l === '25' ? '25' : l === 'OUT' ? 'Daneben' : l === 'BOUNCER' ? 'Bouncer' : l[0] === 'S' ? l.slice(1) : l);
 
 // ---- Checkout-Wege ----
 // Strafpunkte je Dart (niedrig = bevorzugt); Doppel-Präferenz wie im Profi-Darts

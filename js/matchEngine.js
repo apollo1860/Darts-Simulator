@@ -12,7 +12,7 @@ export function makeProfile(attrs, rng, mod = {}) {
   const formSd = 0.055 - attrs.foc * 0.0003;           // Tagesform: auch Topspieler haben schwache Tage
   const form = (rng ? rng.normal(1, formSd) : 1) * (mod.formMult ?? 1);
   return {
-    avg: targetAverage(attrs) * form,
+    avg: targetAverage(attrs) * form * (attrs.angleMult ?? 1),   // Einsteckwinkel (obstruction.js)
     sd: 27 - attrs.foc * 0.12,
     co: checkoutBase(attrs) * (mod.coMult ?? 1),
     men: attrs.men,

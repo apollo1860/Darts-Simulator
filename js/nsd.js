@@ -7,9 +7,10 @@ import { addNews } from './news.js';
 import { starArticle } from './articles.js';
 import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
+import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 58;
+export const APP_VERSION = 59;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -68,14 +69,14 @@ export function setStartSkills(p, points) {
 }
 
 // Neue Karriere im Tour-Modus: Profil (Vorname, Nachname, Nation, Alter, Wurfhand), Start mit Tourcard
-export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot = 1, seed }) {
+export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot = 1, seed, angle = ANGLE_DEFAULT }) {
   const name = `${first} ${last}`.trim();
   const s = newCareer({ name, nation, hand, age, slot, seed, ...NSD_START });
   s.mode = 'nsd';
   s.news = [];
   const p = s.player, y = s.date.year;
   Object.assign(p, {
-    first, last,
+    first, last, angle: Math.round(clampAngle(angle)),     // Einsteckwinkel der Darts (obstruction.js)
     tour: 'tour', cardUntil: y + 1, everTourcard: true, cardVia: `Q-School ${y}`, proMatches: 0,
     star: { level: 1, xp: 0 }, energy: 100,
     skills: Object.fromEntries(TRAINABLE.map(t => [t.key, Array(SKILL_LEVELS).fill(0)])),
@@ -234,6 +235,7 @@ export const EDIT_FIELDS = [
   { key: 'satisfaction', label: 'Zufriedenheit', min: 0, max: 100, get: s => s.player.satisfaction ?? 50, set: (s, v) => { s.player.satisfaction = v; } },
   ...Object.entries(relLabel).map(([k, l]) => ({ key: `rel_${k}`, label: `Beziehung ${l}`, min: 0, max: 100, get: s => s.player.rel[k] ?? 0,
     set: (s, v) => { s.player.rel[k] = v; if (k === 'partner' && v > 0) s.player.partnerName ??= 'Lena'; } })),
+  { key: 'angle', label: 'Einsteckwinkel (°)', min: ANGLE_MIN, max: ANGLE_MAX, get: s => s.player.angle ?? ANGLE_DEFAULT, set: (s, v) => { s.player.angle = Math.round(v); } },
   { key: 'age', label: 'Alter', min: 16, max: 70, get: s => s.player.age, set: (s, v) => { s.player.age = Math.round(v); } },
   { key: 'cardUntil', label: 'Tourcard bis (Jahr)', min: 2026, max: 2100, get: s => s.player.cardUntil ?? s.date.year, set: (s, v) => { s.player.cardUntil = Math.round(v); s.player.tour = 'tour'; } },
 ];

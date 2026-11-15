@@ -1697,4 +1697,48 @@ test('New Star Darts v58: alle Turnierarten – nach der Meldung gibt es ein Mat
   for (const f of ['ukopen', 'masters', 'mastersq', 'gsod', 'wm', 'pcf', 'ec', 'matchplay', 'wgp']) assert.ok(cats.has(f), `${f} abgedeckt`);
 });
 
+test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streuung, Bouncer', async () => {
+  const O = await import('../js/obstruction.js'), TM = await import('../js/throwModel.js'), MS = await import('../js/matchState.js'), B = await import('../js/board.js');
+  const { attrsForAverage } = await import('../js/player.js'), { RNG } = await import('../js/rng.js'), N = await import('../js/nsd.js');
+  // Geometrie: nach oben steckend = langer Schatten über der Spitze, nach unten = kurz und unter der Spitze
+  const up = O.shadowRect({ x: 0, y: 0 }, 40), flat = O.shadowRect({ x: 0, y: 0 }, 0), down = O.shadowRect({ x: 0, y: 0 }, -30);
+  assert.ok(up.y1 - up.y0 > 60 && up.y0 < -55); assert.ok(flat.y1 - flat.y0 <= 20); assert.ok(down.y0 >= -6 && down.y1 - down.y0 < 30);
+  const tip = [{ x: 0, y: -100 }], T20 = B.targetPoint('T20');
+  const sAt = a => O.blockage(T20, tip, a);
+  assert.ok(sAt(60) > sAt(30) && sAt(30) > sAt(10) && sAt(10) > sAt(-15) && sAt(-30) === 0, `Verbauung ${[-30, -15, 10, 30, 60].map(sAt)}`);
+  assert.equal(O.blockage(B.targetPoint('T19'), tip, 60), 0);                         // Nachbarfeld frei
+  assert.equal(O.blockage(T20, [], 60), 0);
+  assert.ok(O.stability(-30) > O.stability(10) && O.stability(30) === O.stability(10) && O.stability(0, true) > O.stability(0) * 1.05);
+  // Spitzen werden je Aufnahme gemerkt und danach verworfen
+  const m = MS.createMatch({ legs: 3 }, 0);
+  MS.throwDart(m, B.scoreAt(0, -103), { x: 0, y: -103 }); assert.equal(m.visit.tips.length, 1);
+  MS.throwDart(m, O.BOUNCER, { x: 0, y: -103 }); assert.equal(m.visit.tips.length, 1);   // Bouncer steckt nicht
+  MS.throwDart(m, B.scoreAt(0, -103), { x: 0, y: -103 });                                  // 3. Dart beendet die Aufnahme
+  assert.ok(!m.visit.tips);                                                              // neue Aufnahme
+  // KI wechselt im Scoring das Feld, bleibt sie auf einem erzwungenen verbauten Feld: Bouncer ≈ 5 % und mehr Streuung
+  const rng = new RNG({ s: 5 }), at = { ...attrsForAverage(95, rng), ce: 0, exp: 0, angle: 60 };
+  let sw = 0, bounce = 0, spreadFree = 0, spreadBlocked = 0, n = 4000;
+  for (let i = 0; i < n; i++) {
+    const mm = MS.createMatch({ legs: 3 }, 0); mm.visit.tips = [{ x: T20.x, y: T20.y }];
+    if (TM.aiDart(mm, 0, at, rng).target !== 'T20') sw++;
+    const d = TM.aiDart(mm, 0, at, rng, undefined, 1, 'T20'); if (d.hit.label === 'BOUNCER') bounce++; spreadBlocked += Math.hypot(d.x - T20.x, d.y - T20.y);
+    const f = MS.createMatch({ legs: 3 }, 0), e = TM.aiDart(f, 0, at, rng, undefined, 1, 'T20'); spreadFree += Math.hypot(e.x - T20.x, e.y - T20.y);
+  }
+  assert.ok(sw / n > 0.9, `Feldwechsel ${sw / n}`); assert.ok(Math.abs(bounce / n - 0.05) < 0.015, `Bouncer ${bounce / n}`); assert.ok(spreadBlocked / spreadFree > 1.4, `Streuung ×${spreadBlocked / spreadFree}`);
+  // Kreis für den eigenen Wurf: verbaut = größer; ohne Winkel unverändert
+  const mm = MS.createMatch({ legs: 3 }, 0), a0 = { sco: 95, fin: 95, foc: 90, men: 90, cal: 90, exp: 0 }, p1 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20');
+  mm.visit.tips = [{ x: T20.x, y: T20.y }];
+  const p2 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20'), p3 = TM.circleParams(a0, mm, 0, 'T20');
+  assert.ok(p2.radius > p1.radius * 1.4 && p2.block > 0.7 && p3.block === 0 && p3.radius === TM.circleParams(a0, MS.createMatch({ legs: 3 }, 0), 0, 'T20').radius);
+  // Winkel im Profil, Editor, KI-Winkel
+  const s = N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4, angle: 45 }); assert.equal(s.player.angle, 45);
+  assert.equal(N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4 }).player.angle, O.ANGLE_DEFAULT);
+  assert.equal(N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4, angle: 200 }).player.angle, O.ANGLE_MAX);
+  N.applyEdits(s, { angle: -50 }); assert.equal(s.player.angle, O.ANGLE_MIN);
+  const ids = Array.from({ length: 300 }, (_, i) => `T${i}`), ang = ids.map(O.aiAngle);
+  assert.equal(O.aiAngle('T7'), O.aiAngle('T7')); assert.ok(ang.every(x => x >= O.ANGLE_MIN && x <= O.ANGLE_MAX));
+  const mean = ang.reduce((a, b) => a + b) / ang.length; assert.ok(Math.abs(mean - O.ANGLE_AI_MEAN) < 3, `KI-Mittel ${mean}`);
+  assert.ok(O.angleEfficiency(60) < O.angleEfficiency(18) && O.angleEfficiency(18) === 1 && O.angleEfficiency(-30) < 1);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -3,6 +3,7 @@ import { targetPoint, scoreAt, suggestTarget, isDoubleLabel, labelValue, BOGEY }
 import { targetAverage, checkoutBase, calcError } from './player.js';
 import { wouldWinMatch, isDecider, dartsLeft, onDouble } from './matchState.js';
 import { clamp } from './util.js';
+import { blockage, stability, SWITCH_AT, BLOCK_SIGMA, BOUNCE_P, BOUNCER } from './obstruction.js';
 
 // Kalibrierung Average → Streuung (mm, je Achse) für Scoring-Darts (ermittelt mit tests/fitSigma.mjs)
 const SIGMA_TABLE = [[40, 24.5], [50, 18.2], [60, 14.5], [70, 12.2], [80, 10.1], [90, 8.4], [100, 7.1], [110, 5.8]];
@@ -63,12 +64,21 @@ function maybeMiscalc(target, rem, ce, rng) {
 // KI-Dart: Ziel wählen + werfen. Rückgabe {target, x, y, hit}
 export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced = null) {
   // forced = vom Spieler gewählter Weg (keine Rechenfehler); attrs.ce = eigene Fehlerquote (Tour-Modus, aus Rechnen 0–60)
-  const target = forced ?? maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng);
+  let target = forced ?? maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng);
+  // Einsteckwinkel: Steckende Darts dieser Aufnahme verbauen das Feld (obstruction.js). Im reinen Scoring wechselt die KI auf T19/T18/T17.
+  const ang = attrs.angle, tips = m.visit.tips;
+  let block = ang != null && tips?.length ? blockage(targetPoint(target), tips, ang) : 0;
+  if (block >= SWITCH_AT && forced == null && m.rem[i] > 230) {
+    const alt = ['T19', 'T18', 'T17'].map(t => [t, blockage(targetPoint(t), tips, ang)]).sort((a, b) => a[1] - b[1])[0];
+    if (alt[1] <= block - 0.3) { target = alt[0]; block = alt[1]; }
+  }
   const p = targetPoint(target);
   const base = isDoubleLabel(target) ? sig.dbl : sig.score;
-  const s = base * mult * pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);
+  const s = base * mult * pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc)
+    * (ang != null ? stability(ang, isDoubleLabel(target)) * (1 + BLOCK_SIGMA * block) : 1);
   const x = p.x + rng.normal(0, s), y = p.y + rng.normal(0, s);
-  return { target, x, y, hit: scoreAt(x, y) };
+  const hit = block > 0 && rng.chance(BOUNCE_P * block) ? BOUNCER : scoreAt(x, y);
+  return { target, x, y, hit, block };
 }
 
 // Manuelles Zielen: Amplitude (mm) und Frequenz (Zyklen/s) der Linien + Reststreuung
@@ -99,8 +109,11 @@ export function circleParams(attrs, m, i, target) {
   const dbl = isDoubleLabel(target) || target === '25';
   const sk = skillEq(dbl ? attrs.fin : attrs.sco), fk = skillEq(attrs.foc);
   const pf = pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc);
+  const block = attrs.angle != null ? blockage(targetPoint(target), m.visit.tips, attrs.angle) : 0;   // verbautes Feld: größerer Kreis
+  const k = attrs.angle != null ? stability(attrs.angle, dbl) * (1 + BLOCK_SIGMA * block) : 1;
   return {
-    radius: clamp(17 - 0.2 * sk, 5, 36) * pf,
+    block,
+    radius: clamp(17 - 0.2 * sk, 5, 36) * pf * k,
     amp: clamp(40 - 0.25 * fk, 24, 50),
     freq: clamp(0.8 - 0.004 * fk, 0.55, 1.2) * Math.sqrt(pf),
     pressure: pf > 1.05,

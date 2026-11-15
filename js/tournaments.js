@@ -5,7 +5,8 @@ import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider } from './matchState.js';
-import { BOGEY, scoreAt } from './board.js';
+import { BOGEY, scoreAt, targetPoint } from './board.js';
+import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER } from './obstruction.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE } from './world.js';
@@ -352,7 +353,13 @@ export function playerMatch(inst) {
 
 // Leistungsdaten; World Cup: Liste der beiden Teamspieler (der Bessere zuerst, sie wechseln sich je Aufnahme ab)
 // Bühne (Majors, große Namen): Erfahrung zählt zusätzlich (form.js)
-const soloAttrs = (state, id, inst, sf) => {
+const soloAttrs = (state, id, inst, sf) => withAngle(state, id, soloAttrs0(state, id, inst, sf));
+// Einsteckwinkel (obstruction.js): wirkt im dartgenauen Live-Modell über attrs.angle
+const withAngle = (state, id, a) => {
+  const angle = angleOf(state, id);
+  return id === 'P' ? { ...a, angle, angleMult: angleEfficiency(angle) } : { ...a, angle };   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
+};
+const soloAttrs0 = (state, id, inst, sf) => {
   const staged = applyStage(perf(getPlayer(state, id)), sf);
   if (id !== 'P') return staged;
   if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)
@@ -418,7 +425,8 @@ export function liveAiVisit(state) {
   while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) {
     const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
     const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
-    ev = throwDart(lm, scripted ?? aiDart(lm, side, a, rng, sig, mult, forced).hit);
+    const d = aiDart(lm, side, a, rng, sig, mult, forced);
+    ev = throwDart(lm, scripted ?? d.hit, scripted ? null : d);
   }
   if (mine) live.route = null;
   tickMods(inst.live, side);
@@ -436,7 +444,7 @@ export function liveDartStep(state) {
   const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
   const dart = aiDart(lm, side, a, new RNG(state.rng), aiSigma(a), modMult(live, side), forced);
   if (scripted) dart.hit = scripted;
-  const ev = throwDart(lm, dart.hit);
+  const ev = throwDart(lm, dart.hit, scripted ? null : dart);
   const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
   if (visitOver) { if (mine) live.route = null; tickMods(live, side); }
   return { ev, dart, side, visitOver };
@@ -512,7 +520,9 @@ export function aimParams(state, target) {
 // Eigener Dart an Position (x, y) in mm
 export function liveHumanDart(state, x, y, target) {
   const live = state.activeEvent.live, lm = live.m, side = lm.turn, start = lm.visit.start;
-  const hit = scoreAt(x, y), ev = throwDart(lm, hit);
+  // Einsteckwinkel: verbautes Feld → Dart kann abprallen (Bouncer, zählt nicht)
+  const block = blockage(targetPoint(target), lm.visit.tips, liveAttrs(state, side).angle ?? null), rng = new RNG(state.rng);
+  const hit = block > 0 && rng.chance(BOUNCE_P * block) ? BOUNCER : scoreAt(x, y), ev = throwDart(lm, hit, { x, y });
   const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
   if (visitOver) {
     live.route = null; tickMods(live, side);
@@ -549,7 +559,7 @@ function tickMods(live, side) {
 export function simulateLiveRest(state) {
   const lm = state.activeEvent.live.m;
   const rng = new RNG(state.rng);
-  while (!lm.done) { const a = liveAttrs(state, lm.turn); throwDart(lm, aiDart(lm, lm.turn, a, rng, aiSigma(a)).hit); }
+  while (!lm.done) { const a = liveAttrs(state, lm.turn), d = aiDart(lm, lm.turn, a, rng, aiSigma(a)); throwDart(lm, d.hit, d); }
   return finishManualMatch(state);
 }
 

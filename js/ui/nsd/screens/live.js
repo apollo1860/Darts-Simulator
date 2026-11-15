@@ -11,6 +11,7 @@ import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nex
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
+import { angleOf, shadowRect, severity, blockage, BLOCK_SIGMA, BOUNCE_P } from '../../../obstruction.js';
 import { canSelfPlay, skillEffective } from '../../../nsd.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { confirmDialog } from '../../components.js';
@@ -21,7 +22,7 @@ const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME' };
 const Y_SPEED = 0.8;   // Linie von oben nach unten etwas langsamer als die seitliche
-const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p>';
+const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
 let ui = null;
 
 export function render(app) {
@@ -150,7 +151,7 @@ function boardHtml(head, extra = '') {
       <circle id="circ" class="nsd-circ" r="0" style="display:none"/>
       <line id="vline" class="aim-line v" x1="0" x2="0" y1="-200" y2="200" style="display:none"/>
       <line id="hline" class="aim-line h" x1="-200" x2="200" y1="0" y2="0" style="display:none"/>
-      <g id="marks"></g></svg>
+      <g id="shadows"></g><g id="marks"></g></svg>
       <div class="board-banner" id="banner"></div></div>${extra}`;
 }
 const $ = id => ui.aimEl.querySelector(id);
@@ -192,7 +193,7 @@ function showDart() {
   const r = liveDartStep(ui.s), sh = ui.show;
   sh.sum += r.dart.hit.score;
   $('#region').setAttribute('d', r.dart.target === 'OUT' ? '' : regionPath(r.dart.target));
-  mark(r.dart.x, r.dart.y, false);
+  if (r.dart.hit.label !== 'BOUNCER') mark(r.dart.x, r.dart.y, false);
   ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (!r.visitOver) { ui.timer = setTimeout(showDart, wait(DART_MS)); return; }
   const ok = r.ev?.checkout || (sh.kind === '180' && sh.sum === 180 && !r.ev?.bust);
@@ -217,9 +218,18 @@ function startAim(kind) {
   zoomLabel();
   nextDart();
 }
+// Verbaute Bereiche: Schatten der steckenden Darts dieser Aufnahme (Länge/Stärke nach Einsteckwinkel)
+function drawShadows() {
+  const g = $('#shadows');
+  if (!g) return;
+  const ang = angleOf(ui.s, 'P'), op = (0.15 + 0.6 * severity(ang)).toFixed(2);
+  g.innerHTML = (ui.live.m.visit.tips ?? []).map(t => { const r = shadowRect(t, ang);
+    return `<rect class="shadow" style="opacity:${op}" x="${r.x0.toFixed(1)}" y="${r.y0.toFixed(1)}" width="${(r.x1 - r.x0).toFixed(1)}" height="${(r.y1 - r.y0).toFixed(1)}" rx="5"/>`; }).join('');
+}
 function nextDart() {
   const m = ui.live.m, a = ui.aim;
   a.phase = 'pick';
+  drawShadows();
   $('#rem').textContent = m.rem[ui.me];
   ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
   const sug = suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next());
@@ -234,9 +244,11 @@ function setTarget(label) {
   $('#region').setAttribute('d', regionPath(label));
   zoomTo(label);
   const route = ui.ce < 0.12 ? checkoutRoute(m.rem[ui.me], dartsLeft(m)) : null;   // Weg nur bei ordentlichem Rechnen
-  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}`;
+  const blk = a.prm.block ?? 0;
+  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}${blk >= 0.1 ? ` · <span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''}`;
+  const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
   const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
-  $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${fieldName(t)}</button>`).join('');
+  $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '⚠ ' : ''}${fieldName(t)}</button>`).join('');
 }
 function onKey(e) {
   if (!ui?.aim || (e.code !== 'Space' && e.code !== 'Enter') || e.target.closest?.('.modal')) return;
@@ -290,11 +302,11 @@ function stopLine() {
   a.phase = 'busy'; $t().disabled = true;
   const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
-  mark(pt.x, pt.y, true);
+  if (r.dart.hit.label !== 'BOUNCER') mark(pt.x, pt.y, true);
   ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
-  banner(txt, !r.ev?.bust);
+  banner(h.label === 'BOUNCER' ? '🤾 BOUNCER!' : txt, !r.ev?.bust && h.label !== 'BOUNCER');
   if (!r.visitOver) { ui.timer = setTimeout(() => { if (ui?.aim) { $('#banner').className = 'board-banner'; nextDart(); } }, 700); return; }
   ui.timer = setTimeout(() => { if (!ui) return; closeOverlay(); afterVisit(r.ev, ui.me); }, r.ev?.checkout ? 1600 : 1200);
 }
