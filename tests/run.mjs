@@ -2028,4 +2028,44 @@ test('New Star Darts v69: Nationen von Frauenfelder (NL), Coulson (WAL), Goffin 
   for (const [name, nat] of Object.entries(want)) assert.equal(find(old, name).nation, nat, `migriert: ${name}`);
 });
 
+test('New Star Darts v70: echte Marken als Sponsoren ab Status 11/20/40, kleine fiktive bis Status 10, Bezahlung nach Bekanntheit', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), R = await import('../data/sponsorsreal.js'), S = await import('../data/sponsors.js');
+  const rng = new RNG(31), by = f => R.REAL_SPONSORS.filter(f), names = by(() => true).map(x => x.name);
+  // Daten: Stufen 11 / 20 / 40 vollständig laut Nutzerliste, gültige Plätze, Bekanntheit 1–5, keine Duplikate
+  assert.equal(new Set(names).size, names.length);
+  for (const x of R.REAL_SPONSORS) { assert.ok(S.SPONSOR_SLOTS[x.slot] && x.fame >= 1 && x.fame <= 5 && R.REAL_FROM.includes(x.from), x.name); }
+  assert.deepEqual(R.REAL_FROM, [11, 20, 40]);
+  const tier = from => new Set(by(x => x.from === from).map(x => x.name));
+  for (const n of ['Elten', 'AdmiralBet', 'Gerolsteiner', 'Hylo', 'Zalando', 'DVAG', 'My Dart Training', 'Würth', 'Bitburger', 'Adelholzener', 'FitX', 'Fitness First', 'Primetime Fitness', 'Betano', 'bet3000', 'bwin', 'NeoBet', 'Hornbach', 'Engelbert Strauss', 'toom Baumarkt', 'Oettinger', 'Tipico', 'Check24', 'Deichmann', 'Fielmann', 'Berentzen', 'Müllermilch', 'XXXLutz', 'Liqui Moly', 'Flixbus', 'ATU', 'Veltins', 'Warsteiner', 'Fritz-Kola', 'Coca-Cola', 'Sixt']) assert.ok(tier(11).has(n), `Stufe 11: ${n}`);
+  assert.equal(tier(11).size, 36);
+  for (const n of ['Block House', 'Microsoft', 'McDonald\'s', '1&1', 'HUK-Coburg', 'Barmer', 'Lacoste', 'DAZN', 'Sport1', 'BILD', 'Tommy Hilfiger', 'Bose', 'Samsung', 'Katjes', 'ratiopharm', 'Hitschies', 'The North Face', 'JBL', 'American Express', 'Saturn', 'MediaMarkt', 'Conrad', 'Galeria Kaufhof', 'Alnatura', 'denn\'s Biomarkt', 'Vollcorner', 'Rewe', 'Edeka', 'Kaufland', 'Aldi', 'Lidl', 'TUI', 'Red Bull', 'Lindt', 'WMF', 'Gillette', 'TAG Heuer', 'Lufthansa', 'betway', 'Casio', 'Miele', 'SAP', 'Siemens']) assert.ok(tier(20).has(n), `Stufe 20: ${n}`);
+  for (const n of ['Rolex', 'Breitling', 'Hugo Boss', 'Apple', 'Cartier', 'Louis Vuitton', 'Gucci', 'Prada', 'Bentley', 'Patek Philippe', 'Dior', 'Hermès', 'Bugatti', 'Versace', 'Dom Pérignon', 'Giorgio Armani', 'Aston Martin', 'Richard Mille', 'Hublot', 'Givenchy', 'Spotify', 'Qatar Airways', 'Etihad Airways', 'Cadillac', 'OpenAI', 'Meta', 'McLaren', 'Maserati', 'Steinway & Sons', 'Xbox', 'PlayStation', 'Nintendo', 'Swarovski', 'Mandarin Oriental', 'Four Seasons', 'Robinson Club', 'The Ritz-Carlton', 'Lucid', 'Tesla', 'Grand Elysée', 'Range Rover', 'Tom Ford', 'TikTok', 'Google', 'Dyson', 'Feinkost Käfer', 'Julius Brantner Brothandwerk', 'Zeit für Brot', 'Fortnum & Mason', 'La Grande Épicerie de Paris', 'Lafayette Gourmet', 'Erewhon']) assert.ok(tier(40).has(n), `Stufe 40: ${n}`);
+  for (const slot of Object.keys(S.SPONSOR_SLOTS)) for (const f of R.REAL_FROM) assert.ok(by(x => x.slot === slot && x.from === f).length >= 4, `${slot} ${f}`);
+  // bis Status 10: nur kleine fiktive Marken, halbe Bezahlung
+  const fict = new Set(S.SPONSORS.filter(x => x.tier === 1).map(x => x.name));
+  for (const lvl of [1, 5, 10]) for (const slot of Object.keys(S.SPONSOR_SLOTS)) for (let k = 0; k < 150; k++) { const p = C.pickSponsor(lvl, slot, rng); assert.ok(!p.real && fict.has(p.name) && p.pay === R.SMALL_PAY, `${lvl}/${p.name}`); }
+  // ab Status 11: meist echte Marken, Stufen-Freischaltung
+  let real = 0; const seen = { 15: new Set(), 25: new Set(), 45: new Set() };
+  for (const [lvl, set] of Object.entries(seen)) for (let k = 0; k < 4000; k++) { const slot = ['gear', 'shirt', 'drink', 'partner'][k % 4], p = C.pickSponsor(+lvl, slot, rng); if (p.real) { set.add(p.name); if (lvl === '15') real++; } else assert.ok(fict.has(p.name)); }
+  assert.ok(Math.abs(real / 4000 - R.REAL_SHARE) < 0.03, `Anteil echt ${real / 4000}`);
+  assert.ok(![...seen[15]].some(n => !tier(11).has(n)) && seen[15].size >= 30, 'Status 15: nur Stufe 11');
+  assert.ok(![...seen[25]].some(n => tier(40).has(n)) && [...seen[25]].some(n => tier(20).has(n)), 'Status 25: Stufe 11 + 20');
+  assert.ok([...seen[45]].some(n => tier(40).has(n)) && [...seen[45]].some(n => tier(11).has(n)), 'Status 45: alle Stufen');
+  // leichter Fokus auf die zuletzt freigeschaltete Stufe (ohne Fokus: 21/51 ≈ 41 % im Partner-Platz bei Status 45)
+  let newer = 0; const nn = 6000; for (let k = 0; k < nn; k++) { const p = C.pickSponsor(45, 'partner', rng); if (p.real && tier(40).has(p.name)) newer++; }
+  const base = by(x => x.slot === 'partner' && x.from === 40).length / by(x => x.slot === 'partner').length, bonus = (newer / nn) / R.REAL_SHARE;
+  assert.ok(bonus > base + 0.03 && bonus < base + 0.15, `Fokus: ${bonus.toFixed(3)} statt ${base.toFixed(3)}`);
+  // Bezahlung: kleine Marken wenig, bekannte mehr, je Bekanntheit steigend
+  assert.ok(R.SMALL_PAY < R.FAME_PAY[1]); for (let f = 2; f <= 5; f++) assert.ok(R.FAME_PAY[f] > R.FAME_PAY[f - 1]);
+  const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 20, slot: 1, seed: 6 }); s.team = { manager: 'm3', trainer: null }; s.player.star.level = 15; s.player.rel.fans = 50;
+  C.nameTeam(s); const ratio = { small: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, m = C.managerOf(s), unit = C.sponsorBase(s) * m.mult * N.starFactor(15);
+  for (let k = 0; k < 4000; k++) { s.nsdSponsors = { active: [], offer: null }; C.sponsorWeek(s, rng); const o = s.nsdSponsors.offer; if (o) { assert.ok(typeof o.real === 'boolean' && o.fame >= 0); (o.real ? ratio[o.fame] : ratio.small).push(o.perWeek / unit); } }
+  const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+  for (const f of [2, 3, 4, 5]) assert.ok(Math.abs(mean(ratio[f]) - R.FAME_PAY[f]) < 0.12, `Bekanntheit ${f}: ${mean(ratio[f])} statt ${R.FAME_PAY[f]}`);
+  assert.ok(ratio.small.length > 20 && mean(ratio.small) < 0.65 && mean(ratio[5]) > mean(ratio[2]) * 1.4, `klein ${mean(ratio.small)}`);
+  // Angebot → Vertrag behält Marke und Bekanntheit
+  s.nsdSponsors = { active: [], offer: { name: 'Coca-Cola', slot: 'drink', real: true, fame: 5, perWeek: 20, win: 10, s180: 0, major: 0, weeks: 3, length: 26, bonus: 0, card: 5, steps: 0, mood: 0, annoyed: false, done: false } };
+  C.acceptOffer(s); assert.ok(s.nsdSponsors.active[0].real === true && s.nsdSponsors.active[0].fame === 5);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -6,6 +6,7 @@ import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { SPONSORS, SPONSOR_SLOTS } from '../data/sponsors.js';
+import { REAL_SPONSORS, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS } from '../data/sponsorsreal.js';
 import { starPrice, starPayout, starFactor, priceFactor, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
@@ -110,6 +111,18 @@ export function sponsorBase(state) {
   const p = state.player, r = rankOf(state, 'pdc', 'P') ?? 150;
   return 1 + 0.08 * p.star.level + 0.03 * (p.rel.fans ?? 0) + Math.max(0, (80 - r) / 20);
 }
+// Sponsor für einen Vertragsplatz (Version 70): bis Star-Status 10 nur kleine fiktive Marken (zahlen wenig); ab 11 meist echte Marken –
+// Stufen ab 11 / 20 / 40, leichter Fokus auf die zuletzt freigeschaltete Stufe; je bekannter die Marke, desto besser die Bezahlung.
+export function pickSponsor(level, slot, rng) {
+  const small = () => ({ name: rng.pick(SPONSORS.filter(x => x.slot === slot && x.tier === 1)).name, real: false, fame: 0, pay: SMALL_PAY });
+  if (level < REAL_FROM[0] || !rng.chance(REAL_SHARE)) return small();
+  const pool = REAL_SPONSORS.filter(x => x.slot === slot && x.from <= level);
+  if (!pool.length) return small();
+  const top = Math.max(...pool.map(x => x.from)), w = x => (x.from === top && top > REAL_FROM[0] ? NEW_TIER_FOCUS : 1);
+  let r = rng.next() * pool.reduce((a, x) => a + w(x), 0), pick = pool[pool.length - 1];
+  for (const x of pool) { r -= w(x); if (r <= 0) { pick = x; break; } }
+  return { name: pick.name, real: true, fame: pick.fame, pay: FAME_PAY[pick.fame] };
+}
 export function sponsorWeek(state, rng) {
   const s = sp(state), p = state.player, out = { paid: 0, ended: [] };
   for (const c of s.active) { state.stars = (state.stars ?? 0) + c.perWeek; out.paid += c.perWeek; c.weeksLeft--; }
@@ -125,14 +138,13 @@ export function sponsorWeek(state, rng) {
   // Ohne Manager keine Sponsoren; Kneipen-Kumpel selten und klein, Profi-Manager oft und groß (Sponsorstufe begrenzt)
   const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) : 0;
   if (!s.offer && free.length && rng.chance(chance)) {
-    const slot = rng.pick(free), tier = Math.min(m.tier ?? 3, p.star.level >= 30 ? 3 : p.star.level >= 10 ? 2 : 1);
-    const name = rng.pick(SPONSORS.filter(x => x.slot === slot && x.tier <= tier)).name;
-    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level)));
+    const slot = rng.pick(free), sp0 = pickSponsor(p.star.level, slot, rng), name = sp0.name;
+    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * sp0.pay));
     // Prämien: Wochenhonorar + Siegprämie, manchmal 180er-Prämie und/oder Major-Teilnahme
-    s.offer = { name, slot, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
+    s.offer = { name, slot, real: sp0.real, fame: sp0.fame, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
       s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
       weeks: 3, length: rng.pick([12, 20, 26, 36, 52]), bonus: 0, card: rng.int(2, 9), steps: 0, mood: 0, annoyed: false, done: false };
-    addNews(state, 'info', `🤝 Sponsor-Angebot: ${name}`, `${SPONSOR_SLOTS[slot].label} · ${perWeek} ★ pro Woche für ${s.offer.length} Wochen. Verhandle im Leben-Screen (Sponsoren).`);
+    addNews(state, 'info', `🤝 Sponsor-Angebot: ${name}`, `${SPONSOR_SLOTS[slot].label}${sp0.real ? ' · bekannte Marke' : ''} · ${perWeek} ★ pro Woche für ${s.offer.length} Wochen. Verhandle im Leben-Screen (Sponsoren).`);
   }
   return out;
 }
@@ -159,7 +171,7 @@ export function acceptOffer(state) {
   if (!o) throw new Error('Kein offenes Angebot');
   const t = offerTerms(o);
   s.active = s.active.filter(c => c.slot !== o.slot);
-  s.active.push({ name: o.name, slot: o.slot, ...t, weeksLeft: o.length });
+  s.active.push({ name: o.name, slot: o.slot, real: !!o.real, fame: o.fame ?? 0, ...t, weeksLeft: o.length });
   s.offer = null;
   p.rel.sponsors = clamp((p.rel.sponsors || 40) + (o.annoyed ? -8 : 5) + (o.mood ?? 0), 0, 100);
   addNews(state, 'info', `🤝 Unterschrieben: ${o.name}`, `${t.perWeek} ★ pro Woche für ${o.length} Wochen${t.win ? `, ${t.win} ★ je Sieg` : ''}${t.s180 ? `, ${t.s180} ★ je 180` : ''}${t.major ? `, ${t.major} ★ je Major-Teilnahme` : ''}.${o.annoyed ? ' Der Sponsor ist nach der Verhandlung leicht genervt.' : ''}`);

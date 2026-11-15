@@ -1,9 +1,9 @@
 // Fiktive Sponsoren. tier: 1 = regional (früh), 2 = national, 3 = international (nur Top-Spieler)
 // Kategorien = Vertragsplätze (je Kategorie nur ein aktiver Sponsor → max. 4)
 export const SPONSOR_SLOTS = {
-  gear: { label: 'Darts-Ausrüster', icon: '🎯' },
-  shirt: { label: 'Trikot', icon: '👕' },
-  drink: { label: 'Getränk', icon: '🥤' },
+  gear: { label: 'Ausrüster & Technik', icon: '🎯' },
+  shirt: { label: 'Trikot & Mode', icon: '👕' },
+  drink: { label: 'Getränke & Essen', icon: '🥤' },
   partner: { label: 'Partner', icon: '🤝' },
 };
 
