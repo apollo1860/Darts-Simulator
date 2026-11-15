@@ -139,7 +139,11 @@ export function plState(state) {
   for (const id of pl.players) { pl.points[id] ??= 0; pl.legs[id] ??= 0; }
   return pl;
 }
+// Version 77: Die Aufstellung steht zum Jahreswechsel fest (season.js: `announcePl`); die reine Anzeige (Ranglisten) friert nichts ein –
+// solange sie noch offen ist (alte Spielstände, Startjahr), zeigt sie nur eine Vorschau der aktuellen Top 8.
 export function plTable(state) {
+  const fixed = state.pl?.[state.date.year]?.players;
+  if (!fixed) return idsOf(orderOfMerit(state, 'pdc')).slice(0, 8).map(id => ({ id, pts: 0, legs: 0 }));
   const pl = plState(state);
   return pl.players.map(id => ({ id, pts: pl.points[id], legs: pl.legs[id] }))
     .sort((a, b) => b.pts - a.pts || b.legs - a.legs);

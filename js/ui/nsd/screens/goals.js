@@ -14,7 +14,11 @@ export function render(app) {
         <div class="nsd-ev-main"><div class="nsd-ev-name">${pr.ok ? '✅' : '🎯'} ${x.label}</div><div class="nsd-ev-sub">Stand: ${pr.now}</div>
           <div class="nsd-ev-sub">Belohnung ${coin(starPayout(x.reward, p.star.level))} + Star-Status</div></div></div>`; }).join('')}</div>
       <div class="nsd-ev-sub" style="padding:6px 14px">Abrechnung am Saisonende. ${g.by ? 'Verpasste Ziele ärgern deinen Manager.' : ''}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { go: 'hub', icon: checkIcon(), wide: true }]),
+    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { id: 'g-ok', icon: checkIcon(), wide: true }]),
   });
 }
-export function mount(root, app) { bindHead(root, app, '<p>Jede Saison gibt es drei Ziele: Ranglistenplatz, Matchsiege und ein Turnierergebnis. Erreichte Ziele bringen ★ und Star-Status.</p>'); }
+export function mount(root, app) {
+  bindHead(root, app, '<p>Jede Saison gibt es drei Ziele: Ranglistenplatz, Matchsiege und ein Turnierergebnis. Erreichte Ziele bringen ★ und Star-Status.</p>');
+  // Zum Jahreswechsel wartet noch die Zeitung (Premier-League-Aufstellung) in der Artikel-Warteschlange
+  root.querySelector('#g-ok').onclick = () => app.go(app.state.articles?.length ? 'news' : 'hub', { article: true, back: 'hub' });
+}

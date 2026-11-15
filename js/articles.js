@@ -84,6 +84,17 @@ export function cardArticle(state, kind, rank) {
   return publish(state, '🏁', 'KARRIEREENDE', `${sn} verabschiedet sich von der Tour`, `Ohne Tourcard endet die Profikarriere von ${n}. Danke für die Momente auf der Bühne.`);
 }
 
+// Premier League: Aufstellung zum Jahreswechsel (lineup = Nachnamen nach PDC-Rang, invited = Spieler dabei)
+export function plLineupArticle(state, lineup, invited, year) {
+  const { n, sn } = names(state), others = lineup.filter(x => x !== sn);
+  const list = invited ? others.join(', ') : lineup.join(', ');
+  const title = invited ? `${sn} ist in der Premier League dabei!` : `Premier League ${year}: Diese acht Profis sind dabei`;
+  const text = invited
+    ? `${n} gehört zu den acht Auserwählten: 16 Spieltage ab KW 6 gegen die Weltelite, jede Woche live vor großem Publikum. Mit dabei: ${list}. Die vier Besten der Tabelle spielen die Play-offs.`
+    : `Die Top 8 der PDC Order of Merit bitten ab KW 6 zu 16 Spieltagen: ${list}. Die vier Besten der Tabelle spielen die Play-offs. Du bist diesmal nicht dabei.`;
+  return publish(state, '🎤', 'PREMIER LEAGUE', title, text);
+}
+
 // Premier-League-Einladung
 export function plArticle(state) {
   const { n, sn } = names(state);

@@ -5,8 +5,8 @@ import { simulateWeekAI, awardCard } from './tournaments.js';
 import { orderOfMerit, OOM_TYPES, rankOf, devHolders } from './rankings.js';
 import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
-import { rankArticle, cardArticle, plArticle } from './articles.js';
-import { WEEKS_PER_YEAR } from './util.js';
+import { rankArticle, cardArticle, plArticle, plLineupArticle } from './articles.js';
+import { WEEKS_PER_YEAR, surname } from './util.js';
 import { plTable, plState } from './majors.js';
 import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
 import { staffWeek } from './staff.js';
@@ -57,7 +57,7 @@ export function nextWeek(state) {
   }
   trackPeak(state);
   if (!nsd) rankMilestones(state);
-  if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); }
+  if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); if (nsd) announcePl(state); }
   if (state.mode === 'nsd') syncAttrs(state.player);     // Fähigkeiten bestimmen die Attribute
   return true;
 }
@@ -76,7 +76,7 @@ function weekNews(state, evs, ai) {
       const invited = pl.players.includes('P');
       addNews(state, invited ? 'result' : 'info', invited ? '🎤 Einladung zur Premier League!' : `Premier League ${y}: Teilnehmer`,
         pl.players.map(id => getPlayer(state, id).name).join(', '));
-      if (invited) plArticle(state);
+      if (invited && !pl.announced) plArticle(state);          // sonst schon zum Jahreswechsel gemeldet
     }
     addNews(state, 'ranking', `Premier League nach Spieltag ${night}`,
       plTable(state).slice(0, 4).map((x, i) => `${i + 1}. ${getPlayer(state, x.id).name} ${x.pts} P.`).join(' · '));
@@ -166,6 +166,13 @@ export function yearEnd(state) {
   const up = tourJump(dev.breakouts, 1), down = tourJump(dev.slumps, -1);
   if (up.length) addNews(state, 'info', `Durchbruch ${y + 1}: Diese Profis legen zu`, `${up.map(x => `${x.name} (+${x.jump.toFixed(1)} Ø)`).join(', ')} – nach starker Vorbereitung gelten sie als Aufsteiger der kommenden Saison.`);
   if (down.length) addNews(state, 'info', `Formkrise ${y + 1}: Diese Profis schwächeln`, `${down.map(x => `${x.name} (${x.jump.toFixed(1)} Ø)`).join(', ')} – nach Verletzungen oder Motivationsproblemen sind sie schwer einzuschätzen.`);
+}
+
+// Jahreswechsel (NSD): Premier-League-Aufstellung = Top 8 der PDC-Rangliste nach der Saison, per Zeitungsartikel (Version 77)
+function announcePl(state) {
+  const pl = plState(state), invited = pl.players.includes('P');
+  pl.announced = true;
+  plLineupArticle(state, pl.players.map(id => surname(getPlayer(state, id)?.name ?? '?')), invited, state.date.year);
 }
 
 function newSeasonNews(state) {

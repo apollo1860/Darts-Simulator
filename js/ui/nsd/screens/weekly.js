@@ -20,7 +20,9 @@ export function render(app, params = {}) {
 }
 export function mount(root, app) {
   root.querySelector('#w-ok').onclick = () => {
-    if (app.state.articles?.length) return app.go('news', { article: true, back: 'continue' });   // erst Website-Artikel
+    const s = app.state, seasonPending = s.seasonReport && !s.seasonReport.seen;
+    // erst Website-Artikel – zum Jahreswechsel zuerst Saisonbericht und Ziele, danach die Zeitung (Premier-League-Aufstellung, goals.js)
+    if (s.articles?.length && !seasonPending) return app.go('news', { article: true, back: 'continue' });
     continueWeek(app);
   };
 }

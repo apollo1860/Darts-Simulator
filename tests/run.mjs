@@ -2171,4 +2171,30 @@ test('New Star Darts v73: umstrittene Sponsoren – ab Status 25, alle 1–2 Jah
   const w = mk(30); w.nsdSponsors = { active: [{ ...nrm('Gazprom'), controversial: true, branche: 'umstritten' }], offer: null }; C.cancelSponsor(w, 'Gazprom'); assert.equal(w.nsdSponsors.active.length, 0);
 });
 
+test('New Star Darts v77: Premier-League-Aufstellung steht zum Jahreswechsel fest (Zeitungsartikel), Anzeige friert nichts ein', async () => {
+  const N = await import('../js/nsd.js'), M = await import('../js/majors.js'), A = await import('../js/articles.js');
+  const s = N.newNsdCareer({ first: 'Pia', last: 'Test', nation: 'DE', age: 20, slot: 1, seed: 21 });
+  s.player.cardUntil = 2099; s.player.tour = 'tour';
+  // Ranglisten-Anzeige vor der Aufstellung: Vorschau der Top 8, nichts wird festgeschrieben
+  assert.equal(M.plTable(s).length, 8); assert.ok(!s.pl?.[2026]?.players, 'Anzeige friert die Aufstellung nicht ein');
+  let guard = 0; while (!(s.date.year === 2027 && s.date.week === 1) && guard++ < 80) assert.ok(nextWeek(s));
+  assert.equal(s.date.year, 2027); assert.equal(s.date.week, 1);
+  const pl = s.pl[2027], top8 = orderOfMerit(s, 'pdc').slice(0, 8).map(x => x.p.id);
+  assert.equal(pl.players.length, 8); assert.ok(pl.announced); assert.deepEqual([...pl.players].sort(), [...top8].sort());
+  const art = s.articles.find(a => a.kicker === 'PREMIER LEAGUE' && a.year === 2027);
+  assert.ok(art, 'Zeitungsartikel zur Premier League'); assert.ok(art.title.includes('Premier League 2027') || art.title.includes('dabei'));
+  assert.ok(pl.players.includes('P') || art.text.includes('nicht dabei'));
+  assert.ok(s.news.some(x => x.type === 'article' && x.title === art.title));
+  // Aufstellung bleibt bis zum 1. Spieltag (KW 6) unverändert, am Spieltag kein zweiter Artikel
+  const before = [...pl.players]; guard = 0; while (s.date.week < 7 && guard++ < 10) assert.ok(nextWeek(s));
+  assert.deepEqual(s.pl[2027].players, before); assert.equal(s.news.filter(x => x.type === 'article' && x.title.includes('Premier League') ).length + s.news.filter(x => x.title.includes('ist in der Premier League dabei')).length >= 1, true);
+  assert.equal(s.news.filter(x => x.title.includes('ist in der Premier League dabei')).length, pl.players.includes('P') ? 1 : 0);
+  // Texte: eingeladen → eigener Name nicht in der Mitspielerliste
+  const t = {}; Object.assign(t, s); t.articles = []; t.news = []; t.mode = 'nsd';
+  const a = A.plLineupArticle(t, ['Littler', 'Humphries', 'Test', 'Price'], true, 2027);
+  assert.ok(a.title.includes('dabei') && a.text.includes('Littler, Humphries, Price') && !a.text.includes('Test,'));
+  const b = A.plLineupArticle(t, ['Littler', 'Humphries'], false, 2027);
+  assert.ok(b.title.includes('Premier League 2027') && b.text.includes('nicht dabei'));
+});
+
 console.log(`\n${n} Tests ok`);
