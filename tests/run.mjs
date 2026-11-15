@@ -1063,6 +1063,12 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   assert.equal(T.drinkPrice({ price: 3 }, 40), 360); assert.equal(T.drinkPrice({ price: 5 }, 40), 600); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 120 ** (20 / 39)));
   let prev = 0; for (let l = 1; l <= 100; l++) { const f = N.drinkFactor(l); assert.ok(f > prev, `Faktor steigt (${l})`); prev = f; }
   assert.ok(Math.abs(N.drinkFactor(41) / N.drinkFactor(40) - 1.05) < 1e-9); assert.ok(N.drinkFactor(100) < 2500);
+  // Version 81: höchstens 25 je Sorte gleichzeitig
+  { const q = N.newNsdCareer({ first: 'D', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4 }); q.stars = 1e6;
+    for (const id of ['beer', 'schnaps', 'wodka']) { T.buyDrink(q, id, 25); assert.equal(q.player.drinks[id], 25); assert.throws(() => T.buyDrink(q, id), /Höchstens 25/); assert.throws(() => T.buyDrink(q, id, 3), /Höchstens 25/); }
+    const before = q.stars; assert.throws(() => T.buyDrink(q, 'beer')); assert.equal(q.stars, before, 'kein Geld abgebucht');
+    T.drink(q, 'beer', new RNG(1)); assert.equal(q.player.drinks.beer, 24); T.buyDrink(q, 'beer'); assert.equal(q.player.drinks.beer, 25);
+    const r = N.newNsdCareer({ first: 'D', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 5 }); r.stars = 1e6; T.buyDrink(r, 'schnaps', 20); T.buyDrink(r, 'schnaps', 5); assert.equal(r.player.drinks.schnaps, 25); assert.throws(() => T.buyDrink(r, 'schnaps', 1)); }
   p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 380); p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
   // Darts: Bonus solange ausgerüstet
   s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 3 + 3 + 2);

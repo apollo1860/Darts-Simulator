@@ -1,5 +1,5 @@
 // Getränke: kaufen (★, Preis steigt mit dem Status) und trinken – Bier: Energie, Schnaps: + Rausch, Wodka: + Beziehung
-import { DRINKS } from '../../../../data/gear.js';
+import { DRINKS, DRINK_MAX } from '../../../../data/gear.js';
 import { drinkPrice, buyDrink, drink } from '../../../skilltrain.js';
 import { relLabel } from '../../../nsd.js';
 import { RNG } from '../../../rng.js';
@@ -16,10 +16,10 @@ export function render(app) {
       <div class="nsd-meters one">${meter({ icon: heartIcon(), label: `Energie ${e} %`, pct: e, tone: e >= 20 ? 'green' : 'red' })}</div>
       <div class="nsd-strip"><span>${p.buzz ? `🥴 +${p.buzz}` : 'Nüchtern'}</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       <div class="nsd-evs">${DRINKS.map(d => `<div class="nsd-ev">
-        <div class="nsd-ev-main"><div class="nsd-ev-name">${d.icon} ${d.name} <small>× ${p.drinks[d.id] ?? 0}</small></div>
+        <div class="nsd-ev-main"><div class="nsd-ev-name">${d.icon} ${d.name} <small>× ${p.drinks[d.id] ?? 0} / ${DRINK_MAX}</small></div>
           <div class="nsd-ev-sub">Energie auf 100 %${d.buzz ? ` · Rausch +${d.buzz}` : ''}${d.rel ? ' · Beziehung +1' : ''}</div>
           <div class="nsd-ev-sub">Preis ${coin(drinkPrice(d, lvl))}</div></div>
-        <div class="nsd-ev-btns"><button class="nsd-btn" data-buy="${d.id}"><span class="lb">Kaufen</span></button>
+        <div class="nsd-ev-btns"><button class="nsd-btn" data-buy="${d.id}" ${(p.drinks[d.id] ?? 0) >= DRINK_MAX ? 'disabled' : ''}><span class="lb">${(p.drinks[d.id] ?? 0) >= DRINK_MAX ? 'Voll' : 'Kaufen'}</span></button>
           <button class="nsd-btn" data-drink="${d.id}" ${p.drinks[d.id] > 0 ? '' : 'disabled'}><span class="lb">Trinken</span></button></div>
       </div>`).join('')}</div>`,
     bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'skills', icon: '🎯', label: 'Fähigkeit' }, { go: 'darts', icon: '🛒', label: 'Darts-Shop', wide: true }]),
