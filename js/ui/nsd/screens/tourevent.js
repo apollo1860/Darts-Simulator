@@ -5,11 +5,11 @@ import { getPlayer } from '../../../world.js';
 import { formatLabel } from '../../../matchEngine.js';
 import { rankOf } from '../../../rankings.js';
 import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../../tournaments.js';
-import { starPct, starNeed, canSelfPlay } from '../../../nsd.js';
+import { starPct, starNeed, canSelfPlay, nervesOf, matchEnergy, isFloor } from '../../../nsd.js';
 import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead, arrowIcon, checkIcon } from '../frame.js';
 
 export const nsd = true;
-const HELP = '<p><b>Spielen</b>: Das Match läuft im DartConnect-Liveticker. Matchdarts, Checks ab 61, Break-Chancen und Entscheidungslegs wirfst du selbst. <b>Simulieren</b>: Ergebnis sofort.</p><p>Unter 20 % Energie wirft die KI für dich – und es wird mit jedem Leg schlechter.</p>';
+const HELP = '<p><b>Spielen</b>: Das Match läuft im DartConnect-Liveticker. Matchdarts, Checks ab 61, Break-Chancen und Entscheidungslegs wirfst du selbst. <b>Simulieren</b>: Ergebnis sofort.</p><p>Unter 20 % Energie wirft die KI für dich – und es wird mit jedem Leg schlechter. Ein Match kostet Energie nach Länge; Floor-Turniere (Players Championships, Qualifier) schlauchen weniger als Bühne (European Tour, Majors, WM).</p><p><b>Nervosität</b> 😰 entsteht gegen Gegner aus den Top 8, auf der großen Bühne und in der Anfängerphase (Status 1–5). Sie mindert Scoring/Finishing/Mental und lässt mit steigendem Status (Mental) nach – ab Mental 50 ist sie weg.</p>';
 
 export const nameOf = (s, id) => s.activeEvent?.teams?.[id]?.name ?? getPlayer(s, id)?.name ?? '?';
 const nationOf = (s, id) => (id === 'P' ? s.player.nation : getPlayer(s, id)?.nation);
@@ -32,13 +32,15 @@ function myPath(s, inst) {
 function versus(s, inst, m) {
   const oppId = m.a === 'P' ? m.b : m.a, opp = getPlayer(s, oppId), p = s.player;
   const r = rankOf(s, 'pdc', oppId), mine = rankOf(s, 'pdc', 'P');
+  const nv = nervesOf(p, inst, oppId), f = inst.rounds[inst.current]?.format ?? {}, cost = matchEnergy(Math.round((f.legs ?? 3) * (f.sets ?? 1) * 1.6), inst);
   return `<div class="nsd-vs">
     <div class="nsd-vs-side me"><div class="fl">${flag(p.nation)}</div><div class="nm">${esc(p.name)}</div>
       <div class="dt">${starIcon(p.star.level, 'sm')} Status · OOM ${mine ?? '–'}</div></div>
     <div class="nsd-vs-x">VS</div>
     <div class="nsd-vs-side"><div class="fl">${flag(nationOf(s, oppId))}</div><div class="nm">${esc(nameOf(s, oppId))}</div>
       <div class="dt">OOM ${r ?? '–'}</div><div class="dt">Ø ${Math.round((opp?.avg ?? 0) * 0.85)}–${Math.round((opp?.avg ?? 0) * 1.15)}</div></div>
-  </div>`;
+  </div>
+  <div class="nsd-vs-info">⚡ Match kostet ca. ${cost} % Energie (${isFloor(inst) ? 'Floor' : 'Bühne'})${nv.pts ? `<br><span class="neg">😰 Nervosität −${nv.pts.toFixed(1).replace('.', ',')}: ${nv.parts.map(x => x.label).join(', ')} – Mental (Star-Status) baut sie ab</span>` : ''}</div>`;
 }
 
 export function render(app) {

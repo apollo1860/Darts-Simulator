@@ -1786,4 +1786,51 @@ test('New Star Darts v62: 2-Jahres-OOM – Preisgeld fällt heraus, wenn dasselb
   for (const id of Object.keys(sum).slice(0, 40)) assert.ok(Math.abs(sum[id] - s3.rankings.years[2026].pdc[id]) < 1e-6, `${id}: ${sum[id]} vs ${s3.rankings.years[2026].pdc[id]}`);
 });
 
+test('New Star Darts v63: Energie (Floor < Bühne, mehr als vorher), Nervosität über Mental abbaubar, mehr Szenen in Bo11', async () => {
+  const N = await import('../js/nsd.js');
+  // Energie: höher als die alte Formel (2 + 0,4 × Legs), Floor leichter als Bühne, Deckel
+  const pc = { cat: 'pc' }, etq = { cat: 'etq', isQualifier: true }, et = { cat: 'et' }, maj = { cat: 'major' };
+  for (const legs of [6, 10, 16, 30]) {
+    const old = Math.round(2 + 0.4 * legs);
+    assert.ok(N.matchEnergy(legs, pc) > old, `Floor ${legs}`); assert.ok(N.matchEnergy(legs, et) > N.matchEnergy(legs, pc) || N.matchEnergy(legs, et) === N.ENERGY_CAP);
+  }
+  assert.equal(N.matchEnergy(10, pc), 8); assert.equal(N.matchEnergy(10, et), 11); assert.equal(N.matchEnergy(10, etq), 8); assert.equal(N.matchEnergy(10, maj), 11);
+  assert.equal(N.matchEnergy(80, maj), N.ENERGY_CAP); assert.equal(N.matchEnergy(10), 11);                   // ohne Turnier = Bühne
+  assert.ok(N.isFloor({ cat: 'hnq' }) && N.isFloor({ cat: 'major', isQualifier: true }) && !N.isFloor({ cat: 'pl' }) && !N.isFloor({ cat: 'et' }));
+  assert.ok(N.energyMalus(25, 10, 1) > 0 && N.energyMalus(25, 10, 0.75) < N.energyMalus(25, 10, 1));          // Floor: Leistungsabfall im Match langsamer
+  // Nervosität: Top-8-Gegner, Anfängerphase, Bühne; Mental baut sie ab, ab Mental 50 weg
+  const mk = lvl => ({ star: { level: lvl }, skills: {}, boosts: [] });
+  const inst = { cat: 'pc', big: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9'] };
+  assert.equal(N.nervesOf(mk(30), inst, 'T9').pts, 0, 'Platz 9 macht nicht nervös'); assert.equal(N.nervesOf(mk(30), null, 'T1').pts, 0);
+  const a1 = N.nervesOf(mk(1), inst, 'T3'), a11 = N.nervesOf(mk(11), inst, 'T3'), a30 = N.nervesOf(mk(30), inst, 'T3'), a50 = N.nervesOf(mk(50), inst, 'T3');
+  assert.ok(a1.parts.some(x => x.label === 'Gegner aus den Top 8') && a1.parts.some(x => x.label === 'Anfänger'), JSON.stringify(a1));
+  assert.ok(a1.pts > a11.pts && a11.pts > a30.pts && a30.pts > 0 && a50.pts === 0, `${a1.pts} ${a11.pts} ${a30.pts} ${a50.pts}`);
+  assert.ok(!N.nervesOf(mk(6), inst, 'T20').parts.length, 'ab Status 6 keine Anfängernervosität');
+  assert.ok(N.nervesOf(mk(10), { ...inst, cat: 'major' }, 'T20').parts[0].label === 'große Bühne' && N.nervesOf(mk(10), { ...inst, cat: 'major', isQualifier: true }, 'T20').pts === 0);
+  assert.equal(N.nervesOf(mk(1), { ...inst, teams: {} }, 'T3').parts.some(x => x.label.includes('Top 8')), false);   // World Cup: Teams
+  // wirkt im Match (Liveticker/Simulation): Spieler gegen Top-8-Gegner nervös, mit hohem Status nicht mehr
+  const s = N.newNsdCareer({ first: 'N', last: 'V', nation: 'DE', age: 20, slot: 1, seed: 8 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+  ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+  const pm = ET.playerMatch(s.activeEvent), opp = pm.a === 'P' ? pm.b : pm.a;
+  s.activeEvent.big = [opp]; const n0 = ET.nervesNow(s); assert.ok(n0.pts > 1.5, JSON.stringify(n0));
+  s.player.star.level = 55; assert.equal(ET.nervesNow(s).pts, 0);
+  // mehr Selbstwurf-Szenen in Best of 11 (First-to-6): vorher ≈ 17,5 je Match, jetzt > 20; höchstens zwei Scoring-Szenen je Leg
+  let moments = 0, matches = 0, maxScore = 0;
+  for (let seed = 1; seed <= 12; seed++) {
+    const t = N.newNsdCareer({ first: 'V', last: 'V', nation: 'DE', age: 20, slot: 1, seed }); t.player.assessed = true; t.date.week = 6; t.week = { played: false, eventId: null };
+    ET.enterEvent(t, eventsInWeek(t, 2026, 6).find(e => e.cat === 'pc').id);
+    const live = ET.startManualMatch(t), lm = live.m; lm.format = { legs: 6 }; let vis = '', perLeg = {};
+    for (let k = 0; k < 6000 && !lm.done; k++) {
+      t.player.energy = 100;
+      if (lm.turn === live.me && !lm.visit.darts.length) {
+        const key = `${lm.legIdx}:${lm.legVisits?.[live.me]?.length ?? 0}`;
+        if (key !== vis) { vis = key; const kk = ET.keyMoment(t); if (kk) { moments++; if (kk === 'scoring') { perLeg[lm.legIdx] = (perLeg[lm.legIdx] ?? 0) + 1; maxScore = Math.max(maxScore, perLeg[lm.legIdx]); } } }
+      }
+      ET.liveAiVisit(t);
+    }
+    matches++;
+  }
+  assert.ok(moments / matches > 20, `Szenen je Bo11: ${moments / matches}`); assert.ok(maxScore <= 2, `Scoring-Szenen je Leg ${maxScore}`);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -28,7 +28,7 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
-import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
+import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
@@ -347,23 +347,30 @@ export function nextSub(state) {
   return state.activeEvent;
 }
 
+// Nervosität im aktuellen eigenen Match (Anzeige im Liveticker)
+export const nervesNow = state => {
+  const inst = state.activeEvent, pm = inst && state.mode === 'nsd' ? playerMatch(inst) : null;
+  return pm ? nervesOf(state.player, inst, pm.a === 'P' ? pm.b : pm.a) : { pts: 0, parts: [] };
+};
 export function playerMatch(inst) {
   return inst.rounds[inst.current]?.matches.find(m => (m.a === 'P' || m.b === 'P') && !m.bye) ?? null;
 }
 
 // Leistungsdaten; World Cup: Liste der beiden Teamspieler (der Bessere zuerst, sie wechseln sich je Aufnahme ab)
 // Bühne (Majors, große Namen): Erfahrung zählt zusätzlich (form.js)
-const soloAttrs = (state, id, inst, sf) => withAngle(state, id, soloAttrs0(state, id, inst, sf));
+const soloAttrs = (state, id, inst, sf, opp) => withAngle(state, id, soloAttrs0(state, id, inst, sf, opp));
 // Einsteckwinkel (obstruction.js): wirkt im dartgenauen Live-Modell über attrs.angle
 const withAngle = (state, id, a) => {
   const angle = angleOf(state, id);
   return id === 'P' ? { ...a, angle, angleMult: angleEfficiency(angle) } : { ...a, angle };   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
 };
-const soloAttrs0 = (state, id, inst, sf) => {
-  const staged = applyStage(perf(getPlayer(state, id)), sf);
+const soloAttrs0 = (state, id, inst, sf, opp) => {
+  let staged = applyStage(perf(getPlayer(state, id)), sf);
   if (id !== 'P') return staged;
   if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)
-    const mal = energyMalus(state.player.energy ?? 100, inst?.live?.m?.legIdx ?? 0);
+    const nv = nervesOf(state.player, inst, opp).pts;   // Nervosität (Top-8-Gegner, Anfänger, Bühne), über Mental abbaubar
+    if (nv) staged = applyNerves(staged, nv);
+    const mal = energyMalus(state.player.energy ?? 100, inst?.live?.m?.legIdx ?? 0, energyKind(inst));
     const ce = Math.max(0, 0.07 - 0.0012 * skillEffective(state.player, 'cal'));   // Rechnen schwach → Bogey-Reste, falsche Doppel
     return mal ? { ...staged, ce, sco: staged.sco - mal, fin: staged.fin - mal, foc: staged.foc - mal } : { ...staged, ce };
   }
@@ -372,7 +379,8 @@ const soloAttrs0 = (state, id, inst, sf) => {
 const attrsOf = (state, id, inst = state.activeEvent) => {
   const m = inst?.rounds?.[inst.current]?.matches.find(x => x.a === id || x.b === id);
   const sf = stageFactor(inst, m?.a, m?.b), t = inst?.teams?.[id];
-  return t ? t.members.map(x => soloAttrs(state, x, inst, sf)) : soloAttrs(state, id, inst, sf);
+  const opp = m ? (m.a === id ? m.b : m.a) : null;
+  return t ? t.members.map(x => soloAttrs(state, x, inst, sf, opp)) : soloAttrs(state, id, inst, sf, opp);
 };
 // Live: wer wirft gerade für Seite `side`? (Doppel: Wechsel je Aufnahme, der Bessere beginnt jedes Leg)
 const memberIdx = (lm, side, n) => (lm.legVisits?.[side]?.length ?? 0) % n;
@@ -482,8 +490,15 @@ export function keyMoment(state) {
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm)) return 'decider';
   if (fin && (lm.legStarter !== me || r > 60) && paced(state, lm, me)) return lm.legStarter !== me ? 'break' : 'finish';
-  // ab und zu eine Scoring-Aufnahme mitten im Leg (höchstens eine je Leg)
-  if (r > 170 && r < 501 && live.scoreLeg !== lm.legIdx && paced(state, lm, me, 0.35)) { live.scoreLeg = lm.legIdx; return 'scoring'; }
+  // ab und zu eine Scoring-Aufnahme mitten im Leg: lange Matches höchstens eine je Leg (35 %), kurze (First-to ≤ 6) bis zu zwei (je 55 %)
+  if (r > 170 && r < 501) {
+    const vk = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`, short = boardPace(lm) >= 1;
+    if (live.scoreKey === vk) return 'scoring';                    // dieselbe Aufnahme noch einmal geprüft (Neuladen)
+    const cnt = live.scoreLeg === lm.legIdx ? (live.scoreCnt ?? 0) : 0;
+    if (cnt < (short ? SCORING_SHORT_MAX : 1) && paced(state, lm, me, short ? SCORING_SHORT : 0.35)) {
+      live.scoreLeg = lm.legIdx; live.scoreCnt = cnt + 1; live.scoreKey = vk; return 'scoring';
+    }
+  }
   return null;
 }
 // Lange Matches (First-to ab 7, Sätze zählen mit ihren Legs): Board-Momente seltener und gezielter, damit sich die Partie nicht zieht.
@@ -492,6 +507,7 @@ export function keyMoment(state) {
 // in der Schlussphase, wenn jemand einen Matchdart-Leg hat – dort ist jedes Leg ein Board-Leg.
 // Version 51 (Nutzerwunsch): etwas mehr Momente (× BOARD_MORE); bei der WM immer das 1,2fache wie bei gleich langen Formaten (× WM_BOARD).
 export const LONG_MATCH = 6, BOARD_MORE = 1.5, WM_BOARD = 1.2;
+export const SCORING_SHORT = 0.55, SCORING_SHORT_MAX = 2;   // Version 63: kurze Matches (z. B. Best of 11) mehr Scoring-Szenen
 export const matchLen = lm => lm.format.legs * (lm.format.sets || 1);
 export const boardPace = lm => Math.min(1, LONG_MATCH / matchLen(lm));
 // Häufigkeitsfaktor für Board-Momente in langen Matches (1 = kurze Matches, ungedrosselt)
@@ -642,7 +658,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const fmt = inst.rounds[inst.current].format, to = fmt.sets ?? fmt.legs;
   const my = res.score[me], opp = res.score[1 - me];
   const oppId = me === 0 ? m.b : m.a, oppP = inst.teams?.[oppId] ?? getPlayer(state, oppId);
-  addEnergy(p, -matchEnergy(res.legsTotal[0] + res.legsTotal[1]));
+  addEnergy(p, -matchEnergy(res.legsTotal[0] + res.legsTotal[1], inst));
   const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
   const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp, oppAvg: o.avg });
   sponsorMatchPay(state, inst, won, s);                // Sponsor-Prämien (Sieg, 180er)

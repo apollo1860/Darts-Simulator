@@ -6,7 +6,7 @@ import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
-import { playerMatch, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
+import { playerMatch, nervesNow, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart, liveThrower } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget } from '../../../throwModel.js';
@@ -245,7 +245,7 @@ function setTarget(label) {
   zoomTo(label);
   const route = ui.ce < 0.12 ? checkoutRoute(m.rem[ui.me], dartsLeft(m)) : null;   // Weg nur bei ordentlichem Rechnen
   const blk = a.prm.block ?? 0;
-  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}${blk >= 0.1 ? ` · <span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''}`;
+  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}${nervesNow(ui.s).pts ? ` · <span class="neg">😰 Nervös</span>` : ''}${blk >= 0.1 ? ` · <span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''}`;
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
   const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
   $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '⚠ ' : ''}${fieldName(t)}</button>`).join('');

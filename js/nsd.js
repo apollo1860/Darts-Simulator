@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 62;
+export const APP_VERSION = 63;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -146,14 +146,36 @@ export const starPayout = (base, level) => (base > 0 ? Math.max(1, Math.round(ba
 export const starShow = (base, level) => Math.round(base * starFactor(level));
 
 // ---- Energie (0–100) ----
-export const ENERGY_WEEK = 40, ENERGY_LOW = 20, ENERGY_PER_LEG = 0.4;
-export const matchEnergy = legs => Math.round(2 + ENERGY_PER_LEG * legs);
+// Version 63: ein Match kostet deutlich mehr Energie: (3 + 0,8 × Legs) %, höchstens 25 %. Floor-Turniere (Players Championships, Qualifier,
+// Nebentouren) sind mit × 0,75 leichter als Bühne (European Tour, Majors, World Series, Premier League, WM). Vorher 2 + 0,4 × Legs.
+export const ENERGY_WEEK = 40, ENERGY_LOW = 20, ENERGY_PER_LEG = 0.8, ENERGY_BASE = 3, ENERGY_CAP = 25, ENERGY_FLOOR = 0.75;
+export const FLOOR_CATS = ['pc', 'etq', 'hnq', 'wmreg', 'mastersq', 'wdf', 'challenge', 'dev', 'ddv', 'qschool'];
+export const isFloor = inst => !!inst && (!!inst.isQualifier || FLOOR_CATS.includes(inst.cat));
+export const energyKind = inst => (isFloor(inst) ? ENERGY_FLOOR : 1);
+export const matchEnergy = (legs, inst = null) => Math.min(ENERGY_CAP, Math.round((ENERGY_BASE + ENERGY_PER_LEG * legs) * energyKind(inst)));
 export const canSelfPlay = p => (p.energy ?? 100) >= ENERGY_LOW;
-// Unter 20 %: Malus auf Scoring/Finishing/Fokus, wird im Match mit jedem Leg größer
-export const energyMalus = (energy, legIdx = 0) => {
-  const e = energy - ENERGY_PER_LEG * legIdx;
+// Unter 20 %: Malus auf Scoring/Finishing/Fokus, wird im Match mit jedem Leg größer (im Takt des Match-Verbrauchs)
+export const energyMalus = (energy, legIdx = 0, kind = 1) => {
+  const e = energy - ENERGY_PER_LEG * kind * legIdx;
   return e >= ENERGY_LOW ? 0 : (ENERGY_LOW - e) * 0.9;
 };
+
+// ---- Nervosität (Version 63) ----
+// Mindert Scoring/Finishing/Mental (Fokus × 0,6) in Attributpunkten – Quellen: Gegner aus den Top 8 der PDC-OOM, Anfängerphase
+// (Status 1–5, alle Turniere; −1,2 bei Status 1 bis 0 bei Status 6), große Bühne (Major/World Series/Premier League). Nur über Mental
+// auszugleichen: Faktor 1 − Mental/50 → mit jeder Stufe weniger, ab Mental 50 ganz weg.
+export const NERVES_TOP8 = 1.5, NERVES_START = 1.2, NERVES_START_LEVELS = 5, NERVES_STAGE = 0.8, NERVES_MENTAL = 50;
+export const STAGE_NERVE_CATS = ['major', 'ws', 'pl'];
+export const nervesFade = p => Math.max(0, 1 - skillEffective(p, 'men') / NERVES_MENTAL);
+export function nervesOf(p, inst, oppId = null) {
+  if (!inst || !p.star) return { pts: 0, parts: [] };
+  const fade = nervesFade(p), lvl = p.star.level ?? 1, raw = [];
+  if (oppId && !inst.teams && (inst.big ?? []).slice(0, 8).includes(oppId)) raw.push(['Gegner aus den Top 8', NERVES_TOP8]);
+  if (lvl <= NERVES_START_LEVELS) raw.push(['Anfänger', NERVES_START * (NERVES_START_LEVELS + 1 - lvl) / NERVES_START_LEVELS]);
+  if (STAGE_NERVE_CATS.includes(inst.cat) && !inst.isQualifier) raw.push(['große Bühne', NERVES_STAGE]);
+  const parts = raw.map(([label, v]) => ({ label, pts: Math.round(v * fade * 100) / 100 })).filter(x => x.pts > 0);
+  return { pts: Math.round(parts.reduce((a, x) => a + x.pts, 0) * 100) / 100, parts };
+}
 export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.round((p.energy ?? 100) + n))); return p.energy; }
 
 // ---- Star-Status: Fortschritt aus Matches ----
