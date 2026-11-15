@@ -2014,4 +2014,18 @@ test('New Star Darts v68: Spielmomente – alle 1–2 Matches, zwei Optionen je 
   assert.throws(() => M.resolveMoment(s, 0), /Kein offener Moment/);
 });
 
+test('New Star Darts v69: Nationen von Frauenfelder (NL), Coulson (WAL), Goffin (WAL), Leek (AU) – auch in bestehenden Spielständen', async () => {
+  const P = await import('../data/players.js'), N = await import('../js/nsd.js'), ST = await import('../js/state.js');
+  const want = { 'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL', 'Callum Goffin': 'WAL', 'Adam Leek': 'AU' };
+  assert.deepEqual(P.NATION_FIXES, want);
+  const s = N.newNsdCareer({ first: 'N', last: 'F', nation: 'DE', age: 20, slot: 1, seed: 14 });
+  const find = (st, name) => Object.values(st.world.players).find(x => x.name === name);
+  for (const [name, nat] of Object.entries(want)) assert.equal(find(s, name)?.nation, nat, name);
+  // alter Spielstand mit falschen Nationen wird beim Laden korrigiert
+  const old = JSON.parse(JSON.stringify(s));
+  find(old, 'Levy Frauenfelder').nation = 'CH'; find(old, 'Derek Coulson').nation = 'ENG'; find(old, 'Callum Goffin').nation = 'ENG'; find(old, 'Adam Leek').nation = 'ENG';
+  ST.migrate(old);
+  for (const [name, nat] of Object.entries(want)) assert.equal(find(old, name).nation, nat, `migriert: ${name}`);
+});
+
 console.log(`\n${n} Tests ok`);

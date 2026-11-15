@@ -2,7 +2,7 @@
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary } from './world.js';
-import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL } from '../data/players.js';
+import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES } from '../data/players.js';
 import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
@@ -145,6 +145,7 @@ export function migrate(s) {
   }
   // Nebentour-Pools (S…) für ältere Stände nachrüsten
   addSecondary(s.world.players, new RNG(s.rng), s.date.year);
+  for (const x of Object.values(s.world.players)) if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name];   // Version 69: Nationen korrigiert (Frauenfelder NL, Coulson/Goffin WAL, Leek AU)
   if (typeof s.stars === 'number') s.stars = Math.round(s.stars);   // ★ nur ganze Zahlen
   s.version = VERSION;
   return s;

@@ -48,7 +48,7 @@ export const TOUR_EXPIRING = [
 export const TOUR_NEW_2026 = [
   ['Stefan Bellmont', 'CH', 30, 89], ['Darius Labanauskas', 'LT', 50, 88], ['Beau Greaves', 'ENG', 22, 92],
   ['Owen Bates', 'ENG', 23, 89], ['Arno Merk', 'DE', 35, 87], ['Filip Bereza', 'PL', 25, 88],
-  ['Rhys Griffin', 'WAL', 27, 89], ['Adam Leek', 'ENG', 30, 88], ['Jeffrey Sparidaans', 'NL', 26, 88],
+  ['Rhys Griffin', 'WAL', 27, 89], ['Adam Leek', 'AU', 30, 88], ['Jeffrey Sparidaans', 'NL', 26, 88],
   ['Cristo Reyes', 'ES', 49, 88], ['Carl Sneyd', 'ENG', 30, 88], ['Niall Culleton', 'IRL', 42, 88],
   ['Matthias Ehlers', 'DE', 30, 87], ['Yorick Hofkens', 'BE', 23, 88], ['Tom Sykes', 'ENG', 28, 88],
   ['Shane McGuirk', 'IRL', 35, 88], ['Jeffrey de Zwaan', 'NL', 30, 89], ['Sietse Lap', 'NL', 28, 87],
@@ -58,6 +58,9 @@ export const TOUR_NEW_2026 = [
   ['Pascal Rupprecht', 'DE', 26, 88], ['Stephen Burton', 'ENG', 40, 88], ['Mervyn King', 'ENG', 61, 88],
   ['Tyler Thorpe', 'ENG', 21, 88], ['Stephen Rosney', 'IRL', 38, 87], ['David Sharp', 'SCO', 35, 87],
 ];
+
+// Nationen-Korrekturen (Nutzerhinweise): gelten auch für bestehende Spielstände (state.js → migrate)
+export const NATION_FIXES = { 'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL', 'Callum Goffin': 'WAL', 'Adam Leek': 'AU' };
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
 export const QSCHOOL_UK_2026 = ['Rhys Griffin', 'Adam Leek', 'Carl Sneyd', 'Niall Culleton', 'Tom Sykes', 'Shane McGuirk', 'Charlie Manby',
@@ -104,11 +107,11 @@ export const CHALLENGE_PLAYERS = [
   ['Martijn Dragt', 'NL', 30, 88.9], ['Christopher Wickenden', 'ENG', 35, 88.8], ['Ted Evetts', 'ENG', 29, 88.6],
   ['Kevin Burness', 'NIR', 42, 88.5], ['Scott Waites', 'ENG', 49, 88.3], ['Michele Turetta', 'IT', 34, 88.2],
   ['Lewis Pride', 'ENG', 30, 88.1], ['David Davies', 'WAL', 32, 87.9], ['Gilbert van der Meijden', 'NL', 35, 87.8],
-  ['Radek Szaganski', 'PL', 37, 87.5], ['Stef Kosters', 'NL', 30, 87.4], ['Levy Frauenfelder', 'CH', 28, 87.2],
+  ['Radek Szaganski', 'PL', 37, 87.5], ['Stef Kosters', 'NL', 30, 87.4], ['Levy Frauenfelder', 'NL', 28, 87.2],
   ['Oliver Mitchell', 'ENG', 27, 86.9], ['Dan Hands', 'ENG', 30, 86.8], ['David Evans', 'WAL', 34, 86.5],
   ['Ashley Coleman', 'ENG', 36, 86.4], ['Callum Francis', 'ENG', 28, 86.2], ['Danny Trueman', 'ENG', 30, 86.0],
   ['Patrick Geeraets', 'BE', 31, 85.7], ['John Henderson', 'SCO', 52, 85.4], ['Alan Norris', 'ENG', 53, 85.3],
-  ['Callum Goffin', 'ENG', 30, 85.1], ['Robbie Martin', 'ENG', 33, 85.0], ['Jamie Kay', 'ENG', 30, 84.8],
+  ['Callum Goffin', 'WAL', 30, 85.1], ['Robbie Martin', 'ENG', 33, 85.0], ['Jamie Kay', 'ENG', 30, 84.8],
   ['James Howard Hughes', 'ENG', 31, 84.7], ['Jake Jones', 'ENG', 29, 84.4], ['Paul Rowley', 'ENG', 36, 84.3],
   ['Andy Hamilton', 'ENG', 58, 84.1], ['Michael Unterbuchner', 'DE', 37, 84.0], ['Jack Main', 'ENG', 26, 83.9],
   ['Andy Courtney', 'ENG', 35, 83.7], ['Scott Campbell', 'SCO', 30, 83.6], ['Steve Beaton', 'ENG', 63, 83.3],
