@@ -1794,8 +1794,8 @@ test('New Star Darts v63: Energie (Floor < Bühne, mehr als vorher), Nervosität
     const old = Math.round(2 + 0.4 * legs);
     assert.ok(N.matchEnergy(legs, pc) > old, `Floor ${legs}`); assert.ok(N.matchEnergy(legs, et) > N.matchEnergy(legs, pc) || N.matchEnergy(legs, et) === N.ENERGY_CAP);
   }
-  assert.equal(N.matchEnergy(10, pc), 8); assert.equal(N.matchEnergy(10, et), 11); assert.equal(N.matchEnergy(10, etq), 8); assert.equal(N.matchEnergy(10, maj), 11);
-  assert.equal(N.matchEnergy(80, maj), N.ENERGY_CAP); assert.equal(N.matchEnergy(10), 11);                   // ohne Turnier = Bühne
+  assert.equal(N.matchEnergy(10, pc), 10); assert.equal(N.matchEnergy(10, et), 13); assert.equal(N.matchEnergy(10, etq), 10); assert.equal(N.matchEnergy(10, maj), 13);   // Version 76: 1,0 je Leg
+  assert.equal(N.matchEnergy(80, maj), N.ENERGY_CAP); assert.equal(N.ENERGY_CAP, 30); assert.equal(N.matchEnergy(10), 13);                   // ohne Turnier = Bühne
   assert.ok(N.isFloor({ cat: 'hnq' }) && N.isFloor({ cat: 'major', isQualifier: true }) && !N.isFloor({ cat: 'pl' }) && !N.isFloor({ cat: 'et' }));
   assert.ok(N.energyMalus(25, 10, 1) > 0 && N.energyMalus(25, 10, 0.75) < N.energyMalus(25, 10, 1));          // Floor: Leistungsabfall im Match langsamer
   // Nervosität: Top-8-Gegner, Anfängerphase, Bühne; Mental baut sie ab, ab Mental 50 weg

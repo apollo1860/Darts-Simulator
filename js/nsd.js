@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 75;
+export const APP_VERSION = 76;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -146,9 +146,9 @@ export const starPayout = (base, level) => (base > 0 ? Math.max(1, Math.round(ba
 export const starShow = (base, level) => Math.round(base * starFactor(level));
 
 // ---- Energie (0–100) ----
-// Version 63: ein Match kostet deutlich mehr Energie: (3 + 0,8 × Legs) %, höchstens 25 %. Floor-Turniere (Players Championships, Qualifier,
+// Version 63: ein Match kostet deutlich mehr Energie; Version 76: Legs kosten etwas mehr: (3 + 1,0 × Legs) %, höchstens 30 % (vorher 0,8 je Leg, Deckel 25 %). Floor-Turniere (Players Championships, Qualifier,
 // Nebentouren) sind mit × 0,75 leichter als Bühne (European Tour, Majors, World Series, Premier League, WM). Vorher 2 + 0,4 × Legs.
-export const ENERGY_WEEK = 40, ENERGY_LOW = 20, ENERGY_PER_LEG = 0.8, ENERGY_BASE = 3, ENERGY_CAP = 25, ENERGY_FLOOR = 0.75;
+export const ENERGY_WEEK = 40, ENERGY_LOW = 20, ENERGY_PER_LEG = 1.0, ENERGY_BASE = 3, ENERGY_CAP = 30, ENERGY_FLOOR = 0.75;
 export const FLOOR_CATS = ['pc', 'etq', 'hnq', 'wmreg', 'mastersq', 'wdf', 'challenge', 'dev', 'ddv', 'qschool'];
 export const isFloor = inst => !!inst && (!!inst.isQualifier || FLOOR_CATS.includes(inst.cat));
 export const energyKind = inst => (isFloor(inst) ? ENERGY_FLOOR : 1);
