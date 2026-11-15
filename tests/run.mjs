@@ -2105,4 +2105,51 @@ test('New Star Darts v70/71: echte Marken nach Branchen – eine Branche je Spon
   C.sponsorWeek(old, rng); assert.deepEqual(old.nsdSponsors.active.map(c => c.branche), ['bier', 'andere']); assert.equal(old.nsdSponsors.offer?.branche ?? 'mode', 'mode');
 });
 
+test('New Star Darts v73: umstrittene Sponsoren – ab Status 25, alle 1–2 Jahre, sehr gut bezahlt, Fan-Vorfälle, Sponsoren springen ab, ohne Branchenregel/Platzgrenze', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), X = await import('../data/controversial.js'), R = await import('../data/sponsorsreal.js');
+  assert.deepEqual(X.CONTROVERSIAL.map(x => x.name), ['Gazprom', 'Aramco', 'Rheinmetall', 'Nestlé', 'Pornhub', 'Heckler & Koch', 'Monsanto', 'OnlyFans', 'RussiaToday Deutsch', 'Truth Social']);
+  for (const x of X.CONTROVERSIAL) assert.ok(x.tag && x.sector && x.scandal.length >= 2);
+  assert.equal(X.CONTROVERSIAL_FROM, 25); assert.ok(X.CONTROVERSIAL_PAY > R.FAME_PAY[5]);
+  const rng = new RNG(77), mk = (lvl, manager = 'm3') => { const s = N.newNsdCareer({ first: 'U', last: 'S', nation: 'DE', age: 20, slot: 1, seed: 12 }); s.team = { manager, trainer: null }; C.nameTeam(s); s.player.star.level = lvl; s.player.rel.fans = 60; s.player.rel.sponsors = 50; return s; };
+  const tick = s => { s.date.week++; if (s.date.week > 52) { s.date.week = 1; s.date.year++; } };
+  // Status 24 oder kein Manager: nie ein umstrittenes Angebot
+  for (const [lvl, man] of [[24, 'm3'], [40, null]]) { const s = mk(lvl, man); if (!man) s.team.manager = null; for (let k = 0; k < 400; k++) { tick(s); C.sponsorWeek(s, rng); assert.equal(s.nsdSponsors.cOffer ?? null, null, `Status ${lvl}`); } }
+  // Status 25+: erstes Angebot nach 26–78 Wochen, danach alle 52–104 Wochen (ca. 1–2 Jahre), nie während ein umstrittener Vertrag läuft
+  const s = mk(30), at = []; let declined = 0;
+  for (let k = 1; k <= 3000; k++) { tick(s); C.sponsorWeek(s, rng); s.nsdSponsors.active.forEach(c => { if (!c.controversial) c.weeksLeft = 30; }); if (s.nsdSponsors.cOffer && s.nsdSponsors.cOffer.weeks === X.CONTROVERSY_OFFER_WEEKS) { at.push(k); if (!X.CONTROVERSIAL.some(x => x.name === s.nsdSponsors.cOffer.name)) assert.fail('unbekannte Marke'); C.declineControversial(s); declined++; } }
+  assert.ok(at[0] >= 26 && at[0] <= 79, `erstes Angebot nach ${at[0]}`); for (let i = 1; i < at.length; i++) assert.ok(at[i] - at[i - 1] >= 52 && at[i] - at[i - 1] <= 104, `Abstand ${at[i] - at[i - 1]}`);
+  const perYear = at.length / (3000 / 52); assert.ok(perYear > 0.5 && perYear < 1.0, `${perYear} Angebote je Jahr`);
+  // Angebot verfällt nach 4 Wochen; Bezahlung deutlich über normal
+  const t = mk(30); t.nsdSponsors = { active: [], offer: null, cAt: 0 }; let o = null; for (let k = 0; k < 5 && !o; k++) { tick(t); C.sponsorWeek(t, rng); o = t.nsdSponsors.cOffer; }
+  assert.ok(o && o.weeks === 4, 'Angebot da'); for (let k = 0; k < 4; k++) { tick(t); C.sponsorWeek(t, rng); } assert.equal(t.nsdSponsors.cOffer, null, 'verfällt');
+  const unit = C.sponsorBase(t) * C.managerOf(t).mult * N.starFactor(30), pays = [];
+  for (let k = 0; k < 600; k++) { t.nsdSponsors = { active: [], offer: null, cAt: 0 }; tick(t); C.sponsorWeek(t, rng); if (t.nsdSponsors.cOffer) pays.push(t.nsdSponsors.cOffer.perWeek / unit); }
+  const mean = a => a.reduce((x, y) => x + y, 0) / a.length; assert.ok(Math.abs(mean(pays) - X.CONTROVERSIAL_PAY) < 0.2, `Bezahlfaktor ${mean(pays)}`);
+  // Annehmen: außerhalb der Branchenregel und der 5 Plätze, Fans sofort −3, nur ein umstrittener Vertrag
+  const u = mk(30); const nrm = (name, extra = {}) => ({ name, branche: R.brancheOfName(name), real: true, fame: 4, perWeek: 20, win: 10, s180: 0, major: 0, weeksLeft: 40, ...extra });
+  u.nsdSponsors = { active: ['Würth', 'Tipico', 'Zalando', 'Bitburger', 'Rewe'].map(n => nrm(n)), offer: null, cOffer: { name: 'Nestlé', sector: 'Lebensmittel', tag: 'x', perWeek: 50, win: 20, weeks: 4, length: 26 } };
+  const f0 = u.player.rel.fans; C.acceptControversial(u);
+  assert.equal(u.nsdSponsors.active.length, 6); assert.equal(C.normalContracts(u).length, 5, 'zählt nicht zu den 5'); assert.equal(u.player.rel.fans, f0 + X.CONTROVERSY_SIGN_FANS);
+  assert.ok(C.hasControversial(u) && u.nsdSponsors.active.at(-1).controversial === true && u.nsdSponsors.cOffer === null);
+  u.nsdSponsors.cOffer = { name: 'Gazprom', sector: 'Energie', tag: 'x', perWeek: 50, win: 20, weeks: 4, length: 26 }; assert.throws(() => C.acceptControversial(u), /schon ein umstrittener/);
+  assert.equal(C.offerConflict(u, nrm('Lufthansa')).kind, 'full', 'bei 5 normalen Sponsoren weiter voll');
+  u.nsdSponsors.active = u.nsdSponsors.active.filter(c => c.name !== 'Rewe'); assert.equal(C.offerConflict(u, nrm('Lufthansa')), null, '4 normale + 1 umstrittener: Platz frei');
+  assert.equal(C.offerConflict(u, nrm('Coca-Cola', { branche: 'bier' })).kind, 'branche', 'Branchenregel gilt für normale Verträge weiter');
+  assert.equal(C.offerConflict(u, nrm('Edeka')), null, 'Nestlé (Lebensmittel) blockiert keine Supermarkt-Branche');
+  // Bezahlung und Siegprämie laufen mit
+  const st0 = u.stars ?? 0; C.sponsorWeek(u, rng); assert.ok(u.stars >= st0 + 50);
+  // Vorfälle: Rate, Verteilung, Abspringen, nur normale Sponsoren betroffen, Fans sinken
+  const v = mk(30), ctrl = { name: 'Rheinmetall', controversial: true }; let ev = 0, kinds = { fans: 0, leave: 0, minor: 0 }; const n = 6000;
+  for (let k = 0; k < n; k++) {
+    v.nsdSponsors = { active: [nrm('Würth'), nrm('Tipico'), ctrl], offer: null }; v.player.rel.fans = 60; const r = C.controversyEvent(v, ctrl, rng);
+    if (r) { ev++; kinds[r.kind]++; if (r.kind === 'leave') { assert.ok(['Würth', 'Tipico'].includes(r.sponsor)); assert.ok(!v.nsdSponsors.active.some(c => c.name === r.sponsor) && v.nsdSponsors.active.includes(ctrl)); } if (r.kind === 'fans') assert.ok(v.player.rel.fans <= 58 && v.player.rel.fans >= 55); }
+  }
+  assert.ok(Math.abs(ev / n - X.CONTROVERSY_EVENT) < 0.015, `Vorfall-Rate ${ev / n}`);
+  assert.ok(Math.abs(kinds.leave / ev - 0.22) < 0.07 && Math.abs(kinds.fans / ev - 0.55) < 0.07 && Math.abs(kinds.minor / ev - 0.23) < 0.07, JSON.stringify(kinds));
+  assert.ok(v.news.some(x => x.title.includes('springt ab')) && v.news.some(x => x.title.includes('Proteste wegen Rheinmetall')));
+  v.nsdSponsors = { active: [ctrl], offer: null }; for (let k = 0; k < 300; k++) { const r = C.controversyEvent(v, ctrl, rng); assert.ok(!r || r.kind !== 'leave', 'ohne andere Sponsoren springt keiner ab'); }
+  // Kündigen des umstrittenen Vertrags jederzeit möglich; Spielstände ohne `cAt` laufen weiter
+  const w = mk(30); w.nsdSponsors = { active: [{ ...nrm('Gazprom'), controversial: true, branche: 'umstritten' }], offer: null }; C.cancelSponsor(w, 'Gazprom'); assert.equal(w.nsdSponsors.active.length, 0);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -40,6 +40,7 @@ export const BRANCHEN = {
   suessware: { label: 'Süßwaren', icon: '🍬' },
   handel: { label: 'Möbel & Kaufhaus', icon: '🛋️' },
   musik: { label: 'Musikinstrumente', icon: '🎹' },
+  umstritten: { label: 'Umstrittene Firma', icon: '⚠️' },   // Verträge außerhalb der Branchenregel (data/controversial.js)
   andere: { label: 'Sonstige', icon: '🤝' },                 // nur für alte Spielstände (nicht angeboten)
 };
 

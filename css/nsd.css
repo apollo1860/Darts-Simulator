@@ -288,6 +288,7 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-ev { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px;
   background: linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,.42)); border: 2px solid rgba(255,255,255,.18); text-shadow: var(--nsd-shadow); }
 .nsd-ev.off { opacity: .62; }
+.nsd-offer.ctrl { border: 2px solid #ff6b6b; }
 .nsd-ev-sub.neg { color: #ff8f8f; font-weight: 700; }
 .nsd-ev-cat { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: #d8f0c8; }
 .nsd-ev-name { font-size: 1.25rem; font-weight: 800; line-height: 1.15; }

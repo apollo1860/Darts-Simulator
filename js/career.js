@@ -5,6 +5,7 @@ import { RESULT_QS, PAULKE_IN, PAULKE_OUT, MOOD_INTRO } from '../data/talk.js';
 import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
+import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS } from '../data/controversial.js';
 import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS } from '../data/sponsorsreal.js';
 import { starPrice, starPayout, starFactor, priceFactor, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
 import { addNews } from './news.js';
@@ -110,7 +111,10 @@ const sp = state => {
   return s;
 };
 export { SPONSOR_MAX };
-export const brancheOf = c => BRANCHEN[c.branche] ?? BRANCHEN.andere;
+export const brancheOf = c => (c.controversial ? { label: `Umstritten · ${c.sector}`, icon: '⚠️' } : BRANCHEN[c.branche] ?? BRANCHEN.andere);
+// Umstrittene Verträge (Version 73) zählen weder zu den 5 Plätzen noch zur Branchenregel
+export const normalContracts = state => sp(state).active.filter(c => !c.controversial);
+export const hasControversial = state => sp(state).active.some(c => c.controversial);
 // Wochenbetrag (Basis): Status, Fans, PDC-Rang
 export function sponsorBase(state) {
   const p = state.player, r = rankOf(state, 'pdc', 'P') ?? 150;
@@ -143,13 +147,14 @@ export function sponsorWeek(state, rng) {
     addNews(state, 'info', `🤝 Vertrag mit ${c.name} ausgelaufen`, 'Neue Angebote kommen über deinen Manager oder bei guten Leistungen.');
   }
   s.active = s.active.filter(x => x.weeksLeft > 0);
+  for (const c of s.active.filter(x => x.controversial)) controversyEvent(state, c, rng);      // Fan-Proteste, abspringende Sponsoren
   if (!s.active.length && p.rel.sponsors > 0) p.rel.sponsors = Math.max(1, p.rel.sponsors - 1);
   // Angebot erzeugen (eins offen, 3 Wochen gültig)
   if (s.offer && --s.offer.weeks <= 0) s.offer = null;
   // Ohne Manager keine Sponsoren; Kneipen-Kumpel selten und klein, Profi-Manager oft und groß. Angebote kommen auch bei voller Sponsorenliste
   // (dann muss für den Neuen einer gekündigt werden), aber nie aus einer Branche, in der du schon einen Vertrag hast.
   const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) : 0;
-  const sp0 = !s.offer && rng.chance(chance) ? pickSponsor(p.star.level, new Set(s.active.map(c => c.branche)), rng) : null;
+  const sp0 = !s.offer && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng) : null;
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
     const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * sp0.pay));
@@ -157,9 +162,53 @@ export function sponsorWeek(state, rng) {
     s.offer = { name, branche, real: sp0.real, fame: sp0.fame, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
       s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
       weeks: 3, length: rng.pick([12, 20, 26, 36, 52]), bonus: 0, card: rng.int(2, 9), steps: 0, mood: 0, annoyed: false, done: false };
-    addNews(state, 'info', `🤝 Sponsor-Angebot: ${name}`, `${BRANCHEN[branche].label}${sp0.real ? ' · bekannte Marke' : ''} · ${perWeek} ★ pro Woche für ${s.offer.length} Wochen${s.active.length >= SPONSOR_MAX ? ` – du hast schon ${SPONSOR_MAX} Sponsoren, für diesen Vertrag musst du einen kündigen` : ''}. Verhandle im Leben-Screen (Sponsoren).`);
+    addNews(state, 'info', `🤝 Sponsor-Angebot: ${name}`, `${BRANCHEN[branche].label}${sp0.real ? ' · bekannte Marke' : ''} · ${perWeek} ★ pro Woche für ${s.offer.length} Wochen${normalContracts(state).length >= SPONSOR_MAX ? ` – du hast schon ${SPONSOR_MAX} Sponsoren, für diesen Vertrag musst du einen kündigen` : ''}. Verhandle im Leben-Screen (Sponsoren).`);
   }
+  controversialOffer(state, m, rng);
   return out;
+}
+// ---- Umstrittene Sponsoren (data/controversial.js): ab Status 25, ca. alle 1–2 Jahre, sehr gut bezahlt, Fan-Probleme, andere Sponsoren springen ab ----
+function controversialOffer(state, m, rng) {
+  const s = sp(state), p = state.player, wk = weekIndex(state);
+  if (s.cOffer && --s.cOffer.weeks <= 0) s.cOffer = null;
+  if (p.star.level < CONTROVERSIAL_FROM || !m) return;
+  s.cAt ??= wk + rng.int(CONTROVERSY_FIRST[0], CONTROVERSY_FIRST[1]);
+  if (s.cOffer || hasControversial(state) || wk < s.cAt) return;
+  const b = rng.pick(CONTROVERSIAL.filter(x => x.name !== s.cLast)); s.cLast = b.name;
+  const perWeek = Math.max(2, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * CONTROVERSIAL_PAY));
+  s.cOffer = { name: b.name, sector: b.sector, tag: b.tag, perWeek, win: Math.max(1, Math.round(perWeek * 0.4)), weeks: CONTROVERSY_OFFER_WEEKS, length: rng.pick(CONTROVERSY_LENGTHS) };
+  s.cAt = wk + rng.int(CONTROVERSY_GAP[0], CONTROVERSY_GAP[1]);
+  addNews(state, 'info', `⚠️ Umstrittenes Sponsor-Angebot: ${b.name}`, `${b.tag} · ${perWeek} ★ pro Woche für ${s.cOffer.length} Wochen – sehr gut bezahlt, aber Fans und andere Sponsoren könnten verärgert reagieren. Entscheide im Sponsoren-Screen.`);
+}
+export const controversialValue = o => o.perWeek;
+export function acceptControversial(state) {
+  const s = sp(state), o = s.cOffer, p = state.player;
+  if (!o) throw new Error('Kein umstrittenes Angebot');
+  if (hasControversial(state)) throw new Error('Es läuft schon ein umstrittener Vertrag');
+  s.active.push({ name: o.name, branche: 'umstritten', controversial: true, sector: o.sector, tag: o.tag, real: true, fame: 0, perWeek: o.perWeek, win: o.win, s180: 0, major: 0, weeksLeft: o.length });
+  s.cOffer = null;
+  addFans(p, CONTROVERSY_SIGN_FANS);
+  addNews(state, 'result', `⚠️ Umstrittener Deal: ${o.name}`, `${o.perWeek} ★ pro Woche für ${o.length} Wochen. Die ersten Fans sind schon empört (Fans ${CONTROVERSY_SIGN_FANS}).`);
+}
+export function declineControversial(state) { sp(state).cOffer = null; }
+// Wöchentlicher Vorfall (Chance CONTROVERSY_EVENT): meist Fan-Verlust, manchmal springt ein anderer Sponsor ab, manchmal nur Boykottaufrufe
+export function controversyEvent(state, c, rng) {
+  if (!rng.chance(CONTROVERSY_EVENT)) return null;
+  const def = CONTROVERSIAL.find(x => x.name === c.name), p = state.player, s = sp(state), normal = normalContracts(state), roll = rng.next();
+  if (roll < 0.22 && normal.length) {
+    const v = rng.pick(normal);
+    s.active = s.active.filter(x => x !== v); addRel(p, 'sponsors', -4);
+    addNews(state, 'result', `🤝 ${v.name} springt ab`, `„Mit ${c.name} wollen wir nicht in einem Atemzug genannt werden.“ Der Vertrag ist beendet (Sponsoren −4).`);
+    return { kind: 'leave', sponsor: v.name };
+  }
+  if (roll < 0.77) {
+    const loss = rng.int(2, 5); addFans(p, -loss);
+    addNews(state, 'result', `📉 Proteste wegen ${c.name}`, `${rng.pick(def?.scandal ?? ['Die Fans sind verärgert.'])} (Fans −${loss})`);
+    return { kind: 'fans', loss };
+  }
+  addFans(p, -1); p.satisfaction = clamp((p.satisfaction ?? 50) - 1, 0, 100);
+  addNews(state, 'info', `📣 Boykottaufruf gegen ${c.name}`, 'Ein paar Fans rufen im Netz zum Boykott auf – es bleibt bei Wirbel (Fans −1, Zufriedenheit −1).');
+  return { kind: 'minor' };
 }
 // Verhandlung (Darts-Flight 1–10): Höher/Niedriger, max. 5×. Richtig → alle Prämien +8 %; jeder Versuch kostet etwas
 // Sponsor-Zufriedenheit; falsch → Verhandlung vorbei, nur noch das Anfangsangebot, der Sponsor startet genervt.
@@ -181,9 +230,9 @@ export const offerValue = o => scaled(o.perWeek, o);
 export const offerTerms = o => ({ perWeek: scaled(o.perWeek, o), win: scaled(o.win, o), s180: scaled(o.s180, o), major: scaled(o.major, o) });
 // Was passiert beim Unterschreiben? 'branche' = ersetzt den laufenden Vertrag derselben Branche, 'full' = schon 5 Sponsoren → einen kündigen
 export function offerConflict(state, o = sp(state).offer) {
-  const s = sp(state), same = s.active.find(c => c.branche === o.branche);
+  const normal = normalContracts(state), same = normal.find(c => c.branche === o.branche);
   if (same) return { kind: 'branche', drop: same.name };
-  return s.active.length >= SPONSOR_MAX ? { kind: 'full', drop: null } : null;
+  return normal.length >= SPONSOR_MAX ? { kind: 'full', drop: null } : null;
 }
 // Vertrag kündigen (jederzeit, kostenlos)
 export function cancelSponsor(state, name, news = true) {
