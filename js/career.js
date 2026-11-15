@@ -367,7 +367,7 @@ function newInterview(state, rng, { kind, set, n, event, place, backed, extra = 
   return state.interview;
 }
 export function maybeInterviewNsd(state, inst, rng) {
-  const big = inst.cat !== 'pc' && inst.cat !== 'etq';
+  const big = inst.cat !== 'pc' && inst.cat !== 'etq' && inst.cat !== 'dev';   // Dev Tour: nur nach Titeln
   if (inst.isQualifier || !(inst.place === 'W' || (big && ['F', 'SF'].includes(inst.place)))) return null;
   return newInterview(state, rng, { kind: 'result', set: 'result', n: 3, event: inst.name, place: inst.place, backed: ['W', 'F'].includes(inst.place) });
 }

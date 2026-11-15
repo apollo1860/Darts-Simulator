@@ -7,6 +7,7 @@ import { WEEKS_PER_YEAR } from './util.js';
 import { addNews } from './news.js';
 import { seasonFinance } from './finance.js';
 import { seasonStats } from './state.js';
+import { DEV_MAX_AGE } from './world.js';
 
 // Lokales Turnier der Woche (deterministisch aus Seed + Datum)
 export function localEvent(state, year, week) {
@@ -42,8 +43,10 @@ export function eventsInWeek(state, year, week) {
 
 // Für den Spieler anzeigen? Internationale WM-Qualifier nur für die eigene Region (laufen sonst im Hintergrund)
 // Tour-Modus: Amateur-Events gesperrt – außer der Q-School als „Last Chance“ nach Kartenverlust
+// Version 87: Development Tour für Spieler bis 23 Jahre sichtbar (ob du mitspielen darfst – nur außerhalb der PDC-Top-64 –, prüft `eligibility`); ältere sehen sie nicht
 export const nsdBlocked = (state, ev) => state.mode === 'nsd' && NSD_BLOCKED.has(ev.cat)
-  && !(ev.cat === 'qschool' && state.lastChance?.year === state.date.year);
+  && !(ev.cat === 'qschool' && state.lastChance?.year === state.date.year)
+  && !(ev.cat === 'dev' && state.player.age <= DEV_MAX_AGE);
 export const shownTo = (state, ev) => !nsdBlocked(state, ev) && (ev.cat !== 'wmreg' || (!ev.aiOnly && ev.nations.includes(state.player.nation)));
 
 export function findEvent(state, id, year = state.date.year, week = state.date.week) {

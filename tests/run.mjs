@@ -2281,4 +2281,31 @@ test('New Star Darts v83: Nervosität – einzelne Darts mit größerem Zielkrei
   assert.ok(Array.from({ length: 200 }, (_, k) => rad(z, k)).every(r => !r.shaky), 'ohne Nervosität nie');
 });
 
+test('New Star Darts v87: Development Tour spielbar (bis 23, außerhalb der Top 64), Rangliste dezimal, Konto nur ganze ★', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/calendar.js'), RK = await import('../js/rankings.js');
+  const mk = age => { const s = N.newNsdCareer({ first: 'Dev', last: 'Test', nation: 'DE', age, slot: 1, seed: 6 }); s.player.assessed = true; s.date.week = 14; s.week = { played: false, eventId: null }; return s; };
+  const devEv = s => eventsInWeek(s, 2026, 14).find(e => e.cat === 'dev');
+  // Sichtbarkeit: bis 23 sichtbar und spielbar (außerhalb der Top 64), ab 24 ausgeblendet
+  const y = mk(20), ev = devEv(y); assert.ok(ev && ev.pick && ev.count === 5);
+  assert.ok(C.shownTo(y, ev)); assert.equal(eventStatus(y, ev).playable, true, eventStatus(y, ev).reason);
+  const old = mk(24); assert.equal(C.shownTo(old, devEv(old)), false); assert.equal(eventStatus(old, devEv(old)).playable, false);
+  assert.ok(!C.shownTo(y, eventsInWeek(y, 2026, 11).find(e => e.cat === 'challenge') ?? { cat: 'challenge' }), 'Challenge Tour bleibt gesperrt');
+  // Top 64 der PDC-Rangliste: gesperrt
+  const top = mk(20); RK.addMoney(top, 'pdc', 'P', 1e6); const st = eventStatus(top, devEv(top));
+  assert.equal(st.playable, false); assert.ok(/Top-64/.test(st.reason), st.reason);
+  // 2 von 5 Turnieren spielen; Rest läuft im Hintergrund; Auszahlung ganze ★, Rangliste darf Dezimalstellen haben
+  const s = mk(20); s.player.star.level = 7; const stars0 = s.stars;
+  enterEvent(s, ev.id, { count: 2 }); assert.equal(s.week.playCount, 2);
+  const seen = [];
+  for (let k = 0; k < 2; k++) { simulateRest(s); const inst = s.activeEvent; seen.push(inst); assert.ok(Number.isInteger(inst.stars), `Auszahlung ganzzahlig: ${inst.stars}`); if (k === 0) { assert.equal(inst.hasNext, true); nextSub(s); } else assert.equal(inst.hasNext, false); }
+  closeEvent(s); assert.equal(s.activeEvent, null);
+  assert.ok(Number.isInteger(s.stars) && s.stars >= stars0, `Konto ${s.stars}`);
+  assert.ok(Object.values(s.rankings.years[2026].dev ?? {}).length > 60, 'alle fünf Turniere zählen für die Dev-Rangliste');
+  const frac = Object.values(s.rankings.years[2026].dev).some(v => !Number.isInteger(v)); assert.ok(frac, 'Rangliste mit Dezimalstellen (z. B. 0,1 / 0,2)');
+  assert.equal(s.results.filter(r => r.cat === 'dev').length, 2);
+  // Tabelle: Gewinner-Auszahlung grundsätzlich ganzzahlig und mind. 1 ★ (auch für kleine Beträge wie 0,1 Basis-★)
+  for (const base of [0.1, 0.2, 0.6, 1.25, 2.5, 5]) for (const lvl of [1, 7, 30]) { const v = N.starPayout(base, lvl); assert.ok(Number.isInteger(v) && v >= 1, `${base}@${lvl}=${v}`); }
+  assert.equal(N.starPrizeTable('dev').L64, 0.1); assert.ok(N.STAR_WEIGHT.dev < 1);
+});
+
 console.log(`\n${n} Tests ok`);

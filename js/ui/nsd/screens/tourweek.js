@@ -7,10 +7,10 @@ import { eventStatus, enterEvent } from '../../../tournaments.js';
 import { nextWeek } from '../../../season.js';
 import { STAR_PRIZE_WIN, starPayout } from '../../../nsd.js';
 import { frame, header, titleBand, darkBar, bar, coin, bindHead, arrowIcon } from '../frame.js';
-import { toast, confirmDialog } from '../../components.js';
+import { toast, confirmDialog, modal } from '../../components.js';
 
 export const nsd = true;
-const HELP = '<p>Pro Woche spielst du ein Turnier (Premier-League-Spieltage und Qualifier kommen zusätzlich). Die Siegprämie steigt mit deinem Star-Status. Wer sein erstes Match verliert, geht leer aus.</p><p>„Weiter“ beendet die Woche: +40 % Energie.</p>';
+const HELP = '<p>Pro Woche spielst du ein Turnier (Premier-League-Spieltage und Qualifier kommen zusätzlich). Die Siegprämie steigt mit deinem Star-Status. Wer sein erstes Match verliert, geht leer aus.</p><p>Die <b>Development Tour</b> (bis 23 Jahre, nur außerhalb der PDC-Top-64) hat je Wochenende mehrere Turniere – du wählst, wie viele du spielst.</p><p>„Weiter“ beendet die Woche: +40 % Energie.</p>';
 const fmtKey = ev => ev.subFmts?.[0] ?? ev.fmt ?? ev.cat;
 
 export function render(app) {
@@ -47,8 +47,12 @@ export function mount(root, app) {
   const s = app.state;
   root.querySelectorAll('[data-enter]').forEach(b => b.onclick = () => {
     if (s.interview) return app.go('interview');            // erst das Interview (z. B. Elmar Paulke vor der WM)
-    try { enterEvent(s, b.dataset.enter); app.save(); app.go('event'); }
-    catch (e) { toast(e.message, 'error'); }
+    const go = count => { try { enterEvent(s, b.dataset.enter, count ? { count } : {}); app.save(); app.go('event'); } catch (e) { toast(e.message, 'error'); } };
+    const ev = eventsInWeek(s, s.date.year, s.date.week).find(e => e.id === b.dataset.enter);
+    if (!ev?.pick) return go();
+    // Development Tour: ein Wochenende hat mehrere Turniere – du wählst, wie viele du spielst (der Rest läuft ohne dich)
+    modal({ title: esc(ev.name), body: `<p>Wie viele der ${ev.count} Turniere dieses Wochenendes spielst du? Jedes Turnier kostet Energie, der Rest läuft ohne dich.</p>`,
+      actions: [...Array.from({ length: ev.count }, (_, i) => ({ label: `${i + 1} Turnier${i ? 'e' : ''}`, cls: i === ev.count - 1 ? 'btn-primary' : '', onClick: () => go(i + 1) })), { label: 'Abbrechen', cls: 'btn-ghost' }] });
   });
   root.querySelector('#w-next').onclick = async () => {
     if (s.activeEvent) return app.go('event');

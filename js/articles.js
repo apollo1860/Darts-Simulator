@@ -22,7 +22,7 @@ const rngOf = state => new RNG(state.rng);
 export function titleArticle(state, d) {
   const r = rngOf(state), { n, sn } = names(state), wm = d.fmt === 'wm';
   const major = ['major', 'pl', 'ws'].includes(d.cat);
-  const kicker = wm ? 'WELTMEISTERSCHAFT' : major ? 'MAJOR-SIEG' : d.cat === 'et' ? 'EUROPEAN TOUR' : 'PRO TOUR';
+  const kicker = wm ? 'WELTMEISTERSCHAFT' : major ? 'MAJOR-SIEG' : d.cat === 'et' ? 'EUROPEAN TOUR' : d.cat === 'dev' ? 'DEVELOPMENT TOUR' : 'PRO TOUR';
   const title = wm ? r.pick([`${n} ist Weltmeister!`, `Krönung im Ally Pally: ${sn} holt den WM-Titel`, `Weltmeister ${sn}! Die Darts-Welt verneigt sich`])
     : major ? r.pick([`${sn} triumphiert bei ${d.event}`, `Großer Abend für ${sn}: Sieg bei ${d.event}`, `${d.event}: ${n} holt den Titel`])
     : r.pick([`${sn} gewinnt ${d.event}`, `Titel für ${sn}!`, `${d.event}: ${n} nicht zu stoppen`]);

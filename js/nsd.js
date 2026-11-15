@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 86;
+export const APP_VERSION = 87;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -200,7 +200,7 @@ export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.roun
 // ---- Star-Status: Fortschritt aus Matches ----
 // Sieg auf Status 1 ≈ 12 % des Balkens (Bonus: zu null, hoher Average, stärkerer Gegner, große Bühne). Niederlage: kleiner Abzug.
 // Der Balken wächst je Stufe um 3 %, der Gewinn nur linear → jede Stufe dauert länger. Nie unter die erreichte Stufe.
-export const STAR_WEIGHT = { pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
+export const STAR_WEIGHT = { dev: 0.6, pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
 const starScale = level => 1 + 0.01 * (level - 1);   // Gewinn wächst kaum, Balken +3 %/Stufe → jede Stufe deutlich schwerer
 // Gegner weit oben in der Order of Merit: mehr Punkte (Platz 1 ×1,6 … ab Platz 100 ×1)
 export const rankBonus = rank => 1 + 0.6 * Math.max(0, (100 - (rank ?? 999)) / 99);
