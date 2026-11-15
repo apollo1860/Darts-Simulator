@@ -1938,4 +1938,22 @@ test('New Star Darts v66: jede Interview-Antwort hat Plus und Minus über alle B
   assert.ok(r.fx.energy < 0 && s.player.energy < 80 && r.fx.fans > 0, JSON.stringify(r.fx));
 });
 
+test('New Star Darts v67: Interview-Pools 50 / 30 / 25 Fragen, keine Duplikate, mehrere Interviews hintereinander ohne Wiederholung', async () => {
+  const T = await import('../data/talk.js'), C = await import('../js/career.js'), N = await import('../js/nsd.js');
+  assert.equal(T.RESULT_QS.length, 50); assert.equal(T.PAULKE_IN.length, 30); assert.equal(T.PAULKE_OUT.length, 25);
+  for (const set of [T.RESULT_QS, T.PAULKE_IN, T.PAULKE_OUT]) {
+    assert.equal(new Set(set.map(q => q.q)).size, set.length, 'doppelte Frage');
+    assert.equal(new Set(set.flatMap(q => q.a.map(a => a.t))).size, set.length * 4, 'doppelte Antwort');
+    for (const q of set) { assert.equal(q.a.length, 4); assert.ok(new Set(q.a.map(a => a.tone)).size >= 3, `zu wenig verschiedene Töne: ${q.q}`); }
+  }
+  // Ziehung: 3 Fragen je Interview ohne Doppelte; viele Interviews decken den ganzen Pool ab
+  const rng = new RNG(9), seen = new Set(), s = N.newNsdCareer({ first: 'D', last: 'Q', nation: 'DE', age: 20, slot: 1, seed: 3 });
+  for (let k = 0; k < 120; k++) {
+    const iv = C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X' }, rng);
+    assert.equal(new Set(iv.qs.map(q => q.i)).size, 3); for (const q of iv.qs) seen.add(q.i);
+    s.interview = null;
+  }
+  assert.ok(seen.size >= 48, `nur ${seen.size} von 50 Fragen kamen vor`);
+});
+
 console.log(`\n${n} Tests ok`);

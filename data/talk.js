@@ -7,7 +7,8 @@
 // Typische Gegensätze: Fans ↔ Sponsoren, Manager ↔ Freundin, Status ↔ Zufriedenheit, Fans ↔ Energie, Selbstvertrauen ↔ Nervosität.
 
 // Nach großen Ergebnissen (Titel, Finale/Halbfinale außerhalb der Pro Tour)
-export const RESULT_QS = [
+import { MORE_RESULT, MORE_IN, MORE_OUT } from './talkmore.js';
+const BASE_RESULT = [
   { q: 'Wie fühlt sich dieser Erfolg an?', a: [
     { t: 'Ich bin einfach dankbar, hier sein zu dürfen.', tone: 'humble', fx: { sponsors: -1 } },
     { t: 'Ich habe hart dafür gearbeitet – das ist verdient.', tone: 'confident', fx: { sponsors: 1, sat: -1 } },
@@ -61,7 +62,7 @@ export const RESULT_QS = [
 ];
 
 // Elmar Paulke vor der WM – du bist dabei
-export const PAULKE_IN = [
+const BASE_IN = [
   { q: 'Weltmeisterschaft im Ally Pally – was geht dir durch den Kopf, wenn du an die Bühne denkst?', a: [
     { t: 'Ehrfurcht. Ich will einfach jedes Match genießen.', tone: 'humble', fx: { nerves: -0.3, star: -1 } },
     { t: 'Vorfreude. Ich bin bereit für die große Bühne.', tone: 'confident', fx: { sat: -1, nerves: 0.1 } },
@@ -120,7 +121,7 @@ export const PAULKE_IN = [
 ];
 
 // Elmar Paulke vor der WM – du bist nicht qualifiziert
-export const PAULKE_OUT = [
+const BASE_OUT = [
   { q: 'Du bist bei der WM nicht dabei – wie sehr schmerzt das?', a: [
     { t: 'Sehr. Ich habe mir viel mehr vorgenommen.', tone: 'honest', fx: { fans: 1, mom: -0.5 } },
     { t: 'Das gehört dazu, es gibt Wichtigeres.', tone: 'evasive', fx: { sat: 1, fans: -1 } },
@@ -152,6 +153,11 @@ export const PAULKE_OUT = [
     { t: 'Nein. Das tut zu weh.', tone: 'honest', fx: { fans: 1, sat: -2 } },
     { t: 'Ich trainiere lieber – während die anderen spielen.', tone: 'confident', fx: { manager: 2, partner: -2, energy: -5, mom: 0.5 } }] },
 ];
+
+// Version 67: Pools auf 50 / 30 / 25 Fragen erweitert (data/talkmore.js)
+export const RESULT_QS = [...BASE_RESULT, ...MORE_RESULT];
+export const PAULKE_IN = [...BASE_IN, ...MORE_IN];
+export const PAULKE_OUT = [...BASE_OUT, ...MORE_OUT];
 
 // Einleitung je Stimmung (−1 kritisch, 0 normal, +1 heiter) – der einzige Hinweis, wie Witz und große Töne ankommen
 export const MOOD_INTRO = {
