@@ -145,7 +145,7 @@ export function migrate(s) {
   }
   // Nebentour-Pools (S…) für ältere Stände nachrüsten
   addSecondary(s.world.players, new RNG(s.rng), s.date.year);
-  for (const x of Object.values(s.world.players)) if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name];   // Version 69: Nationen korrigiert (Frauenfelder NL, Coulson/Goffin WAL, Leek AU)
+  for (const x of Object.values(s.world.players)) if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name];   // Nationen korrigiert (Version 69/88, Nutzerhinweise: `NATION_FIXES`)
   if (typeof s.stars === 'number') s.stars = Math.round(s.stars);   // ★ nur ganze Zahlen
   s.version = VERSION;
   return s;

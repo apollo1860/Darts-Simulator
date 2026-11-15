@@ -2028,7 +2028,7 @@ test('New Star Darts v68: Spielmomente – alle 1–2 Matches, zwei Optionen je 
 test('New Star Darts v69: Nationen von Frauenfelder (NL), Coulson (WAL), Goffin (WAL), Leek (AU) – auch in bestehenden Spielständen', async () => {
   const P = await import('../data/players.js'), N = await import('../js/nsd.js'), ST = await import('../js/state.js');
   const want = { 'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL', 'Callum Goffin': 'WAL', 'Adam Leek': 'AU' };
-  assert.deepEqual(P.NATION_FIXES, want);
+  for (const [k, v] of Object.entries(want)) assert.equal(P.NATION_FIXES[k], v);   // ab Version 88 weitere Korrekturen in derselben Liste (Test v88)
   const s = N.newNsdCareer({ first: 'N', last: 'F', nation: 'DE', age: 20, slot: 1, seed: 14 });
   const find = (st, name) => Object.values(st.world.players).find(x => x.name === name);
   for (const [name, nat] of Object.entries(want)) assert.equal(find(s, name)?.nation, nat, name);
@@ -2306,6 +2306,19 @@ test('New Star Darts v87: Development Tour spielbar (bis 23, außerhalb der Top 
   // Tabelle: Gewinner-Auszahlung grundsätzlich ganzzahlig und mind. 1 ★ (auch für kleine Beträge wie 0,1 Basis-★)
   for (const base of [0.1, 0.2, 0.6, 1.25, 2.5, 5]) for (const lvl of [1, 7, 30]) { const v = N.starPayout(base, lvl); assert.ok(Number.isInteger(v) && v >= 1, `${base}@${lvl}=${v}`); }
   assert.equal(N.starPrizeTable('dev').L64, 0.1); assert.ok(N.STAR_WEIGHT.dev < 1);
+});
+
+test('New Star Darts v88: Nationen laut Nutzerhinweisen (neue Karriere und ältere Spielstände)', async () => {
+  const N = await import('../js/nsd.js'), P = await import('../data/players.js');
+  const want = { 'Kai Clark': 'WAL', 'Ryan Branley': 'ENG', 'Kaya Baysal': 'ENG', 'Geoffrey Murray': 'ENG', 'Dean Fitch Jnr': 'SCO', 'Jake Eichen': 'ENG', 'Ansh Sood': 'CH',
+    'Angelo Balsamo': 'NL', 'David Fidler': 'CZ', 'David Evans': 'ENG', 'Ricardo Ulrich': 'NL', 'Martin Homola': 'SK', 'Liam Maendl-Lawrance': 'DE',
+    'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL', 'Callum Goffin': 'WAL', 'Adam Leek': 'AU' };
+  const s = N.newNsdCareer({ first: 'Na', last: 'Tion', nation: 'DE', age: 25, slot: 1, seed: 3 }), byName = n => Object.values(s.world.players).find(p => p.name === n);
+  for (const [name, nat] of Object.entries(want)) { assert.ok(byName(name), `${name} in der Welt`); assert.equal(byName(name).nation, nat, name); assert.equal(P.NATION_FIXES[name], nat, `NATION_FIXES ${name}`); }
+  // ältere Spielstände: falsche Nation wird beim Laden korrigiert
+  for (const name of Object.keys(want)) byName(name).nation = 'FR';
+  const m = (await import('../js/state.js')).migrate; m(s);
+  for (const [name, nat] of Object.entries(want)) assert.equal(byName(name).nation, nat, `migriert: ${name}`);
 });
 
 console.log(`\n${n} Tests ok`);

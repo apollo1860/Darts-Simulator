@@ -60,7 +60,10 @@ export const TOUR_NEW_2026 = [
 ];
 
 // Nationen-Korrekturen (Nutzerhinweise): gelten auch für bestehende Spielstände (state.js → migrate)
-export const NATION_FIXES = { 'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL', 'Callum Goffin': 'WAL', 'Adam Leek': 'AU' };
+export const NATION_FIXES = { 'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL', 'Callum Goffin': 'WAL', 'Adam Leek': 'AU',
+  // Version 88 (Nutzerhinweise)
+  'Kai Clark': 'WAL', 'Ryan Branley': 'ENG', 'Kaya Baysal': 'ENG', 'Geoffrey Murray': 'ENG', 'Dean Fitch Jnr': 'SCO', 'Jake Eichen': 'ENG', 'Ansh Sood': 'CH',
+  'Angelo Balsamo': 'NL', 'David Fidler': 'CZ', 'David Evans': 'ENG', 'Ricardo Ulrich': 'NL', 'Martin Homola': 'SK', 'Liam Maendl-Lawrance': 'DE' };
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
 export const QSCHOOL_UK_2026 = ['Rhys Griffin', 'Adam Leek', 'Carl Sneyd', 'Niall Culleton', 'Tom Sykes', 'Shane McGuirk', 'Charlie Manby',
@@ -108,15 +111,15 @@ export const CHALLENGE_PLAYERS = [
   ['Kevin Burness', 'NIR', 42, 88.5], ['Scott Waites', 'ENG', 49, 88.3], ['Michele Turetta', 'IT', 34, 88.2],
   ['Lewis Pride', 'ENG', 30, 88.1], ['David Davies', 'WAL', 32, 87.9], ['Gilbert van der Meijden', 'NL', 35, 87.8],
   ['Radek Szaganski', 'PL', 37, 87.5], ['Stef Kosters', 'NL', 30, 87.4], ['Levy Frauenfelder', 'NL', 28, 87.2],
-  ['Oliver Mitchell', 'ENG', 27, 86.9], ['Dan Hands', 'ENG', 30, 86.8], ['David Evans', 'WAL', 34, 86.5],
+  ['Oliver Mitchell', 'ENG', 27, 86.9], ['Dan Hands', 'ENG', 30, 86.8], ['David Evans', 'ENG', 34, 86.5],
   ['Ashley Coleman', 'ENG', 36, 86.4], ['Callum Francis', 'ENG', 28, 86.2], ['Danny Trueman', 'ENG', 30, 86.0],
   ['Patrick Geeraets', 'BE', 31, 85.7], ['John Henderson', 'SCO', 52, 85.4], ['Alan Norris', 'ENG', 53, 85.3],
   ['Callum Goffin', 'WAL', 30, 85.1], ['Robbie Martin', 'ENG', 33, 85.0], ['Jamie Kay', 'ENG', 30, 84.8],
   ['James Howard Hughes', 'ENG', 31, 84.7], ['Jake Jones', 'ENG', 29, 84.4], ['Paul Rowley', 'ENG', 36, 84.3],
   ['Andy Hamilton', 'ENG', 58, 84.1], ['Michael Unterbuchner', 'DE', 37, 84.0], ['Jack Main', 'ENG', 26, 83.9],
   ['Andy Courtney', 'ENG', 35, 83.7], ['Scott Campbell', 'SCO', 30, 83.6], ['Steve Beaton', 'ENG', 63, 83.3],
-  ['Ricardo Ulrich', 'DE', 30, 83.2], ['Carl Wilson', 'ENG', 40, 83.0], ['Geoffrey Murray', 'SCO', 35, 82.7],
-  ['Jamie Hughes', 'ENG', 41, 82.6], ['Jake Eichen', 'DE', 28, 82.5], ['Graham Usher', 'ENG', 50, 82.3],
+  ['Ricardo Ulrich', 'NL', 30, 83.2], ['Carl Wilson', 'ENG', 40, 83.0], ['Geoffrey Murray', 'ENG', 35, 82.7],
+  ['Jamie Hughes', 'ENG', 41, 82.6], ['Jake Eichen', 'ENG', 28, 82.5], ['Graham Usher', 'ENG', 50, 82.3],
   ['Nicolas Thuillier', 'FR', 33, 82.2], ['Patrick Tringler', 'AT', 32, 82.0], ['Jose Justicia', 'ES', 49, 81.9],
   ['Danny Goddard', 'ENG', 30, 81.8], ['Michael Flynn', 'ENG', 36, 81.6], ['Arron Monk', 'ENG', 40, 81.5],
   ['Simon Stevenson', 'ENG', 45, 81.2], ['Steve Hine', 'ENG', 40, 81.1], ['Keegan Brown', 'ENG', 34, 80.9],
@@ -143,23 +146,23 @@ export const DEV_AT_CT_LEVEL = ['Archie Self', 'Henry Coates', 'Nathan Potter', 
   'Harrison Leigh', 'Sam Jackson', 'Jenson Walker', 'Jenson Remory', 'Jamai van den Herik', 'Cayden Smith'];
 export const DEV_PLAYERS = [
   ['Jack Drayton', 'ENG', 22, 85.8], ['James Beeton', 'ENG', 21, 89.2], ['Jamai van den Herik', 'NL', 19, 89.0],
-  ['Angelo Balsamo', 'ENG', 23, 84.2], ['Nathan Potter', 'ENG', 21, 89.0], ['Lenny Schlueter', 'DE', 20, 83.4],
-  ['Henry Coates', 'ENG', 18, 89.3], ['David Fidler', 'ENG', 23, 83.1], ['Sam Jackson', 'ENG', 21, 87.0],
+  ['Angelo Balsamo', 'NL', 23, 84.2], ['Nathan Potter', 'ENG', 21, 89.0], ['Lenny Schlueter', 'DE', 20, 83.4],
+  ['Henry Coates', 'ENG', 18, 89.3], ['David Fidler', 'CZ', 23, 83.1], ['Sam Jackson', 'ENG', 21, 87.0],
   ['Florian Preis', 'DE', 19, 87.1], ['Finn Behrens', 'DE', 22, 82.5], ['Ben Townley', 'ENG', 20, 86.3],
-  ['Mylo Michiels', 'BE', 23, 82.0], ['Kaya Baysal', 'DE', 21, 81.8], ['Lewis Cook', 'ENG', 19, 81.7],
+  ['Mylo Michiels', 'BE', 23, 82.0], ['Kaya Baysal', 'ENG', 21, 81.8], ['Lewis Cook', 'ENG', 19, 81.7],
   ['Ieuan Halsall', 'WAL', 17, 81.5], ['Keenan Thomas', 'WAL', 18, 81.0], ['Peter Kelemen', 'HU', 23, 80.9],
   ['Charlie Stocks', 'ENG', 21, 80.7], ['Jan Schmidt', 'DE', 19, 80.6], ['James Buckby', 'ENG', 17, 80.4],
   ['Connor Hopkins', 'ENG', 22, 80.2], ['Jenson Remory', 'ENG', 20, 84.1], ['Sean McKeon', 'IRL', 18, 79.9],
   ['Jarod Becker', 'DE', 23, 79.8], ['Jack Pollard', 'ENG', 21, 79.6], ['Nunjo Dewaele', 'BE', 19, 79.4],
   ['Harrison Leigh', 'ENG', 17, 85.8], ['Ciaran Forde', 'IRL', 20, 79.0], ['Cole Davey', 'ENG', 18, 78.8],
-  ['Ryan Branley', 'NIR', 23, 78.6], ['Kimi Seemann', 'DE', 21, 78.5], ['Kai Clark', 'ENG', 19, 78.3],
-  ['Shane de Jong', 'NL', 17, 78.2], ['JJ Wright', 'ENG', 22, 78.0], ['Martin Homola', 'CZ', 18, 77.7],
-  ['Dylan Quinn', 'IRL', 23, 77.5], ['Liam Maendl-Lawrance', 'ENG', 21, 77.4], ['Milan Biro', 'HU', 19, 77.2],
-  ['Matthias Moors', 'BE', 17, 77.0], ['Dean Fitch Jnr', 'ENG', 22, 76.9], ['Xanti Van den Bergh', 'BE', 20, 76.7],
+  ['Ryan Branley', 'ENG', 23, 78.6], ['Kimi Seemann', 'DE', 21, 78.5], ['Kai Clark', 'WAL', 19, 78.3],
+  ['Shane de Jong', 'NL', 17, 78.2], ['JJ Wright', 'ENG', 22, 78.0], ['Martin Homola', 'SK', 18, 77.7],
+  ['Dylan Quinn', 'IRL', 23, 77.5], ['Liam Maendl-Lawrance', 'DE', 21, 77.4], ['Milan Biro', 'HU', 19, 77.2],
+  ['Matthias Moors', 'BE', 17, 77.0], ['Dean Fitch Jnr', 'SCO', 22, 76.9], ['Xanti Van den Bergh', 'BE', 20, 76.7],
   ['Bram van Dijk', 'NL', 18, 76.6], ['Oliver Pearce-Burgess', 'ENG', 23, 76.4], ['Nathan Care', 'ENG', 21, 76.2],
   ['Kilian Hohnstedt', 'DE', 17, 75.9], ['Joseph Brady', 'IRL', 22, 75.8], ['Lewis Mayes', 'ENG', 20, 75.6],
   ['Sebastian Caris', 'BE', 18, 75.4], ['Cody Crabtree', 'ENG', 23, 75.3], ['Mark Tabak', 'NL', 21, 75.1],
-  ['Daan Beernink', 'NL', 19, 75.0], ['Cayden Smith', 'ENG', 17, 81.3], ['Ansh Sood', 'ENG', 22, 74.6],
+  ['Daan Beernink', 'NL', 19, 75.0], ['Cayden Smith', 'ENG', 17, 81.3], ['Ansh Sood', 'CH', 22, 74.6],
   ['Lleyton Molyneux', 'ENG', 20, 74.5], ['Luca Wolff', 'DE', 18, 74.3], ['Barry Watson', 'ENG', 23, 74.2],
   ['Liam Vanhove', 'BE', 21, 72.0], ['Josef Howlett', 'ENG', 19, 71.9], ['Nicolas Lauwereins', 'BE', 17, 71.9],
   ['Cori Wiltshire', 'ENG', 22, 71.9], ['Lee Bradshaw', 'ENG', 20, 71.5], ['Emile Hendryks', 'BE', 18, 71.5],
