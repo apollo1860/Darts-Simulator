@@ -1,5 +1,6 @@
 // Node-Tests: node tests/run.mjs
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 // Tour-Modus: Fähigkeit → Attribut (wie syncAttrs)
 const A = v => Math.round((87.5 + 12.5 / 60 * v) * 10) / 10;
 import { newCareer } from '../js/state.js';
@@ -1739,6 +1740,16 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
   assert.equal(O.aiAngle('T7'), O.aiAngle('T7')); assert.ok(ang.every(x => x >= O.ANGLE_MIN && x <= O.ANGLE_MAX));
   const mean = ang.reduce((a, b) => a + b) / ang.length; assert.ok(Math.abs(mean - O.ANGLE_AI_MEAN) < 3, `KI-Mittel ${mean}`);
   assert.ok(O.angleEfficiency(60) < O.angleEfficiency(18) && O.angleEfficiency(18) === 1 && O.angleEfficiency(-30) < 1);
+});
+
+test('New Star Darts v60: Ranglisten-Preisgeld bleibt realistisch (Basis-★ = Tsd. £, ohne Status-Faktor)', async () => {
+  const N = await import('../js/nsd.js');
+  const s = N.newNsdCareer({ first: 'R', last: 'L', nation: 'DE', age: 20, slot: 1, seed: 11 }), y0 = s.date.year;
+  while (s.date.year < y0 + 1 && !s.ended) assert.ok(nextWeek(s));
+  const yearly = Math.max(...Object.values(s.rankings.years[y0].pdc)), two = orderOfMerit(s, 'pdc')[0].money;
+  assert.ok(yearly < 2000, `Jahresverdienst ${yearly}`); assert.ok(two < 3000, `2-Jahres-OOM ${two}`);
+  const src = readFileSync(new URL('../js/ui/nsd/screens/league.js', import.meta.url), 'utf8');
+  assert.ok(!/money\(x\.money, /.test(src), 'Rangliste darf nicht mit dem Status-Faktor skaliert werden');
 });
 
 console.log(`\n${n} Tests ok`);

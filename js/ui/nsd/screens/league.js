@@ -11,8 +11,8 @@ export const nsd = true;
 // Zone = Qualifikationsplätze: PC Finals Top 64 der PC-OOM, European Championship Top 32 der ET-OOM
 const LISTS = [['pdc', 'PDC Order of Merit', 64], ['protour', 'Pro Tour Order of Merit', 0], ['pco', 'Players Championship OOM', 64], ['eto', 'European Tour OOM', 32], ['pl', 'Premier League', 4]];
 let idx = 0;
-// Ranglisten in ★: Basiswerte × dein Status-Faktor (als hätten alle deinen Status)
-const money = (v, lvl) => fmtStars(starShow(v, lvl));
+// Ranglisten in Basis-★ (1 ★ = 1.000 £, wie die echten Preisgelder) – nicht mit deinem Status-Faktor multipliziert (sonst wären 2 Mio £ bei Status 11 plötzlich 3 Mio)
+const money = v => fmtStars(Math.round(v));
 const fmtStars = v => v.toLocaleString('de-DE');
 
 // Premier League: Platz 5–8 fest (PL_LEAGUE_PAY), Platz 1–4 spielen die Play-offs um 350/170/110
@@ -33,7 +33,7 @@ export function render(app) {
       <div class="nsd-scroll" id="lg-scroll"><table class="nsd-table">
         <tr><th>Pos</th><th style="text-align:left">Name</th><th class="alt num">${pl ? 'Punkte' : 'Preisgeld ★'}</th>${pl ? '<th class="alt num">Preis ★</th>' : ''}</tr>
         ${list.map(x => `<tr class="${x.p.id === 'P' ? 'me' : x.rank <= zone ? 'zone' : ''}" ${x.p.id === 'P' ? 'id="lg-me"' : ''}>
-          <td class="c">${x.rank}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td><td class="num">${pl ? x.money : money(x.money, s.player.star.level)}</td>${pl ? `<td class="num">${plPrize(x.rank, s.player.star.level)}</td>` : ''}</tr>`).join('')}
+          <td class="c">${x.rank}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td><td class="num">${pl ? x.money : money(x.money)}</td>${pl ? `<td class="num">${plPrize(x.rank, s.player.star.level)}</td>` : ''}</tr>`).join('')}
       </table></div>`,
     bottom: bar([
       { go: 'hub', icon: '🏠', label: 'Start' },
