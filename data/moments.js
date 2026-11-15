@@ -37,7 +37,7 @@ export const MOMENTS = [
   { id: 'sweat', icon: '💦', title: 'Schweiß auf der Stirn', text: 'Die Halle ist heiß, Schweißperlen laufen dir ins Auge.', options: [
     O('Mit dem Handtuch abwischen', R('Frischer Blick, klare Sicht.', [0.9, 3]), R('Das Handtuch ist feucht – es brennt in den Augen.', [1.12, 3])),
     O('Durchziehen und ignorieren', R('Der Fokus ist so stark, dass du nichts spürst.', [0.82, 3], null, { mom: 1 }), R('Der Schweiß brennt, die Sicht verschwimmt.', [1.2, 3]))] },
-  { id: 'grin', icon: '😏', title: '{opp} grinst', text: '{opp} grinst dich nach seinem starken Checkout provozierend an.', options: [
+  { id: 'grin', icon: '😏', title: '{opp} grinst', text: 'Nach seiner Aufnahme grinst dich {opp} provozierend an.', options: [
     O('Zurückgrinsen', R('Du wirkst gelassen – {opp} wird unsicher.', null, [1.2, 3]), R('Das Grinsen wirkt aufgesetzt – es nervt dich selbst.', [1.2, 3])),
     O('Wegschauen und konzentrieren', R('Nichts kann dich aus der Ruhe bringen.', [0.9, 3]), R('Du grübelst trotzdem noch darüber nach.', [1.12, 3]))] },
   { id: 'chant', icon: '🎶', title: 'Fangesänge', text: 'Die Fans stimmen deinen Namen an – ziemlich laut.', options: [
@@ -94,7 +94,7 @@ export const MOMENTS = [
   { id: 'rattle', icon: '🎲', title: '{opp} klappert mit den Darts', text: 'Während du am Oche stehst, spielt {opp} hinter dir mit seinen Pfeilen.', options: [
     O('Ignorieren', R('Du blendest das Klappern aus und bleibst im Rhythmus.', [0.9, 2]), R('Das Geräusch bleibt im Kopf – deine Aufnahmen wackeln.', [1.12, 3])),
     O('Ansprechen', R('{opp} entschuldigt sich kleinlaut und wirkt verunsichert.', null, [1.2, 3]), R('{opp} grinst nur. Du ärgerst dich und verlierst den Faden.', [1.2, 3]))] },
-  { id: 'cheer', icon: '🥳', title: 'Applaus für den Gegner', text: 'Die Halle applaudiert {opp} nach seinem starken Leg minutenlang.', options: [
+  { id: 'cheer', icon: '🥳', title: 'Applaus für den Gegner', text: 'Die Halle applaudiert {opp} nach seiner starken Aufnahme minutenlang.', options: [
     O('Mitklatschen', R('Sportlich – die Fans lieben dich dafür.', [0.9, 3], null, { fans: 1 }), R('Du verlierst den Fokus beim Klatschen.', [1.12, 3])),
     O('Ruhig abwarten', R('Du lässt den Moment verstreichen – dann sitzt alles.', [0.84, 3]), R('Der Applaus hallt nach und macht dich nervös.', [1.18, 3]))] },
   { id: 'interview', icon: '🎤', title: 'Kamera im Gesicht', text: 'Ein Kameramann hält dir in der Pause fast das Objektiv in die Nase.', options: [
