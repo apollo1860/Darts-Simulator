@@ -9,7 +9,7 @@ import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart, liveThrower } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
-import { wave, landInCircle, miscalcTarget } from '../../../throwModel.js';
+import { wave, landInCircle, miscalcTarget, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
 import { angleOf, shadowRect, severity, blockage, BLOCK_SIGMA, BOUNCE_P } from '../../../obstruction.js';
 import { canSelfPlay, skillEffective } from '../../../nsd.js';
@@ -22,7 +22,6 @@ export const nsd = true;
 const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME' };
-const Y_SPEED = 0.8;   // Linie von oben nach unten etwas langsamer als die seitliche
 const HELP = '<p><b>Spielmomente</b> 🎲: Etwa alle ein bis zwei Matches passiert ein Zwischenfall (rutschiger Dart, Zwischenruf, Blitzlicht …). Du wählst eine von zwei Optionen – jede kann mit gleicher Chance gut oder schlecht ausgehen. Dein Wurf (und die Simulation) wird für einige Aufnahmen besser oder schlechter; Fans, Manager und Sponsoren können dauerhaft etwas mitbekommen.</p><p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
 let ui = null;
 
@@ -300,7 +299,7 @@ function onAction() {
 }
 function linePos(axis, now) {
   const a = ui.aim, p = targetPoint(a.target), dt = (now - a.t0) / 1000;
-  return (axis === 'v' ? p.x : p.y) + a.prm.amp * wave(a.ph + dt * a.prm.freq * (axis === 'v' ? 1 : Y_SPEED));
+  return (axis === 'v' ? p.x : p.y) + a.prm.amp * wave(a.ph + rampPhase(dt, a.prm.freq * (axis === 'v' ? 1 : Y_SPEED)));   // bei jedem Richtungswechsel etwas schneller
 }
 function startLine(axis) {
   const a = ui.aim, p = targetPoint(a.target);
@@ -334,7 +333,7 @@ function stopLine() {
   ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
-  banner(h.label === 'BOUNCER' ? '🤾 BOUNCER!' : txt, !r.ev?.bust && h.label !== 'BOUNCER');
+  banner(h.label === 'BOUNCER' ? '❌ BOUNCER!' : txt, !r.ev?.bust && h.label !== 'BOUNCER');
   if (!r.visitOver) { ui.timer = setTimeout(() => { if (ui?.aim) { $('#banner').className = 'board-banner'; nextDart(); } }, 700); return; }
   ui.timer = setTimeout(() => { if (!ui) return; closeOverlay(); afterVisit(r.ev, ui.me); }, r.ev?.checkout ? 1600 : 1200);
 }

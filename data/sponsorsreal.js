@@ -10,9 +10,10 @@ export const SMALL_PAY = 0.5;                                // kleine fiktive S
 export const REAL_SHARE = 0.85;                              // ab Status 11: so oft ist ein Angebot eine echte Marke (sonst klein/fiktiv)
 export const NEW_TIER_FOCUS = 1.4;                           // leichter Fokus auf die Marken der zuletzt freigeschalteten Stufe
 
-// Feste Branchen (id → Anzeige)
+// Feste Branchen (id → Anzeige); Version 89: „Darts & Zubehör“ (Ausrüster) und neu „Autoscoring“ sind getrennte Branchen
 export const BRANCHEN = {
-  darts: { label: 'Darts & Training', icon: '🎯' },
+  darts: { label: 'Darts & Zubehör', icon: '🎯' },
+  autoscoring: { label: 'Autoscoring', icon: '📷' },
   bau: { label: 'Baumarkt & Werkzeug', icon: '🔨' },
   auto: { label: 'Automarken', icon: '🚗' },
   mobil: { label: 'Mobilität & Auto-Service', icon: '🛠️' },
@@ -74,7 +75,12 @@ export const REAL_SPONSORS = [
     ['Gerolsteiner', 'alkoholfrei', 4], ['Adelholzener', 'alkoholfrei', 3], ['Fritz-Kola', 'alkoholfrei', 3], ['Coca-Cola', 'alkoholfrei', 5], ['Müllermilch', 'alkoholfrei', 4],
     ['AdmiralBet', 'wetten', 3], ['Betano', 'wetten', 3], ['bet3000', 'wetten', 2], ['bwin', 'wetten', 4], ['NeoBet', 'wetten', 2], ['Tipico', 'wetten', 4],
     ['FitX', 'fitness', 3], ['Fitness First', 'fitness', 3], ['Primetime Fitness', 'fitness', 2],
-    ['DVAG', 'finanzen', 4], ['Check24', 'finanzen', 4], ['XXXLutz', 'handel', 4]]),
+    ['DVAG', 'finanzen', 4], ['Check24', 'finanzen', 4], ['XXXLutz', 'handel', 4],
+    // Version 89 (Nutzerliste „ab Level 10“): Lebensmittel/Discounter, Getränke, Darts-Zubehör, Autoscoring
+    ['Kong Strong', 'alkoholfrei', 2], ['ja!', 'supermarkt', 3], ['gut & günstig', 'supermarkt', 3], ['Penny', 'supermarkt', 4], ['Norma', 'supermarkt', 3],
+    ['finanzguru', 'finanzen', 3], ['Holy Energy', 'alkoholfrei', 3], ['HelloFresh', 'gastro', 4], ['Waterdrop', 'alkoholfrei', 3], ['MORE Nutrition', 'fitness', 3],
+    ['Ninja', 'haushalt', 3], ['Dartsturm', 'darts', 2], ['Dartgarage', 'darts', 2], ['Shorty Merch', 'darts', 1], ['Cube Darts', 'darts', 2],
+    ['Scolia', 'autoscoring', 2], ['Dartom', 'autoscoring', 1], ['DartCounter', 'autoscoring', 2], ['Knabe Cola', 'alkoholfrei', 1]]),
   // ab Status 20
   ...mk(20, [['Samsung', 'elektro', 5], ['Bose', 'elektro', 4], ['JBL', 'elektro', 4],
     ['Saturn', 'elektrohandel', 3], ['MediaMarkt', 'elektrohandel', 4], ['Conrad', 'elektrohandel', 3],
@@ -86,7 +92,10 @@ export const REAL_SPONSORS = [
     ['Microsoft', 'it', 5], ['1&1', 'it', 4], ['SAP', 'it', 4], ['Siemens', 'it', 5],
     ['HUK-Coburg', 'finanzen', 4], ['Barmer', 'finanzen', 4], ['American Express', 'finanzen', 5],
     ['DAZN', 'medien', 4], ['Sport1', 'medien', 3], ['BILD', 'medien', 4], ['ratiopharm', 'gesundheit', 4],
-    ['Galeria Kaufhof', 'handel', 3], ['TUI', 'reise', 4], ['Lufthansa', 'reise', 5], ['betway', 'wetten', 3]]),
+    ['Galeria Kaufhof', 'handel', 3], ['TUI', 'reise', 4], ['Lufthansa', 'reise', 5], ['betway', 'wetten', 3],
+    // Version 89 (Nutzerliste „ab Level 20“)
+    ['Dartshopper', 'darts', 2], ['McDart', 'darts', 2], ['NordVPN', 'it', 4], ['Air Up', 'alkoholfrei', 3], ['Shopify', 'it', 4], ['Manscaped', 'haushalt', 3],
+    ['Snocks', 'mode', 2], ['Back Market', 'elektrohandel', 3], ['congstar', 'it', 3], ['Clark', 'finanzen', 2], ['Johnnie Walker', 'spirituosen', 5], ['Hennessy', 'spirituosen', 4]]),
   // ab Status 40
   ...mk(40, [['Rolex', 'uhren', 5], ['Breitling', 'uhren', 4], ['Cartier', 'uhren', 5], ['Patek Philippe', 'uhren', 5], ['Richard Mille', 'uhren', 4],
     ['Hublot', 'uhren', 4], ['Swarovski', 'uhren', 4],

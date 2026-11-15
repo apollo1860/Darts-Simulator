@@ -4,7 +4,7 @@ import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, drinkFactor,
 import { DRINKS, DARTS, DRINK_MAX } from '../data/gear.js';
 import { FLIGHT_NAMES, BARREL_NAMES, SHOP_WEEKS } from '../data/accessories.js';
 import { RNG } from './rng.js';
-import { circleRadius } from './throwModel.js';
+import { circleRadius, lineParams } from './throwModel.js';
 import { addNews } from './news.js';
 import { checkoutRoute, BOGEY, labelValue, isDoubleLabel } from './board.js';
 
@@ -19,8 +19,6 @@ export const scoringMin = L => Math.round(40 + (lvl(L) - 1) * 100 / 19);
 // Finishing: je Level ein anderes Doppel (L20 = Bull)
 export const FIN_TARGETS = ['D20', 'D16', 'D10', 'D8', 'D18', 'D12', 'D4', 'D6', 'D14', 'D2', 'D19', 'D17', 'D3', 'D9', 'D11', 'D13', 'D7', 'D15', 'D5', 'BULL'];
 export const finishTarget = L => FIN_TARGETS[lvl(L) - 1];
-// Linien werden je Level nur minimal schneller (+1,5 %/Level)
-export const lineSpeed = L => 1 + 0.015 * (lvl(L) - 1);
 // Fokus (Memory 4×4): Karten 2 s offen, dann umgedreht und vermischt – Anzahl und Tempo der Tausche steigen mit dem Level
 export const memoryPreview = () => 2;
 export const memorySwaps = L => Math.round(1 + (lvl(L) - 1) * 0.8);          // L1 1 … L20 16 Tausche
@@ -43,15 +41,10 @@ export function validFinish(labels, rem) {
   return r === 0 && isDoubleLabel(labels[labels.length - 1]);
 }
 
-// Aim-Parameter für Scoring/Finishing-Training aus der aktuellen Fähigkeit (ohne Druck)
-// Frühe Level sehr leicht: kleiner Kreis, ruhige Linien; je Level etwas schwerer
-export function trainAim(skill, focus, L) {
-  const t = (lvl(L) - 1) / 19;
-  return {
-    radius: Math.max(4, Math.min(36, circleRadius(skill) * (0.55 + 0.45 * t))),
-    amp: Math.max(16, Math.min(50, (40 - 0.25 * focus) * (0.6 + 0.4 * t))),
-    freq: Math.max(0.4, Math.min(1.3, (0.8 - 0.004 * focus) * (0.7 + 0.3 * t))) * lineSpeed(L),
-  };
+// Aim-Parameter für Scoring/Finishing-Training: exakt wie im Spiel (Version 89, Nutzerwunsch) – Kreisgröße aus der aktuellen Fähigkeit
+// (`circleRadius`), Linien aus dem Fokus (`lineParams`), kein Level-Zuschlag; die Schwierigkeit der Level liegt in der Aufgabe selbst.
+export function trainAim(skill, focus, L) {   // L: nur noch für die Aufrufer-Signatur
+  return { radius: Math.max(4, Math.min(36, circleRadius(skill))), ...lineParams(focus) };
 }
 
 // ---- Freischaltung ----

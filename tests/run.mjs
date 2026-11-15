@@ -1540,7 +1540,7 @@ test('New Star Darts v45: World Matchplay Bo19/21/31/33/35, Board-Momente in lan
         if (kk) {
           tot++;
           if (['break', 'finish', 'scoring'].includes(kk)) perLeg[lm.legIdx] = (perLeg[lm.legIdx] ?? 0) + 1;
-          if (kk === 'scoring' && legs > 6) assert.ok(late, 'Scoring in langen Matches nur in der Schlussphase');
+          if (kk === 'scoring' && legs > 6) assert.ok(late || lm.rem[1 - live.me] <= 170, 'Scoring in langen Matches nur in der Schlussphase oder wenn das Leg enden kann (Version 89)');
         }
       }
       ET.liveAiVisit(s);
@@ -1550,8 +1550,9 @@ test('New Star Darts v45: World Matchplay Bo19/21/31/33/35, Board-Momente in lan
   const long = [1, 2, 3, 4].map(sd => play(18, sd)), short = [1, 2, 3, 4].map(sd => play(3, sd));
   assert.ok(long.every(r => r.maxLeg <= 1), 'höchstens ein Break-/Check-Moment je Leg');
   const avg = (a, f) => a.reduce((n, r) => n + f(r), 0) / a.length;
-  assert.ok(avg(long, r => r.tot) <= 16, `First-to-18: ${avg(long, r => r.tot)} Momente`);
-  assert.ok(avg(long, r => r.tot / r.legs) < avg(short, r => r.tot / r.legs) / 2, 'pro Leg deutlich seltener als im kurzen Match');
+  // Version 89: in jedem Leg mindestens eine Szene (Test v89) – aber in langen Matches nur etwa eine (≈ 1,0 je Leg statt 2,5 wie in kurzen)
+  assert.ok(avg(long, r => r.tot / r.legs) >= 1 && avg(long, r => r.tot / r.legs) < 1.3, `First-to-18: ${avg(long, r => r.tot / r.legs)} Momente je Leg`);
+  assert.ok(avg(long, r => r.tot / r.legs) < avg(short, r => r.tot / r.legs) / 1.5, 'pro Leg deutlich seltener als im kurzen Match');
   // Board-Schaltung bei großen Finishes: lange Matches seltener, Matchdarts immer
   const s = mk(8); s.date.week = 6; s.week = { played: false, eventId: null };
   ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
@@ -2052,9 +2053,9 @@ test('New Star Darts v70/71: echte Marken nach Branchen – eine Branche je Spon
   assert.equal(R.SPONSOR_MAX, 5); assert.deepEqual(R.REAL_FROM, [11, 20, 40]);
   const tier = from => new Set(by(x => x.from === from).map(x => x.name));
   for (const n of ['Elten', 'AdmiralBet', 'Gerolsteiner', 'Hylo', 'Zalando', 'DVAG', 'My Dart Training', 'Würth', 'Bitburger', 'Adelholzener', 'FitX', 'Fitness First', 'Primetime Fitness', 'Betano', 'bet3000', 'bwin', 'NeoBet', 'Hornbach', 'Engelbert Strauss', 'toom Baumarkt', 'Oettinger', 'Tipico', 'Check24', 'Deichmann', 'Fielmann', 'Berentzen', 'Müllermilch', 'XXXLutz', 'Liqui Moly', 'Flixbus', 'ATU', 'Veltins', 'Warsteiner', 'Fritz-Kola', 'Coca-Cola', 'Sixt']) assert.ok(tier(11).has(n), `Stufe 11: ${n}`);
-  assert.equal(tier(11).size, 36);
+  assert.equal(tier(11).size, 55);   // 36 + 19 neue (Version 89)
   for (const n of ['Block House', 'Microsoft', 'McDonald\'s', '1&1', 'HUK-Coburg', 'Barmer', 'Lacoste', 'DAZN', 'Sport1', 'BILD', 'Tommy Hilfiger', 'Bose', 'Samsung', 'Katjes', 'ratiopharm', 'Hitschies', 'The North Face', 'JBL', 'American Express', 'Saturn', 'MediaMarkt', 'Conrad', 'Galeria Kaufhof', 'Alnatura', 'denn\'s Biomarkt', 'Vollcorner', 'Rewe', 'Edeka', 'Kaufland', 'Aldi', 'Lidl', 'TUI', 'Red Bull', 'Lindt', 'WMF', 'Gillette', 'TAG Heuer', 'Lufthansa', 'betway', 'Casio', 'Miele', 'SAP', 'Siemens']) assert.ok(tier(20).has(n), `Stufe 20: ${n}`);
-  assert.equal(tier(20).size, 43);
+  assert.equal(tier(20).size, 55);   // 43 + 12 neue (Version 89)
   for (const n of ['Rolex', 'Breitling', 'Hugo Boss', 'Apple', 'Cartier', 'Louis Vuitton', 'Gucci', 'Prada', 'Bentley', 'Patek Philippe', 'Dior', 'Hermès', 'Bugatti', 'Versace', 'Dom Pérignon', 'Giorgio Armani', 'Aston Martin', 'Richard Mille', 'Hublot', 'Givenchy', 'Spotify', 'Qatar Airways', 'Etihad Airways', 'Cadillac', 'OpenAI', 'Meta', 'McLaren', 'Maserati', 'Steinway & Sons', 'Xbox', 'PlayStation', 'Nintendo', 'Swarovski', 'Mandarin Oriental', 'Four Seasons', 'Robinson Club', 'The Ritz-Carlton', 'Lucid', 'Tesla', 'Grand Elysée', 'Range Rover', 'Tom Ford', 'TikTok', 'Google', 'Dyson', 'Feinkost Käfer', 'Julius Brantner Brothandwerk', 'Zeit für Brot', 'Fortnum & Mason', 'La Grande Épicerie de Paris', 'Lafayette Gourmet', 'Erewhon']) assert.ok(tier(40).has(n), `Stufe 40: ${n}`);
   assert.equal(tier(40).size, 52);
   // Branchen sinnvoll: alle Automarken in 'auto', alle Supermärkte in 'supermarkt' usw.
@@ -2248,8 +2249,8 @@ test('New Star Darts v82: Zielkreis schrumpft langsamer (konvex) und bleibt am E
   let prev = Infinity; for (let sk = 0; sk <= 60; sk++) { const r = R(sk); assert.ok(r < prev + 1e-12, `fällt (${sk})`); assert.ok(r >= 8 - 1e-9 && r <= 17 + 1e-9); prev = r; }
   for (const sk of [10, 20, 30, 40, 50]) assert.ok(R(sk) > 17 - 0.2 * sk + 0.9, `größer als vorher bei ${sk}`);   // vorher linear 17 − 0,2 × Fähigkeit
   assert.ok(Math.abs(R(30) - 13.6) < 0.1 && Math.abs(R(40) - 11.9) < 0.1 && Math.abs(R(50) - 10) < 0.1);
-  // Training nutzt dieselbe Kurve (skaliert nach Level)
-  assert.ok(Math.abs(T.trainAim(40, 40, 20).radius - R(40)) < 1e-9); assert.ok(T.trainAim(40, 40, 1).radius < T.trainAim(40, 40, 20).radius);
+  // Training nutzt dieselbe Kurve – seit Version 89 ohne Level-Zuschlag (Test v89)
+  assert.ok(Math.abs(T.trainAim(40, 40, 20).radius - R(40)) < 1e-9); assert.ok(Math.abs(T.trainAim(40, 40, 1).radius - R(40)) < 1e-9);
 });
 
 test('New Star Darts v83: Nervosität – einzelne Darts mit größerem Zielkreis (einmal je Dart gewürfelt, mit Mental weg)', async () => {
@@ -2319,6 +2320,82 @@ test('New Star Darts v88: Nationen laut Nutzerhinweisen (neue Karriere und älte
   for (const name of Object.keys(want)) byName(name).nation = 'FR';
   const m = (await import('../js/state.js')).migrate; m(s);
   for (const [name, nat] of Object.entries(want)) assert.equal(byName(name).nation, nat, `migriert: ${name}`);
+});
+
+test('New Star Darts v89: in jedem Leg mindestens eine eigene Spielszene – auch in langen Formaten', async () => {
+  const N = await import('../js/nsd.js');
+  for (const [seed, legs] of [[31, 18], [32, 10], [33, 3], [34, 6]]) {
+    const s = N.newNsdCareer({ first: 'Sz', last: 'Ene', nation: 'DE', age: 25, slot: 1, seed });
+    s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+    ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id); const live = ET.startManualMatch(s), lm = live.m;
+    lm.format = { legs };                                   // Matchplay-artig lang (First-to 18) bzw. kürzer
+    const scenes = {}, kinds = new Set(); let guard = 0;
+    while (!lm.done && guard++ < 6000) {
+      if (lm.turn === live.me) { const k = ET.keyMoment(s); if (k) { scenes[lm.legIdx] = (scenes[lm.legIdx] ?? 0) + 1; kinds.add(k); if (ET.keyMoment(s) !== k) { /* Neuladen: dieselbe Szene */ assert.ok(false, 'Szene muss bei erneuter Prüfung bleiben'); } } }
+      ET.liveAiVisit(s);
+    }
+    assert.ok(lm.done, 'Match beendet'); const total = lm.legIdx;
+    for (let i = 0; i < total; i++) assert.ok((scenes[i] ?? 0) >= 1, `Format First-to ${legs}: Leg ${i + 1}/${total} ohne Spielszene`);
+    assert.ok(total >= legs, 'genug Legs gespielt');
+  }
+  // Doppel (World Cup): kein Selbstwerfen, also auch keine erzwungene Szene
+  const j = N.newNsdCareer({ first: 'Taro', last: 'Test', nation: 'JP', age: 20, slot: 1, seed: 8 }); j.player.assessed = true; j.date.week = 24; j.week = { played: false, eventId: null };
+  ET.enterEvent(j, 'wcod'); const lj = ET.startManualMatch(j); let partner = 0;
+  for (let k = 0; k < 400 && !lj.m.done; k++) { if (lj.m.turn === lj.me && ET.liveThrower(j, lj.me) !== 'P') { if (ET.keyMoment(j)) partner++; } ET.liveAiVisit(j); }
+  assert.equal(partner, 0, 'Partner wirft ohne Szene');
+});
+
+test('New Star Darts v89: Training wie im Spiel (Kreis aus aktueller Fähigkeit, gleiche Linien) und Tempo-Steigerung je Richtungswechsel', async () => {
+  const TM = await import('../js/throwModel.js'), T = await import('../js/skilltrain.js'), MS_ = await import('../js/matchState.js');
+  // Training = Spiel: Kreis nur aus der Fähigkeit, Linien nur aus dem Fokus, unabhängig vom Level
+  for (const L of [1, 7, 20]) { const a = T.trainAim(33, 40, L); assert.equal(a.radius, TM.circleRadius(33)); assert.equal(a.amp, TM.lineParams(40).amp); assert.equal(a.freq, TM.lineParams(40).freq); }
+  const at = { sco: 87.5 + 12.5 / 60 * 33, fin: 100, men: 90, foc: 87.5 + 12.5 / 60 * 40, cal: 90, exp: 0 };
+  const cp = TM.circleParams(at, MS_.createMatch({ legs: 3 }, 0), 0, 'T20');          // Spiel ohne Druck/Ausdauer
+  assert.ok(Math.abs(cp.radius - TM.circleRadius(33)) < 1e-6 && Math.abs(cp.amp - TM.lineParams(40).amp) < 1e-6 && Math.abs(cp.freq - TM.lineParams(40).freq) < 1e-6, 'Spiel und Training liefern dieselben Parameter');
+  assert.equal(TM.Y_SPEED, 0.8);
+  // Tempo: erste halbe Schwingung im Grundtempo, danach jede um ×1,1 schneller, höchstens ×2,5
+  const f = 0.7;
+  assert.equal(TM.rampPhase(0, f), 0); assert.ok(Math.abs(TM.rampPhase(0.1, f) - 0.1 * f) < 1e-12);
+  assert.ok(Math.abs(TM.rampPhase(0.5 / f, f) - 0.5) < 1e-9, 'erster Richtungswechsel nach ½ Zyklus im Grundtempo');
+  const t1 = 0.5 / f, t2 = t1 + 0.5 / (f * TM.RAMP_STEP);
+  assert.ok(Math.abs(TM.rampPhase(t2, f) - 1) < 1e-9, 'zweite Schwingung um ×1,1 schneller'); assert.ok(t2 - t1 < t1);
+  let prev = -1; for (let t = 0; t < 40; t += 0.05) { const v = TM.rampPhase(t, f); assert.ok(v > prev - 1e-12); prev = v; }
+  const late = (TM.rampPhase(101, f) - TM.rampPhase(100, f)); assert.ok(Math.abs(late - f * TM.RAMP_CAP) < 1e-9, `Endtempo ${late}`);
+  assert.ok(TM.rampPhase(8, f) > 8 * f * 1.2, 'nach einigen Schwingungen spürbar schneller');
+});
+
+test('New Star Darts v89: neue Sponsoren (Darts-Zubehör, Autoscoring, Lebensmittel, Getränke …) in den Stufen 11/20, je eine feste Branche', async () => {
+  const R = await import('../data/sponsorsreal.js'), C = await import('../js/career.js');
+  const want = { 11: { 'Kong Strong': 'alkoholfrei', 'ja!': 'supermarkt', 'gut & günstig': 'supermarkt', 'Penny': 'supermarkt', 'Norma': 'supermarkt', 'finanzguru': 'finanzen', 'Holy Energy': 'alkoholfrei', 'HelloFresh': 'gastro',
+      'Waterdrop': 'alkoholfrei', 'MORE Nutrition': 'fitness', 'Ninja': 'haushalt', 'Dartsturm': 'darts', 'Dartgarage': 'darts', 'Shorty Merch': 'darts', 'Cube Darts': 'darts', 'Scolia': 'autoscoring', 'Dartom': 'autoscoring', 'DartCounter': 'autoscoring', 'Knabe Cola': 'alkoholfrei' },
+    20: { 'Dartshopper': 'darts', 'McDart': 'darts', 'NordVPN': 'it', 'Air Up': 'alkoholfrei', 'Shopify': 'it', 'Manscaped': 'haushalt', 'Snocks': 'mode', 'Back Market': 'elektrohandel', 'congstar': 'it', 'Clark': 'finanzen', 'Johnnie Walker': 'spirituosen', 'Hennessy': 'spirituosen' } };
+  for (const [from, list] of Object.entries(want)) for (const [name, b] of Object.entries(list)) {
+    const x = R.REAL_SPONSORS.find(y => y.name === name); assert.ok(x, `${name} fehlt`); assert.equal(x.from, +from, name); assert.equal(x.branche, b, name); assert.equal(R.brancheOfName(name), b);
+  }
+  assert.ok(R.BRANCHEN.autoscoring && R.BRANCHEN.darts);
+  // Angebote: Autoscoring und Darts-Zubehör erscheinen ab Status 11 und blockieren sich nicht gegenseitig
+  const rng = new RNG(5), seen = new Set(); for (let k = 0; k < 4000; k++) { const p = C.pickSponsor(15, new Set(), rng); if (p) seen.add(p.name); }
+  assert.ok(['Scolia', 'Dartom', 'DartCounter', 'Dartsturm', 'Penny', 'Kong Strong'].every(n => seen.has(n)), 'neue Marken tauchen auf');
+  assert.ok(!['Dartshopper', 'NordVPN', 'Hennessy'].some(n => seen.has(n)), 'Stufe 20 erst ab Status 20');
+  const only = new Set(Object.keys(R.BRANCHEN).filter(b => b !== 'autoscoring')), r2 = new RNG(6); let ok = true;
+  for (let k = 0; k < 500; k++) { const p = C.pickSponsor(15, only, r2); if (p && R.brancheOfName(p.name) !== 'autoscoring' && p.branche !== 'autoscoring') ok = false; }
+  assert.ok(ok, 'Angebote nur aus freien Branchen');
+});
+
+test('New Star Darts v89: Manager – Frauen-Symbol mit Frauenname, Männer-Symbol mit Männername (auch ältere Spielstände)', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), NM = await import('../data/names.js'), TD = await import('../data/team.js');
+  const women = new Set(Object.values(NM.WOMEN_FIRST).flat()), men = new Set(Object.values(NM.NAME_POOLS).flatMap(p => p.first));
+  const first = n => n.split(' ')[0];
+  assert.deepEqual(TD.MANAGERS.filter(m => m.woman).map(m => m.id), ['m2']);
+  for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+    const s = N.newNsdCareer({ first: 'M', last: 'N', nation: 'DE', age: 25, slot: 1, seed });
+    for (const m of C.managersOf(s)) assert.ok(m.woman ? women.has(first(m.name)) : men.has(first(m.name)) && !women.has(first(m.name)), `${m.icon} ${m.name}`);
+    // ältere Spielstände: Name mit falschem Geschlecht wird einmal korrigiert, die anderen bleiben
+    const old = N.newNsdCareer({ first: 'M', last: 'N', nation: 'DE', age: 25, slot: 1, seed }); const keep = { ...old.team.names };
+    old.team.names.m2 = 'Kevin Müller'; delete old.team.namesV;
+    C.nameTeam(old); assert.ok(women.has(first(old.team.names.m2)), old.team.names.m2); assert.equal(old.team.names.m1, keep.m1); assert.equal(old.team.names.m3, keep.m3);
+    const again = old.team.names.m2; C.nameTeam(old); assert.equal(old.team.names.m2, again, 'danach stabil');
+  }
 });
 
 console.log(`\n${n} Tests ok`);

@@ -3,7 +3,7 @@
 import { esc } from '../../../util.js';
 import { RNG } from '../../../rng.js';
 import { ORDER, scoreAt, targetPoint, fieldName, labelValue } from '../../../board.js';
-import { wave, landInCircle } from '../../../throwModel.js';
+import { wave, landInCircle, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { TRAINABLE, skillEffective } from '../../../nsd.js';
 import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
@@ -57,9 +57,12 @@ function onKey(e) {
   if (!g || (e.code !== 'Space' && e.code !== 'Enter') || e.target.closest?.('.modal')) return;
   e.preventDefault(); if (!e.repeat) g.action?.();
 }
-function setAction(label, fn, disabled = false) {
+function setAction(label, fn, disabled = false, throwy = false) {
   const b = g.el('#mg-act');
   b.querySelector('.lb').textContent = label; b.disabled = disabled;
+  // Werfen/Stopp sieht aus wie im Spiel: grüner Knopf mit Zielscheibe (Version 89); sonst grauer Pfeil
+  b.classList.toggle('nsd-throw', throwy);
+  const ic = b.querySelector('.ic'); if (ic) { ic.innerHTML = throwy ? '🎯' : arrowIcon(); ic.style.color = throwy ? '#2bd33a' : ''; }
   g.action = disabled ? null : fn;
   b.onpointerdown = e => { e.preventDefault(); g.action?.(); };
 }
@@ -165,18 +168,18 @@ function nextAimDart() {
   ['#vline', '#hline', '#circ'].forEach(id => { g.el(id).style.display = 'none'; g.el(id).classList.remove('fixed'); });
   g.el('#banner').className = 'board-banner';
   setTarget(g.target);
-  setAction(`Werfen (Dart ${g.darts.length + 1})`, () => (g.phase === 'pick' ? startLine('v') : stopLine()));
+  setAction(`Werfen (Dart ${g.darts.length + 1})`, () => (g.phase === 'pick' ? startLine('v') : stopLine()), false, true);
 }
 function linePos(axis, now) {
   const p = targetPoint(g.target), dt = (now - g.t0) / 1000;
-  return (axis === 'v' ? p.x : p.y) + g.cur.amp * wave(g.ph + dt * g.cur.freq * (axis === 'v' ? 1 : 1.13));
+  return (axis === 'v' ? p.x : p.y) + g.cur.amp * wave(g.ph + rampPhase(dt, g.cur.freq * (axis === 'v' ? 1 : Y_SPEED)));   // wie im Spiel: y-Linie langsamer, bei jedem Richtungswechsel schneller
 }
 function startLine(axis) {
   if (axis === 'v') g.cur = g.prm();
   g.phase = axis; g.t0 = performance.now(); g.ph = g.rng.next();
   const p = targetPoint(g.target), line = g.el(axis === 'v' ? '#vline' : '#hline'), circ = g.el('#circ');
   line.style.display = ''; circ.style.display = ''; circ.setAttribute('r', g.cur.radius.toFixed(1));
-  setAction('Stopp', stopLine);
+  setAction('Stopp', stopLine, false, true);
   cancelAnimationFrame(g.raf);
   const tick = now => {
     if (!g || g.phase !== axis) return;
@@ -193,7 +196,7 @@ function stopLine() {
   cancelAnimationFrame(g.raf);
   if (g.phase === 'v') { g.fx = pos; g.el('#vline').setAttribute('transform', `translate(${pos} 0)`); g.el('#vline').classList.add('fixed'); return startLine('h'); }
   g.el('#hline').setAttribute('transform', `translate(0 ${pos})`); g.el('#hline').classList.add('fixed');
-  g.phase = 'busy'; setAction('…', null, true);
+  g.phase = 'busy'; setAction('…', null, true, true);
   const pt = landInCircle(g.fx, pos, g.cur.radius, g.rng), hit = scoreAt(pt.x, pt.y);
   const NS = 'http://www.w3.org/2000/svg', m = document.createElementNS(NS, 'g');
   m.setAttribute('class', 'dart-mark me'); m.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);

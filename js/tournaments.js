@@ -487,6 +487,27 @@ export function keyMoment(state) {
   const live = state.activeEvent?.live, lm = live?.m;
   if (!lm || lm.done || lm.turn !== live.me || lm.visit.darts.length || !canSelfPlay(state.player)) return null;
   if (liveThrower(state, live.me) !== 'P') return null;          // Doppel: Partner wirft
+  const kind = pickMoment(state, live, lm) ?? forcedMoment(live, lm);
+  if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
+  return kind;
+}
+// Version 89 (Nutzerwunsch): In JEDEM Leg gibt es mindestens eine eigene Spielszene – auch in langen Formaten (Matchplay …), in denen `paced` die
+// Board-Momente drosselt. Ein Leg kann nur durch einen Checkout enden, und der ist nur aus einem Rest ≤ 170 (kein Bogey) möglich: Steht bei Beginn
+// deiner Aufnahme einer von beiden auf so einem Rest, kann das Leg in dieser Runde enden → ohne bisherige Szene wird jetzt eine erzwungen
+// (Break/Check, sonst eine Scoring-Aufnahme). Eine Szene aus `pickMoment` zählt mit; in langen Matches (gedrosselt) ist die erzwungene Szene zugleich
+// die eine Szene dieses Legs (`kmLeg`) – mehr gibt es dort wie bisher nur bei Matchdarts und im Entscheidungsleg.
+function forcedMoment(live, lm, me = live.me) {
+  const vk = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r);
+  const kind = fin ? (lm.legStarter !== me ? 'break' : 'finish') : 'scoring';
+  if (live.forceKey === vk) return kind;                          // dieselbe Aufnahme noch einmal geprüft (Neuladen)
+  if (live.sceneLeg === lm.legIdx) return null;
+  const ro = lm.rem[1 - me];
+  if (!fin && !(ro <= 170 && !BOGEY.has(ro))) return null;       // das Leg kann in dieser Runde noch nicht enden
+  live.forceKey = vk;
+  if (boardPace(lm) < 1) live.kmLeg = lm.legIdx;
+  return kind;
+}
+function pickMoment(state, live, lm) {
   const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r);
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm)) return 'decider';

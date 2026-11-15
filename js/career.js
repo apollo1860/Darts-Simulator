@@ -18,7 +18,9 @@ const team = state => (state.team ??= { manager: null, trainer: null });
 export function nameTeam(state, rng = new RNG(state.rng)) {
   const t = team(state), used = new Set();
   t.names ??= {};
-  for (const m of MANAGERS) t.names[m.id] ??= randomName(rng, rng.pick(['DE', 'ENG', 'NL', 'IRL']), used);
+  // Version 89: Frauen-Symbol (👩‍💼) → Frauenname, Männer-Symbol → Männername (`woman` in data/team.js); ältere Spielstände bekommen einmal einen passenden Namen
+  for (const m of MANAGERS) if (t.names[m.id] === undefined || (m.woman && t.namesV !== 2)) t.names[m.id] = randomName(rng, rng.pick(['DE', 'ENG', 'NL', 'IRL']), used, !!m.woman);
+  t.namesV = 2;
   return t.names;
 }
 const named = (state, x) => (x ? { ...x, name: team(state).names?.[x.id] ?? x.name } : null);

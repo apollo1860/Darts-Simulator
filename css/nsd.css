@@ -593,3 +593,15 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .nsd-range::-moz-range-thumb { width: 34px; height: 24px; border-radius: 12px; background: #fff; border: 1px solid #bbb; }
 .nsd-angle-svg { width: 100%; max-height: 130px; }
 .nsd-angle-note { font-size: .9rem; opacity: .92; text-shadow: var(--nsd-shadow); }
+
+/* Statistik (Version 89): Karriere und Saisons farblich getrennt */
+.nsd-stats-t { color: #111; text-shadow: none; }
+.nsd-stats-t th { color: #fff; text-shadow: var(--nsd-shadow); }
+.nsd-stats-t td.nm { background: linear-gradient(#7b7b7b, #5b5b5b); color: #fff; text-shadow: var(--nsd-shadow); border-bottom-color: #3c3c3c; }
+.nsd-stats-t th.k { background: linear-gradient(#6f78ee, #3b43b0); }
+.nsd-stats-t td.k { background: linear-gradient(#c3c8ff 0, #aab0f6 50%, #979ef0 50%, #a5acf5 100%); border-left: 3px solid #2a3190; border-right: 3px solid #2a3190; font-weight: 800; }
+.nsd-stats-t th.a { background: linear-gradient(#7b7b7b, #4d4d4d); }
+.nsd-stats-t th.b { background: linear-gradient(#8a7456, #5e4a2e); }
+.nsd-stats-t td.a { background: linear-gradient(#e6e6e6 0, #d4d4d4 50%, #c4c4c4 50%, #d0d0d0 100%); }
+.nsd-stats-t td.b { background: linear-gradient(#efe0c4 0, #e1cfae 50%, #d3be98 50%, #ddc9a6 100%); }
+.nsd-stats-t td { border-bottom: 1px solid #8a8a8a; }

@@ -6,6 +6,8 @@ export const nsd = true;
 export function render(app) {
   const s = app.state, seasons = Object.keys(s.stats?.seasons ?? {}).map(Number).sort((a, b) => b - a);
   const cols = [['Karriere', s.stats.career], ...seasons.map(y => [String(y), s.stats.seasons[y]])];
+  // Version 89: Karriere (blau) und die Saisons (abwechselnd hell/getönt) farblich getrennt, damit man die Spalten leichter unterscheidet
+  const cls = i => (i === 0 ? 'k' : i % 2 ? 'a' : 'b');
   const avg = t => (t.darts ? fmtNum(t.points / t.darts * 3, 1) : '–');
   const co = t => (t.coAtt ? `${fmtNum(t.coHit / t.coAtt * 100, 1)} %` : '–');
   const rows = [['Matches', t => t.matches ?? 0], ['Siege', t => t.wins ?? 0], ['Legs', t => `${t.legsWon ?? 0}:${t.legsLost ?? 0}`],
@@ -14,8 +16,8 @@ export function render(app) {
   return frame({
     cls: 'fixed', bg: 'grey',
     body: `${header(s.player.name)}${titleBand('Statistik')}<div class="nsd-scroll"><table class="nsd-table nsd-stats-t">
-      <tr><th></th>${cols.map(([l]) => `<th>${l}</th>`).join('')}</tr>
-      ${rows.map(([l, f]) => `<tr><td class="nm">${l}</td>${cols.map(([, t]) => `<td class="c">${f(t ?? {})}</td>`).join('')}</tr>`).join('')}
+      <tr><th></th>${cols.map(([l], i) => `<th class="${cls(i)}">${l}</th>`).join('')}</tr>
+      ${rows.map(([l, f]) => `<tr><td class="nm">${l}</td>${cols.map(([, t], i) => `<td class="c ${cls(i)}">${f(t ?? {})}</td>`).join('')}</tr>`).join('')}
     </table></div>`,
     bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'achievements', icon: '⭐', label: 'Erfolge' }, { go: 'league', icon: '🏆', label: 'Ranglisten', wide: true }]),
   });

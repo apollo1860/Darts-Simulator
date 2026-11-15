@@ -111,6 +111,21 @@ const skillEq = v => (v - 87.5) / (12.5 / 60);
 // Unter 0 (Nervosität, Energiemangel) wächst der Kreis wie bisher linear (+0,2 mm je Punkt).
 export const CIRCLE_MAX = 17, CIRCLE_MIN = 8, CIRCLE_CURVE = 1.4;
 export const circleRadius = sk => (sk < 0 ? CIRCLE_MAX - 0.2 * sk : CIRCLE_MAX - (CIRCLE_MAX - CIRCLE_MIN) * Math.pow(Math.min(sk, 60) / 60, CIRCLE_CURVE));
+// Linien (Zielkreuz): Ausschlag und Grundtempo aus dem Fokus (Fähigkeit 0–60) – im Spiel UND im Training gleich (Version 89)
+export const lineParams = fk => ({ amp: clamp(40 - 0.25 * fk, 24, 50), freq: clamp(0.8 - 0.004 * fk, 0.55, 1.2) });
+export const Y_SPEED = 0.8;   // Linie von oben nach unten etwas langsamer als die seitliche
+// Tempo-Steigerung (Version 89, Nutzerwunsch): bei jedem Richtungswechsel einer Linie (jedes „wieder hoch/runter“) wird sie um RAMP_STEP schneller,
+// höchstens bis × RAMP_CAP. Liefert den Phasenfortschritt (in Zyklen; ein Richtungswechsel = ½ Zyklus) nach t Sekunden bei Grundtempo `freq`.
+export const RAMP_STEP = 1.1, RAMP_CAP = 2.5;
+export function rampPhase(t, freq, step = RAMP_STEP, cap = RAMP_CAP) {
+  let rest = Math.max(0, t), phase = 0, mult = 1;
+  while (mult < cap) {
+    const v = freq * mult, seg = 0.5 / v;                 // Dauer dieser halben Schwingung
+    if (rest <= seg) return phase + v * rest;
+    rest -= seg; phase += 0.5; mult *= step;
+  }
+  return phase + freq * cap * rest;
+}
 export function circleParams(attrs, m, i, target) {
   const dbl = isDoubleLabel(target) || target === '25';
   const sk = skillEq(dbl ? attrs.fin : attrs.sco), fk = skillEq(attrs.foc);
@@ -120,8 +135,8 @@ export function circleParams(attrs, m, i, target) {
   return {
     block,
     radius: clamp(circleRadius(sk), CIRCLE_MIN, 36) * pf * k,
-    amp: clamp(40 - 0.25 * fk, 24, 50),
-    freq: clamp(0.8 - 0.004 * fk, 0.55, 1.2) * Math.sqrt(pf),
+    amp: lineParams(fk).amp,
+    freq: lineParams(fk).freq * Math.sqrt(pf),
     pressure: pf > 1.05,
   };
 }
