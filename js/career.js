@@ -5,7 +5,7 @@ import { RESULT_QS, PAULKE_IN, PAULKE_OUT, MOOD_INTRO } from '../data/talk.js';
 import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
-import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS } from '../data/controversial.js';
+import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS, CONTROVERSY_KINDS, CONTROVERSY_PARAMS } from '../data/controversial.js';
 import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS } from '../data/sponsorsreal.js';
 import { starPrice, starPayout, starFactor, priceFactor, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
 import { addNews } from './news.js';
@@ -115,6 +115,7 @@ export const brancheOf = c => (c.controversial ? { label: `Umstritten · ${c.sec
 // Umstrittene Verträge (Version 73) zählen weder zu den 5 Plätzen noch zur Branchenregel
 export const normalContracts = state => sp(state).active.filter(c => !c.controversial);
 export const hasControversial = state => sp(state).active.some(c => c.controversial);
+export const sponsorBlockWeeks = state => Math.max(0, (sp(state).blockUntil ?? 0) - weekIndex(state));
 // Wochenbetrag (Basis): Status, Fans, PDC-Rang
 export function sponsorBase(state) {
   const p = state.player, r = rankOf(state, 'pdc', 'P') ?? 150;
@@ -154,7 +155,8 @@ export function sponsorWeek(state, rng) {
   // Ohne Manager keine Sponsoren; Kneipen-Kumpel selten und klein, Profi-Manager oft und groß. Angebote kommen auch bei voller Sponsorenliste
   // (dann muss für den Neuen einer gekündigt werden), aber nie aus einer Branche, in der du schon einen Vertrag hast.
   const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) : 0;
-  const sp0 = !s.offer && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng) : null;
+  const blocked = weekIndex(state) < (s.blockUntil ?? 0);                    // Sponsoren-Sperre nach einem Skandal
+  const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng) : null;
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
     const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * sp0.pay));
@@ -191,20 +193,53 @@ export function acceptControversial(state) {
   addNews(state, 'result', `⚠️ Umstrittener Deal: ${o.name}`, `${o.perWeek} ★ pro Woche für ${o.length} Wochen. Die ersten Fans sind schon empört (Fans ${CONTROVERSY_SIGN_FANS}).`);
 }
 export function declineControversial(state) { sp(state).cOffer = null; }
-// Wöchentlicher Vorfall (Chance CONTROVERSY_EVENT): meist Fan-Verlust, manchmal springt ein anderer Sponsor ab, manchmal nur Boykottaufrufe
+// Wöchentlicher Vorfall (Chance CONTROVERSY_EVENT, Art nach CONTROVERSY_KINDS): von Boykottaufruf bis Mega-Skandal – die schweren Folgen
+// (mehrere Sponsoren weg, Sponsoren-Sperre, Krisen-PR, Manager-Krach) können den Deal unterm Strich zum Verlustgeschäft machen.
 export function controversyEvent(state, c, rng) {
-  if (!rng.chance(CONTROVERSY_EVENT)) return null;
-  const def = CONTROVERSIAL.find(x => x.name === c.name), p = state.player, s = sp(state), normal = normalContracts(state), roll = rng.next();
-  if (roll < 0.22 && normal.length) {
-    const v = rng.pick(normal);
-    s.active = s.active.filter(x => x !== v); addRel(p, 'sponsors', -4);
-    addNews(state, 'result', `🤝 ${v.name} springt ab`, `„Mit ${c.name} wollen wir nicht in einem Atemzug genannt werden.“ Der Vertrag ist beendet (Sponsoren −4).`);
-    return { kind: 'leave', sponsor: v.name };
+  if (!rng.chance(CONTROVERSY_PARAMS.rate)) return null;
+  const def = CONTROVERSIAL.find(x => x.name === c.name), P = CONTROVERSY_PARAMS, p = state.player, s = sp(state), wk = weekIndex(state);
+  let r = rng.next() * CONTROVERSY_KINDS.reduce((a, x) => a + x.w, 0), kind = CONTROVERSY_KINDS.at(-1).kind;
+  for (const x of CONTROVERSY_KINDS) { r -= x.w; if (r <= 0) { kind = x.kind; break; } }
+  const normal = normalContracts(state), drop = n => {                     // n zufällige normale Sponsoren springen ab
+    const gone = rng.shuffle([...normal]).slice(0, n); s.active = s.active.filter(x => !gone.includes(x)); return gone.map(x => x.name);
+  };
+  const block = weeks => { s.blockUntil = Math.max(s.blockUntil ?? 0, wk + weeks); if (s.offer) s.offer = null; };   // Sponsoren-Sperre: keine neuen normalen Angebote
+  const pay = mult => { const cost = Math.min(Math.max(0, state.stars ?? 0), Math.round(c.perWeek * mult)); state.stars = (state.stars ?? 0) - cost; return cost; };
+  if (kind === 'leave' && !normal.length) kind = 'fans';
+  if (kind === 'severe' && !normal.length) kind = 'pr';
+  if (kind === 'mega' && !normal.length) kind = 'pr';
+  if (kind === 'leave') {
+    const [v] = drop(1); addRel(p, 'sponsors', -P.leave.rel);
+    addNews(state, 'result', `🤝 ${v} springt ab`, `„Mit ${c.name} wollen wir nicht in einem Atemzug genannt werden.“ Der Vertrag ist beendet (Sponsoren −${P.leave.rel}).`);
+    return { kind, sponsor: v };
   }
-  if (roll < 0.77) {
-    const loss = rng.int(2, 5); addFans(p, -loss);
+  if (kind === 'fans') {
+    const loss = rng.int(...P.fans.loss); addFans(p, -loss);
     addNews(state, 'result', `📉 Proteste wegen ${c.name}`, `${rng.pick(def?.scandal ?? ['Die Fans sind verärgert.'])} (Fans −${loss})`);
-    return { kind: 'fans', loss };
+    return { kind, loss };
+  }
+  if (kind === 'pr') {
+    addFans(p, -P.pr.fans); const cost = pay(P.pr.cost);
+    addNews(state, 'result', `🧯 Krisen-PR wegen ${c.name}`, `${rng.pick(def?.scandal ?? [''])} Eine PR-Agentur soll den Imageschaden begrenzen – das kostet ${cost} ★ (Fans −${P.pr.fans}).`);
+    return { kind, cost };
+  }
+  if (kind === 'severe') {
+    const loss = rng.int(...P.severe.fans), gone = drop(Math.min(normal.length, rng.int(...P.severe.leave)));
+    addFans(p, -loss); p.satisfaction = clamp((p.satisfaction ?? 50) - P.severe.sat, 0, 100); addRel(p, 'sponsors', -8); block(P.severe.block); const cost = pay(P.severe.cost);
+    addNews(state, 'result', `🔥 Skandal um ${c.name}!`, `${rng.pick(def?.scandal ?? [''])} ${gone.join(' und ')} ${gone.length > 1 ? 'springen' : 'springt'} ab, die Presse schießt sich ein: Fans −${loss}, Zufriedenheit −${P.severe.sat}, Krisen-PR ${cost} ★. ${P.severe.block} Wochen lang kommen keine neuen Sponsor-Angebote.`);
+    return { kind, loss, gone, cost };
+  }
+  if (kind === 'manager') {
+    const rel = rng.int(...P.manager.rel); addFans(p, -P.manager.fans);
+    if (managerOf(state)) { addRel(p, 'manager', -rel); if (p.rel.manager <= 0) fireManager(state); }
+    addNews(state, 'result', `💼 Manager-Krach wegen ${c.name}`, `Dein Manager stellt dich zur Rede: „Das ruiniert alles, was wir aufgebaut haben.“ (Manager −${rel}, Fans −${P.manager.fans})`);
+    return { kind, rel };
+  }
+  if (kind === 'mega') {
+    const loss = rng.int(...P.mega.fans), gone = drop(Math.max(1, normal.filter(() => rng.chance(P.mega.leaveP)).length));
+    addFans(p, -loss); p.satisfaction = clamp((p.satisfaction ?? 50) - P.mega.sat, 0, 100); addRel(p, 'sponsors', -15); block(P.mega.block); const cost = pay(P.mega.cost);
+    addNews(state, 'result', `💣 Mega-Skandal um ${c.name}!`, `Ein Shitstorm rollt durch die Medien. ${gone.join(', ')} ${gone.length > 1 ? 'kündigen' : 'kündigt'} sofort. Fans −${loss}, Zufriedenheit −${P.mega.sat}, Krisen-PR ${cost} ★ – ${P.mega.block} Wochen lang kommen keine neuen Sponsor-Angebote.`);
+    return { kind, loss, gone, cost };
   }
   addFans(p, -1); p.satisfaction = clamp((p.satisfaction ?? 50) - 1, 0, 100);
   addNews(state, 'info', `📣 Boykottaufruf gegen ${c.name}`, 'Ein paar Fans rufen im Netz zum Boykott auf – es bleibt bei Wirbel (Fans −1, Zufriedenheit −1).');

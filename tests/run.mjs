@@ -2138,16 +2138,35 @@ test('New Star Darts v73: umstrittene Sponsoren – ab Status 25, alle 1–2 Jah
   assert.equal(C.offerConflict(u, nrm('Edeka')), null, 'Nestlé (Lebensmittel) blockiert keine Supermarkt-Branche');
   // Bezahlung und Siegprämie laufen mit
   const st0 = u.stars ?? 0; C.sponsorWeek(u, rng); assert.ok(u.stars >= st0 + 50);
-  // Vorfälle: Rate, Verteilung, Abspringen, nur normale Sponsoren betroffen, Fans sinken
-  const v = mk(30), ctrl = { name: 'Rheinmetall', controversial: true }; let ev = 0, kinds = { fans: 0, leave: 0, minor: 0 }; const n = 6000;
+  // Vorfälle: Rate, Verteilung nach Gewichten, nur normale Sponsoren betroffen, Folgen je Art
+  const v = mk(30), ctrl = { name: 'Rheinmetall', controversial: true, perWeek: 90 }, P = X.CONTROVERSY_PARAMS; let ev = 0; const kinds = {}, n = 8000;
+  assert.equal(X.CONTROVERSY_KINDS.reduce((a, k) => a + k.w, 0), 100); assert.equal(P.rate, X.CONTROVERSY_EVENT);
+  const fresh2 = () => { v.nsdSponsors = { active: [nrm('Würth'), nrm('Tipico'), nrm('Zalando'), nrm('Bitburger'), ctrl], offer: { name: 'Offen', branche: 'fitness', weeks: 3 } }; v.player.rel.fans = 60; v.player.rel.manager = 70; v.player.satisfaction = 60; v.stars = 1000; v.team = { manager: 'm3', trainer: null }; };
   for (let k = 0; k < n; k++) {
-    v.nsdSponsors = { active: [nrm('Würth'), nrm('Tipico'), ctrl], offer: null }; v.player.rel.fans = 60; const r = C.controversyEvent(v, ctrl, rng);
-    if (r) { ev++; kinds[r.kind]++; if (r.kind === 'leave') { assert.ok(['Würth', 'Tipico'].includes(r.sponsor)); assert.ok(!v.nsdSponsors.active.some(c => c.name === r.sponsor) && v.nsdSponsors.active.includes(ctrl)); } if (r.kind === 'fans') assert.ok(v.player.rel.fans <= 58 && v.player.rel.fans >= 55); }
+    fresh2(); const r = C.controversyEvent(v, ctrl, rng); if (!r) continue; ev++; kinds[r.kind] = (kinds[r.kind] ?? 0) + 1;
+    const act = v.nsdSponsors.active, gone = 4 - act.filter(c => !c.controversial).length;
+    assert.ok(act.includes(ctrl) && act.every(c => c === ctrl || ['Würth', 'Tipico', 'Zalando', 'Bitburger'].includes(c.name)), 'umstrittener Vertrag bleibt');
+    if (r.kind === 'leave') assert.equal(gone, 1);
+    if (r.kind === 'fans') { assert.ok(r.loss >= 2 && r.loss <= 5 && v.player.rel.fans === 60 - r.loss); assert.equal(gone, 0); }
+    if (r.kind === 'pr') { assert.equal(r.cost, 4 * 90); assert.equal(v.stars, 1000 - 360); assert.equal(v.player.rel.fans, 57); assert.equal(gone, 0); }
+    if (r.kind === 'severe') { assert.ok(r.loss >= 8 && r.loss <= 15 && v.player.rel.fans === 60 - r.loss && gone >= 1 && gone <= 3 && v.stars === 1000 - 450 && v.nsdSponsors.offer === null); assert.equal(C.sponsorBlockWeeks(v), 10); }
+    if (r.kind === 'mega') { assert.ok(r.loss >= 20 && r.loss <= 30 && v.player.rel.fans === 60 - r.loss && gone >= 1 && v.stars === 1000 - 900 && v.player.satisfaction === 54); assert.equal(C.sponsorBlockWeeks(v), 20); }
+    if (r.kind === 'manager') { assert.ok(r.rel >= 18 && r.rel <= 30 && v.player.rel.manager === 70 - r.rel && gone === 0); }
   }
   assert.ok(Math.abs(ev / n - X.CONTROVERSY_EVENT) < 0.015, `Vorfall-Rate ${ev / n}`);
-  assert.ok(Math.abs(kinds.leave / ev - 0.22) < 0.07 && Math.abs(kinds.fans / ev - 0.55) < 0.07 && Math.abs(kinds.minor / ev - 0.23) < 0.07, JSON.stringify(kinds));
-  assert.ok(v.news.some(x => x.title.includes('springt ab')) && v.news.some(x => x.title.includes('Proteste wegen Rheinmetall')));
-  v.nsdSponsors = { active: [ctrl], offer: null }; for (let k = 0; k < 300; k++) { const r = C.controversyEvent(v, ctrl, rng); assert.ok(!r || r.kind !== 'leave', 'ohne andere Sponsoren springt keiner ab'); }
+  for (const k of X.CONTROVERSY_KINDS) assert.ok(Math.abs((kinds[k.kind] ?? 0) / ev - k.w / 100) < 0.05, `${k.kind}: ${(kinds[k.kind] ?? 0) / ev} statt ${k.w / 100}`);
+  assert.ok(v.news.some(x => x.title.includes('springt ab')) && v.news.some(x => x.title.includes('Proteste wegen Rheinmetall')) && v.news.some(x => x.title.includes('Skandal um')) && v.news.some(x => x.title.includes('Mega-Skandal')) && v.news.some(x => x.title.includes('Manager-Krach')) && v.news.some(x => x.title.includes('Krisen-PR')));
+  // ohne andere Sponsoren: kein Abspringen (leave → Proteste, severe/mega → Krisen-PR); Krisen-PR nie über das Guthaben
+  v.nsdSponsors = { active: [ctrl], offer: null }; v.stars = 3; for (let k = 0; k < 600; k++) { const r = C.controversyEvent(v, ctrl, rng); assert.ok(!r || !['leave', 'severe', 'mega'].includes(r.kind)); assert.ok(v.stars >= 0, 'Guthaben nie negativ'); v.stars = 3; }
+  // Manager-Krach kann den Manager kosten (Beziehung ≤ 0 → Kündigung)
+  let fired = false; for (let k = 0; k < 4000 && !fired; k++) { fresh2(); v.player.rel.manager = 20; const r = C.controversyEvent(v, ctrl, rng); if (r?.kind === 'manager') fired = !C.managerOf(v) && v.player.rel.manager === 0; }
+  assert.ok(fired, 'Manager-Krach kann zur Kündigung des Managers führen');
+  // Sponsoren-Sperre: keine neuen normalen Angebote, danach wieder
+  const b = mk(30); b.nsdSponsors = { active: [], offer: null, cAt: 1e9, blockUntil: (b.date.year * 52 + b.date.week) + 10 }; let during = 0, after = 0;
+  for (let k = 0; k < 9; k++) { tick(b); C.sponsorWeek(b, rng); if (b.nsdSponsors.offer) during++; }
+  assert.equal(during, 0, 'keine Angebote während der Sperre'); assert.ok(C.sponsorBlockWeeks(b) <= 1);
+  for (let k = 0; k < 60; k++) { tick(b); C.sponsorWeek(b, rng); if (b.nsdSponsors.offer) { after++; b.nsdSponsors.offer = null; } }
+  assert.ok(after > 5, 'danach kommen wieder Angebote');
   // Kündigen des umstrittenen Vertrags jederzeit möglich; Spielstände ohne `cAt` laufen weiter
   const w = mk(30); w.nsdSponsors = { active: [{ ...nrm('Gazprom'), controversial: true, branche: 'umstritten' }], offer: null }; C.cancelSponsor(w, 'Gazprom'); assert.equal(w.nsdSponsors.active.length, 0);
 });
