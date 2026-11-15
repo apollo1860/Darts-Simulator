@@ -4,6 +4,7 @@ import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, drinkFactor,
 import { DRINKS, DARTS, DRINK_MAX } from '../data/gear.js';
 import { FLIGHT_NAMES, BARREL_NAMES, SHOP_WEEKS } from '../data/accessories.js';
 import { RNG } from './rng.js';
+import { circleRadius } from './throwModel.js';
 import { addNews } from './news.js';
 import { checkoutRoute, BOGEY, labelValue, isDoubleLabel } from './board.js';
 
@@ -47,7 +48,7 @@ export function validFinish(labels, rem) {
 export function trainAim(skill, focus, L) {
   const t = (lvl(L) - 1) / 19;
   return {
-    radius: Math.max(4, Math.min(36, (17 - 0.2 * skill) * (0.55 + 0.45 * t))),
+    radius: Math.max(4, Math.min(36, circleRadius(skill) * (0.55 + 0.45 * t))),
     amp: Math.max(16, Math.min(50, (40 - 0.25 * focus) * (0.6 + 0.4 * t))),
     freq: Math.max(0.4, Math.min(1.3, (0.8 - 0.004 * focus) * (0.7 + 0.3 * t))) * lineSpeed(L),
   };
