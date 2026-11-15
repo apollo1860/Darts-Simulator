@@ -2252,4 +2252,33 @@ test('New Star Darts v82: Zielkreis schrumpft langsamer (konvex) und bleibt am E
   assert.ok(Math.abs(T.trainAim(40, 40, 20).radius - R(40)) < 1e-9); assert.ok(T.trainAim(40, 40, 1).radius < T.trainAim(40, 40, 20).radius);
 });
 
+test('New Star Darts v83: Nervosität – einzelne Darts mit größerem Zielkreis (einmal je Dart gewürfelt, mit Mental weg)', async () => {
+  const N = await import('../js/nsd.js');
+  const rng = new RNG(9);
+  // Reine Funktion: unter der Schwelle nie, sonst Chance 0,18 × Punkte, Faktor 1,2 … 1,2 + 0,25 × Punkte (höchstens 1,8)
+  for (const pts of [0, 0.1, 0.24]) for (let i = 0; i < 200; i++) assert.equal(N.nerveShake(pts, rng), 1);
+  for (const [pts, p] of [[1.2, 0.216], [3, 0.54], [6, 0.55]]) {
+    let hit = 0, n = 20000, lo = 9, hi = 0;
+    for (let i = 0; i < n; i++) { const m = N.nerveShake(pts, rng); if (m > 1) { hit++; lo = Math.min(lo, m); hi = Math.max(hi, m); } }
+    assert.ok(Math.abs(hit / n - p) < 0.02, `Chance bei ${pts}: ${hit / n}`); assert.ok(lo >= 1.2 && hi <= 1.8 + 1e-9, `Faktor ${lo}–${hi}`);
+    if (pts === 1.2) assert.ok(hi <= 1.2 + 0.25 * 1.2 + 1e-9);
+  }
+  // Im Liveticker: nervöser Anfänger bekommt zwischendurch größere Kreise, einmal je Dart; mit hohem Mental nie
+  const mk = lvl => {
+    const s = N.newNsdCareer({ first: 'Nick', last: 'Nervös', nation: 'DE', age: 25, slot: 1, seed: 12 });
+    s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null }; s.player.star.level = lvl;
+    ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id); const live = ET.startManualMatch(s);
+    live.m.turn = live.me; return { s, live };
+  };
+  const rad = (o, k) => { o.live.m.legDarts[o.live.me] = k; return ET.aimParams(o.s, 'T20'); };
+  const a = mk(1); assert.ok(ET.nervesNow(a.s).pts >= 0.25, 'Anfänger ist nervös');
+  const radii = Array.from({ length: 400 }, (_, k) => rad(a, k)), base = Math.min(...radii.map(r => r.radius));
+  const big = radii.filter(r => r.shaky);
+  assert.ok(big.length > 400 * 0.1 && big.length < 400 * 0.45, `Anteil zittriger Darts ${big.length / 400}`);
+  assert.ok(big.every(r => r.radius >= base * 1.19 && r.radius <= base * 1.81) && radii.filter(r => !r.shaky).every(r => Math.abs(r.radius - base) < 1e-9));
+  const r1 = rad(a, 500).radius; for (let i = 0; i < 5; i++) assert.equal(ET.aimParams(a.s, 'T20').radius, r1, 'Zielwechsel würfelt nicht neu');
+  const z = mk(60); assert.equal(ET.nervesNow(z.s).pts, 0);
+  assert.ok(Array.from({ length: 200 }, (_, k) => rad(z, k)).every(r => !r.shaky), 'ohne Nervosität nie');
+});
+
 console.log(`\n${n} Tests ok`);

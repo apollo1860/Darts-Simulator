@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 82;
+export const APP_VERSION = 83;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -185,6 +185,15 @@ export function nervesOf(p, inst, oppId = null) {
   if (inst.fmt === 'wm' && wm?.year === inst.year && wm.nerves) raw.push([wm.nerves > 0 ? 'Druck aus dem Paulke-Interview' : 'Ruhe aus dem Paulke-Interview', wm.nerves]);
   const parts = raw.map(([label, v]) => ({ label, pts: Math.round(v * fade * 100) / 100 })).filter(x => x.pts !== 0);
   return { pts: Math.max(0, Math.round(parts.reduce((a, x) => a + x.pts, 0) * 100) / 100), parts };
+}
+// Version 83 (Nutzerwunsch): Bei Nervosität ist der Zielkreis in einzelnen Darts zusätzlich größer als beim Dart davor („zittrige Hand“).
+// Ab SHAKE_FROM Nervositätspunkten (nervesOf.pts) trifft es jeden Dart mit Chance SHAKE_P × pts (höchstens SHAKE_MAX_P); dann × 1,2 … 1,2 + 0,25 × pts
+// (höchstens × 1,8). Mehr Mental → weniger Nervosität → seltener und kleiner; ab Mental 50 gar nicht mehr. Gewürfelt wird einmal je Dart (tournaments.js aimParams).
+export const SHAKE_FROM = 0.25, SHAKE_P = 0.18, SHAKE_MAX_P = 0.55, SHAKE_MIN = 1.2, SHAKE_SPREAD = 0.25, SHAKE_MAX = 1.8;
+export function nerveShake(pts, rng) {
+  if (!(pts >= SHAKE_FROM)) return 1;
+  if (!rng.chance(Math.min(SHAKE_MAX_P, SHAKE_P * pts))) return 1;
+  return Math.min(SHAKE_MAX, rng.float(SHAKE_MIN, SHAKE_MIN + SHAKE_SPREAD * pts));
 }
 export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.round((p.energy ?? 100) + n))); return p.energy; }
 

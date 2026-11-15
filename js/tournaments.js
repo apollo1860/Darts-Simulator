@@ -28,7 +28,7 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
-import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
+import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
@@ -533,6 +533,10 @@ function paced(state, lm, me, chance = 1) {
 export function aimParams(state, target) {
   const live = state.activeEvent.live, p = circleParams(liveAttrs(state, live.me), live.m, live.me, target), mm = modMult(live, live.me);
   if (mm !== 1) { p.radius *= mm; p.mod = mm; }                      // Spielmoment (moments.js): besser/schlechter für einige Aufnahmen
+  // Nervosität: einzelne Darts mit größerem Kreis (einmal je Dart gewürfelt, damit Zielwechsel nicht neu würfelt)
+  const lm = live.m, key = `${lm.legIdx}:${lm.turn}:${lm.legDarts?.[lm.turn] ?? 0}`;
+  if (live.shake?.key !== key) live.shake = { key, mult: nerveShake(nervesNow(state).pts, new RNG(state.rng)) };
+  if (live.shake.mult > 1) { p.radius *= live.shake.mult; p.shaky = live.shake.mult; }
   return p;
 }
 // Aktueller Streuungs-Multiplikator eines Spielmoments für dich (Anzeige im Liveticker), 1 = keiner
