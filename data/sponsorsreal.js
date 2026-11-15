@@ -43,15 +43,17 @@ export const BRANCHEN = {
   andere: { label: 'Sonstige', icon: '🤝' },                 // nur für alte Spielstände (nicht angeboten)
 };
 
-// Kleine fiktive Sponsoren (bis Status 10 und danach selten); alle fiktiven Marken stehen für alte Spielstände in FICTIONAL_BRANCHE
+// Kleine fiktive Sponsoren (bis Status 10 und danach selten): 8 Marken in 8 verschiedenen Branchen, sodass sich keine zwei gegenseitig blockieren.
+// Alle weiteren fiktiven Marken (früher größere Stufen) stehen für alte Spielstände in FICTIONAL_BRANCHE.
 export const SMALL_SPONSORS = [
-  { name: 'Arrowcraft Darts', branche: 'darts' }, { name: 'Tungsten Tom', branche: 'darts' },
-  { name: 'Kneipenkönig Wear', branche: 'mode' }, { name: 'Oche Couture', branche: 'mode' },
-  { name: 'Bullseye Energy', branche: 'alkoholfrei' }, { name: 'Brauerei Doppelfeld', branche: 'bier' },
+  { name: 'Arrowcraft Darts', branche: 'darts' }, { name: 'Kneipenkönig Wear', branche: 'mode' },
+  { name: 'Brauerei Doppelfeld', branche: 'bier' }, { name: 'Bullseye Energy', branche: 'alkoholfrei' },
   { name: 'Autohaus Bogenschütz', branche: 'auto' }, { name: 'Pfeil & Partner Immobilien', branche: 'finanzen' },
+  { name: 'Gasthaus Zum goldenen Pfeil', branche: 'gastro' }, { name: 'Baumarkt Eisenhans', branche: 'bau' },
 ];
 export const FICTIONAL_BRANCHE = {
   ...Object.fromEntries(SMALL_SPONSORS.map(x => [x.name, x.branche])),
+  'Tungsten Tom': 'darts', 'Oche Couture': 'mode',
   'Flightline Pro': 'darts', 'Bullhaus Darts': 'darts', 'Apex Tungsten': 'darts', 'Ninefinity': 'darts',
   'Shotglass Sportswear': 'mode', 'Triple Twenty Apparel': 'mode', 'Matchdart Athletics': 'mode',
   'Checkout Cola': 'alkoholfrei', 'Hydra Oche Water': 'alkoholfrei', 'Ton-80 Lager': 'bier',

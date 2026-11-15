@@ -2035,6 +2035,8 @@ test('New Star Darts v70/71: echte Marken nach Branchen – eine Branche je Spon
   assert.equal(new Set(names).size, names.length);
   for (const x of R.REAL_SPONSORS) assert.ok(R.BRANCHEN[x.branche] && x.branche !== 'andere' && x.fame >= 1 && x.fame <= 5 && R.REAL_FROM.includes(x.from), x.name);
   for (const x of R.SMALL_SPONSORS) assert.ok(R.BRANCHEN[x.branche]);
+  assert.equal(R.SMALL_SPONSORS.length, 8); assert.equal(new Set(R.SMALL_SPONSORS.map(x => x.branche)).size, 8, 'kleine Sponsoren: 8 verschiedene Branchen');
+  assert.equal(R.brancheOfName('Tungsten Tom'), 'darts'); assert.equal(R.brancheOfName('Oche Couture'), 'mode');   // alte Spielstände
   for (const [n, b] of Object.entries(R.FICTIONAL_BRANCHE)) assert.ok(R.BRANCHEN[b], n);
   assert.equal(R.SPONSOR_MAX, 5); assert.deepEqual(R.REAL_FROM, [11, 20, 40]);
   const tier = from => new Set(by(x => x.from === from).map(x => x.name));
