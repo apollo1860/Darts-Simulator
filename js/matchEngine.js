@@ -114,11 +114,16 @@ function visit(p, r, st, rng, pressure, fatigue) {
 }
 const targetAvgRef = p => p.avgBase ?? p.avg;
 
+// Teams (World Cup, Version 80): Zuwachs der Seitenstatistik durch einen Besuch auf das Teammitglied übertragen
+const MEMBER_KEYS = ['points', 'darts', 's180', 's140', 's100', 'coHit', 'coAtt', 'bogey', 'calcErr'];
+const addMember = (ms, s, snap) => { for (const k of MEMBER_KEYS) ms[k] += s[k] - snap[k]; };
+
 function simLeg(starter, prof, st, rng, ctx) {
   const rem = [501, 501], legDarts = [0, 0], visits = [0, 0];
   let t = starter;
   for (let n = 0; n < 400; n++) {
-    const p = prof[t][visits[t]++ % prof[t].length], s = st[t];   // Teams (World Cup): Partner wechseln sich ab
+    const idx = visits[t]++ % prof[t].length, p = prof[t][idx], s = st[t];   // Teams (World Cup): Partner wechseln sich ab
+    const ms = ctx.mem?.[t]?.[idx], snap = ms ? { ...s } : null;
     // Matchdarts: Mental + Erfahrung (−4 … +10) entscheiden
     const pressure = ctx.wouldWin(t) ? clamp(0.8 + 0.17 * (p.men / 100) + 0.025 * p.exp, 0.55, 1.3) : 1;
     let fatigue = ctx.legIdx > 10 ? Math.max(0.9, 1 - (ctx.legIdx - 10) * 0.0025 * (1 - p.foc / 100)) : 1;
@@ -126,6 +131,7 @@ function simLeg(starter, prof, st, rng, ctx) {
     const v = visit(p, rem[t], s, rng, pressure, fatigue);
     s.darts += v.darts; legDarts[t] += v.darts;
     if (!v.bust) { s.points += v.pts; rem[t] -= v.pts; addScore(s, v.pts); }
+    if (ms) addMember(ms, s, snap);
     if (v.finished) {
       s.legsWon++;
       if (!s.bestLeg || legDarts[t] < s.bestLeg) s.bestLeg = legDarts[t];
@@ -141,13 +147,14 @@ export function simulateMatch(attrsA, attrsB, format, rng, opts = {}) {
   const mk = (a, mod) => (Array.isArray(a) ? a : [a]).map(x => ({ ...makeProfile(x, rng, mod), avgBase: targetAverage(x) }));
   const prof = [mk(attrsA, opts.modA), mk(attrsB, opts.modB)];
   const st = [newStats(), newStats()];
+  const mem = prof.map(side => (side.length > 1 ? side.map(() => newStats()) : null));   // Einzelstatistik je Teammitglied
   const isSets = !!format.sets, setsTo = format.sets || 1, legsTo = format.legs;
   const sets = [0, 0]; let legs = [0, 0];
   let setStarter = opts.starter ?? (rng.chance(0.5) ? 0 : 1), legStarter = setStarter, legIdx = 0;
   const log = [];
   for (;;) {
     const wouldWin = i => legs[i] + 1 >= legsTo && (!isSets || sets[i] + 1 >= setsTo);
-    const w = simLeg(legStarter, prof, st, rng, { wouldWin, legIdx });
+    const w = simLeg(legStarter, prof, st, rng, { wouldWin, legIdx, mem });
     legIdx++; legs[w]++;
     log.push(w);
     legStarter = 1 - legStarter;
@@ -166,6 +173,7 @@ export function simulateMatch(attrsA, attrsB, format, rng, opts = {}) {
     legsTotal,
     sets: isSets ? sets : null,
     stats: st.map(finalizeStats),
+    members: mem.some(Boolean) ? mem.map(side => side && side.map(finalizeStats)) : null,   // nur World Cup: [Seite][Mitglied]
     log,
   };
 }

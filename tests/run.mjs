@@ -2202,4 +2202,38 @@ test('New Star Darts v77: Premier-League-Aufstellung steht zum Jahreswechsel fes
   assert.ok(b.title.includes('Premier League 2027') && b.text.includes('nicht dabei'));
 });
 
+test('New Star Darts v80: World Cup – Team-Average und Einzel-Averages je Spieler (Schnellsimulation und Live-Match)', async () => {
+  const N = await import('../js/nsd.js'), M = await import('../js/majors.js');
+  const at = v => ({ sco: v, fin: v, men: v, foc: v, cal: v, exp: 0 });
+  const sum = (list, k) => list.reduce((a, x) => a + x[k], 0);
+  const same = (st, mem) => ['points', 'darts', 's180', 's140', 's100', 'coHit', 'coAtt'].every(k => sum(mem, k) === st[k]);
+  // Schnellsimulation: je Mitglied eigene Statistik, Summe = Team; Einzelspieler ohne `members`
+  const rng = new RNG(5);
+  for (let i = 0; i < 20; i++) {
+    const r = simulateMatch([at(96), at(88)], [at(90), at(90)], { legs: 5 }, rng);
+    assert.equal(r.members.length, 2); assert.ok(r.members.every(side => side.length === 2));
+    for (const t of [0, 1]) {
+      assert.ok(same(r.stats[t], r.members[t]), `Summe der Mitglieder = Team (${t})`);
+      const lo = Math.min(...r.members[t].map(x => x.avg)), hi = Math.max(...r.members[t].map(x => x.avg));
+      assert.ok(r.stats[t].avg >= lo - 1e-9 && r.stats[t].avg <= hi + 1e-9, 'Team-Ø liegt zwischen den Einzel-Ø');
+    }
+  }
+  assert.equal(simulateMatch(at(90), at(90), { legs: 3 }, rng).members, null);
+  // Live-Match im World Cup: Einzelstatistik im Spielbericht (lastMatch.meM / oppM)
+  const j = N.newNsdCareer({ first: 'Taro', last: 'Test', nation: 'JP', age: 20, slot: 1, seed: 8 });
+  j.player.assessed = true; j.date.week = 24; j.week = { played: false, eventId: null };
+  const tm = M.wcTeams(j).P; ET.enterEvent(j, 'wcod'); ET.startManualMatch(j);
+  assert.deepEqual(j.activeEvent.live.m.team, [2, 2]);
+  const lm = j.activeEvent.live.m, me = j.activeEvent.live.me;
+  const res = ET.simulateLiveRest(j), last = j.activeEvent.lastMatch;
+  assert.ok(res && last.meM?.length === 2 && last.oppM?.length === 2, 'Mitglieder-Statistik im Spielbericht');
+  assert.ok(same(last.me, last.meM) && same(last.opp_, last.oppM), 'Summe der Mitglieder = Team (live)');
+  assert.ok(last.meM.every(x => x.darts > 0 && x.avg > 0) && last.oppM.every(x => x.darts > 0), 'beide Partner haben geworfen');
+  assert.ok(last.meM[0].darts >= last.meM[1].darts - 3 * lm.legIdx, 'Wechsel je Aufnahme');
+  assert.equal(j.activeEvent.teams.P.members.length, 2); assert.equal(tm.members.length, 2); void me;
+  // normale Turniere: keine Mitgliederstatistik
+  const k = N.newNsdCareer({ first: 'Kai', last: 'Test', nation: 'DE', age: 20, slot: 1, seed: 3 });
+  const MT = await import('../js/matchState.js'), m1 = MT.createMatch({ legs: 3 }, 0); assert.equal(m1.team, null); assert.equal(MT.matchResult(m1).members, null); void k;
+});
+
 console.log(`\n${n} Tests ok`);

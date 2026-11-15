@@ -3,8 +3,10 @@
 const newStats = () => ({ points: 0, darts: 0, s180: 0, s140: 0, s100: 0, coHit: 0, coAtt: 0, hiFinish: 0, legsWon: 0, bestLeg: 0, bogey: 0 });
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 
-export function createMatch(format, starter = 0) {
+// team = [Spieler Seite 0, Seite 1] (World Cup: 2, sonst 1) → Einzelstatistik je Mitglied (`m.mstats`)
+export function createMatch(format, starter = 0, team = null) {
   return {
+    team, mstats: [[], []],
     format, sets: [0, 0], legs: [0, 0], rem: [501, 501],
     turn: starter, legStarter: starter, setStarter: starter, legIdx: 0,
     visit: { darts: [], start: 501 }, legDarts: [0, 0],
@@ -22,6 +24,12 @@ export const wouldWinMatch = (m, i) => m.legs[i] + 1 >= legsTo(m) && (!m.format.
 // Entscheidungsleg (beide einen Leg vom Matchgewinn entfernt)
 export const isDecider = m => wouldWinMatch(m, 0) && wouldWinMatch(m, 1);
 export const dartsLeft = m => 3 - m.visit.darts.length;
+// Statistik des Teammitglieds, das gerade wirft (Wechsel je Aufnahme, wie `memberIdx` in tournaments.js); null bei Einzelspielern
+function curMember(m, t) {
+  const n = m.team?.[t] ?? 1;
+  if (n <= 1) return null;
+  return ((m.mstats ??= [[], []])[t][(m.legVisits?.[t]?.length ?? 0) % n] ??= newStats());
+}
 // Doppel-Chance mit einem Dart?
 export const onDouble = r => r === 50 || (r <= 40 && r % 2 === 0);
 
@@ -42,7 +50,8 @@ export function throwDart(m, hit, pos = null) {
   m.visit.darts.push(hit.label);
   if (pos && hit.label !== 'OUT' && hit.label !== 'BOUNCER') (m.visit.tips ??= []).push({ x: pos.x, y: pos.y });
   m.legDarts[t]++;
-  if (onDouble(r)) s.coAtt++;
+  const ms = curMember(m, t);
+  if (onDouble(r)) { s.coAtt++; if (ms) ms.coAtt++; }
   const ev = { player: t, hit, bust: false, checkout: false, visitEnd: false, legEnd: false, matchEnd: false };
 
   if (after < 0 || after === 1 || (after === 0 && !hit.double)) {
@@ -54,7 +63,7 @@ export function throwDart(m, hit, pos = null) {
   m.rem[t] = after;
   if (after === 0) {
     ev.checkout = true;
-    s.coHit++;
+    s.coHit++; if (ms) ms.coHit++;
     s.hiFinish = Math.max(s.hiFinish, m.visit.start);
     endVisit(m, ev, m.visit.start);
     endLeg(m, t, ev);
@@ -65,11 +74,16 @@ export function throwDart(m, hit, pos = null) {
 }
 
 function endVisit(m, ev, pts) {
-  const t = m.turn, s = m.stats[t];
+  const t = m.turn, s = m.stats[t], ms = curMember(m, t);
   s.points += pts;
   s.darts += m.visit.darts.length;
   if (!ev.bust) addScoreBand(s, pts);
   if (!ev.bust && BOGEY.has(m.rem[t])) s.bogey = (s.bogey ?? 0) + 1;
+  if (ms) {
+    ms.points += pts; ms.darts += m.visit.darts.length;
+    if (!ev.bust) addScoreBand(ms, pts);
+    if (!ev.bust && BOGEY.has(m.rem[t])) ms.bogey = (ms.bogey ?? 0) + 1;
+  }
   m.last[t] = { darts: [...m.visit.darts], score: pts, bust: ev.bust };
   m.legPoints[t] += pts;
   m.legVisits[t].push({ score: pts, bust: ev.bust, checkout: ev.checkout, rem: m.rem[t] });
@@ -110,6 +124,9 @@ export function matchResult(m) {
     legsTotal: [m.stats[0].legsWon, m.stats[1].legsWon],
     sets: m.format.sets ? [...m.sets] : null,
     stats: m.stats.map(s => ({ ...s, avg: s.darts ? s.points / s.darts * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0 })),
+    members: m.team?.some(n => n > 1) ? [0, 1].map(t => ((m.team[t] ?? 1) > 1
+      ? Array.from({ length: m.team[t] }, (_, i) => { const s = m.mstats?.[t]?.[i] ?? newStats(); return { ...s, avg: s.darts ? s.points / s.darts * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0 }; })
+      : null)) : null,                                   // nur World Cup: [Seite][Mitglied]
     log: [...m.log],
   };
 }

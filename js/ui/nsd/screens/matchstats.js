@@ -15,13 +15,18 @@ export function render(app) {
   const a = lm.me, b = lm.opp_;
   const row = (label, x, y) => `<tr><td class="c">${x}</td><td class="c lbl">${label}</td><td class="c">${y}</td></tr>`;
   const pct = v => `${fmtNum((v ?? 0) * 100, 1)} %`;
+  // World Cup: Team-Average und je Spieler der Einzel-Average (Version 80)
+  const team = !!(lm.meM && lm.oppM), tm = (id, list) => (s.activeEvent?.teams?.[id]?.members ?? []).map((mid, i) => ({ name: surname(getPlayer(s, mid)?.name ?? '?'), st: list?.[i] }));
+  const mine = team ? tm('P', lm.meM) : [], theirs = team ? tm(lm.opp, lm.oppM) : [];
+  const cell = x => (x ? `<small>${esc(x.name)}</small><br>${x.st?.darts ? fmtNum(x.st.avg, 2) : '–'}` : '');
+  const singles = team ? Array.from({ length: Math.max(mine.length, theirs.length) }, (_, i) => `<tr><td class="c">${cell(mine[i])}</td><td class="c lbl">Einzel-Ø</td><td class="c">${cell(theirs[i])}</td></tr>`).join('') : '';
   const tone = lm.rating >= 7.5 ? 'good' : lm.rating < 5 ? 'bad' : '';
   return frame({
     body: `${header(p.name)}${titleBand(esc(lm.round))}
       ${darkBar(`${lm.won ? 'SIEG' : 'NIEDERLAGE'} ${lm.score[0]} : ${lm.score[1]}`, lm.won ? '' : 'red')}
       <table class="nsd-table nsd-stats">
         <tr><th>${flag(p.nation)} Du</th><th></th><th class="nm">${flag(getPlayer(s, lm.opp)?.nation)} ${esc(surname(nameOf(s, lm.opp)))}</th></tr>
-        ${row('Average', fmtNum(a.avg, 2), fmtNum(b.avg, 2))}
+        ${row(team ? 'Team-Ø' : 'Average', fmtNum(a.avg, 2), fmtNum(b.avg, 2))}${singles}
         ${row('180er', a.s180, b.s180)}
         ${row('140+', a.s140, b.s140)}
         ${row('100+', a.s100, b.s100)}

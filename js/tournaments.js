@@ -413,7 +413,8 @@ export function startManualMatch(state) {
   if (!m || m.winner) return null;
   if (!inst.live) {
     const rng = new RNG(state.rng);
-    inst.live = { m: createMatch(inst.rounds[inst.current].format, rng.chance(0.5) ? 0 : 1), me: m.a === 'P' ? 0 : 1 };
+    const team = inst.teams ? [m.a, m.b].map(id => inst.teams[id]?.members.length ?? 1) : null;   // World Cup: Einzelstatistik je Mitglied
+    inst.live = { m: createMatch(inst.rounds[inst.current].format, rng.chance(0.5) ? 0 : 1, team), me: m.a === 'P' ? 0 : 1 };
   }
   return inst.live;
 }
@@ -691,7 +692,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   inst.star = Math.round(((inst.star ?? 0) + star) * 10) / 10;
   inst.lastMatch = {
     round: inst.rounds[inst.current].name, opp: oppId, won, score: [my, opp], legs: [res.legsTotal[me], res.legsTotal[1 - me]],
-    me: s, opp_: o, xp: 0, rating, star, ups, fans, energy: p.energy,
+    me: s, opp_: o, meM: res.members?.[me] ?? null, oppM: res.members?.[1 - me] ?? null, xp: 0, rating, star, ups, fans, energy: p.energy,
   };
 }
 // Siege des Spielers im Turnier (ohne Freilose)
