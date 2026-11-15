@@ -288,6 +288,7 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-ev { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px;
   background: linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,.42)); border: 2px solid rgba(255,255,255,.18); text-shadow: var(--nsd-shadow); }
 .nsd-ev.off { opacity: .62; }
+.nsd-ev-sub.neg { color: #ff8f8f; font-weight: 700; }
 .nsd-ev-cat { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: #d8f0c8; }
 .nsd-ev-name { font-size: 1.25rem; font-weight: 800; line-height: 1.15; }
 .nsd-ev-sub { font-size: .92rem; font-weight: 600; opacity: .92; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
@@ -429,8 +430,8 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-life .opts { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .nsd-life .opts .nsd-btn { min-height: 58px; }
 .nsd-life .opts .nsd-btn .lb { font-size: 1.15rem; display: inline-flex; align-items: center; gap: 6px; }
-.modal:has(.mm-tag) .modal-actions { flex-direction: column; align-items: stretch; }
-.modal:has(.mm-tag) .modal-actions .btn { width: 100%; }
+.modal:has(.mm-tag) .modal-actions, .modal:has(.mm-pick) .modal-actions { flex-direction: column; align-items: stretch; }
+.modal:has(.mm-tag) .modal-actions .btn, .modal:has(.mm-pick) .modal-actions .btn { width: 100%; }
 .modal .mm-tag { font-size: .85rem; font-weight: 800; letter-spacing: .22em; color: #5fe0a8; margin-bottom: 6px; }
 .modal .mm-tag.bad { color: #ff8f8f; }
 .modal .mm-title { font-size: 1.6rem; font-weight: 800; text-align: center; padding: 6px 0 8px; border-bottom: 2px solid #b8322a; margin-bottom: 10px; }
