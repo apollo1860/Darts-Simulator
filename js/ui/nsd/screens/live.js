@@ -4,6 +4,7 @@
 import { esc, fmtNum, surname } from '../../../util.js';
 import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
+import { flag } from '../../../../data/nations.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
@@ -170,7 +171,7 @@ function finish() {
 }
 
 // ---------- Scheibe (Overlay) ----------
-function boardHtml(head, extra = '') {
+function boardHtml(head, extra = '', zoom = false) {
   return `<div class="nsd-aim-head">${head}</div>
     <div class="nsd-aim-stage" id="stage"><svg id="bsvg" viewBox="-200 -200 400 400" aria-label="Dartscheibe">${boardSvg()}
       <path class="target-region" id="region" d=""/>
@@ -179,8 +180,22 @@ function boardHtml(head, extra = '') {
       <line id="vline" class="aim-line v" x1="0" x2="0" y1="-200" y2="200" style="display:none"/>
       <line id="hline" class="aim-line h" x1="-200" x2="200" y1="0" y2="0" style="display:none"/>
       <g id="shadows"></g><g id="marks"></g></svg>
-      <div class="board-banner" id="banner"></div></div>${extra}`;
+      <div class="board-banner" id="banner"></div>${zoom ? '<button class="nsd-zoomtog corner" id="ztog"></button>' : ''}</div>${extra}`;
 }
+// TV-Spielstandsanzeige (Version 90, Nutzervorlage): Runde + Format, je Spieler Name, Flagge, (Sätze,) Legs, Rest; ▶ = wer gerade wirft
+const TV_HTML = '<div class="tvsb" id="tvsb"></div>';
+function tvBoard(thrower) {
+  const m = ui.live.m, inst = ui.s.activeEvent, round = inst.rounds[inst.current], sets = !!m.format.sets;
+  const row = i => {
+    const t = inst.teams?.[ui.ids[i]], p = getPlayer(ui.s, ui.ids[i]);
+    return `<div class="tvsb-row"><span class="tvsb-ind">${thrower === i ? '▶' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
+      <span class="tvsb-flag">${flag(t?.nation ?? p?.nation)}</span>${sets ? `<span class="tvsb-box">${m.sets[i]}</span>` : ''}<span class="tvsb-box">${m.legs[i]}</span><span class="tvsb-rem">${m.rem[i]}</span></div>`;
+  };
+  return `<div class="tvsb-head"><span class="tvsb-title">${esc(round.name)} – First to ${sets ? `${m.format.sets} Sets` : m.format.legs}</span>${sets ? '<span class="tvsb-col">Sets</span>' : ''}<span class="tvsb-col">Legs</span><span class="tvsb-col w"></span></div>
+    ${row(ui.me)}${row(1 - ui.me)}
+    <div class="tvsb-foot"><span class="tvsb-title">${inst.year ?? ui.s.date.year} ${esc(inst.name)}</span><span class="tvsb-logo">nsd<b>live</b></span></div>`;
+}
+const drawTv = () => { const el = ui?.aimEl.querySelector('#tvsb'); if (el) el.innerHTML = tvBoard(ui.live.m.done ? -1 : ui.live.m.turn); };
 const $ = id => ui.aimEl.querySelector(id);
 function mark(x, y, mine) {
   const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
@@ -195,7 +210,7 @@ function closeOverlay() {
   ui.aimEl.classList.add('hidden'); ui.aimEl.classList.remove('opp'); ui.aimEl.innerHTML = ''; ui.aim = null; ui.show = null;
   if (wasAim) normalBar();
 }
-const zoomLabel = () => { const b = $('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 Zoom ${on ? 'an' : 'aus'}`; b.classList.toggle('on', on); } };
+const zoomLabel = () => { const b = $('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 ${on ? 'an' : 'aus'}`; b.title = 'Zoom-Hilfe'; b.classList.toggle('on', on); } };
 // Zoom-Hilfe (Knopf am Board, wird gemerkt): nur das Viertel der Scheibe um das Ziel zeigen, sonst die ganze Scheibe
 function zoomTo(label) {
   const svg = $('#bsvg');
@@ -211,7 +226,8 @@ function startShow(kind, pre = []) {
   const m = ui.live.m, side = m.turn;
   ui.show = { kind, side, start: m.visit?.start ?? m.rem[side], sum: 0 };
   ui.aimEl.classList.remove('hidden'); ui.aimEl.classList.add('opp');
-  ui.aimEl.innerHTML = boardHtml(`🔴 GEGNER WIRFT · MATCHDARTS · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>`);
+  ui.aimEl.innerHTML = boardHtml(`🔴 GEGNER WIRFT · MATCHDARTS · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>`, TV_HTML);
+  drawTv();
   for (const d of pre) { ui.show.sum += d.hit.score; mark(d.x, d.y, false); }
   ui.timer = setTimeout(showDart, wait(pre.length ? 1100 : 800));
 }
@@ -221,7 +237,7 @@ function showDart() {
   sh.sum += r.dart.hit.score;
   $('#region').setAttribute('d', r.dart.target === 'OUT' ? '' : regionPath(r.dart.target));
   if (r.dart.hit.label !== 'BOUNCER') mark(r.dart.x, r.dart.y, false);
-  ui.app.save(); draw(r.visitOver ? r.ev : null);
+  ui.app.save(); draw(r.visitOver ? r.ev : null); drawTv();
   if (!r.visitOver) { ui.timer = setTimeout(showDart, wait(DART_MS)); return; }
   const ok = r.ev?.checkout || (sh.kind === '180' && sh.sum === 180 && !r.ev?.bust);
   banner(r.ev?.checkout ? 'Matchdart verwandelt' : sh.kind === '180' ? (ok ? 'ONE HUNDRED AND EIGHTY!' : `Knapp – ${sh.sum}`) : 'Überstanden!', !ok);
@@ -234,13 +250,12 @@ function startAim(kind) {
   ui.aim = { kind, phase: 'pick', target: null, prm: null, fx: 0, fy: 0, t0: 0, ph: 0, rng: new RNG(ui.s.rng) };
   ui.aimEl.classList.remove('hidden');
   ui.aimEl.innerHTML = boardHtml(`🟢 DU WIRFST · ${KIND[kind]} · Rest <b id="rem">${m.rem[ui.me]}</b>`,
-    `<div class="nsd-aim-opp">Gegner ${esc(nm(1 - ui.me))} steht auf <b>${m.rem[1 - ui.me]}</b> · Legs ${m.legs[ui.me]}:${m.legs[1 - ui.me]}
-       <button class="nsd-zoomtog" id="ztog"></button></div>
-     <div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>`);
+    `${TV_HTML}<div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>`, true);
   throwBar();
   $('#stage').addEventListener('pointerdown', onStage);
   $('#chips').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b && ui.aim?.phase === 'pick') setTarget(b.dataset.t); });
   // Zoom-Hilfe jederzeit an/aus (wird gemerkt)
+  $('#ztog').addEventListener('pointerdown', e => e.stopPropagation());   // liegt auf der Scheibe: kein Zielwechsel/Stopp durch den Knopf
   $('#ztog').addEventListener('click', e => { e.stopPropagation(); setSetting('zoom', !getSettings().zoom); zoomLabel(); if (ui.aim?.target) zoomTo(ui.aim.target); });
   zoomLabel();
   nextDart();
@@ -257,7 +272,7 @@ function nextDart() {
   const m = ui.live.m, a = ui.aim;
   a.phase = 'pick';
   drawShadows();
-  $('#rem').textContent = m.rem[ui.me];
+  $('#rem').textContent = m.rem[ui.me]; drawTv();
   ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
   const sug = suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next());
   setTarget(miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng));         // schwaches Rechnen: Vorschlag manchmal falsch
@@ -272,7 +287,12 @@ function setTarget(label) {
   zoomTo(label);
   const route = ui.ce < 0.12 ? checkoutRoute(m.rem[ui.me], dartsLeft(m)) : null;   // Weg nur bei ordentlichem Rechnen
   const blk = a.prm.block ?? 0;
-  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}${a.prm.shaky ? ' · <span class="neg">😰 Hand zittert</span>' : ''}${nervesNow(ui.s).pts ? ` · <span class="neg">😰 Nervös</span>` : ''}${momentMult(ui.s) !== 1 ? ` · <span class="${momentMult(ui.s) < 1 ? 'pos' : 'neg'}">🎲 Moment: Streuung ${momentMult(ui.s) < 1 ? '−' : '+'}${Math.round(Math.abs(1 - momentMult(ui.s)) * 100)} %</span>` : ''}${blk >= 0.1 ? ` · <span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''}`;
+  const mm = momentMult(ui.s), hints = [
+    route ? `Weg ${route.map(fieldName).join(' – ')}` : '', a.prm.pressure ? '<span class="neg">Druck!</span>' : '', a.prm.shaky ? '<span class="neg">😰 Hand zittert</span>' : '',
+    nervesNow(ui.s).pts ? '<span class="neg">😰 Nervös</span>' : '',
+    mm !== 1 ? `<span class="${mm < 1 ? 'pos' : 'neg'}">🎲 Moment: Streuung ${mm < 1 ? '−' : '+'}${Math.round(Math.abs(1 - mm) * 100)} %</span>` : '',
+    blk >= 0.1 ? `<span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
+  $('#info').innerHTML = hints.join(' · ');                           // das Ziel zeigen Scheibe und Chips; Spielstand: TV-Anzeige
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
   const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
   $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '⚠ ' : ''}${fieldName(t)}</button>`).join('');
@@ -330,7 +350,7 @@ function stopLine() {
   const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
   if (r.dart.hit.label !== 'BOUNCER') mark(pt.x, pt.y, true);
-  ui.app.save(); draw(r.visitOver ? r.ev : null);
+  ui.app.save(); draw(r.visitOver ? r.ev : null); drawTv();
   if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
   banner(h.label === 'BOUNCER' ? '❌ BOUNCER!' : txt, !r.ev?.bust && h.label !== 'BOUNCER');

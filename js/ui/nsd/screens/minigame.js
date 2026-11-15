@@ -117,10 +117,11 @@ function aimGame() {
       <circle id="circ" class="nsd-circ" r="0" style="display:none"/>
       <line id="vline" class="aim-line v" x1="0" x2="0" y1="-200" y2="200" style="display:none"/>
       <line id="hline" class="aim-line h" x1="-200" x2="200" y1="0" y2="0" style="display:none"/><g id="marks"></g></svg>
-      <div class="board-banner" id="banner"></div></div>
-    <div class="nsd-mg-info" id="info"></div><div class="nsd-mg-zoomrow"><button class="nsd-zoomtog" id="ztog"></button></div>
+      <div class="board-banner" id="banner"></div><button class="nsd-zoomtog corner" id="ztog"></button></div>
+    <div class="nsd-mg-info" id="info"></div>
     ${fin ? '' : '<div class="nsd-chips" id="chips"></div>'}`;
   // Zoom-Hilfe wie im Liveticker (gleiche Einstellung, wird gemerkt): Viertel der Scheibe um das Ziel
+  g.el('#ztog').addEventListener('pointerdown', e => e.stopPropagation());   // liegt auf der Scheibe: kein Zielwechsel/Stopp durch den Knopf
   g.el('#ztog').addEventListener('click', e => { e.stopPropagation(); setSetting('zoom', !getSettings().zoom); zoomLabel(); zoomTo(g.target); });
   zoomLabel();
   g.el('#stage').addEventListener('pointerdown', e => {
@@ -138,7 +139,7 @@ function newVisit() {
   g.el('#marks').innerHTML = '';
   tries(); nextAimDart();
 }
-const zoomLabel = () => { const b = g.el('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 Zoom ${on ? 'an' : 'aus'}`; b.classList.toggle('on', on); } };
+const zoomLabel = () => { const b = g.el('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 ${on ? 'an' : 'aus'}`; b.title = 'Zoom-Hilfe'; b.classList.toggle('on', on); } };
 function zoomTo(label) {
   const svg = g.el('#bsvg');
   if (!svg) return;
