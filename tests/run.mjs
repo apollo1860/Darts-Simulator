@@ -293,7 +293,7 @@ test('Pro Tour: PC-Doppel + ET (Quali → Hauptfeld) + OOM', () => {
   const etEv = eventsInWeek(s, 2027, 7).find(e => e.id === 'et-1');
   const e = ET.etEntrants(s, etEv, true), all = Object.values(e).flat();
   assert.equal(all.length, 48); assert.equal(new Set(all).size, 48);
-  assert.equal(e.seeds.length, 16); assert.equal(e.pt.length, 16); assert.equal(e.tchq.length, 10);
+  assert.equal(e.seeds.length, 16); assert.equal(e.pt.length, 16); assert.ok(e.tchq.length >= 9 && e.tchq.length <= 10, `TCHQ ${e.tchq.length}`);   // 1 Quali-Sieger kann zwischen Quali und ET (Gewichtung der 2-Jahres-OOM ändert sich je Woche) schon über die Pro Tour qualifiziert sein
   assert.equal(eventStatus(s, etEv).playable, ET.etQualified(s, etEv));
   if (ET.etQualified(s, etEv)) {
     enterEvent(s, 'et-1');
@@ -578,7 +578,7 @@ test('Bühne: Erfahrung zählt in Majors/gegen große Namen; Selbstvertrauen', (
   const pc = { cat: 'pc', current: 0, rounds: [{ remaining: 64 }], big: ['T1'] };
   assert.equal(FO.stageFactor(pc, 'P', 'T1'), 0.7); assert.equal(FO.stageFactor(pc, 'P', 'T99'), 0);
   const rook = FO.applyStage({ sco: 80, fin: 80, men: 80, foc: 80, exp: -4 }, 1.5), vet = FO.applyStage({ sco: 80, fin: 80, men: 80, foc: 80, exp: 10 }, 1.5);
-  assert.ok(rook.sco < 76 && vet.sco > 84);
+  assert.ok(rook.sco < 79 && vet.sco > 81);   // Bühne ±0,2 je Stufe (Version 60)
   // ≈ Siegchance gleich starker Spieler: Veteran vs. Neuling auf großer Bühne deutlich vorn
   let w = 0; const rng = new RNG(5);
   for (let i = 0; i < 300; i++) if (simulateMatch(vet, rook, { legs: 6 }, rng).winner === 0) w++;
@@ -1746,8 +1746,10 @@ test('New Star Darts v60: Ranglisten-Preisgeld bleibt realistisch (Basis-★ = T
   const N = await import('../js/nsd.js');
   const s = N.newNsdCareer({ first: 'R', last: 'L', nation: 'DE', age: 20, slot: 1, seed: 11 }), y0 = s.date.year;
   while (s.date.year < y0 + 1 && !s.ended) assert.ok(nextWeek(s));
-  const yearly = Math.max(...Object.values(s.rankings.years[y0].pdc)), two = orderOfMerit(s, 'pdc')[0].money;
-  assert.ok(yearly < 2000, `Jahresverdienst ${yearly}`); assert.ok(two < 3000, `2-Jahres-OOM ${two}`);
+  // Nach einer Saison: nur der Stärkste (Littler) holt deutlich über 2,5 Mio, Platz 2/3 liegen klar darunter (echte Startliste: 2.771 / 1.172 / 913)
+  assert.ok(FO.stageDelta(10, 1.5) < 2.5 && FO.stageDelta(-4, 1.5) > -2.5);   // Bühne darf einen Ø-Vorsprung von 4–5 nicht auffressen (Littler gewinnt Majors)
+  const yearly = Math.max(...Object.values(s.rankings.years[y0].pdc)), top = orderOfMerit(s, 'pdc').slice(0, 3).map(x => x.money);
+  assert.ok(yearly < 2000, `Jahresverdienst ${yearly}`); assert.ok(top[0] < 4000 && top[1] < 2500 && top[2] < 2000, `2-Jahres-OOM ${top}`);
   const src = readFileSync(new URL('../js/ui/nsd/screens/league.js', import.meta.url), 'utf8');
   assert.ok(!/money\(x\.money, /.test(src), 'Rangliste darf nicht mit dem Status-Faktor skaliert werden');
 });

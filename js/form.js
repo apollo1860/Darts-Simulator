@@ -1,6 +1,6 @@
 // Bühne & Selbstvertrauen (DOM-frei)
 // Bühne: in Majors/World Series/Premier League (späte Runden stärker) und gegen große Namen (PDC-Top-16)
-// zählt Erfahrung zusätzlich: ±0,5 Attributpunkte je Erfahrungsstufe über/unter +3, × Bühnenfaktor.
+// zählt Erfahrung zusätzlich: ±0,2 Attributpunkte je Erfahrungsstufe über/unter +3, × Bühnenfaktor (Version 61: vorher 0,5 – Veteranen drängten junge Favoriten wie Littler aus den Majors).
 // Selbstvertrauen (player.momentum −10…+10): Siege/Titel heben, Niederlagen senken, wöchentlich −20 % Richtung 0.
 // Ab ±3 aktiv: ±1,5 / ±3 / ±4 auf Scoring, Finishing, Fokus (nur eigener Spieler, über perf()).
 import { clamp } from './util.js';
@@ -18,7 +18,7 @@ export function stageFactor(inst, a, b) {
   if ((a === 'P' && big.includes(b)) || (b === 'P' && big.includes(a))) return 0.7;
   return 0;
 }
-export const stageDelta = (exp, f) => (f ? f * ((exp ?? 0) - EXP_CENTER) * 0.5 : 0);
+export const stageDelta = (exp, f) => (f ? f * ((exp ?? 0) - EXP_CENTER) * 0.2 : 0);
 // Erfahrungs-Effekt anwenden (Kopie)
 export function applyStage(a, f) {
   const d = stageDelta(a.exp, f);
