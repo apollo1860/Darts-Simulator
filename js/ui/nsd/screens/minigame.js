@@ -8,6 +8,7 @@ import { TRAINABLE, skillEffective } from '../../../nsd.js';
 import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { frame, titleBand, darkBar, bar, heartIcon, starIcon, arrowIcon } from '../frame.js';
+import { getSettings, setSetting } from '../settings.js';
 
 export const nsd = true;
 let g = null;   // Laufzeit-Zustand
@@ -114,8 +115,11 @@ function aimGame() {
       <line id="vline" class="aim-line v" x1="0" x2="0" y1="-200" y2="200" style="display:none"/>
       <line id="hline" class="aim-line h" x1="-200" x2="200" y1="0" y2="0" style="display:none"/><g id="marks"></g></svg>
       <div class="board-banner" id="banner"></div></div>
-    <div class="nsd-mg-info" id="info"></div>
+    <div class="nsd-mg-info" id="info"></div><div class="nsd-mg-zoomrow"><button class="nsd-zoomtog" id="ztog"></button></div>
     ${fin ? '' : '<div class="nsd-chips" id="chips"></div>'}`;
+  // Zoom-Hilfe wie im Liveticker (gleiche Einstellung, wird gemerkt): Viertel der Scheibe um das Ziel
+  g.el('#ztog').addEventListener('click', e => { e.stopPropagation(); setSetting('zoom', !getSettings().zoom); zoomLabel(); zoomTo(g.target); });
+  zoomLabel();
   g.el('#stage').addEventListener('pointerdown', e => {
     if (g.phase === 'v' || g.phase === 'h') { e.preventDefault(); return stopLine(); }
     if (fin || g.phase !== 'pick') return;
@@ -131,8 +135,18 @@ function newVisit() {
   g.el('#marks').innerHTML = '';
   tries(); nextAimDart();
 }
+const zoomLabel = () => { const b = g.el('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 Zoom ${on ? 'an' : 'aus'}`; b.classList.toggle('on', on); } };
+function zoomTo(label) {
+  const svg = g.el('#bsvg');
+  if (!svg) return;
+  if (!getSettings().zoom || !label) return svg.setAttribute('viewBox', '-200 -200 400 400');
+  const p = targetPoint(label), size = 200, h = size / 2;
+  const cx = Math.max(-200 + h, Math.min(200 - h, p.x)), cy = Math.max(-200 + h, Math.min(200 - h, p.y));
+  svg.setAttribute('viewBox', `${(cx - h).toFixed(1)} ${(cy - h).toFixed(1)} ${size} ${size}`);
+}
 function setTarget(label) {
   g.target = label;
+  zoomTo(label);
   const p = targetPoint(label);
   g.el('#cross').setAttribute('transform', `translate(${p.x} ${p.y})`);
   g.el('#region').setAttribute('d', regionPath(label));

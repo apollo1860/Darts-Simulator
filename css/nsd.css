@@ -393,6 +393,7 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-mg-tries .nsd-heart { width: 30px; height: 28px; }
 .nsd-mg-tries .gone { opacity: .25; filter: grayscale(1); }
 .nsd-mg { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding: 0 8px 6px; }
+.nsd-mg-zoomrow { text-align: center; padding: 2px 0 4px; }
 .nsd-mg-info { text-align: center; font-weight: 700; text-shadow: var(--nsd-shadow); }
 .nsd-mg-result { position: absolute; left: 12px; right: 12px; top: 40%; z-index: 6; padding: 16px; border-radius: 10px; text-align: center;
   background: rgba(10,20,10,.92); border: 2px solid #ffde3b; font-weight: 700; font-size: 1.15rem; text-shadow: var(--nsd-shadow); }

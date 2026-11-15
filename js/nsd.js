@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 74;
+export const APP_VERSION = 75;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
