@@ -19,6 +19,7 @@ for (const t of N.TRAINABLE) T.finishTraining(s, t.key, 1, rng.int(1, 3), { plac
 p.assessed = true;
 const out = [];
 let yearWins = 0, lowE = 0;
+const answerAll = () => { if (!s.interview) return; while (!C.answerInterview(s, rng.int(0, 3), rng).done); s.interview = null; };
 const play = () => {
   for (;;) {
     simulateRest(s);
@@ -26,9 +27,10 @@ const play = () => {
     nextSub(s);
   }
   closeEvent(s);
-  if (s.interview) { for (let i = 0; i < 3; i++) C.answerInterview(s, 1, rng); s.interview = null; }
+  answerAll();
 };
 while (s.date.year < N.NSD_START.year + seasons && !s.ended) {
+  answerAll();                                                   // offenes Interview (z. B. Elmar Paulke vor der WM)
   // Ereignis
   if (s.lifeEvent) {
     const v = L.lifeEventView(s), o = v.opts.find(x => !x.tired && x.cost <= (s.stars ?? 0)) ?? v.opts[v.opts.length - 1];

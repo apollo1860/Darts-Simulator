@@ -23,7 +23,7 @@ import { slumpWeek } from './slump.js';
 import { expenseWeek } from './expenses.js';
 import { syncAttrs, addEnergy } from './nsd.js';
 import { lifeWeek, weeklyEnergy } from './life.js';
-import { careerWeek, setGoals, seasonReport } from './career.js';
+import { careerWeek, setGoals, seasonReport, preWmInterview } from './career.js';
 import { decayWeek, soberUp, expireBoosts } from './skilltrain.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
@@ -43,6 +43,8 @@ export function nextWeek(state) {
     state.weekly = { ...c, energy: state.player.energy - e0 };
     if (state.date.week === 1) setGoals(state);
     lastChanceCheck(state);
+    const wm = !state.ended && eventsInWeek(state, state.date.year, state.date.week).find(e => e.id === 'wm');   // WM-Woche: Elmar Paulke bittet zum Interview
+    if (wm && !state.flags?.paulke?.[state.date.year]) preWmInterview(state, new RNG(state.rng), !!eventStatus(state, wm).playable);
   }
   else {
     homeWeek(state);

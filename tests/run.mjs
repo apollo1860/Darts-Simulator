@@ -1150,7 +1150,7 @@ test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Sais
   assert.equal(C.maybeInterviewNsd(s, { place: 'QF', cat: 'major', name: 'X' }, rng), null);
   s.interview = iv; const xp0 = p.star.xp, lv0 = p.star.level;
   for (let i = 0; i < 3; i++) C.answerInterview(s, 1, rng);
-  assert.ok(p.star.level > lv0 || p.star.xp > xp0); assert.equal(iv.total, 18);
+  assert.equal(iv.answers.length, 3); assert.ok(Number.isFinite(iv.total)); assert.ok(p.star.level >= lv0);
   // Saisonbericht + Ziele + Auszeichnungen
   s.stats.seasons[2026] = { ...(s.stats.seasons[2026] ?? {}), wins: 20, matches: 30 };
   s.rankings.years[2026] = { ...(s.rankings.years[2026] ?? {}), pdc: { T1: 300, P: 5 }, protour: { T2: 100 } };
@@ -1831,6 +1831,57 @@ test('New Star Darts v63: Energie (Floor < Bühne, mehr als vorher), Nervosität
     matches++;
   }
   assert.ok(moments / matches > 20, `Szenen je Bo11: ${moments / matches}`); assert.ok(maxScore <= 2, `Scoring-Szenen je Leg ${maxScore}`);
+});
+
+test('New Star Darts v64: Interviews – Elmar Paulke vor jeder WM, gemischte Antworten, Wirkung je nach Lage/Stimmung', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), T = await import('../data/talk.js');
+  // Daten: jede Frage 4 Antworten mit Ton, Paulke-Pools groß genug für 5 Fragen
+  for (const set of [T.RESULT_QS, T.PAULKE_IN, T.PAULKE_OUT]) { assert.ok(set.length >= 6); for (const q of set) assert.ok(q.a.length >= 3 && q.a.every(a => a.t && a.tone)); }
+  const rng = new RNG(4), ctx = (o = {}) => ({ mood: 0, backed: false, level: 10, ...o });
+  // keine Antwort immer am besten: jeder Ton hat in irgendeiner Lage einen Nachteil, Witz/Kampfansage hängen von der Stimmung ab
+  const tones = ['humble', 'confident', 'cocky', 'funny', 'honest', 'evasive', 'emotional', 'fiery'];
+  for (const t of tones) {
+    let minus = false;
+    for (const mood of [-1, 0, 1]) for (const backed of [false, true]) for (const level of [3, 20, 40]) for (let k = 0; k < 30; k++) {
+      const { e } = C.toneEffect(t, ctx({ mood, backed, level }), rng);
+      if (Object.entries(e).some(([key, v]) => (key === 'nerves' ? v > 0 : v < 0))) minus = true;
+    }
+    assert.ok(minus, `${t} hat nie einen Nachteil`);
+  }
+  assert.ok(C.toneEffect('funny', ctx({ mood: 1 }), rng).e.fans > 0 && C.toneEffect('funny', ctx({ mood: -1 }), rng).e.fans < 0);
+  assert.ok(C.toneEffect('fiery', ctx({ mood: 1 }), rng).e.fans > 0 && C.toneEffect('fiery', ctx({ mood: -1 }), rng).e.fans < 0);
+  const cockyOk = backed => { let ok = 0; for (let i = 0; i < 400; i++) ok += C.toneEffect('cocky', ctx({ backed, mood: 0 }), rng).ok ? 1 : 0; return ok / 400; };
+  assert.ok(cockyOk(true) > cockyOk(false) + 0.15, 'große Töne klappen eher mit Ergebnissen im Rücken');
+  assert.ok(C.toneEffect('humble', ctx({ level: 40 }), rng).e.star <= 1 && C.toneEffect('humble', ctx({ level: 3 }), rng).e.star >= 2, 'Bescheidenheit: für Neulinge gut, für Stars langweilig');
+  // Paulke vor der WM: genau einmal je Jahr, 3–5 Fragen, Antworten gemischt
+  const s = N.newNsdCareer({ first: 'P', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 6 });
+  const counts = new Set(), firstPos = {}; s.flags ??= {};
+  for (let k = 0; k < 40; k++) {
+    s.flags.paulke = {}; const iv = C.preWmInterview(s, rng, true);
+    counts.add(iv.qs.length); assert.ok(iv.qs.length >= 3 && iv.qs.length <= 5 && iv.kind === 'paulke' && iv.qualified);
+    const q = C.ivQuestion(iv); firstPos[q.a[0].tone] = (firstPos[q.a[0].tone] ?? 0) + 1;
+  }
+  assert.deepEqual([...counts].sort(), [3, 4, 5]); assert.ok(Object.keys(firstPos).length >= 4, 'Reihenfolge der Antworten gemischt');
+  assert.equal(C.preWmInterview(s, rng, true), null, 'nur einmal je Jahr');
+  // WM-Nervosität aus dem Interview: große Töne → Druck, wirkt nur bei der WM dieses Jahres
+  s.flags.paulke = {}; const iv = C.preWmInterview(s, rng, true); iv.mood = 1; iv.backed = true;
+  while (iv.answers.length < iv.qs.length) { const a = C.ivQuestion(iv).a, i = a.findIndex(x => x.tone === 'cocky' || x.tone === 'fiery' || x.tone === 'confident'); C.answerInterview(s, i >= 0 ? i : 0, rng); }
+  assert.ok(s.player.wmMind?.year === s.date.year && s.player.wmMind.nerves !== 0, JSON.stringify(s.player.wmMind));
+  assert.ok(iv.sum && s.news[0].title.includes('Paulke'));
+  s.player.wmMind = { year: s.date.year, nerves: 1 }; s.player.star.level = 10;
+  const wmInst = { cat: 'major', fmt: 'wm', year: s.date.year, big: [] }, n1 = N.nervesOf(s.player, wmInst, 'T50');
+  assert.ok(n1.parts.some(x => x.label.includes('Paulke')) && n1.pts > N.nervesOf(s.player, { ...wmInst, fmt: 'wgp' }, 'T50').pts);
+  s.player.wmMind = { year: s.date.year, nerves: -1.5 }; assert.ok(N.nervesOf(s.player, wmInst, 'T50').pts >= 0);   // Ruhe senkt, nie unter 0
+  s.player.wmMind = { year: s.date.year - 1, nerves: 2 }; assert.ok(!N.nervesOf(s.player, wmInst, 'T50').parts.some(x => x.label.includes('Paulke')));
+  // nicht qualifiziert: Saison-Fragen, keine WM-Nervosität
+  s.flags.paulke = {}; delete s.player.wmMind; const out = C.preWmInterview(s, rng, false);
+  assert.equal(out.qs[0].set, 'out'); while (out.answers.length < out.qs.length) C.answerInterview(s, 0, rng); assert.equal(s.player.wmMind, undefined);
+  // Auslöser im Wochenablauf: in der WM-Woche wartet das Interview
+  const w = N.newNsdCareer({ first: 'P', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 7 }); w.player.cardUntil = 2099;
+  while (!(w.date.year === 2026 && w.date.week === 51)) { w.interview = null; w.lifeEvent = null; assert.ok(nextWeek(w)); }
+  assert.ok(w.interview?.kind === 'paulke' && w.flags.paulke[2026], JSON.stringify(w.interview?.kind));
+  // alter Spielstand: offenes Interview im alten Format wird neu aufgesetzt
+  w.interview = { event: 'PC 1', place: 'W', qs: [0, 1, 2], answers: [] }; const r = C.answerInterview(w, 0, rng); assert.ok(w.interview.v === 2 && r.txt);
 });
 
 console.log(`\n${n} Tests ok`);

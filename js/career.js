@@ -1,6 +1,7 @@
 // New Star Darts (DOM-frei): Karriere-Rahmen – Manager, Fitnesstrainer, Sponsoren (Höher/Niedriger-Verhandlung),
 // Saisonziele, Interviews, Wochen-Update-Daten, Saisonbericht und Auszeichnungen
-import { MANAGERS, TRAINER_TITLES, TRAINER_ICONS, INTERVIEW_QS, REL_ACTIONS } from '../data/team.js';
+import { MANAGERS, TRAINER_TITLES, TRAINER_ICONS, REL_ACTIONS } from '../data/team.js';
+import { RESULT_QS, PAULKE_IN, PAULKE_OUT, MOOD_INTRO } from '../data/talk.js';
 import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
@@ -216,35 +217,119 @@ export function settleGoals(state) {
   return res;
 }
 
-// ---------- Interview (nach Halbfinale/Finale/Titel außerhalb der Pro Tour bzw. nach jedem Titel) ----------
+// ---------- Interviews (Version 64) ----------
+// Nach großen Ergebnissen (Titel; Finale/Halbfinale außerhalb der Pro Tour) und immer vor der WM mit Elmar Paulke (3–5 Fragen).
+// Jede Antwort hat einen Ton; die Wirkung hängt von der Lage ab (Ergebnis bzw. Form, Status), von der Stimmung der Medien
+// (−1/0/+1, nur in der Einleitung angedeutet) und etwas Zufall – es gibt keine immer richtige Antwort, fast jede hat Plus und Minus.
+// Die Antworten erscheinen gemischt. Vor der WM wirken die Antworten zusätzlich auf die Nervosität bei der WM (`player.wmMind`).
+const IV_SETS = { result: RESULT_QS, in: PAULKE_IN, out: PAULKE_OUT };
+export const IV_KEYS = ['fans', 'star', 'manager', 'sponsors', 'partner', 'mom', 'nerves', 'sat'];
+// Aktuelle (oder k-te) Frage mit Antworten in Anzeige-Reihenfolge
+export function ivQuestion(iv, k = iv.answers.length) {
+  const q = iv.qs[k], src = q && IV_SETS[q.set]?.[q.i];
+  return src ? { q: src.q, a: q.perm.map(j => src.a[j]) } : null;
+}
+export const ivIntro = iv => MOOD_INTRO[iv.kind === 'paulke' ? 'paulke' : 'result'][String(iv.mood ?? 0)];
+function newInterview(state, rng, { kind, set, n, event, place, backed, extra = {} }) {
+  const pool = IV_SETS[set], idx = rng.shuffle(pool.map((_, i) => i)).slice(0, n);
+  state.interview = {
+    v: 2, kind, event, place, backed, mood: rng.pick([-1, 0, 0, 1]), answers: [], ...extra,
+    qs: idx.map(i => ({ set, i, perm: rng.shuffle(pool[i].a.map((_, j) => j)) })),
+  };
+  return state.interview;
+}
 export function maybeInterviewNsd(state, inst, rng) {
   const big = inst.cat !== 'pc' && inst.cat !== 'etq';
   if (inst.isQualifier || !(inst.place === 'W' || (big && ['F', 'SF'].includes(inst.place)))) return null;
-  const qs = rng.shuffle([...INTERVIEW_QS]).slice(0, 3).map(x => INTERVIEW_QS.indexOf(x));
-  state.interview = { event: inst.name, place: inst.place, qs, answers: [] };
-  return state.interview;
+  return newInterview(state, rng, { kind: 'result', set: 'result', n: 3, event: inst.name, place: inst.place, backed: ['W', 'F'].includes(inst.place) });
 }
-// style 0 = bescheiden, 1 = selbstbewusst, 2 = großspurig. Rückgabe: Reaktion
-export function answerInterview(state, style, rng) {
-  const iv = state.interview, p = state.player;
+// Vor jeder WM (einmal je Jahr): Elmar Paulke. Qualifiziert → WM-Fragen (wirken auf die WM-Nervosität), sonst Saison-Rückblick.
+export function preWmInterview(state, rng, qualified) {
+  const y = state.date.year, f = ((state.flags ??= {}).paulke ??= {});
+  if (f[y] || state.ended) return null;
+  f[y] = true;
+  const p = state.player, titles = (state.results ?? []).filter(r => r.year === y && r.place === 'W').length;
+  const backed = (p.momentum ?? 0) >= 3 || (rankOf(state, 'pdc', 'P') ?? 999) <= 16 || titles > 0;
+  return newInterview(state, rng, { kind: 'paulke', set: qualified ? 'in' : 'out', n: rng.int(3, 5), event: `Weltmeisterschaft ${y}`,
+    place: qualified ? 'WM' : 'NQ', backed, extra: { year: y, qualified: !!qualified } });
+}
+// Wirkung eines Tons in der aktuellen Lage → { e: {fans, star, …}, ok }
+export function toneEffect(tone, { mood = 0, backed = false, level = 1 }, rng) {
+  const e = Object.fromEntries(IV_KEYS.map(k => [k, 0])), top = level >= 30, rookie = level <= 10;
+  let ok = true;
+  switch (tone) {
+    case 'humble': Object.assign(e, { fans: rookie ? 2 : 1, star: rookie ? 3 : top ? 0 : 2, sponsors: level >= 20 ? -1 : 0, nerves: -0.3, mom: backed ? -0.5 : 0 }); ok = !top; break;
+    case 'confident': Object.assign(e, { star: backed ? 5 : 2, fans: mood < 0 ? 0 : 1, manager: 1, mom: 0.5, nerves: 0.2 }); ok = backed; break;
+    case 'cocky': ok = rng.chance(clamp(0.2 + (backed ? 0.3 : 0) + 0.15 * mood + (top ? 0.1 : 0), 0.05, 0.85));
+      Object.assign(e, ok ? { fans: 3, star: 7, sponsors: 2, manager: 1, mom: 1, nerves: 0.5 } : { fans: -3, star: -2, manager: -2, sponsors: -2, mom: -1, nerves: 0.8 }); break;
+    case 'funny': Object.assign(e, mood > 0 ? { fans: 3, star: 2, sat: 2, nerves: -0.4 } : mood === 0 ? { fans: 1, star: 1, sat: 1, nerves: -0.3 } : { fans: -1, manager: -1, nerves: -0.2 }); ok = mood >= 0;
+      if (level >= 20) e.sponsors -= 1;                                  // Sponsoren wollen Seriosität
+      break;
+    case 'honest': Object.assign(e, { fans: mood < 0 ? 3 : mood > 0 ? 1 : 2, star: 2, manager: -2, sponsors: -1, mom: -0.5, nerves: -0.2 }); break;
+    case 'evasive': Object.assign(e, { fans: mood < 0 ? -2 : -1, manager: 1, sponsors: 1, nerves: -0.1 }); ok = mood >= 0; break;
+    case 'emotional': Object.assign(e, { fans: mood < 0 ? 1 : 2, star: top ? 0 : 1, sat: 3, partner: 3, nerves: -0.2, mom: -0.5, sponsors: mood < 0 ? -1 : 0 }); ok = mood >= 0; break;   // weich: weniger Killerinstinkt
+    case 'fiery': Object.assign(e, { star: backed ? 5 : 2, fans: mood >= 0 ? 2 : -2, mom: 1.5, nerves: 0.6, manager: 1, sponsors: backed ? 1 : 0 }); ok = mood >= 0; break;
+  }
+  if (e.star && rng.chance(0.5)) e.star += rng.pick([-1, 1]);       // etwas Zufall
+  return { e, ok };
+}
+const IV_REACT = {
+  humble: [['Bescheiden – für einen Star aber ziemlich langweilig.'], ['Sympathisch – die Leute mögen das.']],
+  confident: [['Selbstbewusst – mal sehen, ob Taten folgen.'], ['Klare Worte, gedeckt durch die Ergebnisse.']],
+  cocky: [['Das kam arrogant rüber – Buhrufe in den sozialen Medien.'], ['Die Presse liebt dein Selbstbewusstsein!']],
+  funny: [['Der Witz zündet nicht – Thema verfehlt.'], ['Die Lacher sind auf deiner Seite!']],
+  honest: [[''], ['Ehrlich und authentisch – dein Umfeld ist allerdings wenig begeistert.']],
+  evasive: [['Nachgehakt – die Zuschauer finden das ausweichend.'], ['Eine Floskel – sicher, aber blass.']],
+  emotional: [['Rührend – aber die Kritiker verdrehen die Augen.'], ['Ein emotionaler Moment – das kommt an.']],
+  fiery: [['Die Kampfansage kommt schlecht an – viel Gegenwind.'], ['Eine Kampfansage! Die Fans feiern es.']],
+};
+// Wirkungen anwenden; Rückgabe: tatsächlich angewandte Werte (für die Anzeige)
+function applyIvEffect(state, e, iv) {
+  const p = state.player, out = {};
+  if (e.fans) { addFans(p, e.fans); out.fans = e.fans; }
+  if (e.manager && managerOf(state)) { addRel(p, 'manager', e.manager); out.manager = e.manager; if (p.rel.manager <= 0) fireManager(state); }
+  if (e.sponsors && (p.rel.sponsors ?? 0) > 0) { addRel(p, 'sponsors', e.sponsors); out.sponsors = e.sponsors; }
+  if (e.partner && p.partnerName && (p.rel.partner ?? 0) > 0) { addRel(p, 'partner', e.partner); out.partner = e.partner; }
+  if (e.mom) { p.momentum = clamp(Math.round(((p.momentum ?? 0) + e.mom) * 10) / 10, -10, 10); out.mom = e.mom; }
+  if (e.sat) { p.satisfaction = clamp((p.satisfaction ?? 50) + e.sat, 0, 100); out.sat = e.sat; }
+  if (e.nerves && iv.kind === 'paulke' && iv.qualified) {
+    const before = p.wmMind?.year === iv.year ? p.wmMind.nerves : 0;
+    p.wmMind = { year: iv.year, nerves: clamp(Math.round((before + e.nerves) * 100) / 100, -1.5, 2) };
+    out.nerves = e.nerves;
+  }
+  if (e.star) out.star = e.star;
+  return out;
+}
+// Ältere Spielstände: offenes Interview im alten Format neu aufsetzen
+function currentInterview(state, rng) {
+  const iv = state.interview;
+  if (iv && iv.v !== 2) return newInterview(state, rng, { kind: 'result', set: 'result', n: 3, event: iv.event, place: iv.place, backed: ['W', 'F'].includes(iv.place) });
+  return iv;
+}
+export const interviewView = (state, rng) => currentInterview(state, rng);
+// idx = Position der Antwort in der Anzeige. Rückgabe: { fx, txt, done }
+export function answerInterview(state, idx, rng) {
+  const iv = currentInterview(state, rng), p = state.player;
   if (!iv) throw new Error('Kein Interview');
-  const win = iv.place === 'W';
-  let fans = 0, star = 0, txt;
-  if (style === 0) { fans = 1; star = 3; txt = 'Sympathisch – die Leute mögen das.'; }
-  else if (style === 1) { fans = win ? 2 : 1; star = win ? 6 : 4; txt = 'Klare Worte, gut angekommen.'; }
-  else if (rng.chance(win ? 0.55 : 0.35)) { fans = 4; star = 9; txt = 'Die Presse liebt dein Selbstbewusstsein!'; }
-  else { fans = -3; star = 0; txt = 'Das kam arrogant rüber – Buhrufe in den sozialen Medien.'; }
-  addFans(p, fans);
-  if (managerOf(state)) addRel(p, 'manager', style === 2 && fans < 0 ? -3 : 1);
-  if (p.rel.sponsors > 0) addRel(p, 'sponsors', fans > 0 ? 1 : -2);
-  iv.answers.push({ style, fans, star, txt });
-  if (iv.answers.length >= iv.qs.length) {
-    const total = iv.answers.reduce((a, x) => a + x.star, 0);
+  if (iv.answers.length >= iv.qs.length) throw new Error('Das Interview ist schon vorbei');
+  const ans = ivQuestion(iv)?.a[idx];
+  if (!ans) throw new Error('Unbekannte Antwort');
+  const { e, ok } = toneEffect(ans.tone, { mood: iv.mood, backed: iv.backed, level: p.star.level }, rng);
+  for (const [k, v] of Object.entries(ans.fx ?? {})) e[k] = (e[k] ?? 0) + v;
+  const fx = applyIvEffect(state, e, iv), txt = IV_REACT[ans.tone][ok ? 1 : 0][0] || IV_REACT[ans.tone][1][0];
+  iv.answers.push({ tone: ans.tone, fx, txt });
+  const done = iv.answers.length >= iv.qs.length;
+  if (done) {
+    const total = iv.answers.reduce((a, x) => a + (x.fx.star ?? 0), 0);
     addStarProgress(state, Math.round(total * (1 + 0.01 * (p.star.level - 1))));
     iv.total = total;
+    iv.sum = Object.fromEntries(IV_KEYS.map(k => [k, Math.round(iv.answers.reduce((a, x) => a + (x.fx[k] ?? 0), 0) * 10) / 10]).filter(([, v]) => v));
     (state.flags ??= {}).interview = true;
+    if (iv.kind === 'paulke') addNews(state, 'info', '🎤 Interview mit Elmar Paulke',
+      iv.qualified ? `Vor der Weltmeisterschaft ${iv.year}: ${p.wmMind?.year === iv.year && p.wmMind.nerves > 0 ? 'Du hast dir selbst Druck gemacht – die Erwartungen sind gestiegen.' : 'Du gehst mit ruhigem Kopf ins Turnier.'}`
+        : `Rückblick auf die Saison ${iv.year} – die WM findet ohne dich statt.`);
   }
-  return { fans, star, txt, done: iv.answers.length >= iv.qs.length };
+  return { fx, txt, done };
 }
 
 // ---------- Wöchentlich (Tour-Modus) ----------

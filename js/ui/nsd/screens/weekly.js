@@ -30,5 +30,6 @@ export function continueWeek(app) {
   if (s.ended) return app.go('careerEnd');
   if (s.seasonReport && !s.seasonReport.seen) return app.go('season');
   if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
+  if (s.interview) return app.go('interview');        // z. B. Elmar Paulke vor der WM
   app.go('week');
 }

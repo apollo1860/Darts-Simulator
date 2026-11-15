@@ -46,12 +46,14 @@ export function mount(root, app) {
   bindHead(root, app, HELP);
   const s = app.state;
   root.querySelectorAll('[data-enter]').forEach(b => b.onclick = () => {
+    if (s.interview) return app.go('interview');            // erst das Interview (z. B. Elmar Paulke vor der WM)
     try { enterEvent(s, b.dataset.enter); app.save(); app.go('event'); }
     catch (e) { toast(e.message, 'error'); }
   });
   root.querySelector('#w-next').onclick = async () => {
     if (s.activeEvent) return app.go('event');
     if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
+    if (s.interview) return app.go('interview');
     const open = eventsInWeek(s, s.date.year, s.date.week).filter(e => shownTo(s, e) && eventStatus(s, e).playable);
     if (open.length && !await confirmDialog('Woche beenden?', `${open.map(e => esc(e.name)).join(', ')} – ohne dich.`, 'Weiter')) return;
     const top = s.news[0];

@@ -429,6 +429,13 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-life .opts { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .nsd-life .opts .nsd-btn { min-height: 58px; }
 .nsd-life .opts .nsd-btn .lb { font-size: 1.15rem; display: inline-flex; align-items: center; gap: 6px; }
+.nsd-iv .iv-intro { font-size: 1.05rem; font-style: italic; opacity: .95; }
+.nsd-iv .iv-hint { font-size: .85rem; opacity: .75; }
+.nsd-iv .iv-react { font-size: 1.15rem; font-weight: 700; }
+.nsd-iv .iv-fx { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font-size: .95rem; }
+.nsd-iv .iv-fx span { padding: 4px 10px; border-radius: 12px; background: rgba(0,0,0,.35); }
+.nsd-iv .iv-fx .pos { color: #8dff6a; } .nsd-iv .iv-fx .neg { color: #ff8a8a; }
+.nsd-iv .iv-sum { display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .nsd-life .chg { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font-size: 1rem; }
 .nsd-life .chg span { padding: 4px 10px; border-radius: 12px; background: rgba(0,0,0,.35); }
 .nsd-ach td.nm small { display: block; font-size: .75rem; opacity: .7; }

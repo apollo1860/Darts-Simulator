@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 63;
+export const APP_VERSION = 64;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -173,8 +173,10 @@ export function nervesOf(p, inst, oppId = null) {
   if (oppId && !inst.teams && (inst.big ?? []).slice(0, 8).includes(oppId)) raw.push(['Gegner aus den Top 8', NERVES_TOP8]);
   if (lvl <= NERVES_START_LEVELS) raw.push(['Anfänger', NERVES_START * (NERVES_START_LEVELS + 1 - lvl) / NERVES_START_LEVELS]);
   if (STAGE_NERVE_CATS.includes(inst.cat) && !inst.isQualifier) raw.push(['große Bühne', NERVES_STAGE]);
-  const parts = raw.map(([label, v]) => ({ label, pts: Math.round(v * fade * 100) / 100 })).filter(x => x.pts > 0);
-  return { pts: Math.round(parts.reduce((a, x) => a + x.pts, 0) * 100) / 100, parts };
+  const wm = p.wmMind;                                 // Version 64: Interview mit Elmar Paulke vor der WM (+ Druck / − Ruhe)
+  if (inst.fmt === 'wm' && wm?.year === inst.year && wm.nerves) raw.push([wm.nerves > 0 ? 'Druck aus dem Paulke-Interview' : 'Ruhe aus dem Paulke-Interview', wm.nerves]);
+  const parts = raw.map(([label, v]) => ({ label, pts: Math.round(v * fade * 100) / 100 })).filter(x => x.pts !== 0);
+  return { pts: Math.max(0, Math.round(parts.reduce((a, x) => a + x.pts, 0) * 100) / 100), parts };
 }
 export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.round((p.energy ?? 100) + n))); return p.energy; }
 
