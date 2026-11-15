@@ -1754,4 +1754,36 @@ test('New Star Darts v60: Ranglisten-Preisgeld bleibt realistisch (Basis-★ = T
   assert.ok(!/money\(x\.money, /.test(src), 'Rangliste darf nicht mit dem Status-Faktor skaliert werden');
 });
 
+test('New Star Darts v62: 2-Jahres-OOM – Preisgeld fällt heraus, wenn dasselbe Turnier 2 Jahre später gespielt wird', async () => {
+  const N = await import('../js/nsd.js'), R = await import('../js/rankings.js');
+  const s = N.newNsdCareer({ first: 'E', last: 'X', nation: 'DE', age: 20, slot: 1, seed: 21 });
+  assert.equal(s.rankings.exact, 2026);
+  // Handbuchung: Turnier x 2026 (100 ★), PC/ET-Typen pdc + protour
+  const t = 'T7', ev = (year, amt, types) => { for (const ty of types) R.addMoney(s, ty, t, amt, year); R.settleOom(s, 'x#0', types, { [t]: amt }, year); };
+  ev(2026, 100, ['pdc', 'protour']);
+  s.date.year = 2028; s.date.week = 10;
+  assert.equal(R.moneyOf(s, 'pdc', t), 100, '2026 zählt voll (nicht linear), solange x 2028 nicht gespielt wurde');
+  s.date.week = 50; assert.equal(R.moneyOf(s, 'pdc', t), 100, 'auch spät im Jahr voll, bis dasselbe Turnier kommt');
+  // andere Turniere ändern nichts
+  R.addMoney(s, 'pdc', t, 30, 2028); R.settleOom(s, 'y#0', ['pdc'], { [t]: 30 }, 2028);
+  assert.equal(R.moneyOf(s, 'pdc', t), 130);
+  // x 2028: 40 ★ – die 100 von 2026 fallen heraus; protour (nicht in der Liste von 2028) bleibt
+  R.addMoney(s, 'pdc', t, 40, 2028); R.settleOom(s, 'x#0', ['pdc'], { [t]: 40 }, 2028);
+  assert.equal(R.moneyOf(s, 'pdc', t), 70, 'neu 30 + 40, alt 0');
+  assert.equal(R.moneyOf(s, 'protour', t), 100, 'nicht erneut gespielte Wertung bleibt');
+  // Aufbewahrung: nur die letzten 3 Jahre
+  R.settleOom(s, 'z#0', ['pdc'], {}, 2030); assert.ok(!s.rankings.ev[2026] && !s.rankings.ev[2027] && s.rankings.ev[2028] && s.rankings.ev[2030]);
+  // Startwerte (vor `exact`) laufen weiter linear über die Saison aus
+  const s2 = N.newNsdCareer({ first: 'E', last: 'X', nation: 'DE', age: 20, slot: 1, seed: 21 }), x = 'T1';
+  const full = R.moneyOf(s2, 'pdc', x); s2.date.week = 52; assert.ok(R.moneyOf(s2, 'pdc', x) < full * 0.7, 'Startwerte laufen aus');
+  // Ältere Spielstände: Aufzeichnung beginnt im Folgejahr
+  const old = JSON.parse(JSON.stringify(s2)); delete old.rankings.exact; delete old.rankings.ev; const { migrate } = await import('../js/state.js'); migrate(old); assert.equal(old.rankings.exact, old.date.year + 1);
+  // Konsistenz: Summe der aufgezeichneten Turniere eines Jahres = Jahresbetrag (nur Turniere seit Karrierestart)
+  const s3 = N.newNsdCareer({ first: 'E', last: 'X', nation: 'DE', age: 20, slot: 1, seed: 5 });
+  while (s3.date.year < 2027 && !s3.ended) assert.ok(nextWeek(s3));
+  const sum = {}; for (const e of Object.values(s3.rankings.ev[2026])) if (e.oom.includes('pdc')) for (const id in e.m) sum[id] = (sum[id] ?? 0) + e.m[id];
+  assert.ok(Object.keys(sum).length > 100);
+  for (const id of Object.keys(sum).slice(0, 40)) assert.ok(Math.abs(sum[id] - s3.rankings.years[2026].pdc[id]) < 1e-6, `${id}: ${sum[id]} vs ${s3.rankings.years[2026].pdc[id]}`);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -16,7 +16,7 @@ import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek, nsdBlocked } from './calendar.js';
 import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches, buildUkOpenRounds, ukOpenMatches } from './bracket.js';
 import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, plTable, plState, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
-import { addMoney, orderOfMerit, rankOf, devHolders } from './rankings.js';
+import { addMoney, settleOom, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
 import { routeTarget, scriptedHit } from './decisions.js';
@@ -760,7 +760,7 @@ function settle(state, inst) {
   inst.survivors = survivors;
   const ids = new Set();
   for (const r of inst.rounds) for (const m of r.matches) { ids.add(m.a); if (m.b) ids.add(m.b); }
-  const year = state.date.year;
+  const year = state.date.year, oomMap = {};
   for (const id of ids) {
     const place = survivors.includes(id) ? (inst.cards ? 'CARD' : inst.stopAt > 1 ? 'QUAL' : 'W')
       : inst.isQualifier ? (inst.cat === 'mastersq' && placeOf(inst.rounds, id)) || 'NQ' : ((inst.groups && groupPlace(inst.rounds, inst.groups, id, inst.teams ? 1 : 2)) || placeOf(inst.rounds, id));
@@ -769,9 +769,10 @@ function settle(state, inst) {
     if (inst.teams && id === 'P') prize = Math.round(prize * teamPrizeShare);   // World Cup: Preisgeld wird geteilt
     // ET-Regel: wer über die Ranglisten vorqualifiziert ist und das erste Match verliert, bekommt das Geld, aber keine OOM-Punkte
     const oomPrize = inst.preQual?.includes(id) && !inst.rounds.some(r => r.matches.some(m => m.winner === id && !m.bye && m.a && m.b)) ? 0 : prize;
-    if (oomPrize) for (const t of inst.oom) addMoney(state, t, id, oomPrize, year);
+    if (oomPrize) { for (const t of inst.oom) addMoney(state, t, id, oomPrize, year); oomMap[id] = oomPrize; }
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
+  if (inst.oom?.length) settleOom(state, `${inst.eventId}#${inst.sub ?? 0}`, inst.oom, oomMap, year);   // 2-Jahres-OOM: gleiches Turnier von vor 2 Jahren fällt heraus
   if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
   if (inst.eventId === 'gs-quali') qualOf(state).gsqSurvivors = survivors;
   if (inst.cat === 'wmreg') (qualOf(state).wmReg ??= {})[inst.eventId.slice(4)] = survivors;

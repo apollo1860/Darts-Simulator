@@ -105,6 +105,7 @@ export function migrate(s) {
     s.activeEvent = null;
   }
   if (!s.rankings.seeded) seedRankings(s, new RNG(s.rng), START_YEAR);   // v3 → v4 (Phase 4)
+  s.rankings.exact ??= s.date.year + 1;   // Version 62: Turnier-Aufzeichnung für das exakte Auslaufen der 2-Jahres-OOM beginnt im Folgejahr (ältere Spielstände laufen bis dahin linear)
   // v4 → v5: Perzentil-Attribute (Scoring, Finishing, Mental, Fokus), Erfahrung, Bundesland, DDV
   if (s.world.version < WORLD_VERSION) upgradeWorld(s.world, new RNG(s.rng));
   const p = s.player;

@@ -21,6 +21,24 @@ export function addMoney(state, type, id, amount, year = state.date.year) {
   t[id] = (t[id] ?? 0) + amount;
 }
 
+// 2-Jahres-Ranglisten (PDC wie echt): Das Preisgeld eines Turniers zählt, bis dasselbe Turnier 2 Jahre später wieder gespielt wird –
+// dann fällt es heraus (ersetzt durch das neue Ergebnis). Dafür merkt sich `state.rankings.ev[Jahr][Turnier] = {oom, m:{id:Betrag}}`,
+// was jeder Spieler dort geholt hat; beim Abschluss desselben Turniers im Folgejahr+1 wandert der Betrag nach
+// `state.rankings.gone[Jahr][Typ][id]` (= schon ersetzter Teil des Vor-Vorjahres). Jahre vor `rankings.exact` (Startwerte, ältere
+// Spielstände) haben keine Turnier-Aufschlüsselung und laufen weiter linear über die Saison aus (`oldYearWeight`).
+export const twoYear = type => OOM_TYPES[type]?.years === 2;
+export function settleOom(state, key, oom, map, year = state.date.year) {
+  const r = state.rankings;
+  (((r.ev ??= {})[year] ??= {})[key]) = { oom: [...oom], m: map };
+  const old = r.ev[year - 2]?.[key];
+  if (old) for (const t of old.oom.filter(x => oom.includes(x) && twoYear(x))) {
+    const g = (((r.gone ??= {})[year] ??= {})[t] ??= {});
+    for (const id in old.m) g[id] = (g[id] ?? 0) + old.m[id];
+  }
+  for (const y of Object.keys(r.ev)) if (+y < year - 2) delete r.ev[y];       // nur die letzten 3 Jahre aufheben
+  for (const y of Object.keys(r.gone ?? {})) if (+y < year) delete r.gone[y];
+}
+
 // Teilnehmerkreis je Rangliste
 function members(state, type, year) {
   const p = state.player;
@@ -45,7 +63,11 @@ export function devHolders(state, year = state.date.year) {
 export const oldYearWeight = (state, year) => (year === state.date.year ? Math.max(0, 1 - Math.max(0, state.date.week - 3) / 49) : 0);
 export function moneyOf(state, type, id, year = state.date.year) {
   const b = y => state.rankings.years?.[y]?.[type]?.[id] ?? 0;
-  return OOM_TYPES[type].years < 2 ? b(year) : b(year) + b(year - 1) + oldYearWeight(state, year) * b(year - 2);
+  if (OOM_TYPES[type].years < 2) return b(year);
+  const r = state.rankings, exact = year === state.date.year && (r.exact ?? Infinity) <= year - 2;
+  // Vor-Vorjahr: exakt = alles minus die Turniere, die dieses Jahr schon wieder gespielt wurden; sonst linear
+  const old = exact ? Math.max(0, b(year - 2) - (r.gone?.[year]?.[type]?.[id] ?? 0)) : oldYearWeight(state, year) * b(year - 2);
+  return b(year) + b(year - 1) + old;
 }
 
 // Sortiert nach Preisgeld; Gleichstand (z. B. noch keine Turniere) → Spielstärke (der Spieler steht bei Gleichstand hinten)
@@ -74,4 +96,5 @@ export function seedRankings(state, rng, startYear) {
     if (k >= 0 && START_OOM_2026[k]) add(p.id, START_OOM_2026[k][1] * 1000);
   }
   state.rankings.seeded = true;
+  state.rankings.exact = startYear;   // ab diesem Jahr sind alle Turniere einzeln aufgezeichnet (Startwerte nicht)
 }
