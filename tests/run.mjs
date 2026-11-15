@@ -1884,4 +1884,31 @@ test('New Star Darts v64: Interviews – Elmar Paulke vor jeder WM, gemischte An
   w.interview = { event: 'PC 1', place: 'W', qs: [0, 1, 2], answers: [] }; const r = C.answerInterview(w, 0, rng); assert.ok(w.interview.v === 2 && r.txt);
 });
 
+test('New Star Darts v65: Interview-Antworten mit Gegensätzen Manager ↔ Freundin', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), T = await import('../data/talk.js');
+  const rng = new RNG(11), ctx = { mood: 0, backed: false, level: 10 };
+  // Summe Ton + Antwort-Zusatz je Antwort: beide Richtungen kommen vor, in jedem Fragen-Pool
+  for (const [name, set] of Object.entries({ result: T.RESULT_QS, in: T.PAULKE_IN, out: T.PAULKE_OUT })) {
+    let mgrUp = 0, mgrDown = 0;
+    for (const q of set) for (const a of q.a) {
+      const { e } = C.toneEffect(a.tone, ctx, rng), m = e.manager + (a.fx?.manager ?? 0), pa = e.partner + (a.fx?.partner ?? 0);
+      if (m > 0 && pa < 0) mgrUp++; if (m < 0 && pa > 0) mgrDown++;
+    }
+    assert.ok(mgrUp >= 4 && mgrDown >= 4, `${name}: Manager+/Freundin− ${mgrUp}, Manager−/Freundin+ ${mgrDown}`);
+  }
+  // Wirkung im Spiel: mit Manager und Freundin beide Beziehungen gegenläufig
+  const s = N.newNsdCareer({ first: 'B', last: 'Z', nation: 'DE', age: 20, slot: 1, seed: 12 }), p = s.player;
+  s.team = { manager: 'm1', trainer: null }; p.rel.manager = 50; p.partnerName = 'Lena'; p.rel.partner = 50; p.rel.sponsors = 0;
+  s.flags ??= {}; const iv = C.preWmInterview(s, rng, true);
+  iv.qs[0] = { set: 'in', i: T.PAULKE_IN.findIndex(q => q.q.startsWith('Wie verbringst')), perm: [0, 1, 2, 3] };
+  const idx = C.ivQuestion(iv).a.findIndex(a => a.t.startsWith('Training, Schlaf'));
+  const m0 = p.rel.manager, f0 = p.rel.partner, r = C.answerInterview(s, idx, rng);
+  assert.ok(p.rel.manager > m0 && p.rel.partner < f0 && r.fx.manager > 0 && r.fx.partner < 0, JSON.stringify(r.fx));
+  // ohne Freundin: Privatleben wirkt (abgeschwächt) auf die Zufriedenheit
+  delete p.partnerName; p.rel.partner = 0; const sat0 = p.satisfaction;
+  iv.qs[1] = { set: 'in', i: T.PAULKE_IN.findIndex(q => q.q.startsWith('Wie verbringst')), perm: [0, 1, 2, 3] };
+  const r2 = C.answerInterview(s, C.ivQuestion(iv).a.findIndex(a => a.t.startsWith('Mit meinen Liebsten')), rng);
+  assert.ok(!r2.fx.partner && r2.fx.sat > 0 && p.satisfaction > sat0, JSON.stringify(r2.fx));
+});
+
 console.log(`\n${n} Tests ok`);

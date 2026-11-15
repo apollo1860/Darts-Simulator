@@ -258,17 +258,19 @@ export function toneEffect(tone, { mood = 0, backed = false, level = 1 }, rng) {
   const e = Object.fromEntries(IV_KEYS.map(k => [k, 0])), top = level >= 30, rookie = level <= 10;
   let ok = true;
   switch (tone) {
-    case 'humble': Object.assign(e, { fans: rookie ? 2 : 1, star: rookie ? 3 : top ? 0 : 2, sponsors: level >= 20 ? -1 : 0, nerves: -0.3, mom: backed ? -0.5 : 0 }); ok = !top; break;
-    case 'confident': Object.assign(e, { star: backed ? 5 : 2, fans: mood < 0 ? 0 : 1, manager: 1, mom: 0.5, nerves: 0.2 }); ok = backed; break;
+    // Achse Karriere ↔ Privatleben (Version 65): was den Manager freut (Fokus, Ehrgeiz, Professionalität), ärgert oft die Freundin – und umgekehrt
+    case 'humble': Object.assign(e, { fans: rookie ? 2 : 1, star: rookie ? 3 : top ? 0 : 2, sponsors: level >= 20 ? -1 : 0, nerves: -0.3, mom: backed ? -0.5 : 0, partner: 1 }); ok = !top; break;
+    case 'confident': Object.assign(e, { star: backed ? 5 : 2, fans: mood < 0 ? 0 : 1, manager: 1, partner: -1, mom: 0.5, nerves: 0.2 }); ok = backed; break;
     case 'cocky': ok = rng.chance(clamp(0.2 + (backed ? 0.3 : 0) + 0.15 * mood + (top ? 0.1 : 0), 0.05, 0.85));
-      Object.assign(e, ok ? { fans: 3, star: 7, sponsors: 2, manager: 1, mom: 1, nerves: 0.5 } : { fans: -3, star: -2, manager: -2, sponsors: -2, mom: -1, nerves: 0.8 }); break;
-    case 'funny': Object.assign(e, mood > 0 ? { fans: 3, star: 2, sat: 2, nerves: -0.4 } : mood === 0 ? { fans: 1, star: 1, sat: 1, nerves: -0.3 } : { fans: -1, manager: -1, nerves: -0.2 }); ok = mood >= 0;
+      Object.assign(e, ok ? { fans: 3, star: 7, sponsors: 2, manager: 1, partner: -1, mom: 1, nerves: 0.5 } : { fans: -3, star: -2, manager: -2, partner: -1, sponsors: -2, mom: -1, nerves: 0.8 }); break;
+    case 'funny': Object.assign(e, mood > 0 ? { fans: 3, star: 2, sat: 2, nerves: -0.4, partner: 1 } : mood === 0 ? { fans: 1, star: 1, sat: 1, nerves: -0.3, partner: 1 } : { fans: -1, nerves: -0.2 }); ok = mood >= 0;
+      e.manager = -1;                                                    // Manager findet es unseriös
       if (level >= 20) e.sponsors -= 1;                                  // Sponsoren wollen Seriosität
       break;
-    case 'honest': Object.assign(e, { fans: mood < 0 ? 3 : mood > 0 ? 1 : 2, star: 2, manager: -2, sponsors: -1, mom: -0.5, nerves: -0.2 }); break;
-    case 'evasive': Object.assign(e, { fans: mood < 0 ? -2 : -1, manager: 1, sponsors: 1, nerves: -0.1 }); ok = mood >= 0; break;
-    case 'emotional': Object.assign(e, { fans: mood < 0 ? 1 : 2, star: top ? 0 : 1, sat: 3, partner: 3, nerves: -0.2, mom: -0.5, sponsors: mood < 0 ? -1 : 0 }); ok = mood >= 0; break;   // weich: weniger Killerinstinkt
-    case 'fiery': Object.assign(e, { star: backed ? 5 : 2, fans: mood >= 0 ? 2 : -2, mom: 1.5, nerves: 0.6, manager: 1, sponsors: backed ? 1 : 0 }); ok = mood >= 0; break;
+    case 'honest': Object.assign(e, { fans: mood < 0 ? 3 : mood > 0 ? 1 : 2, star: 2, manager: -2, partner: 1, sponsors: -1, mom: -0.5, nerves: -0.2 }); break;
+    case 'evasive': Object.assign(e, { fans: mood < 0 ? -2 : -1, manager: 1, sponsors: 1, partner: -1, nerves: -0.1 }); ok = mood >= 0; break;
+    case 'emotional': Object.assign(e, { fans: mood < 0 ? 1 : 2, star: top ? 0 : 1, sat: 3, partner: 3, manager: -1, nerves: -0.2, mom: -0.5, sponsors: mood < 0 ? -1 : 0 }); ok = mood >= 0; break;   // weich: weniger Killerinstinkt
+    case 'fiery': Object.assign(e, { star: backed ? 5 : 2, fans: mood >= 0 ? 2 : -2, mom: 1.5, nerves: 0.6, manager: 1, partner: -1, sponsors: backed ? 1 : 0 }); ok = mood >= 0; break;
   }
   if (e.star && rng.chance(0.5)) e.star += rng.pick([-1, 1]);       // etwas Zufall
   return { e, ok };
@@ -290,6 +292,7 @@ function applyIvEffect(state, e, iv) {
   if (e.manager && managerOf(state)) { addRel(p, 'manager', e.manager); out.manager = e.manager; if (p.rel.manager <= 0) fireManager(state); }
   if (e.sponsors && (p.rel.sponsors ?? 0) > 0) { addRel(p, 'sponsors', e.sponsors); out.sponsors = e.sponsors; }
   if (e.partner && p.partnerName && (p.rel.partner ?? 0) > 0) { addRel(p, 'partner', e.partner); out.partner = e.partner; }
+  else if (e.partner) e.sat = (e.sat ?? 0) + Math.sign(e.partner) * Math.ceil(Math.abs(e.partner) / 2);   // ohne Freundin: Privatleben → Zufriedenheit
   if (e.mom) { p.momentum = clamp(Math.round(((p.momentum ?? 0) + e.mom) * 10) / 10, -10, 10); out.mom = e.mom; }
   if (e.sat) { p.satisfaction = clamp((p.satisfaction ?? 50) + e.sat, 0, 100); out.sat = e.sat; }
   if (e.nerves && iv.kind === 'paulke' && iv.qualified) {

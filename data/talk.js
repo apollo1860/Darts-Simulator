@@ -2,6 +2,7 @@
 // Ton + Lage (Ergebnis/Form, Status, Stimmung der Medien) in career.js (`toneEffect`). `fx` = feste Zusatzwirkung dieser Antwort.
 // Töne: humble (bescheiden), confident (selbstbewusst), cocky (großspurig), funny (witzig), honest (ehrlich/selbstkritisch),
 // evasive (ausweichend), emotional (gefühlvoll), fiery (Kampfansage).
+// Version 65: Achse Karriere ↔ Privatleben – viele Antworten freuen den Manager und ärgern die Freundin oder umgekehrt (Ton + `fx`).
 
 // Nach großen Ergebnissen (Titel, Finale/Halbfinale außerhalb der Pro Tour)
 export const RESULT_QS = [
@@ -9,7 +10,7 @@ export const RESULT_QS = [
     { t: 'Ich bin einfach dankbar, hier sein zu dürfen.', tone: 'humble' },
     { t: 'Ich habe hart dafür gearbeitet – das ist verdient.', tone: 'confident' },
     { t: 'Ehrlich? Das war erst der Anfang. Die anderen sollten sich warm anziehen.', tone: 'cocky' },
-    { t: 'Ich muss gleich meine Mutter anrufen, die weint bestimmt schon.', tone: 'emotional' }] },
+    { t: 'Ich muss gleich meine Mutter anrufen, die weint bestimmt schon.', tone: 'emotional', fx: { partner: -2 } }] },
   { q: 'Was war heute der Schlüssel?', a: [
     { t: 'Ein bisschen Glück bei den Doppeln.', tone: 'humble' },
     { t: 'Mein Scoring war die ganze Zeit konstant.', tone: 'confident' },
@@ -32,28 +33,28 @@ export const RESULT_QS = [
     { t: 'Sehr – vor allem der Typ im Bananenkostüm in Reihe drei.', tone: 'funny' }] },
   { q: 'Wie hast du dich vorbereitet?', a: [
     { t: 'Ganz normal trainiert, nichts Besonderes.', tone: 'evasive' },
-    { t: 'Viel Training an den Doppeln – das hat sich ausgezahlt.', tone: 'confident' },
+    { t: 'Viel Training an den Doppeln – das hat sich ausgezahlt.', tone: 'confident', fx: { manager: 1, partner: -1 } },
     { t: 'Vorbereitung? Talent reicht.', tone: 'cocky' },
-    { t: 'Mit sehr viel Kaffee und sehr wenig Schlaf.', tone: 'funny' }] },
+    { t: 'Mit sehr viel Kaffee und sehr wenig Schlaf.', tone: 'funny', fx: { manager: -1, partner: -1 } }] },
   { q: 'Gab es einen Moment, in dem du gezweifelt hast?', a: [
     { t: 'Ja, nach dem verlorenen Leg war ich kurz raus. Das muss besser werden.', tone: 'honest' },
     { t: 'Nein. Ich wusste, dass ich zurückkomme.', tone: 'confident' },
     { t: 'Zweifel kenne ich nicht.', tone: 'cocky' },
     { t: 'Nur als mein Bier alle war.', tone: 'funny' }] },
   { q: 'Was machst du mit dem Preisgeld?', a: [
-    { t: 'Meiner Familie etwas zurückgeben.', tone: 'emotional' },
+    { t: 'Meiner Familie etwas zurückgeben.', tone: 'emotional', fx: { partner: 1, manager: -1 } },
     { t: 'Erst mal eine Runde für alle!', tone: 'funny', fx: { sat: 1 } },
-    { t: 'Noch ein Auto. Oder zwei.', tone: 'cocky' },
-    { t: 'Sparen. Ganz langweilig.', tone: 'evasive' }] },
+    { t: 'Noch ein Auto. Oder zwei.', tone: 'cocky', fx: { partner: 2, manager: -1 } },
+    { t: 'Sparen. Ganz langweilig.', tone: 'evasive', fx: { manager: 1, partner: -1 } }] },
   { q: 'Wie war die Stimmung in der Halle?', a: [
     { t: 'Gänsehaut. So etwas vergisst man nie.', tone: 'emotional' },
     { t: 'Laut – und genau so mag ich es.', tone: 'confident' },
     { t: 'Ich habe mich nur auf das Board konzentriert.', tone: 'evasive' },
     { t: 'Ein paar haben gepfiffen – die singen nächstes Mal für mich.', tone: 'fiery' }] },
   { q: 'Wer hat dich auf dem Weg hierher am meisten unterstützt?', a: [
-    { t: 'Mein Manager – ohne ihn stünde ich nicht hier.', tone: 'humble', fx: { manager: 2 } },
-    { t: 'Meine Familie und meine Freundin.', tone: 'emotional' },
-    { t: 'Ich mir selbst. Sonst niemand.', tone: 'cocky', fx: { manager: -1 } },
+    { t: 'Mein Manager – ohne ihn stünde ich nicht hier.', tone: 'humble', fx: { manager: 2, partner: -3 } },
+    { t: 'Meine Familie und meine Freundin.', tone: 'emotional', fx: { partner: 2, manager: -2 } },
+    { t: 'Ich mir selbst. Sonst niemand.', tone: 'cocky', fx: { manager: -1, partner: -2 } },
     { t: 'Meine Sponsoren – und ihr Kühlschrank.', tone: 'funny', fx: { sponsors: 1 } }] },
 ];
 
@@ -78,7 +79,7 @@ export const PAULKE_IN = [
     { t: 'Alles. Ich denke an meine Familie, die mich immer unterstützt hat.', tone: 'emotional' },
     { t: 'Ein Traum, der wahr wird.', tone: 'humble' },
     { t: 'Ein weiterer Titel für meine Vitrine.', tone: 'cocky' },
-    { t: 'Weihnachten im Ally Pally statt unterm Baum – meine Oma ist immer noch sauer.', tone: 'funny' }] },
+    { t: 'Weihnachten im Ally Pally statt unterm Baum – meine Oma ist immer noch sauer.', tone: 'funny', fx: { partner: -2, manager: 1 } }] },
   { q: 'Was ist dein Ziel für dieses Turnier?', a: [
     { t: 'Die erste Runde überstehen, dann sehen wir weiter.', tone: 'humble' },
     { t: 'Ich will mindestens ins Viertelfinale.', tone: 'confident' },
@@ -90,7 +91,7 @@ export const PAULKE_IN = [
     { t: 'Das ist noch meine größte Baustelle.', tone: 'honest' },
     { t: 'Ich denke an die Fans, die extra für mich anreisen.', tone: 'emotional' }] },
   { q: 'Die Sätze-Formate sind lang – wie wichtig ist die Fitness?', a: [
-    { t: 'Ich habe gezielt an meiner Ausdauer gearbeitet.', tone: 'confident' },
+    { t: 'Ich habe gezielt an meiner Ausdauer gearbeitet.', tone: 'confident', fx: { manager: 1 } },
     { t: 'Darts ist Kopfsache, nicht Fitness.', tone: 'evasive' },
     { t: 'Ich habe extra die Treppe zum Hotel genommen. Einmal.', tone: 'funny' },
     { t: 'Ich merke schon, dass ich nach langen Matches nachlasse.', tone: 'honest' }] },
@@ -100,9 +101,9 @@ export const PAULKE_IN = [
     { t: 'Ich lese keine Kommentare.', tone: 'evasive' },
     { t: 'Kritiker haben noch nie einen Pfeil geworfen.', tone: 'cocky' }] },
   { q: 'Wie verbringst du die Tage vor deinem ersten Match?', a: [
-    { t: 'Mit meinen Liebsten – das gibt mir Ruhe.', tone: 'emotional' },
-    { t: 'Training, Schlaf, Fokus. Nichts dem Zufall überlassen.', tone: 'confident' },
-    { t: 'Ich teste alle Pubs in Nord-London. Für die Wissenschaft.', tone: 'funny', fx: { sat: 1 } },
+    { t: 'Mit meinen Liebsten – das gibt mir Ruhe.', tone: 'emotional', fx: { partner: 1, manager: -1 } },
+    { t: 'Training, Schlaf, Fokus. Nichts dem Zufall überlassen.', tone: 'confident', fx: { manager: 2, partner: -2 } },
+    { t: 'Ich teste alle Pubs in Nord-London. Für die Wissenschaft.', tone: 'funny', fx: { sat: 1, manager: -2, partner: -1 } },
     { t: 'Ganz normal, nichts Besonderes.', tone: 'evasive' }] },
   { q: 'Hast du eine Botschaft an deine Sponsoren?', a: [
     { t: 'Danke für das Vertrauen – ich zahle es auf der Bühne zurück.', tone: 'confident', fx: { sponsors: 1 } },
@@ -122,7 +123,7 @@ export const PAULKE_OUT = [
     { t: 'Sehr. Ich habe mir viel mehr vorgenommen.', tone: 'honest' },
     { t: 'Das gehört dazu, es gibt Wichtigeres.', tone: 'evasive' },
     { t: 'Nächstes Jahr komme ich zurück – und dann bin ich gefährlich.', tone: 'fiery' },
-    { t: 'Dafür habe ich zum ersten Mal ein ruhiges Weihnachten.', tone: 'funny' }] },
+    { t: 'Dafür habe ich zum ersten Mal ein ruhiges Weihnachten.', tone: 'funny', fx: { partner: 2, manager: -1 } }] },
   { q: 'Was nimmst du aus dieser Saison mit?', a: [
     { t: 'Dass ich auf diesem Niveau mithalten kann.', tone: 'confident' },
     { t: 'Viel Demut. Die Tour ist brutal.', tone: 'humble' },
@@ -134,20 +135,20 @@ export const PAULKE_OUT = [
     { t: 'Keinem. Ich will da selbst stehen.', tone: 'fiery' },
     { t: 'Ich schaue mir das ganz neutral an.', tone: 'evasive' }] },
   { q: 'Was willst du im nächsten Jahr ändern?', a: [
-    { t: 'Alles auf den Prüfstand stellen – Training, Darts, Einstellung.', tone: 'honest' },
+    { t: 'Alles auf den Prüfstand stellen – Training, Darts, Einstellung.', tone: 'honest', fx: { manager: 2, partner: -2 } },
     { t: 'Nicht viel. Der Weg stimmt, die Ergebnisse kommen.', tone: 'confident' },
-    { t: 'Mehr Zeit für Familie und Kopf, weniger Stress.', tone: 'emotional' },
-    { t: 'Den Manager. Kleiner Scherz. Oder?', tone: 'funny', fx: { manager: -2 } }] },
+    { t: 'Mehr Zeit für Familie und Kopf, weniger Stress.', tone: 'emotional', fx: { partner: 2, manager: -2 } },
+    { t: 'Den Manager. Kleiner Scherz. Oder?', tone: 'funny', fx: { manager: -2, partner: 1 } }] },
   { q: 'Wie gehst du mit der Kritik nach so einem Jahr um?', a: [
     { t: 'Ich nehme sie an – sie ist ja berechtigt.', tone: 'humble' },
     { t: 'Ich lese so etwas gar nicht erst.', tone: 'evasive' },
     { t: 'Die Kritiker werden sich nächstes Jahr wundern.', tone: 'fiery' },
     { t: 'Kritik von Leuten, die nie gespielt haben, interessiert mich nicht.', tone: 'cocky' }] },
   { q: 'Wirst du dir die WM im Fernsehen anschauen?', a: [
-    { t: 'Natürlich, jedes Match – ich will lernen.', tone: 'humble' },
-    { t: 'Nur mit Chips und Glühwein.', tone: 'funny', fx: { sat: 1 } },
+    { t: 'Natürlich, jedes Match – ich will lernen.', tone: 'humble', fx: { manager: 1, partner: -1 } },
+    { t: 'Nur mit Chips und Glühwein – auf der Couch mit meiner Freundin.', tone: 'funny', fx: { sat: 1, partner: 2, manager: -1 } },
     { t: 'Nein. Das tut zu weh.', tone: 'honest' },
-    { t: 'Ich trainiere lieber – während die anderen spielen.', tone: 'confident' }] },
+    { t: 'Ich trainiere lieber – während die anderen spielen.', tone: 'confident', fx: { manager: 2, partner: -2 } }] },
 ];
 
 // Einleitung je Stimmung (−1 kritisch, 0 normal, +1 heiter) – der einzige Hinweis, wie Witz und große Töne ankommen
