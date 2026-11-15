@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 92**: TV-Spielstandsanzeige aktualisiert sich nicht mehr nach jedem Dart (Nutzerwunsch): sie zeigt den Stand zu Beginn der Aufnahme und bleibt stehen; den laufenden Rest zeigt wie bisher die Zeile über der Scheibe („Rest …“). Gilt auch bei Gegner-Matchdarts.
 - [x] **Version 91**: TV-Spielstandsanzeige etwas kleiner (Nutzerwunsch): 86 % Breite (max. 340 px, mittig), Zeilen 25 statt 32 px, Schrift ≈ 17 % kleiner, Kopf/Fuß flacher (insgesamt ≈ 88 statt ≈ 112 px hoch) – die Scheibe bekommt den Platz.
 - [x] **Version 90**: **TV-Spielstandsanzeige beim Werfen** (Nutzervorlage: Foto einer TV-Grafik). Im Wurf-Overlay steht statt „Gegner Ward steht auf 344 · Legs 0:0“ und „Ziel T20“ jetzt eine Anzeige im TV-Stil: Kopfzeile mit Farbverlauf („Letzte 128 – First to 6“, Spalte „Legs“, bei Satzformaten zusätzlich „Sets“), zwei helle Zeilen mit ▶ beim Werfenden, Nachname, Flagge, Legs in dunklem Kasten und Rest in Türkis, Fußzeile „2026 Players Championship 1“ mit eigenem Logo „nsd live“ (kein Sender-Logo). Aktualisiert sich nach jedem Dart; auch bei Gegner-Matchdarts. Die Hinweiszeile zeigt nur noch Zusätze (Weg, Druck, Nervös, Hand zittert, Moment, Feld verbaut). **Zoom-Knopf** jetzt oben rechts auf der Scheibe („🔍 an/aus“), im Training ebenso (gleiche Bedienung). Im Browser geprüft (Screenshot, Zoom-Klick ändert weder Ziel noch Linie).
 - [x] **Version 89**: Sammelrunde (Nutzerwünsche):

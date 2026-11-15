@@ -182,7 +182,8 @@ function boardHtml(head, extra = '', zoom = false) {
       <g id="shadows"></g><g id="marks"></g></svg>
       <div class="board-banner" id="banner"></div>${zoom ? '<button class="nsd-zoomtog corner" id="ztog"></button>' : ''}</div>${extra}`;
 }
-// TV-Spielstandsanzeige (Version 90, Nutzervorlage): Runde + Format, je Spieler Name, Flagge, (Sätze,) Legs, Rest; ▶ = wer gerade wirft
+// TV-Spielstandsanzeige (Version 90, Nutzervorlage): Runde + Format, je Spieler Name, Flagge, (Sätze,) Legs, Rest; ▶ = wer gerade wirft.
+// Wird einmal zu Beginn der Aufnahme gezeichnet und nicht nach jedem Dart aktualisiert (den laufenden Rest zeigt die Zeile über der Scheibe).
 const TV_HTML = '<div class="tvsb" id="tvsb"></div>';
 function tvBoard(thrower) {
   const m = ui.live.m, inst = ui.s.activeEvent, round = inst.rounds[inst.current], sets = !!m.format.sets;
@@ -237,7 +238,7 @@ function showDart() {
   sh.sum += r.dart.hit.score;
   $('#region').setAttribute('d', r.dart.target === 'OUT' ? '' : regionPath(r.dart.target));
   if (r.dart.hit.label !== 'BOUNCER') mark(r.dart.x, r.dart.y, false);
-  ui.app.save(); draw(r.visitOver ? r.ev : null); drawTv();
+  ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (!r.visitOver) { ui.timer = setTimeout(showDart, wait(DART_MS)); return; }
   const ok = r.ev?.checkout || (sh.kind === '180' && sh.sum === 180 && !r.ev?.bust);
   banner(r.ev?.checkout ? 'Matchdart verwandelt' : sh.kind === '180' ? (ok ? 'ONE HUNDRED AND EIGHTY!' : `Knapp – ${sh.sum}`) : 'Überstanden!', !ok);
@@ -258,6 +259,7 @@ function startAim(kind) {
   $('#ztog').addEventListener('pointerdown', e => e.stopPropagation());   // liegt auf der Scheibe: kein Zielwechsel/Stopp durch den Knopf
   $('#ztog').addEventListener('click', e => { e.stopPropagation(); setSetting('zoom', !getSettings().zoom); zoomLabel(); if (ui.aim?.target) zoomTo(ui.aim.target); });
   zoomLabel();
+  drawTv();                                                    // Stand zu Beginn der Aufnahme – bleibt während der Aufnahme stehen (Version 92)
   nextDart();
 }
 // Verbaute Bereiche: Schatten der steckenden Darts dieser Aufnahme (Länge/Stärke nach Einsteckwinkel)
@@ -272,7 +274,7 @@ function nextDart() {
   const m = ui.live.m, a = ui.aim;
   a.phase = 'pick';
   drawShadows();
-  $('#rem').textContent = m.rem[ui.me]; drawTv();
+  $('#rem').textContent = m.rem[ui.me];
   ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
   const sug = suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next());
   setTarget(miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng));         // schwaches Rechnen: Vorschlag manchmal falsch
@@ -350,7 +352,7 @@ function stopLine() {
   const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
   if (r.dart.hit.label !== 'BOUNCER') mark(pt.x, pt.y, true);
-  ui.app.save(); draw(r.visitOver ? r.ev : null); drawTv();
+  ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
   banner(h.label === 'BOUNCER' ? '❌ BOUNCER!' : txt, !r.ev?.bust && h.label !== 'BOUNCER');
