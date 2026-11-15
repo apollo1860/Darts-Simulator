@@ -429,6 +429,17 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-life .opts { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .nsd-life .opts .nsd-btn { min-height: 58px; }
 .nsd-life .opts .nsd-btn .lb { font-size: 1.15rem; display: inline-flex; align-items: center; gap: 6px; }
+.modal:has(.mm-tag) .modal-actions { flex-direction: column; align-items: stretch; }
+.modal:has(.mm-tag) .modal-actions .btn { width: 100%; }
+.modal .mm-tag { font-size: .85rem; font-weight: 800; letter-spacing: .22em; color: #5fe0a8; margin-bottom: 6px; }
+.modal .mm-tag.bad { color: #ff8f8f; }
+.modal .mm-title { font-size: 1.6rem; font-weight: 800; text-align: center; padding: 6px 0 8px; border-bottom: 2px solid #b8322a; margin-bottom: 10px; }
+.modal .mm-text { font-size: 1.1rem; line-height: 1.35; margin-bottom: 10px; }
+.modal .mm-note { font-size: .85rem; opacity: .75; line-height: 1.3; }
+.modal .mm-fx { display: flex; flex-wrap: wrap; gap: 6px; }
+.modal .mm-fx span { padding: 4px 10px; border-radius: 12px; background: rgba(0,0,0,.3); font-size: .9rem; font-weight: 600; }
+.modal .mm-fx .pos { color: #8dff6a; } .modal .mm-fx .neg { color: #ff8a8a; }
+.nsd-aim-info .pos { color: #8dff6a; }
 .nsd-iv .iv-intro { font-size: 1.05rem; font-style: italic; opacity: .95; }
 .nsd-iv .iv-hint { font-size: .85rem; opacity: .75; }
 .nsd-iv .iv-react { font-size: 1.15rem; font-weight: 700; }

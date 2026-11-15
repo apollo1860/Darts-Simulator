@@ -6,7 +6,7 @@ import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
-import { playerMatch, nervesNow, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
+import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart, liveThrower } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget } from '../../../throwModel.js';
@@ -14,7 +14,8 @@ import { RNG } from '../../../rng.js';
 import { angleOf, shadowRect, severity, blockage, BLOCK_SIGMA, BOUNCE_P } from '../../../obstruction.js';
 import { canSelfPlay, skillEffective } from '../../../nsd.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
-import { confirmDialog } from '../../components.js';
+import { confirmDialog, modal } from '../../components.js';
+import { momentDue, describeMoment, resolveMoment } from '../../../moments.js';
 import { frame, bar, bindHead, checkIcon } from '../frame.js';
 
 export const nsd = true;
@@ -22,7 +23,7 @@ const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME' };
 const Y_SPEED = 0.8;   // Linie von oben nach unten etwas langsamer als die seitliche
-const HELP = '<p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
+const HELP = '<p><b>Spielmomente</b> 🎲: Etwa alle ein bis zwei Matches passiert ein Zwischenfall (rutschiger Dart, Zwischenruf, Blitzlicht …). Du wählst eine von zwei Optionen – jede kann mit gleicher Chance gut oder schlecht ausgehen. Dein Wurf (und die Simulation) wird für einige Aufnahmen besser oder schlechter; Fans, Manager und Sponsoren können dauerhaft etwas mitbekommen.</p><p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
 let ui = null;
 
 export function render(app) {
@@ -97,11 +98,13 @@ const nm = i => surname((ui.s.activeEvent?.teams?.[ui.ids[i]] ? getPlayer(ui.s, 
 
 // ---------- Ablauf ----------
 function step() {
-  if (!ui || ui.paused || ui.aim || ui.show) return;
+  if (!ui || ui.paused || ui.aim || ui.show || ui.moment) return;
   const m = ui.live.m;
   if (m.done) return finish();
   ui.starter = m.legStarter; ui.visitStart = m.visit.start;   // für Break-/Finish-Kommentar
   ui.thrower = liveThrower(ui.s, m.turn);                      // Doppel: wer wirft diese Aufnahme
+  const mo = momentDue(ui.s);                                  // Spielmoment (Zwischenfall mit zwei Optionen)
+  if (mo) return showMoment(mo);
   const key = keyMoment(ui.s);
   if (key) return startAim(key);
   if (m.turn !== ui.me && boardCall(ui.s) === 'match') return startShow('match');
@@ -109,6 +112,31 @@ function step() {
   let r;
   do r = liveDartStep(ui.s); while (!r.visitOver);
   afterVisit(r.ev, side);
+}
+
+// Spielmoment: Karte mit zwei Optionen (jede 50/50), danach Ergebnis
+function showMoment(mo) {
+  ui.moment = true;
+  const info = describeMoment(ui.s, mo);
+  modal({
+    title: '', dismissable: false,
+    body: `<div class="mm-tag">SPIELMOMENT</div><div class="mm-title">${info.icon} ${esc(info.title)}</div><div class="mm-text">${esc(info.text)}</div>
+      <div class="mm-note">Der Ausgang ist offen – jede Option kann gut oder schlecht enden. Die Wirkung auf Scoring und Doppel gilt für einige Aufnahmen, kleine Nebenwirkungen bleiben.</div>`,
+    actions: info.options.map((o, i) => ({ label: o.label, cls: 'btn-primary', onClick: () => { setTimeout(() => chooseMoment(i), 0); } })),
+  });
+}
+function chooseMoment(i) {
+  if (!ui) return;
+  let r;
+  try { r = resolveMoment(ui.s, i); } catch { ui.moment = false; return schedule(300); }
+  ui.app.save();
+  say(`🎲 ${r.ok ? 'Glück gehabt' : 'Pech gehabt'}: ${r.label}`, r.ok ? 'good' : 'bad');
+  modal({
+    title: '', dismissable: false,
+    body: `<div class="mm-tag ${r.ok ? '' : 'bad'}">${r.ok ? 'GUT GELAUFEN' : 'SCHLECHT GELAUFEN'}</div><div class="mm-text">${esc(r.text)}</div>
+      <div class="mm-fx">${r.lines.map(l => `<span class="${l.good ? 'pos' : 'neg'}">${esc(l.text)}</span>`).join('')}</div>`,
+    actions: [{ label: 'Weiter', cls: 'btn-primary', onClick: () => { if (ui) { ui.moment = false; draw(); schedule(500); } } }],
+  });
 }
 
 function afterVisit(ev, side) {
@@ -245,7 +273,7 @@ function setTarget(label) {
   zoomTo(label);
   const route = ui.ce < 0.12 ? checkoutRoute(m.rem[ui.me], dartsLeft(m)) : null;   // Weg nur bei ordentlichem Rechnen
   const blk = a.prm.block ?? 0;
-  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}${nervesNow(ui.s).pts ? ` · <span class="neg">😰 Nervös</span>` : ''}${blk >= 0.1 ? ` · <span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''}`;
+  $('#info').innerHTML = `Ziel <b>${fieldName(label)}</b>${route ? ` · Weg ${route.map(fieldName).join(' – ')}` : ''}${a.prm.pressure ? ' · <span class="neg">Druck!</span>' : ''}${nervesNow(ui.s).pts ? ` · <span class="neg">😰 Nervös</span>` : ''}${momentMult(ui.s) !== 1 ? ` · <span class="${momentMult(ui.s) < 1 ? 'pos' : 'neg'}">🎲 Moment: Streuung ${momentMult(ui.s) < 1 ? '−' : '+'}${Math.round(Math.abs(1 - momentMult(ui.s)) * 100)} %</span>` : ''}${blk >= 0.1 ? ` · <span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''}`;
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
   const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
   $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '⚠ ' : ''}${fieldName(t)}</button>`).join('');

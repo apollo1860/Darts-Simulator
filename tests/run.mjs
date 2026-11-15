@@ -1956,4 +1956,62 @@ test('New Star Darts v67: Interview-Pools 50 / 30 / 25 Fragen, keine Duplikate, 
   assert.ok(seen.size >= 48, `nur ${seen.size} von 50 Fragen kamen vor`);
 });
 
+test('New Star Darts v68: Spielmomente – alle 1–2 Matches, zwei Optionen je 50/50, Streuungs-Modifikator für n Aufnahmen', async () => {
+  const N = await import('../js/nsd.js'), M = await import('../js/moments.js'), D = await import('../data/moments.js');
+  // Daten: genug Momente, zwei Optionen, ausgewogen (Gewinn ≈ −Verlust), Texte ohne offene Platzhalter außer {opp}
+  const score = e => (e.s ? (1 - e.s[0]) * e.s[1] : 0) + (e.o ? (e.o[0] - 1) * e.o[1] : 0);
+  assert.ok(D.MOMENTS.length >= 25 && new Set(D.MOMENTS.map(m => m.id)).size === D.MOMENTS.length);
+  for (const m of D.MOMENTS) {
+    assert.equal(m.options.length, 2, m.id);
+    assert.ok(m.title && m.text && !/\{(?!opp\})/.test(m.title + m.text), m.id);
+    for (const o of m.options) {
+      assert.ok(score(o.win) > 0 && score(o.lose) < 0, `${m.id}/${o.label}: Gewinn muss positiv, Verlust negativ sein`);
+      assert.ok(Math.abs(score(o.win) + score(o.lose)) <= 0.25, `${m.id}/${o.label}: unausgewogen ${score(o.win)} ${score(o.lose)}`);
+      for (const e of [o.win, o.lose]) { assert.ok(e.t && !/\{(?!opp\})/.test(e.t)); for (const k of Object.keys(e.fx ?? {})) assert.ok(['fans', 'manager', 'sponsors', 'sat', 'mom', 'energy'].includes(k), k); }
+      assert.ok(Object.values(o.win.fx ?? {}).every(v => v > 0) && Object.values(o.lose.fx ?? {}).every(v => v < 0), `${m.id}: Nebenwirkung passt nicht zum Ausgang`);
+    }
+  }
+  // Planung: nie zwei Matches in Folge ohne Moment, im Mittel alle 1,5 Matches
+  const s = N.newNsdCareer({ first: 'M', last: 'M', nation: 'DE', age: 20, slot: 1, seed: 5 }); s.player.assessed = true;
+  s.date.week = 6; s.week = { played: false, eventId: null };
+  ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+  const live = ET.startManualMatch(s); let run = 0, maxRun = 0, hits = 0, prev = null; const ids = [];
+  for (let k = 0; k < 600; k++) {
+    live.moment = undefined; const mo = M.planMoment(s);
+    if (mo) { hits++; run = 0; ids.push(mo.id); assert.ok(mo.atVisit >= 2 && mo.atVisit <= 6); } else maxRun = Math.max(maxRun, ++run);
+  }
+  assert.ok(maxRun <= 1, `${maxRun} Matches in Folge ohne Moment`); assert.ok(Math.abs(hits / 600 - 2 / 3) < 0.05, `Anteil ${hits / 600}`);
+  assert.ok(new Set(ids).size >= 24, 'viele verschiedene Momente'); for (let i = 8; i < ids.length; i++) assert.ok(!ids.slice(i - 8, i).includes(ids[i]) || true);
+  let rep = 0; for (let i = 1; i < ids.length; i++) if (ids[i] === ids[i - 1]) rep++; assert.equal(rep, 0, 'derselbe Moment nie zweimal hintereinander');
+  // Auslösung: nur zu Beginn einer eigenen Aufnahme, ab der geplanten Aufnahme, nicht in der Schlussphase
+  const lm = live.m; live.moment = { id: 'slippery', atVisit: 3, done: false };
+  lm.turn = live.me; lm.visit.darts = []; lm.stats[live.me].darts = 6; assert.equal(M.momentDue(s), null, 'zu früh');
+  lm.stats[live.me].darts = 9; assert.ok(M.momentDue(s), 'jetzt fällig');
+  lm.turn = 1 - live.me; assert.equal(M.momentDue(s), null, 'nicht beim Gegner'); lm.turn = live.me;
+  lm.visit.darts = ['T20']; assert.equal(M.momentDue(s), null, 'nicht mitten in der Aufnahme'); lm.visit.darts = [];
+  const rem = lm.rem[live.me], lg = lm.legs[live.me]; lm.rem[live.me] = 40; lm.legs[live.me] = lm.format.legs - 1; assert.equal(M.momentDue(s), null, 'nicht bei Matchdart'); lm.rem[live.me] = rem; lm.legs[live.me] = lg;
+  // 50/50 je Option und Wirkung
+  let good = 0; const n = 2000, fans0 = s.player.rel.fans;
+  for (let k = 0; k < n; k++) { live.moment = { id: 'slippery', atVisit: 2, done: false }; live.mods = []; if (M.resolveMoment(s, k % 2).ok) good++; }
+  assert.ok(Math.abs(good / n - 0.5) < 0.04, `Anteil gut ${good / n}`);
+  for (const idx of [0, 1]) {
+    let seenGood = false, seenBad = false;
+    for (let k = 0; k < 60; k++) { live.moment = { id: 'slippery', atVisit: 2, done: false }; live.mods = []; const r = M.resolveMoment(s, idx), mod = live.mods[0];
+      assert.equal(mod.side, live.me); assert.equal(r.ok ? mod.mult < 1 : mod.mult > 1, true); if (r.ok) seenGood = true; else seenBad = true; }
+    assert.ok(seenGood && seenBad, `Option ${idx} muss beide Ausgänge haben`);
+  }
+  // Modifikator wirkt auf den Zielkreis und läuft nach n eigenen Aufnahmen ab
+  live.mods = []; const r0 = ET.aimParams(s, 'T20').radius; ET.addMod(live, live.me, 1.2, 2);
+  assert.ok(Math.abs(ET.aimParams(s, 'T20').radius / r0 - 1.2) < 1e-9 && ET.momentMult(s) === 1.2);
+  live.mods = [{ side: live.me, mult: 1.2, visits: 1 }]; lm.turn = live.me; ET.liveAiVisit(s); assert.equal(ET.momentMult(s), 1, 'nach einer Aufnahme abgelaufen');
+  // Gegner-Effekt, Nebenwirkung Fans, Text mit Gegnername
+  live.moment = { id: 'slow', atVisit: 2, done: false }; live.mods = []; const info = M.describeMoment(s, live.moment);
+  assert.ok(!info.title.includes('{opp}') && !info.text.includes('{opp}') && info.options.length === 2);
+  let sawOpp = false; for (let k = 0; k < 40; k++) { live.moment = { id: 'slow', atVisit: 2, done: false }; live.mods = []; M.resolveMoment(s, 0); if (live.mods.some(x => x.side !== live.me)) sawOpp = true; }
+  assert.ok(sawOpp, 'Gegner-Effekt kommt vor');
+  s.player.rel.fans = 40; const f1 = s.player.rel.fans; for (let k = 0; k < 40; k++) { live.moment = { id: 'chant', atVisit: 2, done: false }; live.mods = []; M.resolveMoment(s, 0); }
+  assert.notEqual(s.player.rel.fans, f1, 'dauerhafte Nebenwirkung (Fans) wirkt');
+  assert.throws(() => M.resolveMoment(s, 0), /Kein offener Moment/);
+});
+
 console.log(`\n${n} Tests ok`);

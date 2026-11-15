@@ -530,9 +530,12 @@ function paced(state, lm, me, chance = 1) {
 }
 // Zielparameter (Kreis, Linien) für den eigenen Dart
 export function aimParams(state, target) {
-  const live = state.activeEvent.live;
-  return circleParams(liveAttrs(state, live.me), live.m, live.me, target);
+  const live = state.activeEvent.live, p = circleParams(liveAttrs(state, live.me), live.m, live.me, target), mm = modMult(live, live.me);
+  if (mm !== 1) { p.radius *= mm; p.mod = mm; }                      // Spielmoment (moments.js): besser/schlechter für einige Aufnahmen
+  return p;
 }
+// Aktueller Streuungs-Multiplikator eines Spielmoments für dich (Anzeige im Liveticker), 1 = keiner
+export const momentMult = state => { const live = state.activeEvent?.live; return live ? modMult(live, live.me) : 1; };
 // Eigener Dart an Position (x, y) in mm
 export function liveHumanDart(state, x, y, target) {
   const live = state.activeEvent.live, lm = live.m, side = lm.turn, start = lm.visit.start;
