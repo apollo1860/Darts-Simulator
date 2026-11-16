@@ -1,6 +1,7 @@
 // New Star Darts (DOM-frei): Leben – Lifestyle-Shop, Zufriedenheit, Beziehungen (Freundin), Lebens-Ereignisse (Karten), Erfolge
 import { LIFESTYLE } from '../data/lifestyle.js';
-import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M } from '../data/lifeevents.js';
+import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M, lendableCars, borrowers } from '../data/lifeevents.js';
+import { MANAGERS } from '../data/team.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import { starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE, partnerText, PRICE_MULT } from './nsd.js';
 import { addNews } from './news.js';
@@ -8,7 +9,7 @@ import { rankOf } from './rankings.js';
 import { RNG } from './rng.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const fill = (txt, p) => partnerText(txt.replaceAll('{lover}', p.lover ?? 'Jemand').replaceAll('{partner}', p.partnerName ?? (p.woman ? 'Er' : 'Sie')), p);   // Version 100: Spielerinnen → Freund
+const fill = (txt, p) => partnerText(txt.replaceAll('{who}', p.who ?? 'Jemand').replaceAll('{car}', p.car ?? 'Fahrzeug').replaceAll('{lover}', p.lover ?? 'Jemand').replaceAll('{partner}', p.partnerName ?? (p.woman ? 'Er' : 'Sie')), p);   // Version 100: Spielerinnen → Freund
 
 // ---- Lifestyle-Shop ----
 export const ownedItems = p => LIFESTYLE.filter(x => p.owned?.includes(x.id));
@@ -111,12 +112,22 @@ export function rollLifeEvent(state, rng) {
   const ev = rng.pick(pool);
   const names = p.woman ? PARTNER_NAMES_M : PARTNER_NAMES;
   state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(names) : null, lover: ev.id === 'affair' ? rng.pick(names.filter(n => n !== p.partnerName)) : null };
+  if (ev.id === 'borrow') { state.lifeEvent.who = rng.pick(borrowers(p, state)); state.lifeEvent.car = rng.pick(lendableCars(p)).id; }
   return state.lifeEvent;
+}
+// Version 134: Wer leiht sich das Fahrzeug? (Freundin/Freund mit Namen, Manager mit Rolle)
+function borrowCtx(state, le) {
+  const p = state.player, car = LIFESTYLE.find(x => x.id === le?.car)?.name ?? null;
+  if (le?.who === 'manager') {
+    const m = MANAGERS.find(x => x.id === state.team?.manager);
+    return { who: m ? `${m.woman ? 'Deine Managerin' : 'Dein Manager'} ${state.team.names?.[m.id] ?? m.name}` : 'Dein Manager', car };
+  }
+  return { who: le?.who === 'partner' ? p.partnerName : null, car };
 }
 export function lifeEventView(state) {
   const le = state.lifeEvent, ev = le && eventById(le.id);
   if (!ev) return null;
-  const p = { ...state.player, partnerName: le.name ?? state.player.partnerName, lover: le.lover };
+  const p = { ...state.player, partnerName: le.name ?? state.player.partnerName, lover: le.lover, ...borrowCtx(state, le) };
   const paid = ev.opts.find(o => o.stars < 0), price = paid ? starPrice(-paid.stars, state.player.star.level) : 0;   // Preis im Text = Preis im Knopf
   return { icon: ev.icon, text: fill(ev.text, p).replaceAll('{preis}', price), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
     energy: o.energy < 0 ? -o.energy : 0, tired: o.energy < 0 && (state.player.energy ?? 0) < -o.energy })) };
@@ -136,6 +147,18 @@ export function applyEffects(state, e) {
   if (e.meet) { p.partnerName = state.lifeEvent?.name ?? p.partnerName; p.rel.partner = e.meet; p.partnerSince = absWeek(state); p.married = null; out.push(partnerText(`Freundin: ${p.partnerName}`, p)); }
   if (e.partner && p.rel.partner > 0) { addRel(p, 'partner', rel(e.partner)); out.push(`${p.partnerName ?? partnerText('Freundin', p)} ${sign(rel(e.partner))}`); }
   for (const k of ['manager', 'sponsors']) if (e[k] && p.rel[k] > 0) { addRel(p, k, rel(e[k])); out.push(`${k === 'manager' ? 'Manager' : 'Sponsoren'} ${sign(rel(e[k]))}`); }
+  if (e.borrower) {                                     // Version 134: Fahrzeug verliehen / nicht verliehen
+    const k = state.lifeEvent?.who, n = rel(e.borrower);
+    if (k && p.rel[k] > 0) { addRel(p, k, n); out.push(`${k === 'manager' ? 'Manager' : p.partnerName ?? partnerText('Freundin', p)} ${sign(n)}`); }
+  }
+  if (e.crash) {
+    const id = state.lifeEvent?.car, it = LIFESTYLE.find(x => x.id === id);
+    if (it && p.owned?.includes(id)) {
+      const u = (p.upkeep ??= {})[id] ??= { due: absWeek(state), pct: REPAIR_PCT[1] / 100, broken: false };
+      u.broken = true; p.lifestyle = lifestyleOf(p);
+      out.push(`${it.name} ${brokenWord(it)} – Reparatur ${repairCost(p, it)} ★`);
+    }
+  }
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
   if (e.single) breakUp(state, false);
   return out;
@@ -159,7 +182,7 @@ export function resolveLifeEvent(state, idx, rng) {
   state.lastLifeEvent = le.id;
   state.lifeEvent = null;
   checkAchievements(state);
-  return { text: fill(text, { partnerName: p.partnerName ?? name, woman: p.woman, lover: le.lover }), changes };
+  return { text: fill(text, { partnerName: p.partnerName ?? name, woman: p.woman, lover: le.lover, ...borrowCtx(state, le) }), changes };
 }
 export function breakUp(state, news = true) {
   const p = state.player, name = p.partnerName ?? partnerText('Deine Freundin', p), wed = !!p.married;

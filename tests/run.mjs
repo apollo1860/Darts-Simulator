@@ -2886,4 +2886,32 @@ test('New Star Darts v132: Two clear legs im World Matchplay (max. 6 Zusatzlegs,
   assert.ok(ext > 20, `Verlängerungen kommen vor (${ext})`);
 });
 
+test('New Star Darts v134: Manager/Freundin wollen ein Fahrzeug leihen (Ja: Plus, 20 % kaputt; Nein: Minus)', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), E = await import('../data/lifeevents.js');
+  const ev = L.eventById('borrow');
+  const mk = seed => { const s = N.newNsdCareer({ first: 'A', last: 'F', nation: 'DE', age: 25, slot: 1, seed }); s.player.partnerName = 'Lena'; s.player.rel.partner = 50; s.player.owned = ['sportwagen']; s.stars = 0; return s; };
+  let s = mk(1);
+  assert.ok(ev.if(s.player, s), 'mit Sportwagen + Freundin möglich');
+  s.player.owned = ['limeprimeabo']; assert.equal(ev.if(s.player, s), false, 'Abo kann man nicht verleihen');
+  s.player.owned = []; assert.equal(ev.if(s.player, s), false, 'ohne Fahrzeug nicht');
+  // Nein → Beziehung −2
+  s = mk(2); s.lifeEvent = { id: 'borrow', who: 'partner', car: 'sportwagen' };
+  assert.ok(/^Lena möchte .*Sportwagen/.test(L.lifeEventView(s).text));
+  L.resolveLifeEvent(s, 1, new RNG(1)); assert.equal(s.player.rel.partner, 48);
+  // Ja → +1, manchmal kaputt (Reparatur fällig)
+  let broken = 0, n = 300;
+  for (let k = 0; k < n; k++) {
+    s = mk(3); s.lifeEvent = { id: 'borrow', who: 'partner', car: 'sportwagen' };
+    const r = L.resolveLifeEvent(s, 0, new RNG(k));
+    assert.equal(s.player.rel.partner, 51);
+    if (s.player.upkeep?.sportwagen?.broken) { broken++; assert.ok(/Reparatur/.test(r.changes.join(' ')) && L.brokenItems(s.player).length === 1); }
+  }
+  assert.ok(broken > n * 0.12 && broken < n * 0.28, `kaputt ${broken}/${n}`);
+  // Manager leiht
+  s = mk(4); s.team = { manager: 'm1', names: { m1: 'Kalle Kröger' } }; s.player.rel.manager = 50; s.lifeEvent = { id: 'borrow', who: 'manager', car: 'sportwagen' };
+  assert.ok(L.lifeEventView(s).text.startsWith('Dein Manager Kalle Kröger'));
+  L.resolveLifeEvent(s, 1, new RNG(1)); assert.equal(s.player.rel.manager, 48);
+  assert.ok(E.borrowers(s.player, s).includes('manager'));
+});
+
 console.log(`\n${n} Tests ok`);

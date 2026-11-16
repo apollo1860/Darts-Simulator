@@ -3,9 +3,14 @@
 // priced (true = Gewinn wächst wie die Preise statt wie die Einnahmen, z. B. Rubbellos-Jackpot), idle (true = Trainingsrückstand zurücksetzen), single (Beziehung endet), meet (neue Freundin, Startwert), chance {p, ok, fail}.
 // Texte: {partner} = Name der Freundin. Aktionen (Auftritte, Feiern …) kosten immer 60 % Energie (nur ab 60 % wählbar);
 // Beziehungs-Änderungen durch Ereignisse sind auf ±2 begrenzt (life.js).
+import { LIFESTYLE } from './lifestyle.js';
 export const PARTNER_NAMES_M = ['Lukas', 'Jonas', 'Leon', 'Finn', 'Paul', 'Ben', 'Tom', 'Max', 'Noah', 'Elias', 'Jack', 'Oliver', 'Harry', 'Daan', 'Sem', 'Liam', 'Mats', 'Felix', 'Tim', 'Niklas', 'Jan', 'Moritz', 'Julian', 'David', 'Simon', 'Fabian', 'Florian', 'Tobias', 'Sebastian', 'Philipp', 'Alexander', 'Daniel', 'Marcel', 'Kevin', 'Dennis', 'Patrick', 'Christian', 'Dominik', 'Marco', 'Sven', 'Kai', 'Lars', 'Erik', 'Henrik', 'Malte', 'Jannik', 'Luca', 'Matteo', 'Emil', 'Theo', 'Anton', 'Jakob', 'Oskar', 'Milan', 'Can', 'Yusuf', 'Ryan', 'Ethan', 'George', 'Charlie', 'Thomas', 'James', 'Lewis', 'Dylan', 'Bram', 'Ruben', 'Thijs', 'Jesse', 'Pieter', 'Lorenzo', 'Tomas', 'Mateo', 'Hugo', 'Louis', 'Rafael', 'Mikkel', 'Jonathan', 'Arne', 'Ole', 'Henry'];   // Version 100: Partner von Spielerinnen
 export const PARTNER_NAMES = ['Lena', 'Laura', 'Sarah', 'Julia', 'Anna', 'Lisa', 'Marie', 'Sophie', 'Emma', 'Mia', 'Hannah', 'Jessica', 'Nina', 'Kim', 'Chloe', 'Emily', 'Olivia', 'Sanne', 'Femke', 'Alicia', 'Lea', 'Leonie', 'Clara', 'Johanna', 'Amelie', 'Charlotte', 'Lina', 'Ella', 'Emilia', 'Paula', 'Luisa', 'Greta', 'Mila', 'Frieda', 'Ida', 'Isabel', 'Jana', 'Katharina', 'Vanessa', 'Melanie', 'Sandra', 'Nicole', 'Tanja', 'Stefanie', 'Carina', 'Selina', 'Michelle', 'Jasmin', 'Vivien', 'Celine', 'Nadine', 'Franziska', 'Theresa', 'Miriam', 'Ronja', 'Svenja', 'Kira', 'Maja', 'Elif', 'Aylin', 'Zoe', 'Ava', 'Grace', 'Ruby', 'Isla', 'Amber', 'Lotte', 'Eva', 'Noor', 'Fleur', 'Ilse', 'Giulia', 'Chiara', 'Sofia', 'Elena', 'Lucia', 'Camille', 'Ines', 'Natalia', 'Zuzana'];   // Version 124: je 80 Namen
 const hasPartner = p => (p.rel?.partner ?? 0) > 0;
+// Version 134: Fahrzeuge, die man verleihen kann (ohne Abo), intakt und im Besitz
+export const lendableCars = p => LIFESTYLE.filter(x => x.cat === 'vehicle' && !x.id.endsWith('abo') && p.owned?.includes(x.id) && !p.upkeep?.[x.id]?.broken);
+export const borrowers = (p, s) => [hasPartner(p) ? 'partner' : null, s?.team?.manager && (p.rel?.manager ?? 0) > 0 ? 'manager' : null].filter(Boolean);
+export const BORROW_CRASH = 0.2;   // Risiko: Fahrzeug kommt kaputt zurück
 
 export const LIFE_EVENTS = [
   { id: 'party', icon: '🎉', text: 'Deine Kumpels schmeißen eine Party und wollen dich unbedingt dabeihaben.',
@@ -27,6 +32,10 @@ export const LIFE_EVENTS = [
   { id: 'affair', icon: '💋', if: hasPartner, text: '{lover} flirtet nach dem Turnier heftig mit dir und will dich unbedingt wiedersehen.',
     opts: [{ label: 'Darauf einlassen', sat: 12, chance: { p: 0.1, ok: { single: true, sat: -15, out: 'Die Affäre mit {lover} fliegt auf – {partner} hat genug. Es ist aus.' }, fail: { out: 'Ein aufregendes Abenteuer mit {lover}.' } } },
       { label: 'Abblitzen lassen', partner: 1, out: 'Du bleibst {partner} treu.' }] },
+  // Version 134: Manager oder Freundin wollen ein gekauftes Fahrzeug leihen ({who} = Person, {car} = Fahrzeug). Ja: leichtes Plus, 20 % kaputt (Reparatur wie Wartung); Nein: Beziehung leidet.
+  { id: 'borrow', icon: '🔑', if: (p, s) => lendableCars(p).length > 0 && borrowers(p, s).length > 0, text: '{who} möchte sich für ein paar Tage dein Fahrzeug leihen: {car}.',
+    opts: [{ label: 'Klar, gerne', borrower: 1, chance: { p: BORROW_CRASH, ok: { crash: true, out: '{who} bringt {car} beschädigt zurück – die Reparatur zahlst du.' }, fail: { out: '{car} kommt heil zurück. {who} bedankt sich.' } } },
+      { label: 'Lieber nicht', borrower: -2, out: '{who} ist enttäuscht.' }] },
   { id: 'jealous', icon: '😤', if: hasPartner, text: '{partner} fühlt sich vernachlässigt: „Immer nur Darts!“',
     opts: [{ label: 'Wochenende frei nehmen', energy: 10, partner: 6, out: 'Ein ruhiges Wochenende zu zweit tut euch gut.' },
       { label: 'Darts geht vor', partner: -8, chance: { p: 0.25, ok: { single: true, sat: -10, out: '{partner} macht Schluss.' }, fail: { out: '{partner} zieht sich zurück.' } } }] },
