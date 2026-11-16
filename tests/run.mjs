@@ -2650,4 +2650,31 @@ test('New Star Darts v113: Nervosität macht das Zielkreuz schneller', async () 
   const pr = T.aimParams(s, 'T20'); assert.ok(pr.nervy > 1 && pr.nervy <= N.NERVE_SPEED_MAX);
 });
 
+test('New Star Darts v115: nach perfekter erster Aufnahme 9-Darter-Szenen extra', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), CAL = await import('../js/calendar.js'), MS = await import('../js/matchState.js'), B = await import('../js/board.js');
+  const H = l => { const p = B.targetPoint(l); return B.scoreAt(p.x, p.y); };
+  const setup = () => {
+    const s = N.newNsdCareer({ first: 'N', last: 'D', nation: 'DE', age: 25, slot: 1, seed: 41 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+    T.enterEvent(s, CAL.eventsInWeek(s, 2026, 6).find(x => x.cat === 'pc').id); const live = T.startManualMatch(s);
+    if (live.m.turn !== live.me) ['S1', 'S1', 'S1'].forEach(l => MS.throwDart(live.m, H(l)));   // Gegner: schwache Aufnahme
+    return { s, live };
+  };
+  const opp = live => ['S1', 'S1', 'S1'].forEach(l => MS.throwDart(live.m, H(l)));
+  // 174 → 2. Aufnahme selbst, zählt nicht als Szene des Legs
+  let { s, live } = setup();
+  ['T20', 'T20', 'T18'].forEach(l => MS.throwDart(live.m, H(l))); opp(live);
+  assert.ok(T.nineAlive(s)); assert.equal(T.keyMoment(s), 'nine'); assert.notEqual(live.sceneLeg, live.m.legIdx);
+  ['T20', 'T20', 'T20'].forEach(l => MS.throwDart(live.m, H(l))); opp(live);                 // Rest 147 → 3. Aufnahme selbst
+  assert.equal(live.m.rem[live.me], 147); assert.equal(T.keyMoment(s), 'nine');
+  // 2. Aufnahme zu schwach → kein 9-Darter mehr
+  ({ s, live } = setup());
+  ['T20', 'T20', 'T20'].forEach(l => MS.throwDart(live.m, H(l))); opp(live);
+  ['T20', 'S20', 'T20'].forEach(l => MS.throwDart(live.m, H(l))); opp(live);                 // Rest 181
+  assert.equal(T.nineAlive(s), false);
+  // Erste Aufnahme 140 → keine Extra-Szene
+  ({ s, live } = setup());
+  ['T20', 'T20', 'S20'].forEach(l => MS.throwDart(live.m, H(l))); opp(live);
+  assert.equal(T.nineAlive(s), false);
+});
+
 console.log(`\n${n} Tests ok`);

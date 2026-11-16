@@ -503,9 +503,23 @@ export function keyMoment(state) {
   const live = state.activeEvent?.live, lm = live?.m;
   if (!lm || lm.done || lm.turn !== live.me || lm.visit.darts.length || !canSelfPlay(state.player)) return null;
   if (liveThrower(state, live.me) !== 'P') return null;          // Doppel: Partner wirft
+  if (nineAlive(state)) return wouldWinMatch(lm, live.me) && lm.rem[live.me] <= 170 ? 'match' : 'nine';   // 9-Darter: extra, zählt nicht mit
   const kind = pickMoment(state, live, lm) ?? forcedMoment(live, lm);
   if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
   return kind;
+}
+// Version 115 (Nutzerwunsch): Nach einer perfekten ersten Aufnahme (170/171/174/177/180 – danach ist ein 9-Darter noch möglich) wirfst du
+// die 2. Aufnahme und – solange der 9-Darter möglich bleibt (Rest ≤ 170, kein Bogey) – auch die 3. selbst. Diese Szenen kommen immer
+// zusätzlich: sie setzen weder `sceneLeg` (Mindest-Szene je Leg) noch `kmLeg`/Scoring-Zähler (Kontingent) und hängen nicht vom Einsatz ab.
+export const NINE_FIRST = 170;
+export function nineAlive(state) {
+  const inst = state.activeEvent, live = inst?.live, lm = live?.m;
+  if (!lm || lm.done || inst.teams || lm.turn !== live.me || lm.visit.darts.length) return false;
+  const v = lm.legVisits?.[live.me] ?? [], r = lm.rem[live.me];
+  if (lm.legDarts?.[live.me] !== v.length * 3 || v.some(x => x.bust)) return false;
+  if (v.length === 1) return v[0].score >= NINE_FIRST;
+  if (v.length === 2) return v[0].score >= NINE_FIRST && r <= 170 && !BOGEY.has(r);
+  return false;
 }
 // Version 89 (Nutzerwunsch): In JEDEM Leg gibt es mindestens eine eigene Spielszene – auch in langen Formaten (Matchplay …), in denen `paced` die
 // Board-Momente drosselt. Ein Leg kann nur durch einen Checkout enden, und der ist nur aus einem Rest ≤ 170 (kein Bogey) möglich: Steht bei Beginn

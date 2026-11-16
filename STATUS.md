@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 115**: 9-Darter-Szenen: Nach einer perfekten ersten Aufnahme (170/171/174/177/180) wirfst du die 2. Aufnahme selbst und – solange der 9-Darter möglich bleibt (Rest ≤ 170, kein Bogey) – auch die 3. (`nineAlive`/`NINE_FIRST` in tournaments.js, Szene `nine` „✨ 9-DARTER MÖGLICH“). Immer extra: kein `sceneLeg`/`kmLeg`/Scoring-Zähler, unabhängig vom Einsatz; kein Spielmoment dazwischen. Ist die 3. Aufnahme zugleich Matchdart, heißt die Szene „Matchdarts“. Annahmen: 177 zählt mit (in der Nutzerliste fehlend, aber ebenfalls perfekt); nicht im Doppel (World Cup) und nicht unter 20 % Energie.
 - [x] **Version 114**: Lobby-Auslosung zeigt auch beim eigenen Spieler nur den Nachnamen (`short` in tourevent.js, `surname`).
 - [x] **Version 113**: Nervosität macht das Zielkreuz schneller (`nerveSpeed` in nsd.js: Linien-Tempo × (1 + 0,12 × Nervositätspunkte), höchstens × 1,5; in `aimParams`, `p.nervy`), zusätzlich zur zitternden Hand. Wie die übrige Nervosität über Mental abbaubar. Hilfetext in der Lobby ergänzt. Annahme: 0,12 je Punkt (1 Punkt ≈ +12 %, Anfänger Status 1 ≈ +14 %, Top-8-Gegner auf großer Bühne ohne Mental ≈ +28 %).
 - [x] **Version 112**: Einzelne Immobilien werden „saniert“ statt „repariert“ (`fixWord` in life.js: Knopf „Sanieren“, „Sanierung x ★“, Dialog, Toast, News); „Alles reparieren“ bleibt.

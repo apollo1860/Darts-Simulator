@@ -80,6 +80,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 108**: Einsatz bleibt bis zur manuellen Änderung (`normalBar` in live.js liest `effortOf`), neues Match = 2 Herzen. Energie-Balken im Liveticker (`liveEnergy` in tournaments.js, `.dc-energy` unter dem Format, sinkt je Leg).
 - **Version 111**: Kaputte Immobilien heißen „marode“ (`brokenWord(it, cap)` in life.js für alle Wartungstexte verwenden). Version 112: einzelne Immobilie „Sanieren“ (`fixWord(it, form)`), „Alles reparieren“ bleibt.
 - **Version 113**: Nervosität macht das Zielkreuz schneller (`nerveSpeed`/`NERVE_SPEED` 0,12 je Punkt, max. × 1,5 in nsd.js, angewendet in `aimParams`).
+- **Version 114/115**: Auslosung zeigt auch dich nur mit Nachnamen. 9-Darter-Szenen extra (`nineAlive` in tournaments.js: nach erster Aufnahme ≥ 170 die 2. und, solange möglich, die 3. Aufnahme selbst; zählen nicht zum Szenen-Kontingent).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
