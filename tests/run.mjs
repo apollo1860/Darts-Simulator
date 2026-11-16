@@ -1920,12 +1920,12 @@ test('New Star Darts v65: Interview-Antworten mit Gegensätzen Manager ↔ Freun
   iv.qs[0] = { set: 'in', i: T.PAULKE_IN.findIndex(q => q.q.startsWith('Wie verbringst')), perm: [0, 1, 2, 3] };
   const idx = C.ivQuestion(iv).a.findIndex(a => a.t.startsWith('Training, Schlaf'));
   const m0 = p.rel.manager, f0 = p.rel.partner, r = C.answerInterview(s, idx, rng);
-  assert.ok(p.rel.manager > m0 && p.rel.partner < f0 && r.fx.manager > 0 && r.fx.partner < 0, JSON.stringify(r.fx));
+  assert.ok(p.rel.manager > m0 && p.rel.partner === f0 && r.fx.manager > 0 && !r.fx.partner, JSON.stringify(r.fx));   // seit Version 121: nur eine Partei
   // ohne Freundin: Privatleben wirkt (abgeschwächt) auf die Zufriedenheit
   delete p.partnerName; p.rel.partner = 0; const sat0 = p.satisfaction;
   iv.qs[1] = { set: 'in', i: T.PAULKE_IN.findIndex(q => q.q.startsWith('Wie verbringst')), perm: [0, 1, 2, 3] };
   const r2 = C.answerInterview(s, C.ivQuestion(iv).a.findIndex(a => a.t.startsWith('Mit meinen Liebsten')), rng);
-  assert.ok(!r2.fx.partner && r2.fx.sat > 0 && p.satisfaction > sat0, JSON.stringify(r2.fx));
+  assert.ok(!r2.fx.partner && !r2.fx.sat && p.satisfaction === sat0 && Object.keys(r2.fx).filter(k => C.IV_PARTIES.includes(k)).length === 1, JSON.stringify(r2.fx));   // ohne Freundin: eine andere Partei
 });
 
 test('New Star Darts v66: jede Interview-Antwort hat Plus und Minus über alle Bereiche (Fans, Status, Sponsoren, Energie …)', async () => {
@@ -1952,7 +1952,7 @@ test('New Star Darts v66: jede Interview-Antwort hat Plus und Minus über alle B
   const N = await import('../js/nsd.js'), s = N.newNsdCareer({ first: 'E', last: 'N', nation: 'DE', age: 20, slot: 1, seed: 2 }); s.flags ??= {};
   const iv = C.preWmInterview(s, rng, true); iv.qs[0] = { set: 'in', i: T.PAULKE_IN.findIndex(q => q.q.startsWith('Wie verbringst')), perm: [0, 1, 2, 3] };
   s.player.energy = 80; const r = C.answerInterview(s, 2, rng);   // Pubs in Nord-London: Fans +, Energie −
-  assert.ok(r.fx.energy < 0 && s.player.energy < 80 && r.fx.fans > 0, JSON.stringify(r.fx));
+  assert.ok(!r.fx.energy && s.player.energy === 80 && r.fx.fans > 0, JSON.stringify(r.fx));   // seit Version 121: nur die stärkste Partei (Fans)
 });
 
 test('New Star Darts v67: Interview-Pools 50 / 30 / 25 Fragen, keine Duplikate, mehrere Interviews hintereinander ohne Wiederholung', async () => {
@@ -2703,6 +2703,29 @@ test('New Star Darts v120: Interview nach Spielen – jede Antwort wirkt nur auf
   const s = N.newNsdCareer({ first: 'O', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 3 }), rng = new RNG(3);
   s.interview = C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X' }, rng);
   const { fx } = C.answerInterview(s, 0, rng); assert.deepEqual(Object.keys(fx).filter(k => k !== 'star'), ['fans']);
+});
+
+test('New Star Darts v121: Brass Dart + Standard-Flight immer im Besitz, Paulke eine Partei, World Cup jede eigene Aufnahme eine Szene', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), L = await import('../js/life.js'), ST = await import('../js/state.js'), G = await import('../data/gear.js'), SK = await import('../js/skilltrain.js');
+  const s = N.newNsdCareer({ first: 'B', last: 'D', nation: 'DE', age: 25, slot: 1, seed: 51 }), p = s.player;
+  assert.equal(p.gear.id, G.STARTER_DART); assert.ok(p.darts.includes(G.STARTER_DART)); assert.equal(N.gearOf(p).price, 0);
+  assert.deepEqual(G.DARTS[0].bonus, {}); assert.ok(G.STARTER_FLIGHT.name);
+  const before = N.skillEffective(p, 'sco'); delete p.gear; assert.equal(N.skillEffective(p, 'sco'), before, 'Brass Dart ohne Wirkung');
+  L.checkAchievements(s); assert.ok(!s.achievements.gear, 'Start-Dart zählt nicht als Profi-Darts');
+  // alter Spielstand ohne Darts → Brass Dart nach migrate
+  const o = JSON.parse(JSON.stringify(s)); o.player.gear = null; o.player.darts = []; ST.migrate(o);
+  assert.equal(o.player.gear.id, G.STARTER_DART); assert.ok(o.player.darts.includes(G.STARTER_DART));
+  SK.equipDarts(o, G.STARTER_DART);
+  // Paulke: nur eine Partei (+ Status, WM-Nervosität)
+  for (let seed = 1; seed <= 10; seed++) {
+    const t = N.newNsdCareer({ first: 'P', last: 'K', nation: 'DE', age: 25, slot: 1, seed }), rng = new RNG(seed); t.flags ??= {};
+    t.team = { manager: 'm1', trainer: null }; C.nameTeam(t); t.player.rel.manager = 50; t.player.partnerName = 'Lena'; t.player.rel.partner = 50;
+    t.interview = C.preWmInterview(t, rng, seed % 2 === 0);
+    while (t.interview.answers.length < t.interview.qs.length) {
+      const { fx } = C.answerInterview(t, seed % 3, rng);
+      assert.equal(Object.keys(fx).filter(k => !['star', 'nerves'].includes(k)).length, 1, JSON.stringify(fx));
+    }
+  }
 });
 
 console.log(`\n${n} Tests ok`);

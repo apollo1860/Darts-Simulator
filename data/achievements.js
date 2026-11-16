@@ -96,7 +96,7 @@ export const ACHIEVEMENTS = [
     M('skill', `${k}${n}`, n === 60 ? '💎' : '💪', `${l} ${n}`, Math.round(2 + n / 3), c => c.skills[k] >= n))),
   M('skill', 'avg30', '🎯', 'Fähigkeiten Ø 30', 15, c => c.skillsAvg >= 30),
   M('skill', 'avg60', '🎯', 'Fähigkeiten Ø 60', 60, c => c.skillsAvg >= 60),
-  M('skill', 'gear', '🎯', 'Eigene Profi-Darts', 2, c => !!c.p.gear),
+  M('skill', 'gear', '🎯', 'Eigene Profi-Darts', 2, c => !!c.p.gear && c.p.gear.id !== 'brass9'),   // Brass Dart (Start) zählt nicht
   // --- Leben ---
   M('life', 'love', '🌹', 'Eine Freundin', 3, c => c.p.rel.partner > 0),
   M('life', 'love100', '💞', 'Beziehung auf 100', 15, c => c.p.rel.partner >= 100),

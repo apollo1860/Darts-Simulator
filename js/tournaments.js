@@ -564,10 +564,14 @@ export function effortEnergyFactor(live, legsTotal) {
   for (let i = 0; i < legsTotal; i++) sum += EFFORT_ENERGY[[...hist].reverse().find(h => h.leg <= i)?.e ?? EFFORT_DEFAULT];
   return sum / legsTotal;
 }
+// Version 121 (Nutzerwunsch): Im Doppel (World Cup) wirfst du nur jede zweite Aufnahme deines Teams → dort ist JEDE deiner Aufnahmen eine
+// Spielszene (≈ 2,9 je Leg statt ≈ 1,5; Einzel Best of 11 ≈ 2,7). Matchdarts/Entscheidungsleg wie immer zuerst.
 function pickMoment(state, live, lm) {
+  const team = !!state.activeEvent?.teams;
   const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)];
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm)) return 'decider';
+  if (team) return fin ? (lm.legStarter !== me ? 'break' : 'finish') : 'scoring';   // Doppel: jede deiner Aufnahmen ist eine Szene (du wirfst nur jede zweite)
   if (fin && (lm.legStarter !== me || r > 60) && paced(state, lm, me, Math.min(1, eff))) return lm.legStarter !== me ? 'break' : 'finish';
   // ab und zu eine Scoring-Aufnahme mitten im Leg: lange Matches höchstens eine je Leg (35 %), kurze (First-to ≤ 6) bis zu zwei (je 55 %)
   if (r > 170 && r < 501) {

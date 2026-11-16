@@ -5,6 +5,7 @@ import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, cha
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL, CT_FORMER } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { scaleSponsorPay } from '../data/sponsorsreal.js';
+import { DARTS, STARTER_DART } from '../data/gear.js';
 import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
@@ -107,6 +108,11 @@ export function migrate(s) {
     s.activeEvent = null;
   }
   if (!s.rankings.seeded) seedRankings(s, new RNG(s.rng), START_YEAR);   // v3 → v4 (Phase 4)
+  if (s.mode === 'nsd' && s.player) {                                   // Version 121: Brass Dart (9 g) immer im Besitz, ohne Darts → ausgerüstet
+    const p = s.player; p.darts ??= [];
+    if (!p.darts.includes(STARTER_DART)) p.darts.unshift(STARTER_DART);
+    if (!p.gear) p.gear = { id: STARTER_DART, name: DARTS.find(d => d.id === STARTER_DART).name };
+  }
   s.rankings.exact ??= s.date.year + 1;   // Version 62: Turnier-Aufzeichnung für das exakte Auslaufen der 2-Jahres-OOM beginnt im Folgejahr (ältere Spielstände laufen bis dahin linear)
   // v4 → v5: Perzentil-Attribute (Scoring, Finishing, Mental, Fokus), Erfahrung, Bundesland, DDV
   if (s.world.version < WORLD_VERSION) upgradeWorld(s.world, new RNG(s.rng));

@@ -83,6 +83,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 114/115**: Auslosung zeigt auch dich nur mit Nachnamen. 9-Darter-Szenen extra (`nineAlive` in tournaments.js: nach erster Aufnahme ≥ 170 die 2. und, solange möglich, die 3. Aufnahme selbst; zählen nicht zum Szenen-Kontingent). Version 116: goldene „9“ links in der TV-Spielstandsanzeige (`.tvsb-nine`, ragt seit Version 117 links heraus).
 - **Version 118**: Rechnen-Training früher schwerer (`calcRange` Obergrenze 60 + 200 × t, max. 170). Check im DartConnect 1 s gelb mit Dart-Anzahl (`CHECK_SHOW`, `legVisits[].darts`).
 - **Version 120**: Interviews nach Spielen wirken je Antwort nur auf eine Partei (+ Star-Status) – `oneParty`/`IV_PARTIES` in career.js; Paulke unverändert.
+- **Version 121**: Paulke-Interview ebenfalls eine Partei je Antwort (+ Status/WM-Nervosität). Brass Dart 9 g (`STARTER_DART`, kostenlos, ohne Wirkung, immer im Besitz) + Standard-Flight (`STARTER_FLIGHT`). World Cup: jede eigene Aufnahme ist eine Spielszene.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

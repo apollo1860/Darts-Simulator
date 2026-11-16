@@ -6,17 +6,17 @@ import { frame, header, titleBand, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
-const bonusTxt = b => TRAINABLE.filter(t => b[t.key]).map(t => `${t.label} +${b[t.key]}`).join(' · ');
+const bonusTxt = b => TRAINABLE.filter(t => b[t.key]).map(t => `${t.label} +${b[t.key]}`).join(' · ') || 'Keine Wirkung auf Fähigkeiten';
 
 export function render(app) {
   const s = app.state, p = s.player, lvl = p.star.level;
   return frame({
     body: `${header(p.name)}${titleBand('Darts-Shop')}
-      <div class="nsd-strip"><span>${p.gear ? 'Ausgerüstet' : 'Keine Darts'}</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
+      <div class="nsd-strip"><span>${p.gear ? 'Ausgerüstet' : 'Brass Dart'}</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       <div class="nsd-evs">${DARTS.map(d => {
-        const own = p.darts?.includes(d.id), on = p.gear?.id === d.id;
+        const own = d.starter || p.darts?.includes(d.id), on = (p.gear?.id ?? 'brass9') === d.id;
         return `<div class="nsd-ev ${on ? 'on' : ''}">
-          <div class="nsd-ev-main"><div class="nsd-ev-name">🎯 ${d.name}</div><div class="nsd-ev-sub">${bonusTxt(d.bonus)}</div>
+          <div class="nsd-ev-main"><div class="nsd-ev-name">🎯 ${d.name}</div><div class="nsd-ev-sub">${bonusTxt(d.bonus)}${d.starter ? ' · kostenlos, immer im Besitz' : ''}</div>
             ${own ? '' : `<div class="nsd-ev-sub">Preis ${coin(dartsPrice(d, lvl))}</div>`}</div>
           ${on ? '<div class="nsd-ev-why" style="color:#8dff6a">✔ Im Einsatz</div>'
             : own ? `<button class="nsd-btn" data-eq="${d.id}"><span class="lb">Nehmen</span></button>`

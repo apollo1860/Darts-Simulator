@@ -5,7 +5,7 @@
 import { newCareer } from './state.js';
 import { addNews } from './news.js';
 import { starArticle } from './articles.js';
-import { DARTS } from '../data/gear.js';
+import { DARTS, STARTER_DART } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 import { ratingForAvgExact } from './player.js';
@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 120;
+export const APP_VERSION = 121;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -97,7 +97,7 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
     drinks: { beer: 0, schnaps: 0, wodka: 0 },
     rel: { manager: 0, fans: 10, partner: 0, sponsors: 0 },
     satisfaction: 30, lifestyle: 0,
-    gear: null, darts: [], fitness: null, assessed: false, buzz: 0,
+    gear: { id: STARTER_DART, name: DARTS[0].name }, darts: [STARTER_DART], fitness: null, assessed: false, buzz: 0,
     idle: Object.fromEntries(TRAINABLE.map(t => [t.key, 0])),
   });
   p.exp = Math.max(p.exp ?? 0, 3);    // Tour-Neuling mit Q-School-Erfahrung (KI-Holder liegen meist bei 5–10)

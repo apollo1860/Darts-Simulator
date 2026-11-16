@@ -160,7 +160,7 @@ export function buyDarts(state, id) {
 }
 export function equipDarts(state, id) {
   const p = state.player, d = DARTS.find(x => x.id === id);
-  if (!p.darts?.includes(id)) throw new Error('Nicht im Besitz');
+  if (!d?.starter && !p.darts?.includes(id)) throw new Error('Nicht im Besitz');   // Brass Dart (9 g) gehört dir immer
   p.gear = { id, name: d.name };
   syncAttrs(p);
 }

@@ -41,7 +41,7 @@ export function render(app) {
       </div>
       <div class="nsd-rowpair">
         <button class="nsd-btn row" id="s-darts"><span class="ic">🎯</span><span class="lb">Darts</span></button>
-        <div class="nsd-dark ${p.gear ? '' : 'red'}">${p.gear ? esc(p.gear.name) : 'Keine'}</div>
+        <div class="nsd-dark">${esc(p.gear?.name ?? 'Brass Dart 9 g')}</div>
       </div>
     </div>
     <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="stats">📋 Statistik</button><button data-go="editor">🛠️</button><button data-go="calendar">Spielplan 🗓️ ▶</button></div>
