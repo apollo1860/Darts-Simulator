@@ -29,9 +29,10 @@ const pcCities = ['Leicester', 'Leicester', 'Wigan', 'Leicester', 'Milton Keynes
 const ctWeeks = [11, 19, 29, 37, 42];
 const devWeeks = [14, 22, 32, 39, 43];
 export const TOUR_WEEKEND_EVENTS = 5;
-// Women's Series (Version 101, Annahme): 6 Wochenenden à 4 Turniere in Wochen ohne Players Championship/Major + Women's World Matchplay (Top 8, KW 29)
-const wosWeeks = [9, 16, 23, 30, 36, 44];
-const wosCities = ['Wigan', 'Leicester', 'Hildesheim', 'Milton Keynes', 'Wigan', 'Leicester'];
+// Women's Series 2026 (Version 102, Nutzerkalender): 7./8.2. Hildesheim, 21./22.3. Wigan, 16./17.5. Leicester, 20./21.6. Wigan, 22./23.8. Leicester, 10./11.10. Wigan
+// (je 4 Turniere) + Women's World Matchplay (Top 8, KW 29). Spielerinnen dürfen nur außerhalb der PDC-Top-64 mitspielen.
+const wosWeeks = [6, 12, 20, 25, 34, 41];
+const wosCities = ['Hildesheim', 'Wigan', 'Leicester', 'Wigan', 'Leicester', 'Wigan'];
 export const WOS_WEEKEND_EVENTS = 4;
 const tourCities = ['Milton Keynes', 'Leicester', 'Hildesheim', 'Wigan'];
 const cityCountry = c => (c === 'Hildesheim' ? 'DE' : 'ENG');
@@ -180,7 +181,7 @@ export const CALENDAR = [
   })),
   ...wosWeeks.map((w, i) => ({
     id: `wos-${i + 1}`, cat: 'wos', name: `Women's Series ${i * 4 + 1}–${i * 4 + 4}`, week: w, city: wosCities[i], country: cityCountry(wosCities[i]),
-    count: WOS_WEEKEND_EVENTS, pick: true, note: 'nur für Spielerinnen · Top 8 der Rangliste → Women\'s World Matchplay',
+    count: WOS_WEEKEND_EVENTS, pick: true, note: 'nur Spielerinnen außerhalb der PDC-Top-64 · Top 8 der Rangliste → Women\'s World Matchplay',
   })),
   { id: 'wwm', cat: 'wos', fmt: 'wwm', name: "Women's World Matchplay", week: 29, city: 'Blackpool', country: 'ENG', noOom: true, note: "Top 8 der Women's Series" },
   ...devWeeks.map((w, i) => ({

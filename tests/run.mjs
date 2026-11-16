@@ -2551,8 +2551,9 @@ test("New Star Darts v101: Women's Series für Spielerinnen (Wochenenden, Rangli
   const s = N.newRealCareer({ name: 'Fallon Sherrock', seed: 7 }), by = n => Object.values(s.world.players).find(p => p.name === n);
   assert.equal(by('Noa-Lynn van Leuven').tier, 'challenge'); assert.ok(!by('Noa-Lynn van Leuven').woman);
   assert.equal(by('Rhian O\'Sullivan').avg, 76.2); assert.equal(by('Nicole Porm').avg, 37.9); assert.ok(by('Beau Greaves').woman);
-  s.date.week = 9; s.week = { played: false, eventId: null };
-  const ev = C.eventsInWeek(s, 2026, 9).find(e => e.cat === 'wos');
+  s.date.week = 6; s.week = { played: false, eventId: null };
+  const ev = C.eventsInWeek(s, 2026, 6).find(e => e.cat === 'wos');
+  assert.deepEqual(D.CALENDAR.filter(e => e.cat === 'wos' && e.count === 4).map(e => [e.week, e.city]), [[6, 'Hildesheim'], [12, 'Wigan'], [20, 'Leicester'], [25, 'Wigan'], [34, 'Leicester'], [41, 'Wigan']]);   // Version 102
   assert.ok(C.shownTo(s, ev) && T.eventStatus(s, ev).playable);
   T.enterEvent(s, ev.id, { count: 4 });
   assert.equal(s.activeEvent.fieldSize, 64); assert.ok(s.activeEvent.rounds[0].matches.every(m => W.getPlayer(s, m.a)?.woman && (!m.b || W.getPlayer(s, m.b)?.woman)));
@@ -2565,6 +2566,10 @@ test("New Star Darts v101: Women's Series für Spielerinnen (Wochenenden, Rangli
   s.date.week = 29; s.week = { played: false, eventId: null };
   const wwm = C.eventsInWeek(s, 2026, 29).find(e => e.id === 'wwm');
   assert.equal(T.eventStatus(s, wwm).playable, W.secondaryOrder(s, 'women').slice(0, 8).includes('P'));
+  // Version 102: in den PDC-Top-64 keine Women's Series (Spielerin und KI)
+  const top = N.newRealCareer({ name: 'Beau Greaves', seed: 9 });
+  top.rankings.years[2025].pdc.P = 5000; top.date.week = 6; top.week = { played: false, eventId: null };
+  assert.equal(T.eventStatus(top, ev).playable, false);
   // Männer sehen die Women's Series nicht
   const m = N.newNsdCareer({ first: 'M', last: 'N', nation: 'DE', age: 25, seed: 8 });
   assert.ok(!C.shownTo(m, ev)); assert.equal(T.eventStatus(m, ev).playable, false);

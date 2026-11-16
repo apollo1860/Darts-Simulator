@@ -69,6 +69,7 @@ export function eligibility(state, ev) {
       return { ok: true };                                 // Dev Tour: offen für alle bis 23, keine Q-School nötig
     case 'wos': {                                        // Version 101: Women's Series nur für Spielerinnen; Matchplay = Top 8 der Rangliste
       if (!p.woman) return { ok: false, reason: 'Nur für Spielerinnen' };
+      if (ev.fmt !== 'wwm' && (rankOf(state, 'pdc', 'P') ?? 999) <= 64) return { ok: false, reason: 'Nur außerhalb der PDC-Top-64' };   // Version 102
       if (ev.fmt === 'wwm') return secondaryOrder(state, 'women').slice(0, 8).includes('P') ? { ok: true } : { ok: false, reason: "Nur Top 8 der Women's Series" };
       return { ok: true };
     }
@@ -257,7 +258,8 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   }
   if (ev.cat === 'wos') {                    // Version 101: Women's Series = alle Spielerinnen (offene Auslosung); Matchplay = Top 8 der Rangliste, gesetzt
     if (ev.fmt === 'wwm') { const ord = secondaryOrder(state, 'women'); return (withPlayer ? ord : ord.filter(id => id !== 'P')).slice(0, 8); }
-    const pool = rng.shuffle(womenOf(state).map(p => p.id));
+    const top64 = new Set(orderOfMerit(state, 'pdc').slice(0, 64).map(x => x.p.id));   // Version 102: Spielerinnen in den PDC-Top-64 spielen nicht mit
+    const pool = rng.shuffle(womenOf(state).filter(p => !top64.has(p.id)).map(p => p.id));
     ids = pool.slice(0, (FORMATS.wos.field) - (withPlayer ? 1 : 0));
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
