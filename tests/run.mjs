@@ -1011,7 +1011,7 @@ test('New Star Darts: ★-Preisgeld, Energie, Star-Status, Note, Schlüsselmomen
   assert.ok(s.stars - stars0 >= s.results[0].stars);
   assert.equal(s.finance.balance, 5000);                                   // € unberührt
   closeEvent(s);
-  const eW = p.energy; nextWeek(s); assert.equal(p.energy, Math.min(100, eW + N.ENERGY_WEEK));
+  const eW = p.energy, wE = (await import('../js/life.js')).weeklyEnergy(p); nextWeek(s); assert.equal(p.energy, Math.min(100, eW + wE));   // Erholung inkl. Zufriedenheit/Immobilie
   // Schlüsselmomente im Live-Match
   s.date.week = 7; s.week = { played: false, eventId: null };
   const pc2 = eventsInWeek(s, 2026, 7).find(e => e.cat === 'pc') ?? eventsInWeek(s, 2026, 8).find(e => e.cat === 'pc');
@@ -1733,7 +1733,7 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
   MS.throwDart(m, O.BOUNCER, { x: 0, y: -103 }); assert.equal(m.visit.tips.length, 1);   // Bouncer steckt nicht
   MS.throwDart(m, B.scoreAt(0, -103), { x: 0, y: -103 });                                  // 3. Dart beendet die Aufnahme
   assert.ok(!m.visit.tips);                                                              // neue Aufnahme
-  // KI wechselt im Scoring das Feld, bleibt sie auf einem erzwungenen verbauten Feld: Bouncer ≈ 5 % und mehr Streuung
+  // KI wechselt im Scoring das Feld, bleibt sie auf einem erzwungenen verbauten Feld: Bouncer ≈ 2,5 % (v139) und mehr Streuung
   const rng = new RNG({ s: 5 }), at = { ...attrsForAverage(95, rng), ce: 0, exp: 0, angle: 60 };
   let sw = 0, bounce = 0, spreadFree = 0, spreadBlocked = 0, n = 4000;
   for (let i = 0; i < n; i++) {
@@ -1742,7 +1742,7 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
     const d = TM.aiDart(mm, 0, at, rng, undefined, 1, 'T20'); if (d.hit.label === 'BOUNCER') bounce++; spreadBlocked += Math.hypot(d.x - T20.x, d.y - T20.y);
     const f = MS.createMatch({ legs: 3 }, 0), e = TM.aiDart(f, 0, at, rng, undefined, 1, 'T20'); spreadFree += Math.hypot(e.x - T20.x, e.y - T20.y);
   }
-  assert.ok(sw / n > 0.9, `Feldwechsel ${sw / n}`); assert.ok(Math.abs(bounce / n - 0.05) < 0.015, `Bouncer ${bounce / n}`); assert.ok(spreadBlocked / spreadFree > 1.15, `Streuung ×${spreadBlocked / spreadFree}`);   // Version 128: BLOCK_SIGMA 0,25
+  assert.ok(sw / n > 0.9, `Feldwechsel ${sw / n}`); assert.ok(Math.abs(bounce / n - 0.025) < 0.01, `Bouncer ${bounce / n}`);   /* Version 139: BOUNCE_P halbiert */ assert.ok(spreadBlocked / spreadFree > 1.15, `Streuung ×${spreadBlocked / spreadFree}`);   // Version 128: BLOCK_SIGMA 0,25
   // Kreis für den eigenen Wurf: verbaut = größer; ohne Winkel unverändert
   const mm = MS.createMatch({ legs: 3 }, 0), a0 = { sco: 95, fin: 95, foc: 90, men: 90, cal: 90, exp: 0 }, p1 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20');
   mm.visit.tips = [{ x: T20.x, y: T20.y }];
@@ -2921,7 +2921,7 @@ test('New Star Darts v135: Bouncer-Risiko je Dart (Brass am höchsten, je teurer
     const a = G.dartBounce(byPrice[i - 1].id), b = G.dartBounce(byPrice[i].id);
     assert.ok(b.base < a.base && b.mult < a.mult, `${byPrice[i].name} niedriger als ${byPrice[i - 1].name}`);
   }
-  assert.equal(G.DARTS[0].id, 'brass9'); assert.ok(G.dartBounce('brass9').base >= 0.01, 'Brass: spürbare Grundchance');
+  assert.equal(G.DARTS[0].id, 'brass9'); assert.ok(G.dartBounce('brass9').base >= 0.005, 'Brass: spürbare Grundchance');
   assert.equal(O.bounceChance(0, null), 0, 'KI ohne Angabe: kein Bouncer ohne verbautes Feld');
   assert.equal(O.bounceChance(0.5, null), O.BOUNCE_P * 0.5, 'KI wie bisher');
   assert.ok(O.bounceChance(0.5, G.dartBounce('brass9')) > O.bounceChance(0.5, G.dartBounce('sig')) * 3);
