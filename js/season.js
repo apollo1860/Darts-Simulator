@@ -2,6 +2,7 @@
 import { RNG } from './rng.js';
 import { advanceWeek, eventsInWeek } from './calendar.js';
 import { simulateWeekAI, awardCard, qschoolRankingCards, closeEvent } from './tournaments.js';
+import { WDF_MAJOR_TIERS } from '../data/tournaments.js';
 import { orderOfMerit, OOM_TYPES, rankOf, devHolders } from './rankings.js';
 import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
@@ -70,6 +71,16 @@ function weekNews(state, evs, ai) {
   for (const i of ai.filter(x => (x.cat === 'major' || x.cat === 'ws' || x.fmt === 'plf') && x.stopAt === 1)) {
     addNews(state, 'result', `🏆 ${i.name}: ${getPlayer(state, i.survivors[0])?.name ?? '?'} gewinnt`,
       i.fieldSize ? `${i.fieldSize} ${i.teams ? 'Teams' : 'Spieler'}.` : '');
+  }
+  // WDF (Version 99): Sieger der Platin-/Gold-Turniere
+  for (const i of ai.filter(x => x.cat === 'wdf' && x.done !== false)) {
+    const ev = evs.find(e => e.id === i.eventId);
+    if (!ev || !WDF_MAJOR_TIERS.includes(ev.tier)) continue;
+    const f = i.rounds.at(-1)?.matches?.[0], w = f?.winner, lo = f && (w === f.a ? f.b : f.a);
+    if (!w) continue;
+    const sc = f.score ? (w === f.a ? f.score : [...f.score].reverse()).join(':') : '';
+    addNews(state, 'result', `🎯 WDF: ${getPlayer(state, w)?.name ?? '?'} gewinnt ${ev.name}`,
+      `WDF ${{ Platinum: 'Platin', Gold: 'Gold' }[ev.tier]} in ${ev.city}${lo ? ` – Finale gegen ${getPlayer(state, lo)?.name ?? '?'}${sc ? ` ${sc}` : ''}` : ''}.`);
   }
   // Premier League: Teilnehmer (1. Spieltag) und Tabelle
   if (evs.some(e => e.plNight && e.startsThisWeek)) {
@@ -183,7 +194,7 @@ function announcePl(state) {
 function newSeasonNews(state) {
   const p = state.player, y = state.date.year;
   if (p.tour === 'tour') addNews(state, 'info', `Saison ${y}: Tourcard bis ${p.cardUntil}`, 'Q-School, Challenge und Development Tour sind für dich gesperrt.');
-  else if (state.mode === 'nsd') addNews(state, 'info', `Saison ${y}: Last Chance in KW 2`, 'Melde dich in der Wochenansicht für die Q-School (UK oder Europa). Halbfinale an einem Tag = neue Tourcard.');
+  else if (state.mode === 'nsd') addNews(state, 'info', `Saison ${y}: Last Chance in KW 2`, 'Melde dich in der Wochenansicht für die Q-School (UK oder Europa). Finale eines Tages oder ein Platz weit vorn in der Q-School-Rangliste = neue Tourcard.');
   else addNews(state, 'info', `Saison ${y}: Q-School in KW 2`, `Melde dich für die Q-School UK oder Europa an – sonst keine Challenge-Tour-Berechtigung in ${y}.${p.age <= DEV_MAX_AGE ? ' Die Development Tour (bis 23) kannst du auch ohne Q-School spielen.' : ''}`);
 }
 

@@ -250,7 +250,7 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'wdf') {                    // offene Auslosung: Spieler ohne Karte + DDV-Pool, keine Setzliste
-    const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'ddv')].map(p => p.id));
+    const pool = rng.shuffle([...nonCardPros(state), ...playersOfTier(state, 'secondary').filter(p => !p.woman), ...playersOfTier(state, 'ddv')].map(p => p.id));   // alle ohne Tourcard (Version 99: + Nebentouren)
     ids = pool.slice(0, (ev.field ?? FORMATS.wdf.field) - (withPlayer ? 1 : 0));
     if (withPlayer) ids = addRivalToField(state, 'wdf', ids, rng);
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);

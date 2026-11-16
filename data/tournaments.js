@@ -91,26 +91,26 @@ const PL_CITIES = ['Cardiff', 'Glasgow', 'Exeter', 'Dublin', 'Belfast', 'Notting
   'Rotterdam', 'Liverpool', 'Birmingham', 'Leeds', 'Aberdeen', 'Sheffield'];
 const PL_COUNTRY = { 0: 'WAL', 1: 'SCO', 3: 'IRL', 4: 'NIR', 8: 'DE', 10: 'NL', 14: 'SCO' };
 
-// WDF-Opens (nur ohne Tourcard): [KW, id, Name, Ort, Land, Kategorie, Europa]. KW nach den Terminen 2026.
-// Max. ein WDF-Open pro Woche (gestrichen: Tallinn Open, Canadian Open, Philippines Open).
+// WDF-Turniere 2026 (Version 99, Nutzerliste): [KW, id, Name, Ort, Land, Kategorie, Europa] – je Event-Wochenende ein oder mehrere Einzelturniere.
+// Teilnehmen dürfen alle ohne Tourcard (ohne Mindestalter); im Tour-Modus nur im Hintergrund, Sieger der Platin-/Gold-Turniere als News.
 // Platinum/Gold: 128er-Feld, sonst 64. Sieg 1.000–2.500 € je nach Kategorie (jährlich zufällig im Band).
 const WDF = [
-  [3, 'vegas', 'Las Vegas Open', 'Las Vegas', 'US', 'Gold', false], [6, 'dutch', 'Dutch Open', 'Assen', 'NL', 'Platinum', true],
-  [10, 'iom', 'Isle of Man Open', 'Douglas', 'IM', 'Gold', true], [13, 'virginia', 'Virginia Beach Classic', 'Virginia Beach', 'US', 'Silver', false],
-  [16, 'estonia', 'Estonian Open', 'Tallinn', 'EE', 'Bronze', true],
-  [18, 'denmark', 'Denmark Open', 'Esbjerg', 'DK', 'Gold', true], [21, 'toronto', 'Toronto Area Open', 'Toronto', 'CA', 'Gold', false],
-  [23, 'england', 'England Open', 'Selsey', 'ENG', 'Gold', true], [24, 'finland', 'Finnish Open', 'Helsinki', 'FI', 'Bronze', true],
-  [25, 'japan', 'The Steel Masters', 'Tokio', 'JP', 'Gold', false],
-  [26, 'nz', 'New Zealand Open', 'Auckland', 'NZ', 'Gold', false], [28, 'charlotte', 'Charlotte Open', 'Charlotte', 'US', 'Silver', false],
-  [30, 'pacific', 'Pacific Masters', 'Sydney', 'AU', 'Gold', false], [31, 'belgium', 'Belgium Open', 'Antwerpen', 'BE', 'Silver', true], [33, 'italy', 'Italian Open', 'Rom', 'IT', 'Bronze', true],
-  [35, 'wales', 'Welsh Open', 'Prestatyn', 'WAL', 'Silver', true], [47, 'czech', 'Czech Open', 'Prag', 'CZ', 'Silver', true],
+  [3, 'vegas', 'Las Vegas Open', 'Las Vegas', 'US', 'Gold', false], [3, 'vegas-classic', 'Las Vegas Classic', 'Las Vegas', 'US', 'Silver', false],
+  [6, 'dutch', 'Dutch Open', 'Assen', 'NL', 'Platinum', true],
+  [7, 'scottish', 'Scottish Open', 'Renfrew', 'SCO', 'Silver', true], [7, 'scottish-classic', 'Scottish Classic', 'Renfrew', 'SCO', 'Silver', true],
+  [18, 'denmark', 'Denmark Open', 'Esbjerg', 'DK', 'Gold', true], [18, 'denmark-masters', 'Denmark Masters', 'Esbjerg', 'DK', 'Silver', true],
+  [29, 'world-masters', 'WDF World Masters', 'Las Vegas', 'US', 'Platinum', false], [29, 'world-open', 'World Open', 'Las Vegas', 'US', 'Silver', false],
+  [35, 'wales', 'Welsh Open', 'North Somerset', 'ENG', 'Silver', true], [35, 'wales-classic', 'Welsh Classic', 'North Somerset', 'ENG', 'Silver', true],
+  [35, 'wales-masters', 'Welsh Masters', 'North Somerset', 'ENG', 'Bronze', true],
+  [47, 'czech', 'Czech Open', 'Prag', 'CZ', 'Silver', true], [47, 'prague', 'Prague Open', 'Prag', 'CZ', 'Bronze', true],
 ];
+export const WDF_MAJOR_TIERS = ['Platinum', 'Gold'];   // Sieger als News
 export const WDF_PRIZE_BAND = { Platinum: [2200, 2500], Gold: [1700, 2200], Silver: [1300, 1700], Bronze: [1000, 1300] };
 
 export const CALENDAR = [
   ...WDF.map(([w, id, name, city, country, tier, europe]) => ({
     id: `wdf-${id}`, cat: 'wdf', name, week: w, city, country, tier, europe, field: tier === 'Platinum' || tier === 'Gold' ? 128 : 64,
-    note: `WDF ${tier} · nur ohne Tourcard · ${europe ? 'Europa' : 'Übersee'}`,
+    note: `WDF ${{ Platinum: 'Platin', Gold: 'Gold', Silver: 'Silber', Bronze: 'Bronze' }[tier]} · nur ohne Tourcard · ${europe ? 'Europa' : 'Übersee'}`,
   })),
   ...DDV.map(([w, city], i) => ({
     id: `ddv-${i + 1}`, cat: 'ddv', name: `DDV-Ranglistenturnier ${i + 1}`, week: w, city, country: 'DE',

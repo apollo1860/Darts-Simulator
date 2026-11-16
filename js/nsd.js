@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 98;
+export const APP_VERSION = 99;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -111,20 +111,20 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
 }
 
 // ---- Reale Spieler (Version 98): Karriere als echter Profi starten ----
-// Liste aller echten Spieler der Welt zum Spielstart 2026 (ohne Frauen – Spieler sind männlich; JDC erst ab 16):
-// {name, nation, age (2026), avg (Startwert der Welt), card, group}
+// Liste aller echten Spieler der Welt zum Spielstart 2026 (Version 99: auch die Spielerinnen der Women's Series; JDC erst ab 16):
+// {name, nation, age (2026), avg (Startwert der Welt), card, group, woman}
 export function realPlayers() {
   const out = [], seen = new Set();
-  const add = (name0, nation, age, avg, card, group) => {
+  const add = (name0, nation, age, avg, card, group, woman = false) => {
     const name = NAME_FIXES[name0] ?? name0;
     if (seen.has(name) || age == null || age < 16) return;
-    seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group });
+    seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group, ...(woman ? { woman } : {}) });
   };
   for (const [n, nat, a, avg] of [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026]) add(n, nat, a - 1, avg, true, 'Tourcard');   // Listen auf Basis 2027
   for (const [n, nat, a, avg] of [...CHALLENGE_PLAYERS.slice(0, -CT_FICTIONAL), ...CT_FORMER]) add(n, nat, a - 1, avg, false, 'Challenge Tour');
   for (const [n, nat, a, avg] of DEV_PLAYERS) add(n, nat, a - 1, avg, false, 'Development Tour');
   for (const [n, nat, a, lo, hi] of JDC_TALENTS) add(n, nat, a, jdcStartAvg(lo, hi), false, 'JDC-Talent');
-  for (const c of Object.values(SECONDARY)) if (!c.woman) c.players.forEach(([n, nat, a, base], i) => add(n, nat, a, base ?? c.avgTop - i, false, c.label));
+  for (const c of Object.values(SECONDARY)) c.players.forEach(([n, nat, a, base], i) => add(n, nat, a, base ?? c.avgTop - i, false, c.label, !!c.woman));
   return out.sort((x, y) => x.name.localeCompare(y.name, 'de'));
 }
 // Start-Fähigkeiten eines echten Spielers aus seinem Average (Mittelwerte von attrsForAverage, Attribut → Fähigkeit 0–60);
@@ -152,11 +152,9 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: r.age, hand, slot, seed, angle });
   const p = s.player, y = s.date.year, ai = Object.values(s.world.players).find(x => x.name === name && !x.rival);
   if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
+  // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
   if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}` });
-  else {                                               // ohne Tourcard: Challenge Tour (Q-School 2026 gespielt), jedes Jahr Q-School möglich
-    Object.assign(p, { tour: 'none', cardUntil: null, cardVia: null, everTourcard: CT_FORMER.some(x => x[0] === name), qschoolYear: y });
-    s.openTour = true;
-  }
+  if (r.woman) p.woman = true;
   const sk = realStartSkills(ai?.avg ?? r.avg);
   for (const t of TRAINABLE) p.skills[t.key] = fillSkill(sk[t.key]);
   p.star = { level: sk.men, xp: 0 }; p.starSeen = { level: sk.men, xp: 0 };
@@ -165,9 +163,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   Object.assign(p, { assessed: true, real: name, proMatches: 999 });
   syncAttrs(p);
   s.news = [];
-  addNews(s, 'info', `Willkommen, ${name}!`, p.tour === 'tour'
-    ? `Du startest als ${name} in die Saison ${y} – Tourcard bis Ende ${p.cardUntil}.`
-    : `Du startest als ${name} ohne Tourcard in die Saison ${y}: Challenge Tour${p.age <= 23 ? ' und Development Tour' : ''} – und jedes Jahr die Q-School.`);
+  addNews(s, 'info', `Willkommen, ${name}!`, `Du startest als ${name} in die Saison ${y} – Tourcard bis Ende ${p.cardUntil}.`);
   setGoals(s);
   return s;
 }
