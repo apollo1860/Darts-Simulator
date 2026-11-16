@@ -2778,4 +2778,15 @@ test('New Star Darts v125: Interview nach verlorenem Finale/Halbfinale mit eigen
   assert.ok(C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X' }, rng).qs.every(q => q.set === 'result'));
 });
 
+test('New Star Darts v126: reale Spieler ohne Tourcard starten bei Fähigkeit 0', async () => {
+  const N = await import('../js/nsd.js'), rs = N.realPlayers();
+  const ct = rs.filter(r => !r.card).sort((a, b) => b.avg - a.avg)[0], tc = rs.find(r => r.card && r.avg > 95);
+  assert.ok(ct.avg > 88, `stärkster ohne Karte Ø ${ct.avg}`);
+  const s = N.newRealCareer({ name: ct.name, slot: 1, seed: 3 }), p = s.player;
+  for (const t of N.TRAINABLE) assert.equal(N.skillValue(p, t.key), 0, t.key);
+  assert.equal(p.star.level, 1);
+  const s2 = N.newRealCareer({ name: tc.name, slot: 1, seed: 3 });
+  assert.ok(N.skillValue(s2.player, 'sco') > 20);
+});
+
 console.log(`\n${n} Tests ok`);

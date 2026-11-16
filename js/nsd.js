@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 125;
+export const APP_VERSION = 126;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -133,7 +133,9 @@ export function realPlayers() {
 // Start-Fähigkeiten eines echten Spielers aus seinem Average (Mittelwerte von attrsForAverage, Attribut → Fähigkeit 0–60);
 // Mental = Star-Status. Unter Ø ~86 liegt alles bei 0 (wie ein neuer Holder).
 const toSkill = attr => Math.max(0, Math.min(SKILL_MAX, Math.round((attr - ATTR_BASE) / ATTR_PER_POINT)));
-export function realStartSkills(avg) {
+// Version 126 (Nutzerwunsch): Spieler ohne Tourcard starten immer bei 0 (Status 1) – nur Tourcard-Holder bekommen Werte aus ihrem Average
+export function realStartSkills(avg, card = true) {
+  if (!card) return { sco: 0, fin: 0, foc: 0, cal: 0, men: 1 };
   const sco = ratingForAvgExact(avg);
   return { sco: toSkill(sco), fin: toSkill(sco - 1), foc: toSkill(sco - 1), cal: toSkill(sco), men: Math.max(1, toSkill(sco - 2)) };
 }
@@ -158,7 +160,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
   if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}` });
   if (r.woman) p.woman = true;
-  const sk = realStartSkills(ai?.avg ?? r.avg);
+  const sk = realStartSkills(ai?.avg ?? r.avg, ai?.tier === 'tour' || r.card);
   for (const t of TRAINABLE) p.skills[t.key] = fillSkill(sk[t.key]);
   p.star = { level: sk.men, xp: 0 }; p.starSeen = { level: sk.men, xp: 0 };
   p.rel.fans = Math.max(10, Math.min(90, Math.round(10 + 1.6 * (sk.men - 1))));

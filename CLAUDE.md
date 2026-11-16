@@ -86,6 +86,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 121**: Paulke-Interview ebenfalls eine Partei je Antwort (+ Status/WM-Nervosität). Brass Dart 9 g (`STARTER_DART`, kostenlos, ohne Wirkung, immer im Besitz) + Standard-Flight (`STARTER_FLIGHT`). World Cup: jede eigene Aufnahme ist eine Spielszene.
 - **Version 122**: Hochzeit (`canMarry`/`marry`, `WEDDING_COST` 1.500 ★ fest, Beziehung 100 + > 52 Wochen seit `player.partnerSince`; `player.married`, Label Ehefrau/Ehemann, Beziehung sinkt nur jede 2. Woche). Version 123: Scheidung kostet 50 % des Sterngelds (`DIVORCE_SHARE`). Version 124: je 80 Partnernamen; Ereignis „Affäre“ (Zufriedenheit +12, 10 % fliegt auf → Trennung/Scheidung, `{lover}`).
 - **Version 125**: Interview nach verlorenem Finale/Halbfinale: eigener Pool `LOSS_QS` (data/talkloss.js, Set `loss`, `MOOD_INTRO.loss`); nach Titeln `RESULT_QS`.
+- **Version 126**: Reale Spieler ohne Tourcard starten bei Fähigkeit 0 / Status 1 (`realStartSkills(avg, card)`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
