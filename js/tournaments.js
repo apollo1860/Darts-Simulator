@@ -28,7 +28,7 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
-import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
+import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
@@ -602,6 +602,8 @@ export function aimParams(state, target) {
   const lm = live.m, key = `${lm.legIdx}:${lm.turn}:${lm.legDarts?.[lm.turn] ?? 0}`;
   if (live.shake?.key !== key) live.shake = { key, mult: nerveShake(nervesNow(state).pts, new RNG(state.rng)) };
   if (live.shake.mult > 1) { p.radius *= live.shake.mult; p.shaky = live.shake.mult; }
+  const sp = nerveSpeed(nervesNow(state).pts);                     // Nervosität: Zielkreuz bewegt sich schneller
+  if (sp > 1) { p.freq *= sp; p.nervy = sp; }
   return p;
 }
 // Aktueller Streuungs-Multiplikator eines Spielmoments für dich (Anzeige im Liveticker), 1 = keiner

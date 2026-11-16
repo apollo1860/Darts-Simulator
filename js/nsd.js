@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 112;
+export const APP_VERSION = 113;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -267,6 +267,9 @@ export function nerveShake(pts, rng) {
   if (!rng.chance(Math.min(SHAKE_MAX_P, SHAKE_P * pts))) return 1;
   return Math.min(SHAKE_MAX, rng.float(SHAKE_MIN, SHAKE_MIN + SHAKE_SPREAD * pts));
 }
+// Version 113 (Nutzerwunsch): Nervosität macht das Zielkreuz auch schneller – Linien-Tempo × (1 + NERVE_SPEED × pts), höchstens × NERVE_SPEED_MAX
+export const NERVE_SPEED = 0.12, NERVE_SPEED_MAX = 1.5;
+export const nerveSpeed = pts => (pts > 0 ? Math.min(NERVE_SPEED_MAX, 1 + NERVE_SPEED * pts) : 1);
 export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.round((p.energy ?? 100) + n))); return p.energy; }
 
 // ---- Star-Status: Fortschritt aus Matches ----

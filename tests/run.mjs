@@ -2640,4 +2640,14 @@ test('New Star Darts v111: kaputte Immobilien heißen marode', async () => {
   assert.equal(L.fixWord(home, 'Inf'), 'Sanieren'); assert.equal(L.fixWord(item, 'Inf'), 'Reparieren'); assert.equal(L.fixWord(home, 'part'), 'saniert');
 });
 
+test('New Star Darts v113: Nervosität macht das Zielkreuz schneller', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), CAL = await import('../js/calendar.js');
+  assert.equal(N.nerveSpeed(0), 1); assert.ok(Math.abs(N.nerveSpeed(1) - 1.12) < 1e-9); assert.equal(N.nerveSpeed(10), N.NERVE_SPEED_MAX);
+  const s = N.newNsdCareer({ first: 'N', last: 'V', nation: 'DE', age: 25, slot: 1, seed: 31 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+  T.enterEvent(s, CAL.eventsInWeek(s, 2026, 6).find(x => x.cat === 'pc').id); const live = T.startManualMatch(s);
+  const nv = N.nervesOf(s.player, s.activeEvent, live.m.ids?.[1 - live.me] ?? null).pts;   // Anfängerphase → nervös
+  assert.ok(nv > 0, 'Start-Status ist nervös');
+  const pr = T.aimParams(s, 'T20'); assert.ok(pr.nervy > 1 && pr.nervy <= N.NERVE_SPEED_MAX);
+});
+
 console.log(`\n${n} Tests ok`);
