@@ -39,6 +39,8 @@ export const REPAIR_WEEKS = [12, 16], REPAIR_PCT = [10, 15];
 const absWeek = s => s.date.year * 52 + s.date.week;
 const newUpkeep = (state, rng) => ({ due: absWeek(state) + rng.int(REPAIR_WEEKS[0], REPAIR_WEEKS[1]), pct: rng.int(REPAIR_PCT[0], REPAIR_PCT[1]) / 100, broken: false });
 export const brokenItems = p => ownedItems(p).filter(x => p.upkeep?.[x.id]?.broken);
+// Immobilien heißen im kaputten Zustand „marode“ (Nutzerwunsch, Version 111)
+export const brokenWord = (it, cap = false) => (it?.cat === 'home' ? (cap ? 'Marode' : 'marode') : (cap ? 'Kaputt' : 'kaputt'));
 export const repairCost = (p, it) => Math.max(1, Math.ceil(Math.round(itemPrice(it) * (p.upkeep?.[it.id]?.pct ?? 0.1) * 100) / 100));
 export const weeksToRepair = (state, id) => { const u = state.player.upkeep?.[id]; return u && !u.broken ? Math.max(0, u.due - absWeek(state)) : 0; };
 export function repairItem(state, id) {
@@ -77,7 +79,7 @@ export function upkeepWeek(state, rng) {
     const u = (p.upkeep ??= {})[it.id] ??= newUpkeep(state, rng);
     if (u.broken || now < u.due) continue;
     u.broken = true;
-    addNews(state, 'info', `🔧 ${it.name} ist kaputt`, `Ohne Reparatur zählt er nicht mehr für Lifestyle${it.regen ? ' und Erholung' : ''}. Kosten: ${repairCost(p, it)} ★ (Leben → Lifestyle).`);
+    addNews(state, 'info', `🔧 ${it.name} ist ${brokenWord(it)}`, `Ohne Reparatur zählt ${it.cat === 'home' ? 'die Immobilie' : 'das Produkt'} nicht mehr für Lifestyle${it.regen ? ' und Erholung' : ''}. Kosten: ${repairCost(p, it)} ★ (Leben → Lifestyle).`);
   }
   p.lifestyle = lifestyleOf(p);
 }

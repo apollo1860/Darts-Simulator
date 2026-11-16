@@ -2632,4 +2632,11 @@ test('New Star Darts v108: Einsatz bleibt bis zur manuellen Änderung, Energie s
   if (T.playerMatch(s.activeEvent) && !T.playerMatch(s.activeEvent).winner) assert.equal(T.effortOf(T.startManualMatch(s)), 2);
 });
 
+test('New Star Darts v111: kaputte Immobilien heißen marode', async () => {
+  const L = await import('../js/life.js'), { LIFESTYLE } = await import('../data/lifestyle.js');
+  const home = LIFESTYLE.find(x => x.cat === 'home'), item = LIFESTYLE.find(x => x.cat === 'item'), car = LIFESTYLE.find(x => x.cat !== 'home' && x.cat !== 'item');
+  assert.equal(L.brokenWord(home), 'marode'); assert.equal(L.brokenWord(home, true), 'Marode');
+  assert.equal(L.brokenWord(item), 'kaputt'); assert.equal(L.brokenWord(car, true), 'Kaputt');
+});
+
 console.log(`\n${n} Tests ok`);

@@ -2,13 +2,16 @@
 import { LIFESTYLE, LIFESTYLE_CATS } from '../../../../data/lifestyle.js';
 import { fmtNum } from '../../../util.js';
 import { lifeArt } from '../art/index.js';
-import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, weeksToRepair, brokenItems } from '../../../life.js';
+import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, weeksToRepair, brokenItems, brokenWord } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
+
+// „2 kaputt · 1 marode“ (Immobilien heißen marode)
+const brokenLabel = p => { const b = brokenItems(p), h = b.filter(x => x.cat === 'home').length, o = b.length - h; return [o && `${o} kaputt`, h && `${h} marode`].filter(Boolean).join(' · '); };
 let tab = 0;
-const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p>💎 Lifestyle-Punkte · 😊 Zufriedenheit · 🛌 Energie-Erholung pro Woche.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises; „Alles reparieren“ spart bei mehreren kaputten Produkten ca. 5 %. Solange es kaputt ist, zählt es nicht für Lifestyle und Erholung.</p>';
+const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p>💎 Lifestyle-Punkte · 😊 Zufriedenheit · 🛌 Energie-Erholung pro Woche.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises; „Alles reparieren“ spart bei mehreren kaputten Produkten ca. 5 %. Immobilien werden dann marode. Solange etwas kaputt bzw. marode ist, zählt es nicht für Lifestyle und Erholung.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, [cat, label] = LIFESTYLE_CATS[tab];
@@ -18,7 +21,7 @@ export function render(app) {
         ${meter({ icon: '<span style="font-size:2rem">🛌</span>', label: `Erholung +${homeRegen(p)}`, pct: homeRegen(p) * 5 })}</div>
       <div class="nsd-pager"><button data-t="-1">◀</button><b>${label}</b><button data-t="1">▶</button></div>
       <div class="nsd-strip"><span></span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
-      ${brokenItems(p).length ? `<div class="nsd-dark nsd-alert">🔧 ${brokenItems(p).length} kaputt – Reparatur ${repairAllInfo(p).sum} ★ gesamt</div>` : ''}
+      ${brokenItems(p).length ? `<div class="nsd-dark nsd-alert">🔧 ${brokenLabel(p)} – Reparatur ${repairAllInfo(p).sum} ★ gesamt</div>` : ''}
       ${repairAllInfo(p).list.length >= 2 ? `<button class="nsd-btn nsd-fixall" id="fixall"><span class="lb">🔧 Alles reparieren ${coin(repairAllInfo(p).cost)} <small>−${repairAllInfo(p).saved} ★ gespart</small></span></button>` : ''}
       <div class="nsd-evs">${LIFESTYLE.filter(x => x.cat === cat).map(it => {
         const own = p.owned?.includes(it.id), broken = own && p.upkeep?.[it.id]?.broken, weeks = own && !broken ? weeksToRepair(s, it.id) : 0;
@@ -27,7 +30,7 @@ export function render(app) {
           <div class="nsd-ev-main"><div class="nsd-ev-name">${it.name}</div>
             <div class="nsd-ev-sub nsd-ls-stats"><span title="Lifestyle">💎 +${fmtNum(it.ls, 1)}</span><span title="Zufriedenheit">😊 +${it.sat}</span>${it.regen ? `<span title="Erholung pro Woche">🛌 +${it.regen} %</span>` : ''}</div>
             ${!own ? `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it))}</div>`
-              : broken ? `<div class="nsd-ev-sub nsd-bad">🔧 Kaputt – wirkt nicht mehr</div><div class="nsd-ev-sub">Reparatur ${coin(repairCost(p, it))}</div>`
+              : broken ? `<div class="nsd-ev-sub nsd-bad">🔧 ${brokenWord(it, true)} – wirkt nicht mehr</div><div class="nsd-ev-sub">Reparatur ${coin(repairCost(p, it))}</div>`
               : `<div class="nsd-ev-sub">Wartung in ca. ${weeks} Woche${weeks === 1 ? '' : 'n'}</div>`}</div>
           ${!own ? `<button class="nsd-btn" data-buy="${it.id}"><span class="lb">Kaufen</span></button>`
             : broken ? `<button class="nsd-btn" data-fix="${it.id}"><span class="lb">Reparieren</span></button>`
