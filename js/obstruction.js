@@ -12,9 +12,9 @@ const FLIGHT_W = 20;      // mm: Breite des verdeckten Streifens
 const BODY = 12;          // mm: Mindestlänge (Barrel selbst), auch bei 0°
 const DOWN = 0.35;        // negative Winkel: Schatten nur 35 % so lang
 const SOFT = 7;           // mm: weiche Kante des Schattens
-export const BLOCK_SIGMA = 0.6;   // Streuung × (1 + BLOCK_SIGMA · verbaut)
+export const BLOCK_SIGMA = 0.25;   // Streuung × (1 + BLOCK_SIGMA · verbaut)
 export const BOUNCE_P = 0.05;     // Bouncer-Chance bei vollständig verbautem Feld (× verbaut)
-export const SWITCH_AT = 0.3;     // ab hier wechselt die KI das Feld
+export const SWITCH_AT = 0.7;     // ab hier wechselt die KI das Feld
 
 export const clampAngle = a => Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, a));
 // Flug-Stabilität: sehr flache bzw. nach unten steckende Darts (< 10°) fliegen unruhiger (Streuung +0,2 % je Grad darunter)

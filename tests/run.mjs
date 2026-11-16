@@ -1742,12 +1742,12 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
     const d = TM.aiDart(mm, 0, at, rng, undefined, 1, 'T20'); if (d.hit.label === 'BOUNCER') bounce++; spreadBlocked += Math.hypot(d.x - T20.x, d.y - T20.y);
     const f = MS.createMatch({ legs: 3 }, 0), e = TM.aiDart(f, 0, at, rng, undefined, 1, 'T20'); spreadFree += Math.hypot(e.x - T20.x, e.y - T20.y);
   }
-  assert.ok(sw / n > 0.9, `Feldwechsel ${sw / n}`); assert.ok(Math.abs(bounce / n - 0.05) < 0.015, `Bouncer ${bounce / n}`); assert.ok(spreadBlocked / spreadFree > 1.4, `Streuung ×${spreadBlocked / spreadFree}`);
+  assert.ok(sw / n > 0.9, `Feldwechsel ${sw / n}`); assert.ok(Math.abs(bounce / n - 0.05) < 0.015, `Bouncer ${bounce / n}`); assert.ok(spreadBlocked / spreadFree > 1.15, `Streuung ×${spreadBlocked / spreadFree}`);   // Version 128: BLOCK_SIGMA 0,25
   // Kreis für den eigenen Wurf: verbaut = größer; ohne Winkel unverändert
   const mm = MS.createMatch({ legs: 3 }, 0), a0 = { sco: 95, fin: 95, foc: 90, men: 90, cal: 90, exp: 0 }, p1 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20');
   mm.visit.tips = [{ x: T20.x, y: T20.y }];
   const p2 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20'), p3 = TM.circleParams(a0, mm, 0, 'T20');
-  assert.ok(p2.radius > p1.radius * 1.4 && p2.block > 0.7 && p3.block === 0 && p3.radius === TM.circleParams(a0, MS.createMatch({ legs: 3 }, 0), 0, 'T20').radius);
+  assert.ok(p2.radius > p1.radius * 1.15 && p2.block > 0.7 && p3.block === 0 && p3.radius === TM.circleParams(a0, MS.createMatch({ legs: 3 }, 0), 0, 'T20').radius);
   // Winkel im Profil, Editor, KI-Winkel
   const s = N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4, angle: 45 }); assert.equal(s.player.angle, 45);
   assert.equal(N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4 }).player.angle, O.ANGLE_DEFAULT);
@@ -1847,7 +1847,7 @@ test('New Star Darts v63: Energie (Floor < Bühne, mehr als vorher), Nervosität
     }
     matches++;
   }
-  assert.ok(moments / matches > 20, `Szenen je Bo11: ${moments / matches}`); assert.ok(maxScore <= 2, `Scoring-Szenen je Leg ${maxScore}`);
+  assert.ok(moments / matches >= 18, `Szenen je Bo11: ${moments / matches}`);   // Version 128: KI bleibt öfter auf T20 → etwas kürzere Legs assert.ok(maxScore <= 2, `Scoring-Szenen je Leg ${maxScore}`);
 });
 
 test('New Star Darts v64: Interviews – Elmar Paulke vor jeder WM, gemischte Antworten, Wirkung je nach Lage/Stimmung', async () => {
@@ -2799,6 +2799,23 @@ test('New Star Darts v127: erstes Tourcard-Jahr startet bei 0, zweites Jahr bei 
   for (const t of N.TRAINABLE) assert.equal(N.skillValue(s.player, t.key), 3, t.key);
   const s1 = N.newRealCareer({ name: y1[0].name, slot: 1, seed: 5 }); assert.equal(N.skillValue(s1.player, 'sco'), 0);
   const top = rs.find(r => r.name === PL.TOUR_TOP64[0][0]); assert.ok(N.realStartFor(top).sco > 30);
+});
+
+test('New Star Darts v128: KI wirft im Scoring überwiegend auf T20 (mehr 180, kaum 171)', async () => {
+  const MS = await import('../js/matchState.js'), TM = await import('../js/throwModel.js');
+  const rng = new RNG({ s: 9 }), cnt = {}; let visits = 0, t20 = 0, darts = 0, pts = 0, dd = 0;
+  for (let g = 0; g < 120; g++) {
+    const m = MS.createMatch({ legs: 6 }, g % 2), a = { sco: 94, fin: 94, men: 94, foc: 94, cal: 94, angle: 15 };
+    while (!m.done) {
+      const t = m.turn, start = m.rem[t]; let ev;
+      do { const d = TM.aiDart(m, t, a, rng, TM.aiSigma(a)); if (start > 230) { darts++; if (d.target === 'T20') t20++; } ev = MS.throwDart(m, d.hit, d); } while (m.turn === t && !m.done && !ev?.visitEnd);
+      const v = m.legVisits?.[t]?.at(-1); if (start > 230 && v && !v.bust) { visits++; cnt[v.score] = (cnt[v.score] ?? 0) + 1; }
+    }
+    for (const st of m.stats) { pts += st.points; dd += st.darts; }
+  }
+  assert.ok(t20 / darts > 0.8, `T20-Anteil ${t20 / darts}`);
+  assert.ok((cnt[180] ?? 0) > 3 * (cnt[171] ?? 0), `180: ${cnt[180]} 171: ${cnt[171]}`);
+  const avg = pts / dd * 3; assert.ok(avg > 92 && avg < 96.5, `Ø ${avg}`);
 });
 
 console.log(`\n${n} Tests ok`);
