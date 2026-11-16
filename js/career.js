@@ -479,6 +479,19 @@ function currentInterview(state, rng) {
   return iv;
 }
 export const interviewView = (state, rng) => currentInterview(state, rng);
+// Version 120 (Nutzerwunsch): Interviews nach Spielen – jede Antwort wirkt nur auf EINE Partei (Fans, Manager, Sponsoren oder Freundin/Freund),
+// und zwar die mit der stärksten Wirkung dieser Antwort (nur Parteien, die es gibt; Gleichstand → Zufall). Dazu bleibt nur der Star-Status
+// (Zweck des Interviews); Selbstvertrauen, Zufriedenheit und Energie entfallen. Interviews mit Elmar Paulke bleiben unverändert.
+export const IV_PARTIES = ['fans', 'manager', 'sponsors', 'partner'];
+function oneParty(state, e, ok, rng) {
+  const p = state.player;
+  const has = { fans: true, manager: !!managerOf(state), sponsors: (p.rel.sponsors ?? 0) > 0, partner: !!p.partnerName && (p.rel.partner ?? 0) > 0 };
+  const cand = IV_PARTIES.filter(k => has[k] && e[k]), top = Math.max(0, ...cand.map(k => Math.abs(e[k])));
+  const pick = top ? rng.pick(cand.filter(k => Math.abs(e[k]) === top)) : 'fans';
+  const v = top ? e[pick] : (ok ? 1 : -1);
+  for (const k of Object.keys(e)) if (k !== 'star') delete e[k];
+  e[pick] = v;
+}
 // idx = Position der Antwort in der Anzeige. Rückgabe: { fx, txt, done }
 export function answerInterview(state, idx, rng) {
   const iv = currentInterview(state, rng), p = state.player;
@@ -490,6 +503,7 @@ export function answerInterview(state, idx, rng) {
   for (const [k, v] of Object.entries(ans.fx ?? {})) e[k] = (e[k] ?? 0) + v;
   // Version 94: immer ganze Zahlen (WM-Nervosität intern in Zehnteln, angezeigt ×10)
   for (const k of Object.keys(e)) { e[k] = k === 'nerves' ? Math.round(e[k] * 10) / 10 : Math.sign(e[k]) * Math.round(Math.abs(e[k])); if (!e[k]) delete e[k]; }   // ±0,5 → ±1
+  if (iv.kind === 'result') oneParty(state, e, ok, rng);              // Version 120: nach Spielen wirkt jede Antwort nur auf eine Partei
   const fx = applyIvEffect(state, e, iv), txt = IV_REACT[ans.tone][ok ? 1 : 0][0] || IV_REACT[ans.tone][1][0];
   iv.answers.push({ tone: ans.tone, fx, txt });
   const done = iv.answers.length >= iv.qs.length;

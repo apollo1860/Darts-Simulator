@@ -2686,4 +2686,23 @@ test('New Star Darts v118: Rechnen früher schwerer, Check speichert die Dart-An
   assert.equal(m.lastLeg.visits[t].at(-1).darts, 2); assert.ok(m.lastLeg.visits[t].at(-1).checkout);
 });
 
+test('New Star Darts v120: Interview nach Spielen – jede Antwort wirkt nur auf eine Partei (+ Star-Status)', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  const seen = new Set();
+  for (let seed = 1; seed <= 30; seed++) {
+    const s = N.newNsdCareer({ first: 'I', last: 'P', nation: 'DE', age: 25, slot: 1, seed }), p = s.player, rng = new RNG(seed);
+    s.team = { manager: 'm1', trainer: null }; C.nameTeam(s); p.rel.manager = 50; p.partnerName = 'Lena'; p.rel.partner = 50; p.rel.sponsors = 40;
+    s.interview = C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X' }, rng);
+    while (s.interview.answers.length < s.interview.qs.length) {
+      const { fx } = C.answerInterview(s, seed % 3, rng), ks = Object.keys(fx).filter(k => k !== 'star');
+      assert.equal(ks.length, 1, JSON.stringify(fx)); assert.ok(C.IV_PARTIES.includes(ks[0])); seen.add(ks[0]);
+    }
+  }
+  assert.ok(seen.size >= 3, [...seen].join());
+  // ohne Manager/Freundin/Sponsoren: nur Fans
+  const s = N.newNsdCareer({ first: 'O', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 3 }), rng = new RNG(3);
+  s.interview = C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X' }, rng);
+  const { fx } = C.answerInterview(s, 0, rng); assert.deepEqual(Object.keys(fx).filter(k => k !== 'star'), ['fans']);
+});
+
 console.log(`\n${n} Tests ok`);
