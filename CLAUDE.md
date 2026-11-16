@@ -89,6 +89,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 126/127**: Reale Spieler ohne Tourcard und im ersten Kartenjahr starten bei Fähigkeit 0 / Status 1, im zweiten Kartenjahr 0–3 nach Average (`realStartFor`, `tcYear`); Top 64 aus dem Average.
 - **Version 128**: Einsteckwinkel entschärft: `SWITCH_AT` 0,7, `BLOCK_SIGMA` 0,25 (obstruction.js) → KI bleibt meist auf T20 (mehr 180, kaum 171), Average unverändert.
 - **Version 129**: Rest 170 ist immer eine eigene Szene, extra wie der 9-Darter (`bigFish`, Szene `fish`). Version 130: „9“ verschwindet nach jedem Dart, sobald der 9-Darter unmöglich ist (`nineStill`).
+- **Version 131**: Titel-Bonus Star-Status `titleStarBonus`/`TITLE_MULT` (nsd.js): Major ×2,5, World Matchplay ×4, WM ×8.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

@@ -2841,4 +2841,13 @@ test('New Star Darts v130: 9-Darter-Prüfung nach jedem Dart (nineStill)', async
   m = fresh(); MS.throwDart(m, H('T19')); assert.ok(T.nineStill(m, 0), 'T19 geht noch (264 → 3 Darts später 141 …)');
 });
 
+test('New Star Darts v131: Major-Titel bringen deutlich mehr Star-Status (Matchplay, WM)', async () => {
+  const N = await import('../js/nsd.js');
+  const pc = N.titleStarBonus(20, 'pc', 'pc'), ma = N.titleStarBonus(20, 'major', 'masters');
+  const mp = N.titleStarBonus(20, 'major', 'matchplay'), wm = N.titleStarBonus(20, 'major', 'wm');
+  assert.ok(ma > pc * 3 && mp > ma * 1.5 && wm > mp * 2, `PC ${pc} < Major ${ma} < Matchplay ${mp} < WM ${wm}`);
+  assert.ok(wm > N.starNeed(20), 'WM-Titel = mehr als eine ganze Stufe');
+  assert.equal(N.titleStarBonus(20, 'dev', 'youth'), Math.round(25 * 1.3 * 1.19 * 10) / 10, 'Youth-WM unverändert');
+});
+
 console.log(`\n${n} Tests ok`);

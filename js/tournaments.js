@@ -28,7 +28,7 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
-import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
+import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
@@ -1065,7 +1065,7 @@ function nsdEventEnd(state, inst) {
   if (inst.withPlayer) maybeInterviewNsd(state, inst, new RNG(state.rng));
   if (managerOf(state) && inst.place === 'W') addRel(p, 'manager', 4);
   if (inst.place === 'W' && !inst.isQualifier) {
-    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.fmt === 'youth' || inst.fmt === 'wwm' ? inst.fmt : inst.cat] ?? 1) * (1 + 0.01 * (p.star.level - 1)) * 10) / 10;
+    const bonus = titleStarBonus(p.star.level, inst.cat, inst.fmt);
     inst.star = Math.round(((inst.star ?? 0) + bonus) * 10) / 10;
     inst.titleStar = bonus;
     addStarProgress(state, bonus);

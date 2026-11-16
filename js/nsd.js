@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 130;
+export const APP_VERSION = 131;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -308,6 +308,13 @@ export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, 
   return -Math.round((1 + 3 * (1 - close)) * starScale(level) * 10) / 10;
 }
 export const STAR_TITLE = 25;   // Turniersieg (× Gewicht)
+// Version 131: Major-Titel zählen deutlich mehr – Major ×2,5, World Matchplay ×4, WM ×8 (auf STAR_TITLE × Gewicht)
+export const TITLE_MULT = { major: 2.5, matchplay: 4, wm: 8 };
+export function titleStarBonus(level, cat, fmt) {
+  const w = fmt === 'wm' ? 1.6 : STAR_WEIGHT[fmt === 'youth' || fmt === 'wwm' ? fmt : cat] ?? 1;
+  const m = TITLE_MULT[fmt] ?? (cat === 'major' && fmt !== 'youth' ? TITLE_MULT.major : 1);
+  return Math.round(STAR_TITLE * w * m * starScale(level) * 10) / 10;
+}
 export function addStarProgress(state, pts) {
   const p = state.player, st = p.star;
   let ups = 0;
