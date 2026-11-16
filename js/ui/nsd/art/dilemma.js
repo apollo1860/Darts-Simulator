@@ -1,7 +1,6 @@
 // Kleine Szenen für die Dilemma-Entscheidungen (Version 107, eigene SVGs, 160 × 100)
 import { art, WIDE, shadow, OUT } from './core.js';
 
-const hand = (x, y, r = 0, s = 1) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 0 q-6 -2 -10 4 q-3 6 2 10 l14 6 q6 2 8 -4 l2 -8 q0 -6 -6 -8 z" fill="#f2b48a" stroke="#c98a62" stroke-width="1"/><path d="M-8 6 q4 1 6 4" stroke="#c98a62" stroke-width="1" fill="none"/></g>`;
 const stands = lin => `<rect width="160" height="44" fill="${lin('st', ['#7a5a3c', '#4b3523'])}"/>${Array.from({ length: 6 }, (_, i) => `<rect y="${6 + i * 6}" width="160" height="2" fill="#000" opacity=".18"/>`).join('')}
   <rect y="44" width="160" height="4" fill="#cfd6dc"/><rect y="48" width="160" height="52" fill="${lin('pi', ['#58b04a', '#3b8a33'])}"/>
   ${[0, 1, 2, 3].map(i => `<rect x="${i * 44 - 10}" y="48" width="22" height="52" fill="#fff" opacity=".07"/>`).join('')}`;
@@ -12,7 +11,7 @@ const DRAW = {
     <g transform="rotate(-14 80 64)"><rect x="56" y="38" width="48" height="56" rx="3" fill="${lin('pa', ['#fff8e2', '#f0e2b8'])}" stroke="${OUT}" stroke-width="1.2"/>
     ${[0, 1, 2, 3, 4, 5].map(i => `<circle cx="${62 + i * 7.5}" cy="38" r="2.2" fill="none" stroke="#5b5b5b" stroke-width="1.4"/>`).join('')}
     <path d="M64 70 q6 -16 9 -2 q3 10 7 -6 q2 -6 5 4 q2 6 8 -2" fill="none" stroke="#1d2430" stroke-width="2" stroke-linecap="round"/></g>
-    <g transform="rotate(32 108 52)"><rect x="104" y="22" width="5" height="44" rx="2" fill="#26292e"/><path d="M104 66 l2.5 6 l2.5 -6z" fill="#26292e"/></g>${hand(112, 66, -20, 1.4)}`,
+    <g transform="rotate(32 108 52)"><rect x="104" y="22" width="5" height="44" rx="2" fill="#26292e"/><path d="M104 66 l2.5 6 l2.5 -6z" fill="#26292e"/></g>`,
   // Fans: Selfie mit Fans
   selfie: ({ lin }) => `${stands(lin)}
     <rect x="52" y="18" width="56" height="78" rx="8" fill="#1d2430"/><rect x="56" y="24" width="48" height="64" rx="3" fill="${lin('sc', ['#8fd0ff', '#d9f1ff'])}"/>
@@ -24,7 +23,7 @@ const DRAW = {
     ${[30, 44, 58, 72].map((x, i) => `<rect x="${x - 3}" y="${50 - [6, 12, 9, 18][i]}" width="6" height="${[6, 12, 9, 18][i]}" fill="#4f8fe0" opacity=".6"/>`).join('')}
     <rect y="66" width="160" height="34" fill="${lin('tb', ['#8a5a34', '#5e3a1f'])}"/>
     <rect x="96" y="58" width="40" height="28" rx="1.5" fill="#fff" transform="rotate(-6 116 72)" stroke="#9aa6b2"/><path d="M102 64 h26 M102 70 h22 M102 76 h18" stroke="#9aa6b2" stroke-width="1.5" transform="rotate(-6 116 72)"/>
-    <rect x="128" y="50" width="4" height="26" rx="1.5" fill="#1d2430" transform="rotate(24 130 63)"/>${hand(36, 74, 10, 1.3)}${hand(118, 84, 190, 1.1)}`,
+    <rect x="128" y="50" width="4" height="26" rx="1.5" fill="#1d2430" transform="rotate(24 130 63)"/>`,
   // Manager: Golfrunde
   golf: ({ lin }) => `<rect width="160" height="100" fill="${lin('sk', ['#6bb8f0', '#d4ecff'])}"/><path d="M0 62 Q50 46 100 58 T160 54 V100 H0Z" fill="#5fae45"/><path d="M0 74 Q60 62 160 72 V100 H0Z" fill="#4a9636"/>
     <ellipse cx="112" cy="70" rx="26" ry="6" fill="#7fd16a"/><ellipse cx="112" cy="70" rx="3" ry="1.4" fill="#1d2430"/>
