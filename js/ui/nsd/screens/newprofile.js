@@ -1,7 +1,7 @@
 // Spielerprofil erstellen: eigener Spieler (Vorname, Nachname, Nation, Alter, Wurfhand) oder realer Spieler (Version 98: Suche + Auswahlliste)
 import { NATIONS, flag } from '../../../../data/nations.js';
 import { START_AGES } from '../../../player.js';
-import { newNsdCareer, newRealCareer, realPlayers, realStartSkills } from '../../../nsd.js';
+import { newNsdCareer, newRealCareer, realPlayers, realStartFor } from '../../../nsd.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, severity, stability } from '../../../obstruction.js';
 import { saveGame, listSlots } from '../../../state.js';
 import { randomSeed } from '../../../rng.js';
@@ -21,7 +21,7 @@ const realOptions = list => list.length ? list.map(r => `<option value="${esc(r.
 function realInfo() {
   const r = reals().find(x => x.name === form.real);
   if (!r) return '<div class="nsd-angle-note">Spieler suchen und auswählen.</div>';
-  const sk = realStartSkills(r.avg, r.card), row = (l, v) => `<div class="nsd-result-row"><span>${l}</span><b>${v}</b></div>`;
+  const sk = realStartFor(r), row = (l, v) => `<div class="nsd-result-row"><span>${l}</span><b>${v}</b></div>`;
   return `<div class="nsd-result">${row('Nation', `${flag(r.nation)} ${esc(NATIONS[r.nation]?.name ?? r.nation)}`)}${row('Alter', r.age ? `${r.age} Jahre` : '–')}${row('Bisher', r.card ? 'Tourcard-Holder' : esc(r.group))}${row('Start', r.card ? 'mit seiner Tourcard' : 'neue Tourcard 2026/27')}
     ${row('Scoring · Finishing', `${sk.sco} · ${sk.fin}`)}${row('Fokus · Rechnen', `${sk.foc} · ${sk.cal}`)}${row('Star-Status (Mental)', sk.men)}</div>`;
 }

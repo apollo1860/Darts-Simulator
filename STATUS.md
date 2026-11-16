@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 127**: Reale Tourcard-Holder im ersten Kartenjahr (Neu 2026, `TOUR_NEW_2026`) starten bei Fähigkeit 0 / Status 1; im zweiten Kartenjahr (`TOUR_EXPIRING`, Karte 2025/2026) bei 0–3 je nach Average innerhalb der Gruppe (Ø 87 → 0 … Ø 90 → 3, Status = max(1, Wert)); Top 64 unverändert aus dem Average (`realStartFor`, `tcYear` in `realPlayers`).
 - [x] **Version 126**: Reale Spieler ohne Tourcard starten immer bei Fähigkeit 0 und Status 1 (`realStartSkills(avg, card)`), auch wenn ihr Average höher ist (vorher bis zu 20 Punkte, z. B. starke Challenge-Tour-Spieler); Tourcard-Holder unverändert. Vorschau in der Spielerauswahl ebenso.
 - [x] **Version 125**: Interview nach verlorenem Finale/Halbfinale mit eigenem Fragenpool (`LOSS_QS` in data/talkloss.js, 20 Fragen à 4 Antworten, Set `loss`, eigene Einleitung `MOOD_INTRO.loss`); nach Titeln weiter `RESULT_QS`.
 - [x] **Version 124**: Je 80 Partnernamen (`PARTNER_NAMES`/`PARTNER_NAMES_M`). Neues Ereignis „Affäre“ (nur mit Partner, `affair` in data/lifeevents.js, Name `{lover}` = `lifeEvent.lover`, nie der eigene Partner): „Darauf einlassen“ = Zufriedenheit +12, zu 10 % fliegt es auf → Trennung bzw. Scheidung (inkl. halbes Sterngeld) und Zufriedenheit −15; „Abblitzen lassen“ = Partner +1. Kein Hinweistext zum Risiko.

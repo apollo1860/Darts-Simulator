@@ -2789,4 +2789,16 @@ test('New Star Darts v126: reale Spieler ohne Tourcard starten bei Fähigkeit 0'
   assert.ok(N.skillValue(s2.player, 'sco') > 20);
 });
 
+test('New Star Darts v127: erstes Tourcard-Jahr startet bei 0, zweites Jahr bei 0–3', async () => {
+  const N = await import('../js/nsd.js'), PL = await import('../data/players.js'), rs = N.realPlayers();
+  const y1 = rs.filter(r => r.tcYear === 1), y2 = rs.filter(r => r.tcYear === 2);
+  assert.ok(y1.length >= 25 && y2.length >= 25);
+  for (const r of y1) assert.equal(N.realStartFor(r).sco, 0, r.name);
+  const v2 = y2.map(r => N.realStartFor(r).sco); assert.ok(v2.every(v => v >= 0 && v <= 3) && v2.includes(0) && v2.includes(3), v2.join());
+  const best = y2.sort((a, b) => b.avg - a.avg)[0], s = N.newRealCareer({ name: best.name, slot: 1, seed: 5 });
+  for (const t of N.TRAINABLE) assert.equal(N.skillValue(s.player, t.key), 3, t.key);
+  const s1 = N.newRealCareer({ name: y1[0].name, slot: 1, seed: 5 }); assert.equal(N.skillValue(s1.player, 'sco'), 0);
+  const top = rs.find(r => r.name === PL.TOUR_TOP64[0][0]); assert.ok(N.realStartFor(top).sco > 30);
+});
+
 console.log(`\n${n} Tests ok`);

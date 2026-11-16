@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 126;
+export const APP_VERSION = 127;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -118,12 +118,14 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
 // {name, nation, age (2026), avg (Startwert der Welt), card, group, woman}
 export function realPlayers() {
   const out = [], seen = new Set();
-  const add = (name0, nation, age, avg, card, group, woman = false) => {
+  const add = (name0, nation, age, avg, card, group, woman = false, tcYear = null) => {
     const name = NAME_FIXES[name0] ?? name0;
     if (seen.has(name) || (age == null ? !woman : age < 16)) return;   // Spielerinnen ohne bekanntes Alter: Alter aus der Welt
-    woman ||= WOMEN_ON_TOUR.includes(name); seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group, ...(woman ? { woman } : {}) });
+    woman ||= WOMEN_ON_TOUR.includes(name); seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group, ...(woman ? { woman } : {}), ...(tcYear ? { tcYear } : {}) });
   };
-  for (const [n, nat, a, avg] of [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026]) add(n, nat, a - 1, avg, true, 'Tourcard');   // Listen auf Basis 2027
+  for (const [n, nat, a, avg] of TOUR_TOP64) add(n, nat, a - 1, avg, true, 'Tourcard');   // Listen auf Basis 2027
+  for (const [n, nat, a, avg] of TOUR_EXPIRING) add(n, nat, a - 1, avg, true, 'Tourcard', false, 2);   // Version 127: zweites Kartenjahr
+  for (const [n, nat, a, avg] of TOUR_NEW_2026) add(n, nat, a - 1, avg, true, 'Tourcard', false, 1);   // erstes Kartenjahr
   for (const [n, nat, a, avg] of [...CHALLENGE_PLAYERS.slice(0, -CT_FICTIONAL), ...CT_FORMER]) add(n, nat, a - 1, avg, false, 'Challenge Tour');
   for (const [n, nat, a, avg] of DEV_PLAYERS) add(n, nat, a - 1, avg, false, 'Development Tour');
   for (const [n, nat, a, lo, hi] of JDC_TALENTS) add(n, nat, a, jdcStartAvg(lo, hi), false, 'JDC-Talent');
@@ -138,6 +140,13 @@ export function realStartSkills(avg, card = true) {
   if (!card) return { sco: 0, fin: 0, foc: 0, cal: 0, men: 1 };
   const sco = ratingForAvgExact(avg);
   return { sco: toSkill(sco), fin: toSkill(sco - 1), foc: toSkill(sco - 1), cal: toSkill(sco), men: Math.max(1, toSkill(sco - 2)) };
+}
+// Version 127 (Nutzerwunsch): erstes Tourcard-Jahr (Neu 2026) → alles 0; zweites Jahr (Karte 2025/2026) → 0–3 nach Stärke innerhalb der Gruppe
+const EXP_AVG = TOUR_EXPIRING.map(x => x[3]), EXP_LO = Math.min(...EXP_AVG), EXP_HI = Math.max(...EXP_AVG);
+export function realStartFor(r) {
+  if (!r.card || r.tcYear === 1) return realStartSkills(r.avg, false);
+  if (r.tcYear === 2) { const v = Math.round(3 * (r.avg - EXP_LO) / Math.max(1, EXP_HI - EXP_LO)); return { sco: v, fin: v, foc: v, cal: v, men: Math.max(1, v) }; }
+  return realStartSkills(r.avg);
 }
 const fillSkill = v => Array.from({ length: SKILL_LEVELS }, (_, i) => Math.max(0, Math.min(3, v - 3 * i)));
 // ID im Spielstand umbenennen (Ranglisten, Qualifikationen): Schlüssel und Werte
@@ -160,7 +169,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
   if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}` });
   if (r.woman) p.woman = true;
-  const sk = realStartSkills(ai?.avg ?? r.avg, ai?.tier === 'tour' || r.card);
+  const sk = realStartFor({ ...r, card: ai?.tier === 'tour' || r.card });
   for (const t of TRAINABLE) p.skills[t.key] = fillSkill(sk[t.key]);
   p.star = { level: sk.men, xp: 0 }; p.starSeen = { level: sk.men, xp: 0 };
   p.rel.fans = Math.max(10, Math.min(90, Math.round(10 + 1.6 * (sk.men - 1))));
