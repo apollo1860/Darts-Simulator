@@ -128,6 +128,9 @@ export function sponsorBase(state) {
 // wirkt nur halb (+2,5 % statt +5 % je Stufe). Laufende Verträge bleiben unverändert.
 export const SPONSOR_SLOPE = { star: 0.06, fans: 0.025 };
 export const sponsorGrowth = level => 1 + 0.025 * (Math.max(1, level) - 1);
+// Version 105: kein Sprung mehr ab Status 11 – echte Marken zahlen anfangs kaum mehr als die kleinen und erreichen ihren vollen
+// Bekanntheits-Faktor erst bei Status 20 (Status 11: 20 %, 15: 50 % des Aufschlags gegenüber den kleinen Marken)
+export const realPayRamp = (pay, level) => SMALL_PAY + (pay - SMALL_PAY) * Math.max(0.2, Math.min(1, (level - 10) / 10));
 // Sponsor für ein Angebot (Version 70/71): `taken` = Branchen mit laufendem Vertrag (pro Branche nur ein Sponsor). Bis Star-Status 10 nur kleine
 // fiktive Marken (zahlen wenig); ab 11 meist echte Marken – Stufen ab 11 / 20 / 40, leichter Fokus auf die zuletzt freigeschaltete Stufe;
 // je bekannter die Marke, desto besser die Bezahlung. Die Branche wird gleichverteilt gewählt (nicht nach Markenzahl), dann die Marke.
@@ -166,7 +169,7 @@ export function sponsorWeek(state, rng) {
   const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng) : null;
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
-    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * sp0.pay * SPONSOR_PAY));
+    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * (sp0.real ? realPayRamp(sp0.pay, p.star.level) : sp0.pay) * SPONSOR_PAY));
     // Prämien: Wochenhonorar + Siegprämie, manchmal 180er-Prämie und/oder Major-Teilnahme
     s.offer = { name, branche, real: sp0.real, fame: sp0.fame, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
       s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,

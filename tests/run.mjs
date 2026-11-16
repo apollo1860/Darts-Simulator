@@ -2093,7 +2093,7 @@ test('New Star Darts v70/71: echte Marken nach Branchen – eine Branche je Spon
   C.nameTeam(s); const ratio = { small: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, m = C.managerOf(s), unit = C.sponsorBase(s) * m.mult * C.sponsorGrowth(15) * R.SPONSOR_PAY;   // Version 93: alle Beträge × SPONSOR_PAY
   for (let k = 0; k < 4000; k++) { s.nsdSponsors = { active: [], offer: null }; C.sponsorWeek(s, rng); const o = s.nsdSponsors.offer; if (o) { assert.ok(typeof o.real === 'boolean' && o.fame >= 0 && o.branche === br(o.name)); (o.real ? ratio[o.fame] : ratio.small).push(o.perWeek / unit); } }
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
-  for (const f of [2, 3, 4, 5]) assert.ok(Math.abs(mean(ratio[f]) - R.FAME_PAY[f]) < 0.12, `Bekanntheit ${f}: ${mean(ratio[f])} statt ${R.FAME_PAY[f]}`);
+  for (const f of [2, 3, 4, 5]) assert.ok(Math.abs(mean(ratio[f]) - C.realPayRamp(R.FAME_PAY[f], 15)) < 0.12, `Bekanntheit ${f}: ${mean(ratio[f])} statt ${C.realPayRamp(R.FAME_PAY[f], 15)}`);   // Version 105: Aufschlag bei Status 15 erst zur Hälfte
   assert.ok(ratio.small.length > 20 && mean(ratio.small) < 0.65 && mean(ratio[5]) > mean(ratio[2]) * 1.4, `klein ${mean(ratio.small)}`);
   // --- Verträge: eine Branche, max. 5, Kündigen für Neue ---
   const offer = (name, extra = {}) => ({ name, branche: br(name), real: true, fame: 4, perWeek: 20, win: 10, s180: 0, major: 0, weeks: 3, length: 26, bonus: 0, card: 5, steps: 0, mood: 0, annoyed: false, done: false, ...extra });
@@ -2580,6 +2580,13 @@ test('New Star Darts v104: Sponsorengelder steigen flacher mit dem Status', asyn
   const C = await import('../js/career.js'), N = await import('../js/nsd.js');
   assert.deepEqual(C.SPONSOR_SLOPE, { star: 0.06, fans: 0.025 });
   assert.equal(C.sponsorGrowth(1), 1); assert.ok(Math.abs(C.sponsorGrowth(41) - 2) < 1e-9); assert.ok(C.sponsorGrowth(30) < N.starFactor(30));
+});
+
+test('New Star Darts v105: kein Sprung der Sponsorengelder ab Status 11 (echte Marken wachsen bis Status 20 auf ihren Faktor)', async () => {
+  const C = await import('../js/career.js'), R = await import('../data/sponsorsreal.js');
+  const f = R.FAME_PAY[3];
+  assert.ok(Math.abs(C.realPayRamp(f, 11) - (R.SMALL_PAY + 0.2 * (f - R.SMALL_PAY))) < 1e-9);
+  assert.ok(C.realPayRamp(f, 15) < C.realPayRamp(f, 18) && C.realPayRamp(f, 20) === f && C.realPayRamp(f, 40) === f);
 });
 
 console.log(`\n${n} Tests ok`);
