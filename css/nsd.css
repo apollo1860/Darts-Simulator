@@ -638,9 +638,12 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .tvsb-col { width: 30px; text-align: center; flex: none; }
 .tvsb-col.w { width: 48px; }
 .tvsb-row { background: #ececf1; color: #16182a; height: 25px; line-height: 25px; border-top: 1px solid #c4c5d0; }
-.tvsb-nine { width: 24px; flex: none; }
-.tvsb-nine.on { background: linear-gradient(180deg, #ffe27a 0, #f5b301 55%, #c98200 100%); color: #fff; font-weight: 800; font-size: 1.15rem; text-align: center;
-  text-shadow: 0 1px 2px rgba(0,0,0,.55); box-shadow: inset -1px 0 0 rgba(0,0,0,.25); animation: tvsbNine 1.2s ease-in-out infinite alternate; }
+.tvsb.nine { overflow: visible; }
+.tvsb.nine .tvsb-head { border-radius: 7px 7px 0 0; } .tvsb.nine .tvsb-foot { border-radius: 0 0 7px 7px; }
+.tvsb-row { position: relative; }
+.tvsb-nine { position: absolute; left: -26px; top: -1px; bottom: 0; width: 26px; border-radius: 5px 0 0 5px; text-align: center; font-weight: 800; font-size: 1.15rem; color: #fff;
+  background: linear-gradient(180deg, #ffe27a 0, #f5b301 55%, #c98200 100%); text-shadow: 0 1px 2px rgba(0,0,0,.55); box-shadow: -2px 2px 6px rgba(0,0,0,.45);
+  animation: tvsbNine 1.2s ease-in-out infinite alternate; }
 @keyframes tvsbNine { from { filter: brightness(1); } to { filter: brightness(1.25); } }
 .tvsb-ind { width: 18px; flex: none; text-align: center; color: #7a3fe0; font-size: .68rem; }
 .tvsb-name { flex: 1; min-width: 0; font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

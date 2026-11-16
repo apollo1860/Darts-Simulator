@@ -201,7 +201,7 @@ function tvBoard(thrower) {
   const m = ui.live.m, inst = ui.s.activeEvent, round = inst.rounds[inst.current], sets = !!m.format.sets;
   const row = i => {
     const t = inst.teams?.[ui.ids[i]], p = getPlayer(ui.s, ui.ids[i]);
-    const nine = ui.aim?.nine ? `<span class="tvsb-nine${i === ui.me ? ' on' : ''}">${i === ui.me ? '9' : ''}</span>` : '';   // 9-Darter im Gange (TV-Einblendung)
+    const nine = ui.aim?.nine && i === ui.me ? '<span class="tvsb-nine">9</span>' : '';   // 9-Darter im Gange: ragt links aus der Anzeige heraus (TV-Einblendung)
     return `<div class="tvsb-row">${nine}<span class="tvsb-ind">${thrower === i ? '▶' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
       <span class="tvsb-flag">${flag(t?.nation ?? p?.nation)}</span>${sets ? `<span class="tvsb-box">${m.sets[i]}</span>` : ''}<span class="tvsb-box">${m.legs[i]}</span><span class="tvsb-rem">${m.rem[i]}</span></div>`;
   };
@@ -209,7 +209,7 @@ function tvBoard(thrower) {
     ${row(ui.me)}${row(1 - ui.me)}
     <div class="tvsb-foot"><span class="tvsb-title">${inst.year ?? ui.s.date.year} ${esc(inst.name)}</span><span class="tvsb-logo">nsd<b>live</b></span></div>`;
 }
-const drawTv = () => { const el = ui?.aimEl.querySelector('#tvsb'); if (el) el.innerHTML = tvBoard(ui.live.m.done ? -1 : ui.live.m.turn); };
+const drawTv = () => { const el = ui?.aimEl.querySelector('#tvsb'); if (el) { el.innerHTML = tvBoard(ui.live.m.done ? -1 : ui.live.m.turn); el.classList.toggle('nine', !!ui.aim?.nine); } };
 const $ = id => ui.aimEl.querySelector(id);
 function mark(x, y, mine) {
   const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');

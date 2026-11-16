@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 117**: Die goldene „9“ ragt links aus der TV-Spielstandsanzeige heraus (absolut positioniert neben deiner Zeile, `.tvsb.nine` mit `overflow: visible`); die Zeilen selbst bleiben unverändert (kein leerer weißer Platz in der Gegnerzeile).
 - [x] **Version 116**: Während einer 9-Darter-Szene zeigt die TV-Spielstandsanzeige links in deiner Zeile eine goldene, leicht pulsierende „9“ (`.tvsb-nine`, `ui.aim.nine` = `nineAlive` zu Beginn der Aufnahme).
 - [x] **Version 115**: 9-Darter-Szenen: Nach einer perfekten ersten Aufnahme (170/171/174/177/180) wirfst du die 2. Aufnahme selbst und – solange der 9-Darter möglich bleibt (Rest ≤ 170, kein Bogey) – auch die 3. (`nineAlive`/`NINE_FIRST` in tournaments.js, Szene `nine` „✨ 9-DARTER MÖGLICH“). Immer extra: kein `sceneLeg`/`kmLeg`/Scoring-Zähler, unabhängig vom Einsatz; kein Spielmoment dazwischen. Ist die 3. Aufnahme zugleich Matchdart, heißt die Szene „Matchdarts“. Annahmen: 177 zählt mit (in der Nutzerliste fehlend, aber ebenfalls perfekt); nicht im Doppel (World Cup) und nicht unter 20 % Energie.
 - [x] **Version 114**: Lobby-Auslosung zeigt auch beim eigenen Spieler nur den Nachnamen (`short` in tourevent.js, `surname`).
