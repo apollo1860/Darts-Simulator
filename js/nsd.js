@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 102;
+export const APP_VERSION = 103;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -181,7 +181,7 @@ export const relLabelOf = (p, k) => partnerText(relLabel[k], p);
 // Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).
 export const STAR_PRIZE_WIN = {
   pc: 15, ws: 30, wsf: 100, et: 35, wcod: 100 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
-  wgp: 150, ec: 150, pcf: 130, gsod: 200, matchplay: 225, pln: 10, plf: 350, wm: 1000, challenge: 5, dev: 5, wos: 2.5, wwm: 10,   // Version 94: Youth-WM ohne Preisgeld
+  wgp: 150, ec: 150, pcf: 130, gsod: 200, matchplay: 225, pln: 10, plf: 350, wm: 1000, challenge: 5, dev: 5, wos: 5, wwm: 10,   // Version 103: Women's Series wie Dev Tour   // Version 94: Youth-WM ohne Preisgeld
 };
 export const STAR_SHARES = { F: 0.5, SF: 0.25, QF: 0.12, L16: 0.06, L32: 0.04, L64: 0.02, G3: 0.05, G4: 0.025 };
 export const EUR_PER_STAR = 1000;   // Umrechnung der vorbelegten Ranglisten (2025/26) beim Karrierestart
@@ -205,7 +205,6 @@ export const STAR_PRIZE_FIXED = {
   wm: { F: 400, SF: 200, QF: 100, L16: 60, L32: 35, L64: 25, L128: 15 },
   plf: { F: 170, SF: 110 },
   mastersq: { L16: 2.5, L32: 1, L64: 0.75 },
-  wos: { F: 1.25, SF: 0.8, QF: 0.5, L16: 0.3 },        // Women's Series (Version 101, Annahme)
   wwm: { F: 5, SF: 2.5, QF: 1.25 },                     // Women's World Matchplay   // Masters-Vorrunde: Geld erst ab der K.-o.-Phase (Letzte 64), Gruppenphase ohne
 };
 // Premier League: Platz 5–8 der Tabelle (Platz 1–4 spielen die Play-offs: 350/170/110)

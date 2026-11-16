@@ -4,7 +4,7 @@ export const PRIZES = {
   // Lokal: Sieger zufällig 50–200 €, Rest anteilig
   local: { winMin: 50, winMax: 200, shares: { F: 0.4, SF: 0.2 } },
   ddv:       { W: 350, F: 100 },
-  wos:       { W: 2500, F: 1250, SF: 800, QF: 500, L16: 300 },     // Version 101 (Annahme)
+  wos:       { W: 3000, F: 2000, SF: 1000, QF: 750, L16: 350, L32: 250, L64: 100 },   // Version 103: wie Dev Tour (Nutzerangabe)
   wwm:       { W: 10000, F: 5000, SF: 2500, QF: 1250 },
   wmqs:      {},
   wmreg:     {},                                    // kein Preisgeld, Sieg = WM-Platz

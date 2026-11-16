@@ -2547,7 +2547,8 @@ test('New Star Darts v100: Spielerinnen haben einen Freund statt einer Freundin'
 
 test("New Star Darts v101: Women's Series für Spielerinnen (Wochenenden, Rangliste, Women's World Matchplay), Noa-Lynn in der Challenge Tour", async () => {
   const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), C = await import('../js/calendar.js'), W = await import('../js/world.js'), D = await import('../data/tournaments.js');
-  assert.equal(D.CALENDAR.filter(e => e.cat === 'wos' && e.count === 4).length, 6); assert.ok(D.CALENDAR.find(e => e.id === 'wwm'));
+  assert.equal(D.CALENDAR.filter(e => e.cat === 'wos' && e.count === 4).length, 6);
+  assert.deepEqual(N.starPrizeTable('wos'), N.starPrizeTable('dev'));   // Version 103: Preisgeld wie Dev Tour assert.ok(D.CALENDAR.find(e => e.id === 'wwm'));
   const s = N.newRealCareer({ name: 'Fallon Sherrock', seed: 7 }), by = n => Object.values(s.world.players).find(p => p.name === n);
   assert.equal(by('Noa-Lynn van Leuven').tier, 'challenge'); assert.ok(!by('Noa-Lynn van Leuven').woman);
   assert.equal(by('Rhian O\'Sullivan').avg, 76.2); assert.equal(by('Nicole Porm').avg, 37.9); assert.ok(by('Beau Greaves').woman);
