@@ -8,7 +8,7 @@ import { flag } from '../../../../data/nations.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
-  keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy } from '../../../tournaments.js';
+  keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy, nineAlive } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
@@ -201,7 +201,8 @@ function tvBoard(thrower) {
   const m = ui.live.m, inst = ui.s.activeEvent, round = inst.rounds[inst.current], sets = !!m.format.sets;
   const row = i => {
     const t = inst.teams?.[ui.ids[i]], p = getPlayer(ui.s, ui.ids[i]);
-    return `<div class="tvsb-row"><span class="tvsb-ind">${thrower === i ? '▶' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
+    const nine = ui.aim?.nine ? `<span class="tvsb-nine${i === ui.me ? ' on' : ''}">${i === ui.me ? '9' : ''}</span>` : '';   // 9-Darter im Gange (TV-Einblendung)
+    return `<div class="tvsb-row">${nine}<span class="tvsb-ind">${thrower === i ? '▶' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
       <span class="tvsb-flag">${flag(t?.nation ?? p?.nation)}</span>${sets ? `<span class="tvsb-box">${m.sets[i]}</span>` : ''}<span class="tvsb-box">${m.legs[i]}</span><span class="tvsb-rem">${m.rem[i]}</span></div>`;
   };
   return `<div class="tvsb-head"><span class="tvsb-title">${esc(round.name)} – First to ${sets ? `${m.format.sets} Sets` : m.format.legs}</span>${sets ? '<span class="tvsb-col">Sets</span>' : ''}<span class="tvsb-col">Legs</span><span class="tvsb-col w"></span></div>
@@ -260,7 +261,7 @@ function showDart() {
 // ---------- Selbst werfen ----------
 function startAim(kind) {
   const m = ui.live.m;
-  ui.aim = { kind, phase: 'pick', target: null, prm: null, fx: 0, fy: 0, t0: 0, ph: 0, rng: new RNG(ui.s.rng) };
+  ui.aim = { kind, phase: 'pick', target: null, prm: null, fx: 0, fy: 0, t0: 0, ph: 0, rng: new RNG(ui.s.rng), nine: nineAlive(ui.s) };
   ui.aimEl.classList.remove('hidden');
   ui.aimEl.innerHTML = boardHtml(`🟢 DU WIRFST · ${KIND[kind]} · Rest <b id="rem">${m.rem[ui.me]}</b>`,
     `${TV_HTML}<div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>`, true);
