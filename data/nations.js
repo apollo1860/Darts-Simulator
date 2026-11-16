@@ -44,6 +44,7 @@ export const NATIONS = {
   CN: { name: 'China', flag: '🇨🇳' },
   IN: { name: 'Indien', flag: '🇮🇳' },
   HK: { name: 'Hongkong', flag: '🇭🇰' },
+  MO: { name: 'Macau', flag: '🇲🇴' },
   SG: { name: 'Singapur', flag: '🇸🇬' },
   BR: { name: 'Brasilien', flag: '🇧🇷' },
   MX: { name: 'Mexiko', flag: '🇲🇽' },

@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 95**: **Geprüfter Spielerpool** (Nutzerliste „Spielerpool_geprueft.xlsx“, 375 echte Spieler, Stichtag Alter 01.01.2026) übernommen: 17 Nationen geändert (u. a. Brendan Dolan NIR, Matej Cverha SK, Vicky Pruim SE, Kam Weng Chen Macau – neue Nation `MO`), 262 Alter korrigiert, Karibik/Lateinamerika und Afrika haben jetzt ein Alter. Das Alter zum Stichtag gilt als Alter im Spieljahr 2026 (Annahme; Spielstart KW 3). Listen in data/players.js stehen weiter auf Basis 2027 (+1), data/secondary.js und JDC auf 2026. Alte Spielstände: einmalig Nation + Alter (= Wert 2026 + Jahre seit 2026) für alle echten Spieler (`poolV` 95 in `migrate`). Test v95.
 - [x] **Version 94**: Sammelrunde (Nutzerwünsche):
   1. **Youth-WM** (KW 45) als Tourcard-Holder unter 24 jederzeit spielbar – auch in den PDC-Top-64 (`eligibility`: Ausnahme vor der Top-64-Sperre der Dev Tour). Kein Preisgeld mehr (`STAR_PRIZE_WIN.youth` entfernt), dafür Star-Status mit eigenem Gewicht `STAR_WEIGHT.youth` 1,3 (Annahme: zwischen ET 1,15 und Major 1,4) für Matchsiege und Titel; Meilenstein „Jugend-Weltmeister“ (`youthWm`); Artikel „JUGEND-WM“.
   2. **Grand Slam**: nur die 16 Gruppensieger kommen weiter – direkt ins Achtelfinale, keine Letzte 32 mehr (`buildGroupRounds`/`groupKoMatches`/`groupPlace` mit `adv` = 1, `inst.groupAdv`). Paarung A1–B1, C1–D1 … (Annahme). Gruppenzweite bekommen den früheren Letzte-32-Betrag (12,5, Platz `G2`), Dritte 5.

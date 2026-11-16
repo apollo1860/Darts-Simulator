@@ -2462,4 +2462,17 @@ test('New Star Darts v94: Youth-WM für U24-Holder, Grand Slam Gruppensieger, JD
   }
 });
 
+test('New Star Darts v95: geprüfter Spielerpool (Nation + Alter) – neue Karriere und alte Spielstände', async () => {
+  const N = await import('../js/nsd.js'), ST = await import('../js/state.js'), NA = await import('../data/nations.js');
+  const s = N.newNsdCareer({ first: 'P', last: 'L', nation: 'DE', age: 20, slot: 1, seed: 5 });
+  const by = n => Object.values(s.world.players).find(p => p.name === n);
+  assert.deepEqual([by('Luke Littler').nation, by('Luke Littler').age], ['ENG', 18]);
+  assert.deepEqual([by('Matej Cverha').nation, by('Kam Weng Chen').nation, by('Vicky Pruim').nation, by('Brendan Dolan').nation], ['SK', 'MO', 'SE', 'NIR']);
+  assert.equal(by('Jesus Salate').age, 43); assert.ok(NA.NATIONS.MO);
+  // alter Spielstand (Version < 95), zwei Jahre später: Nation/Alter werden korrigiert, Alter läuft mit
+  s.date.year = 2028; delete s.poolV; by('Luke Littler').age = 30; by('Brendan Dolan').nation = 'IRL';
+  ST.migrate(s);
+  assert.equal(by('Luke Littler').age, 20); assert.equal(by('Brendan Dolan').nation, 'NIR'); assert.equal(s.poolV, 95);
+});
+
 console.log(`\n${n} Tests ok`);
