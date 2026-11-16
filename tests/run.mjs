@@ -2472,7 +2472,7 @@ test('New Star Darts v95: geprüfter Spielerpool (Nation + Alter) – neue Karri
   // alter Spielstand (Version < 95), zwei Jahre später: Nation/Alter werden korrigiert, Alter läuft mit
   s.date.year = 2028; delete s.poolV; by('Luke Littler').age = 30; by('Brendan Dolan').nation = 'IRL';
   ST.migrate(s);
-  assert.equal(by('Luke Littler').age, 20); assert.equal(by('Brendan Dolan').nation, 'NIR'); assert.equal(s.poolV, 95);
+  assert.equal(by('Luke Littler').age, 20); assert.equal(by('Brendan Dolan').nation, 'NIR'); assert.equal(s.poolV, 97);
 });
 
 test('New Star Darts v96: ehemalige Tourcard-Holder in der Challenge Tour, neue Nebentour-Spieler – auch in alten Spielständen', async () => {
@@ -2490,6 +2490,19 @@ test('New Star Darts v96: ehemalige Tourcard-Holder in der Challenge Tour, neue 
   assert.equal(Object.values(s.world.players).filter(p => /^K\d+$/.test(p.id)).length, 18);
   assert.equal(by('Florian Hempel').age, 36); assert.ok(by('Simon Whitlock') && by('Paul Lim'));
   ST.migrate(s); assert.equal(Object.values(s.world.players).filter(p => p.name === 'Florian Hempel').length, 1, 'keine Doppelten');
+});
+
+test('New Star Darts v97: Alterskorrekturen der neuen Spieler – auch in alten Spielständen', async () => {
+  const N = await import('../js/nsd.js'), ST = await import('../js/state.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 7 });
+  const by = n => Object.values(s.world.players).find(p => p.name === n);
+  const want = { 'Danny Jansen': 23, 'Josh Payne': 32, 'Jitse van der Wal': 26, 'Dom Taylor': 27, 'Ryan Hogarth': 33, 'Dragutin Horvat': 49, 'Xiaochen Zong': 27, 'Danny Baggish': 42 };
+  for (const [n, a] of Object.entries(want)) assert.equal(by(n).age, a, n);
+  assert.equal(by('Danny Jansen').tier, 'dev');                         // mit 23 Development Tour
+  // alter Spielstand (Version 96) mit den bisherigen Werten
+  s.poolV = 95; by('Danny Jansen').age = 29; by('Danny Jansen').tier = 'challenge'; by('Xiaochen Zong').age = 35;
+  ST.migrate(s);
+  assert.deepEqual([by('Danny Jansen').age, by('Danny Jansen').tier, by('Xiaochen Zong').age], [23, 'dev', 27]);
 });
 
 console.log(`\n${n} Tests ok`);

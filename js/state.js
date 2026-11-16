@@ -2,7 +2,7 @@
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer } from './world.js';
-import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL } from '../data/players.js';
+import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL, CT_FORMER } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { scaleSponsorPay } from '../data/sponsorsreal.js';
 import { createRival } from './rival.js';
@@ -150,16 +150,16 @@ export function migrate(s) {
   addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
   for (const x of Object.values(s.world.players)) { if (NAME_FIXES[x.name]) x.name = NAME_FIXES[x.name]; if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name]; }
   // Version 95: geprüfter Spielerpool (Nutzerliste, Stichtag 01.01.2026) – Nation und Alter echter Spieler auch in bestehenden Spielständen
-  if ((s.poolV ?? 0) < 95) {
+  if ((s.poolV ?? 0) < 97) {   // Version 97: + ehemalige Holder (Alterskorrekturen)
     const pool = new Map();
-    for (const [n, nat, a] of [...TOUR_PLAYERS, ...CHALLENGE_PLAYERS.slice(0, -CT_FICTIONAL), ...DEV_PLAYERS]) if (typeof a === 'number') pool.set(n, [nat, a - 1]);   // Listenalter auf Basis 2027
+    for (const [n, nat, a] of [...TOUR_PLAYERS, ...CHALLENGE_PLAYERS.slice(0, -CT_FICTIONAL), ...DEV_PLAYERS, ...CT_FORMER]) if (typeof a === 'number') pool.set(n, [nat, a - 1]);   // Listenalter auf Basis 2027
     for (const [n, nat, a] of JDC_TALENTS) pool.set(n, [nat, a]);
     for (const c of Object.values(SECONDARY)) for (const [n, nat, a] of c.players) if (typeof a === 'number') pool.set(n, [nat, a]);
     for (const x of Object.values(s.world.players)) {
       const v = !x.rival && pool.get(x.name);
-      if (v) { x.nation = v[0]; x.age = v[1] + (s.date.year - 2026); }
+      if (v) { x.nation = v[0]; x.age = v[1] + (s.date.year - 2026); if (x.tier === 'challenge' && x.age <= 23) x.tier = 'dev'; }
     }
-    s.poolV = 95;
+    s.poolV = 97;
   }
   // Version 94: JDC-Talente – vorhandener Lewis Cook (Dev-Liste) bekommt sein Potenzial, fehlende Talente ab 16 kommen dazu
   for (const x of Object.values(s.world.players)) { const j = JDC_TALENTS.find(t => t[0] === x.name); if (j && !x.potential) { x.potential = j[4]; x.jdc = true; } }

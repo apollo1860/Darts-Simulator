@@ -7,11 +7,11 @@ export const SECONDARY = {
     ['Fallon Sherrock', 'ENG', 31], ['Noa-Lynn van Leuven', 'NL', 29], ['Lisa Ashton', 'ENG', 55], ['Mikuru Suzuki', 'JP', 43],
     ['Gemma Hayter', 'ENG', 32], ['Vicky Pruim', 'SE', 51], ['Aileen de Graaf', 'NL', 35], ['Robyn Byrne', 'IRL', 28], ['Lorraine Winstanley', 'ENG', 50]] },
   asia: { label: 'PDC Asian Tour', avgTop: 89, players: [
-    ['Paolo Nebrida', 'PH', 31], ['Ryuta Arihara', 'JP', 37], ['Lourence Ilagan', 'PH', 47], ['Christian Perez', 'PH', 43], ['Xiaochen Zong', 'CN', 35],
+    ['Paolo Nebrida', 'PH', 31], ['Ryuta Arihara', 'JP', 37], ['Lourence Ilagan', 'PH', 47], ['Christian Perez', 'PH', 43], ['Xiaochen Zong', 'CN', 27],
     ['Haruki Muramatsu', 'JP', 48], ['Alexis Toylo', 'PH', 33], ['Paul Lim', 'SG', 71], ['Lok Yin Lee', 'HK', 24], ['Ryusei Azemoto', 'JP', 30],
     ['Man Lok Leung', 'HK', 26], ['Tomoya Goto', 'JP', 29], ['Motomu Sakai', 'JP', 28], ['Kam Weng Chen', 'MO', 32], ['Nitin Kumar', 'IN', 40]] },
   cdc: { label: 'CDC ProTour (Nordamerika)', avgTop: 88, players: [
-    ['Danny Lauby', 'US', 33], ['Danny Baggish', 'US', 39], ['Jeff Smith', 'CA', 50], ['Matt Campbell', 'CA', 36], ['Adam Sevada', 'US', 40], ['Fred Krueger', 'US', 40],
+    ['Danny Lauby', 'US', 33], ['Danny Baggish', 'US', 42], ['Jeff Smith', 'CA', 50], ['Matt Campbell', 'CA', 36], ['Adam Sevada', 'US', 40], ['Fred Krueger', 'US', 40],
     ['Brayden Hall', 'CA', 22], ['David Cameron', 'CA', 56], ['Dawson Murschell', 'CA', 30], ['Leonard Gates', 'US', 55], ['Alex Spellman', 'US', 37], ['Jules van Dongen', 'US', 35], ['Stowe Buntz', 'US', 46]] },
   dpa: { label: 'DPA ProTour (Australien)', avgTop: 87, players: [
     ['Simon Whitlock', 'AU', 56], ['Joe Comito', 'AU', 44], ['Raymond Smith', 'AU', 46], ['Mal Cuming', 'AU', 49], ['Tim Pusey', 'AU', 33],
