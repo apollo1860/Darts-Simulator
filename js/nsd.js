@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 121;
+export const APP_VERSION = 122;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -178,7 +178,7 @@ const MALE_PARTNER = [['Noch keine Freundin', 'Noch kein Freund'], ['Eine Freund
   ['Sie scheint sich', 'Er scheint sich'], ['Sie lacht dich aus und geht zu ihren Freundinnen zurück', 'Er lacht dich aus und geht zu seinen Kumpels zurück'],
   ['sie ist begeistert', 'er ist begeistert'], ['sie hat mich beruhigt', 'er hat mich beruhigt'], ['sonst sieht sie mich nie', 'sonst sieht er mich nie'], ['Freundin', 'Freund']];
 export const partnerText = (t, p) => (p?.woman && typeof t === 'string' ? MALE_PARTNER.reduce((s, [a, b]) => s.replaceAll(a, b), t) : t);
-export const relLabelOf = (p, k) => partnerText(relLabel[k], p);
+export const relLabelOf = (p, k) => (k === 'partner' && p.married ? (p.woman ? 'Ehemann' : 'Ehefrau') : partnerText(relLabel[k], p));   // Version 122: verheiratet
 
 // ---- Sterne-Preisgeld (Basis = Status 1; Auszahlung × starFactor) ----
 // Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).

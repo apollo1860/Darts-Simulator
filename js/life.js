@@ -132,7 +132,7 @@ export function applyEffects(state, e) {
   if (e.sat) { p.satisfaction = clamp((p.satisfaction ?? 50) + e.sat, 0, 100); out.push(`Zufriedenheit ${sign(e.sat)}`); }
   const rel = v => Math.max(-2, Math.min(2, v));        // Ereignisse: Beziehungen höchstens ±2
   if (e.fans) { addFans(p, rel(e.fans)); out.push(`Fans ${sign(rel(e.fans))}`); }
-  if (e.meet) { p.partnerName = state.lifeEvent?.name ?? p.partnerName; p.rel.partner = e.meet; out.push(partnerText(`Freundin: ${p.partnerName}`, p)); }
+  if (e.meet) { p.partnerName = state.lifeEvent?.name ?? p.partnerName; p.rel.partner = e.meet; p.partnerSince = absWeek(state); p.married = null; out.push(partnerText(`Freundin: ${p.partnerName}`, p)); }
   if (e.partner && p.rel.partner > 0) { addRel(p, 'partner', rel(e.partner)); out.push(`${p.partnerName ?? partnerText('Freundin', p)} ${sign(rel(e.partner))}`); }
   for (const k of ['manager', 'sponsors']) if (e[k] && p.rel[k] > 0) { addRel(p, k, rel(e[k])); out.push(`${k === 'manager' ? 'Manager' : 'Sponsoren'} ${sign(rel(e[k]))}`); }
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
@@ -161,15 +161,30 @@ export function resolveLifeEvent(state, idx, rng) {
   return { text: fill(text, { partnerName: p.partnerName ?? name, woman: p.woman }), changes };
 }
 export function breakUp(state, news = true) {
-  const p = state.player, name = p.partnerName ?? partnerText('Deine Freundin', p);
-  p.rel.partner = 0; p.partnerName = null;
-  if (news) addNews(state, 'info', `💔 ${name} hat Schluss gemacht`, 'Die Beziehung ist vorbei. Zu wenig Zeit füreinander …');
+  const p = state.player, name = p.partnerName ?? partnerText('Deine Freundin', p), wed = !!p.married;
+  p.rel.partner = 0; p.partnerName = null; p.partnerSince = null; p.married = null;
+  if (news) addNews(state, 'info', wed ? `💔 Scheidung von ${name}` : `💔 ${name} hat Schluss gemacht`, wed ? 'Die Ehe ist gescheitert. Zu wenig Zeit füreinander …' : 'Die Beziehung ist vorbei. Zu wenig Zeit füreinander …');
+}
+// ---- Hochzeit (Version 122): möglich bei Beziehung 100 und mehr als einem Jahr zusammen; kostet immer 1.500 ★ (kein Status-Faktor) ----
+export const WEDDING_COST = 1500, WEDDING_WEEKS = 52, WEDDING_SAT = 15;
+export const weeksTogether = state => (state.player.partnerName && state.player.partnerSince != null ? absWeek(state) - state.player.partnerSince : 0);
+export const canMarry = state => { const p = state.player; return !!p.partnerName && !p.married && (p.rel.partner ?? 0) >= 100 && weeksTogether(state) > WEDDING_WEEKS; };
+export function marry(state) {
+  const p = state.player;
+  if (!canMarry(state)) throw new Error('Heiraten ist gerade nicht möglich');
+  if ((state.stars ?? 0) < WEDDING_COST) throw new Error('Nicht genug ★');
+  state.stars = Math.round((state.stars - WEDDING_COST) * 10) / 10;
+  p.married = { year: state.date.year, week: state.date.week };
+  p.satisfaction = clamp((p.satisfaction ?? 50) + WEDDING_SAT, 0, 100);
+  addNews(state, 'star', `💍 Hochzeit mit ${p.partnerName}!`, `Ihr habt euch das Ja-Wort gegeben. Zufriedenheit +${WEDDING_SAT}. Kosten: ${WEDDING_COST} ★.`);
+  checkAchievements(state);
 }
 
 // Wöchentlich (Tour-Modus): Freundin will Zeit (−1), Zufriedenheit nähert sich dem Ziel, Ereignis-Karte, Erfolge
 export function lifeWeek(state, rng) {
   const p = state.player;
-  if (p.rel.partner > 0) { addRel(p, 'partner', -1); if (p.rel.partner <= 0) breakUp(state); }
+  if (p.partnerName && p.partnerSince == null) p.partnerSince = absWeek(state);   // ältere Spielstände: Beziehung zählt ab jetzt
+  if (p.rel.partner > 0 && !(p.married && absWeek(state) % 2)) { addRel(p, 'partner', -1); if (p.rel.partner <= 0) breakUp(state); }   // verheiratet: nur jede 2. Woche −1
   upkeepWeek(state, rng);
   const s = p.satisfaction ?? 50;
   p.satisfaction = Math.round(clamp(s + (satisfactionTarget(p) - s) * 0.08, 0, 100) * 10) / 10;   // langsam

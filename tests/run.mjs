@@ -2728,4 +2728,23 @@ test('New Star Darts v121: Brass Dart + Standard-Flight immer im Besitz, Paulke 
   }
 });
 
+test('New Star Darts v122: Hochzeit bei Beziehung 100 und über 1 Jahr zusammen, immer 1.500 ★', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js');
+  const s = N.newNsdCareer({ first: 'H', last: 'Z', nation: 'DE', age: 25, slot: 1, seed: 61 }), p = s.player;
+  assert.equal(L.canMarry(s), false);
+  p.partnerName = 'Lena'; p.rel.partner = 100; p.partnerSince = s.date.year * 52 + s.date.week - 40;
+  assert.equal(L.canMarry(s), false, 'noch kein Jahr');
+  p.partnerSince -= 13; p.rel.partner = 99; assert.equal(L.canMarry(s), false, 'Beziehung < 100');
+  p.rel.partner = 100; assert.equal(L.canMarry(s), true);
+  p.star.level = 40; s.stars = 1499; assert.throws(() => L.marry(s), /Nicht genug/);
+  s.stars = 2000; L.marry(s); assert.equal(s.stars, 500, 'fester Preis unabhängig vom Status'); assert.ok(p.married);
+  assert.equal(N.relLabelOf(p, 'partner'), 'Ehefrau'); assert.equal(L.canMarry(s), false);
+  p.woman = true; assert.equal(N.relLabelOf(p, 'partner'), 'Ehemann'); p.woman = false;
+  // verheiratet: Beziehung sinkt nur jede zweite Woche
+  const r0 = p.rel.partner; for (let w = 0; w < 4; w++) { s.date.week = 10 + w; L.lifeWeek(s, new RNG(w)); }
+  assert.equal(r0 - p.rel.partner, 2);
+  L.breakUp(s); assert.equal(p.married, null); assert.equal(p.partnerName, null);
+  assert.ok(s.news.some(n => /Scheidung/.test(n.title)));
+});
+
 console.log(`\n${n} Tests ok`);
