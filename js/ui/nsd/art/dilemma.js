@@ -1,19 +1,22 @@
 // Kleine Szenen für die Dilemma-Entscheidungen (Version 107, eigene SVGs, 160 × 100)
 import { art, WIDE, shadow, OUT } from './core.js';
 
-const stands = lin => `<rect width="160" height="44" fill="${lin('st', ['#7a5a3c', '#4b3523'])}"/>${Array.from({ length: 6 }, (_, i) => `<rect y="${6 + i * 6}" width="160" height="2" fill="#000" opacity=".18"/>`).join('')}
-  <rect y="44" width="160" height="4" fill="#cfd6dc"/><rect y="48" width="160" height="52" fill="${lin('pi', ['#58b04a', '#3b8a33'])}"/>
-  ${[0, 1, 2, 3].map(i => `<rect x="${i * 44 - 10}" y="48" width="22" height="52" fill="#fff" opacity=".07"/>`).join('')}`;
+// Neutraler Hintergrund: Veranstaltungshalle mit Scheinwerfern und Zuschauer-Silhouetten
+const stands = (lin, rad) => `<rect width="160" height="100" fill="${lin('hw', ['#2a2350', '#151226'])}"/>
+  <path d="M28 0 L4 100 H52Z M132 0 L108 100 H156Z" fill="#fff6c8" opacity=".09"/>
+  ${[[18, 14, 3], [46, 8, 2], [74, 18, 2.5], [104, 10, 2], [140, 16, 3], [60, 30, 1.6], [124, 32, 1.8]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#ffd36e" opacity=".55"/>`).join('')}
+  <ellipse cx="80" cy="96" rx="90" ry="34" fill="${rad('gl', ['#6a4fd0', '#6a4fd000'])}" opacity=".5"/>
+  ${Array.from({ length: 12 }, (_, i) => `<circle cx="${i * 14 + 4}" cy="${86 + (i % 2) * 3}" r="7" fill="#0c0a18"/><rect x="${i * 14 - 5}" y="${90 + (i % 2) * 3}" width="18" height="14" rx="6" fill="#0c0a18"/>`).join('')}`;
 
 const DRAW = {
   // Fans: Autogramm auf den Block
-  autograph: ({ lin }) => `${stands(lin)}
+  autograph: ({ lin, rad }) => `${stands(lin, rad)}
     <g transform="rotate(-14 80 64)"><rect x="56" y="38" width="48" height="56" rx="3" fill="${lin('pa', ['#fff8e2', '#f0e2b8'])}" stroke="${OUT}" stroke-width="1.2"/>
     ${[0, 1, 2, 3, 4, 5].map(i => `<circle cx="${62 + i * 7.5}" cy="38" r="2.2" fill="none" stroke="#5b5b5b" stroke-width="1.4"/>`).join('')}
     <path d="M64 70 q6 -16 9 -2 q3 10 7 -6 q2 -6 5 4 q2 6 8 -2" fill="none" stroke="#1d2430" stroke-width="2" stroke-linecap="round"/></g>
     <g transform="rotate(32 108 52)"><rect x="104" y="22" width="5" height="44" rx="2" fill="#26292e"/><path d="M104 66 l2.5 6 l2.5 -6z" fill="#26292e"/></g>`,
   // Fans: Selfie mit Fans
-  selfie: ({ lin }) => `${stands(lin)}
+  selfie: ({ lin, rad }) => `${stands(lin, rad)}
     <rect x="52" y="18" width="56" height="78" rx="8" fill="#1d2430"/><rect x="56" y="24" width="48" height="64" rx="3" fill="${lin('sc', ['#8fd0ff', '#d9f1ff'])}"/>
     ${[[70, 52, '#f2b48a', '#e74c3c'], [90, 50, '#d99a6c', '#2e86de'], [80, 64, '#f6c9a2', '#f1c40f']].map(([x, y, sk, sh]) => `<rect x="${x - 8}" y="${y + 6}" width="16" height="14" rx="5" fill="${sh}"/><circle cx="${x}" cy="${y}" r="7" fill="${sk}"/><path d="M${x - 3} ${y + 2} q3 3 6 0" stroke="#5a3a22" stroke-width="1.2" fill="none"/>`).join('')}
     <circle cx="80" cy="21" r="1.6" fill="#555"/><path d="M118 20 l6 -6 M122 28 l8 -2 M116 12 l2 -8" stroke="#fff27a" stroke-width="2.5" stroke-linecap="round"/>`,

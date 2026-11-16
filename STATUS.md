@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 110**: Dilemma-Grafiken „Autogramme“ und „Selfies“ mit neutralem Hallen-Hintergrund (Scheinwerfer, Lichter, Zuschauer-Silhouetten) statt Tribüne mit Rasen (Nutzerwunsch: kein Fußball-Bezug).
 - [x] **Version 109**: Dilemma-Grafiken „Autogramme“ und „Strategiegespräch“ ohne Hände (waren schlecht erkennbar, Nutzerwunsch).
 - [x] **Version 108**: Einsatz bleibt bis zur manuellen Änderung (die Anzeige sprang nach einer Spielszene auf alte Leisten-HTML zurück, `normalBar` setzt das Symbol jetzt aus `live.effort`); jedes neue Match startet mit 2 Herzen. Kleiner Energie-Balken im Scoreboard unter dem Format (`.dc-energy`, `liveEnergy` in tournaments.js = Energie − bisheriger Verbrauch nach gespielten Legs × Einsatz-Faktor), sinkt animiert nach jedem Leg, rot unter 20 %. Der echte Abzug erfolgt weiterhin am Matchende.
 - [x] **Version 107**: Zwei Elemente aus dem Vorbild (Nutzerwunsch):
