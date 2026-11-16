@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 105;
+export const APP_VERSION = 106;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -31,7 +31,10 @@ export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
 // ganze ★, aufgerundet (gilt nicht für Getränke – die haben seit Version 78 den eigenen Schlüssel `drinkFactor`, unten)
 export const PRICE_STEP = 0.25;
 export const priceFactor = (level = 1) => 1 + PRICE_STEP * (Math.max(1, level) - 1);
-export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * priceFactor(level) * 100) / 100));
+// Version 106 (Nutzerwunsch): alle mit dem Status wachsenden Preise (Darts, Zubehör/Flights, Geschenke, Ereignis-Kosten, Fitnesstrainer) × 1,25,
+// Getränke × 1,25 (Bier bei Status 1 bleibt 1 ★, bei Status 40 150 statt 120 ★). Lifestyle-Preise bleiben fest.
+export const PRICE_MULT = 1.25, DRINK_MULT = 1.25;
+export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * priceFactor(level) * PRICE_MULT * 100) / 100));
 // Getränke-Preisschlüssel (Version 78, Nutzerwunsch): Bier Status 1 = 1 ★, Status 40 = 120 ★. Bis Status 40 wächst der Faktor geometrisch
 // (120^((Stufe−1)/39) ≈ +13,06 % je Stufe; Status 11 ≈ 3,4, 21 ≈ 11,6, 30 ≈ 35), danach +5 % je Stufe (wie die Einnahmen), sonst wären es bei Status 100 > 190.000 ★.
 // Gilt nur für Getränke (Bier 1 / Schnaps 3 / Wodka 5 Basis-★); alle anderen Preise laufen weiter über `priceFactor`.

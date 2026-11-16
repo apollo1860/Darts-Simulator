@@ -962,7 +962,7 @@ test('New Star Darts: Karrierestart mit Tourcard, Fähigkeiten 0–60, Tour-Modu
   assert.equal(N.skillValue(p, 'sco'), 3); assert.equal(p.attrs.sco, A(3)); assert.equal(N.skillLevel(p, 'fin'), 1);
   p.skills.sco = Array(20).fill(3); N.syncAttrs(p); assert.equal(p.attrs.sco, 100);           // 60 = Weltspitze
   p.star.level = 80; assert.equal(N.mentalOf(p), 60);                                         // Mental max. 60
-  assert.equal(N.starFactor(1), 1); assert.equal(N.starFactor(21), 2); assert.equal(N.starPrice(20, 21), 120);   // Einnahmen +5 %, Preise +25 % je Stufe
+  assert.equal(N.starFactor(1), 1); assert.equal(N.starFactor(21), 2); assert.equal(N.starPrice(20, 21), 150);   // Einnahmen +5 %, Preise +25 % je Stufe (Version 106: × 1,25)
   // keine lokalen/Amateur-Turniere, Pro Tour spielbar
   const w1 = eventsInWeek(s, 2026, 1);
   assert.ok(w1.some(e => e.cat === 'local') && !w1.filter(e => shownTo(s, e)).some(e => e.cat === 'local'));
@@ -1064,8 +1064,8 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   assert.equal(r.rel, 'fans'); assert.equal(p.rel.fans, fans + 1);
   assert.throws(() => T.drink(s, 'schnaps', rng));
   // Version 78: Getränke-Schlüssel – Bier Status 1 = 1 ★, Status 40 = 120 ★ (Schnaps ×3, Wodka ×5), danach +5 %/Stufe
-  assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 120);
-  assert.equal(T.drinkPrice({ price: 3 }, 40), 360); assert.equal(T.drinkPrice({ price: 5 }, 40), 600); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 120 ** (20 / 39)));
+  assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 150);   // Version 106: Getränke × 1,25
+  assert.equal(T.drinkPrice({ price: 3 }, 40), 450); assert.equal(T.drinkPrice({ price: 5 }, 40), 750); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 1.25 * 120 ** (20 / 39)));
   let prev = 0; for (let l = 1; l <= 100; l++) { const f = N.drinkFactor(l); assert.ok(f > prev, `Faktor steigt (${l})`); prev = f; }
   assert.ok(Math.abs(N.drinkFactor(41) / N.drinkFactor(40) - 1.05) < 1e-9); assert.ok(N.drinkFactor(100) < 2500);
   // Version 81: höchstens 25 je Sorte gleichzeitig
@@ -1074,7 +1074,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
     const before = q.stars; assert.throws(() => T.buyDrink(q, 'beer')); assert.equal(q.stars, before, 'kein Geld abgebucht');
     T.drink(q, 'beer', new RNG(1)); assert.equal(q.player.drinks.beer, 24); T.buyDrink(q, 'beer'); assert.equal(q.player.drinks.beer, 25);
     const r = N.newNsdCareer({ first: 'D', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 5 }); r.stars = 1e6; T.buyDrink(r, 'schnaps', 20); T.buyDrink(r, 'schnaps', 5); assert.equal(r.player.drinks.schnaps, 25); assert.throws(() => T.buyDrink(r, 'schnaps', 1)); }
-  p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 380); p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
+  p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 350);   // Version 106: Bier bei Status 40 = 150 ★ p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
   // Darts: Bonus solange ausgerüstet
   s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 3 + 3 + 2);
   T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, A(5));
@@ -1110,7 +1110,7 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   // Ereignisse: Bedingungen, Kosten, Zufall
   for (const e of LIFE_EVENTS) for (const o of e.opts) assert.ok(o.label && (o.out || o.chance), e.id);
   s.lifeEvent = { id: 'meet', name: 'Lena' };
-  const v = L.lifeEventView(s); assert.ok(v.text.includes('Lena') && v.opts[0].cost === 2);
+  const v = L.lifeEventView(s); assert.ok(v.text.includes('Lena') && v.opts[0].cost === N.starPrice(2, s.player.star.level));
   let r; do { s.stars = 1000; s.lifeEvent = { id: 'meet', name: 'Lena' }; r = L.resolveLifeEvent(s, 0, rng); } while (!(p.rel.partner > 0));
   assert.equal(p.partnerName, 'Lena'); assert.equal(s.lifeEvent, null); assert.ok(s.achievements.love);
   assert.ok(LIFE_EVENTS.find(e => e.id === 'dinner').if(p));
@@ -1645,7 +1645,7 @@ test('New Star Darts v53: Preis im Ereignis-Text = Preis im Knopf', async () => 
   const jackpot = L.eventById('scratch').opts[0].chance.ok;
   for (const lvl of [1, 11, 30]) {
     s.player.star.level = lvl; s.stars = 0; L.applyEffects(s, jackpot);
-    assert.equal(s.stars, Math.round(20 * N.priceFactor(lvl)));
+    assert.equal(s.stars, Math.round(20 * N.priceFactor(lvl) * N.PRICE_MULT));   // Version 106: wächst mit den Preisen (× 1,25)
     assert.ok(0.05 * s.stars >= N.starPrice(1, lvl) - 1 && 0.05 * s.stars <= N.starPrice(1, lvl), `Status ${lvl}: EW ${0.05 * s.stars} vs Preis ${N.starPrice(1, lvl)}`);
   }
 });
@@ -2587,6 +2587,12 @@ test('New Star Darts v105: kein Sprung der Sponsorengelder ab Status 11 (echte M
   const f = R.FAME_PAY[3];
   assert.ok(Math.abs(C.realPayRamp(f, 11) - (R.SMALL_PAY + 0.2 * (f - R.SMALL_PAY))) < 1e-9);
   assert.ok(C.realPayRamp(f, 15) < C.realPayRamp(f, 18) && C.realPayRamp(f, 20) === f && C.realPayRamp(f, 40) === f);
+});
+
+test('New Star Darts v106: variable Preise × 1,25, Top-Manager bringt keinen großen Sponsorensprung mehr', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js'), TM = await import('../data/team.js');
+  assert.equal(N.PRICE_MULT, 1.25); assert.equal(N.starPrice(10, 1), 13); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 150);
+  assert.equal(TM.MANAGERS.find(m => m.id === 'm3').mult, 1.9);
 });
 
 console.log(`\n${n} Tests ok`);

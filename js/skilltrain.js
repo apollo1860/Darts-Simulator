@@ -1,6 +1,6 @@
 // New Star Darts (DOM-frei): Training per Minispiel, Einstufung, Formverlust, Getränke, Darts-Shop.
 // Jede trainierbare Fähigkeit: 20 Level × max. 3 Punkte. Erfolg im 1./2./3. Versuch → 3/2/1 Punkte (Level behält das Beste).
-import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, drinkFactor, addEnergy, addRel, relLabel } from './nsd.js';
+import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, drinkFactor, addEnergy, addRel, relLabel, DRINK_MULT } from './nsd.js';
 import { DRINKS, DARTS, DRINK_MAX } from '../data/gear.js';
 import { FLIGHT_NAMES, BARREL_NAMES, SHOP_WEEKS } from '../data/accessories.js';
 import { RNG } from './rng.js';
@@ -119,7 +119,7 @@ export const decayRisk = p => TRAINABLE.filter(t => (p.idle?.[t.key] ?? 0) >= de
 
 // ---- Getränke ----
 // Version 78: eigener Preisschlüssel `drinkFactor` (Bier Status 40 = 120 ★), ganze ★
-export const drinkPrice = (d, level) => Math.max(1, Math.round(d.price * drinkFactor(level)));
+export const drinkPrice = (d, level) => Math.max(1, Math.round(d.price * drinkFactor(level) * DRINK_MULT));   // Version 106: × 1,25
 export function buyDrink(state, id, n = 1) {
   const d = DRINKS.find(x => x.id === id), cost = drinkPrice(d, state.player.star.level) * n;
   if ((state.player.drinks[id] ?? 0) + n > DRINK_MAX) throw new Error(`Höchstens ${DRINK_MAX} ${d.name} gleichzeitig`);   // Vorrat begrenzt (auch ältere Spielstände mit mehr: nur nicht weiter kaufen)

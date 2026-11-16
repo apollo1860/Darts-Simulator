@@ -75,6 +75,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 102**: Women's Series in KW 6/12/20/25/34/41 (Hildesheim, Wigan, Leicester, Wigan, Leicester, Wigan); nur Spielerinnen außerhalb der PDC-Top-64.
 - **Version 104**: Sponsorengelder flacher: `SPONSOR_SLOPE` (Status 0,06, Fans 0,025) in `sponsorBase`, `sponsorGrowth` (+2,5 %/Stufe) statt `starFactor` bei Angeboten (career.js).
 - **Version 105**: `realPayRamp` (career.js): Bekanntheits-Aufschlag echter Marken wächst von Status 11 (20 %) bis 20 (voll) – kein Sprung mehr bei Status 11.
+- **Version 106**: `PRICE_MULT`/`DRINK_MULT` 1,25 (nsd.js) auf alle variablen Preise (starPrice, drinkPrice, Fitnesstrainer); Manager Stufe 3 `mult` 1,9.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

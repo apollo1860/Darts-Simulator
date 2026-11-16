@@ -7,7 +7,7 @@ import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS, CONTROVERSY_KINDS, CONTROVERSY_PARAMS } from '../data/controversial.js';
 import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS, SPONSOR_PAY, scaleSponsorPay } from '../data/sponsorsreal.js';
-import { starPrice, starPayout, starFactor, priceFactor, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
+import { starPrice, starPayout, starFactor, priceFactor, PRICE_MULT, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { getPlayer } from './world.js';
@@ -58,7 +58,7 @@ export const OFFER_WEEKS = 12;
 export function trainerOffers(state, rng = new RNG(state.rng)) {
   const t = team(state);
   if (!t.trainerOffers || weekIndex(state) >= (t.offersUntil ?? 0)) {
-    const used = new Set(), f = priceFactor(state.player.star.level);
+    const used = new Set(), f = priceFactor(state.player.star.level) * PRICE_MULT;   // Version 106: × 1,25
     t.trainerOffers = Array.from({ length: 3 }, (_, i) => {
       const regen = rng.int(4, 20), weeks = rng.pick([4, 6, 8, 10, 12]);
       return { id: `f${weekIndex(state)}-${i}`, icon: rng.pick(TRAINER_ICONS), regen, weeks,

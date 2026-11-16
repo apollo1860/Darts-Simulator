@@ -2,7 +2,7 @@
 import { LIFESTYLE } from '../data/lifestyle.js';
 import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M } from '../data/lifeevents.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
-import { starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE, partnerText } from './nsd.js';
+import { starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE, partnerText, PRICE_MULT } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { RNG } from './rng.js';
@@ -121,7 +121,7 @@ export function applyEffects(state, e) {
   const p = state.player, out = [];
   const lvl = p.star.level, sign = v => (v > 0 ? `+${v}` : `${v}`);
   if (e.stars) {
-    const v = e.stars > 0 ? (e.priced ? Math.max(1, Math.round(e.stars * priceFactor(lvl))) : starPayout(e.stars, lvl)) : -starPrice(-e.stars, lvl);   // priced: Gewinn wächst wie der Einsatz
+    const v = e.stars > 0 ? (e.priced ? Math.max(1, Math.round(e.stars * priceFactor(lvl) * PRICE_MULT)) : starPayout(e.stars, lvl)) : -starPrice(-e.stars, lvl);   // priced: Gewinn wächst wie der Einsatz
     state.stars = Math.max(0, (state.stars ?? 0) + v); out.push(`${sign(v)} ★`);
   }
   if (e.energy) { addEnergy(p, e.energy); out.push(`Energie ${sign(e.energy)} %`); }
