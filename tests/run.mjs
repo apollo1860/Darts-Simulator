@@ -367,7 +367,7 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   assert.equal(Object.keys(q.wmReg).length, 21); assert.equal(Object.values(q.wmReg).flat().length, 22); assert.ok(q.wmYouth);   // 21 Qualifier, Asian Championship 2
   for (const [c, n] of Object.entries({ asia: 5, cdc: 2, nb: 2, dpa: 1, dpnz: 1 })) assert.ok(q.wm.filter(id => getPlayer(s, id)?.circuit === c).length >= n);
   assert.equal(q.wm.filter(id => getPlayer(s, id)?.circuit === 'women').length, 4);   // Women's Series Platz 2–5 (Beau Greaves kommt über Tour/Dev Tour)
-  assert.ok(!q.wm.includes(secondaryOrder(s, 'women', 2027)[0]));
+  assert.ok(!q.wm.includes((s.world.secOrders?.['women|2027'] ?? secondaryOrder(s, 'women', 2027))[0]));   // v138: eingefrorene Reihenfolge (Nr. 1 kann danach zurücktreten)
   assert.ok(q.wmReg.uki.every(id => ['ENG', 'SCO', 'WAL', 'NIR', 'IRL'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wm.slice(0, 32).every((id, i) => id === q.wmAuto[i]));                       // Top 32 PDC gesetzt
@@ -2971,6 +2971,23 @@ test('New Star Darts v137: World Series – 8 PDC-Einladungen (meist Premier Lea
     if (ev.id === 'ws-nz') assert.ok(nz >= 4, `NZ Masters: ${nz} Neuseeländer`);
     if (ev.id === 'ws-aus') assert.ok(nz >= 1, `Australian Masters: ${nz} Neuseeländer`);
   }
+});
+
+test('New Star Darts v138: Nebentour-Spieler altern, treten zurück und werden ersetzt (Niveau stabil)', async () => {
+  const N = await import('../js/nsd.js'), W = await import('../js/world.js'), S = await import('../data/secondary.js'), { RNG } = await import('../js/rng.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 5 }), rng = new RNG(9);
+  const act = c => Object.values(s.world.players).filter(p => p.tier === 'secondary' && p.circuit === c);
+  const mean = c => act(c).reduce((x, p) => x + p.avg, 0) / act(c).length;
+  const before = Object.fromEntries(Object.keys(S.SECONDARY).map(c => [c, mean(c)]));
+  for (let y = 0; y < 20; y++) { W.developSecondary(s, rng, 2026 + y); for (const p of Object.values(s.world.players)) p.age++; }
+  const lim = Object.values(s.world.players).find(p => p.name === 'Paul Lim');
+  assert.equal(lim?.tier, 'retired', 'Paul Lim hört irgendwann auf');
+  for (const [c, def] of Object.entries(S.SECONDARY)) {
+    assert.ok(act(c).length >= def.players.length, `${c}: Pool voll (${act(c).length})`);
+    assert.ok(Math.abs(mean(c) - before[c]) < 4, `${c}: Niveau stabil (${before[c].toFixed(1)} → ${mean(c).toFixed(1)})`);
+    assert.ok(act(c).some(p => p.generated), `${c}: Nachwuchs`);
+  }
+  assert.ok(act('dpnz').every(p => p.nation === 'NZ'), 'Nachwuchs aus der Region');
 });
 
 console.log(`\n${n} Tests ok`);

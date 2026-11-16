@@ -212,6 +212,7 @@ export function developWorld(state, rng, year) {
     const pRet = a < 45 ? 0 : (a - 44) * (p.tier === 'tour' ? 0.02 : 0.05);
     if (rng.chance(pRet)) { report.retired.push(p.name); p.tier = 'retired'; p.cardUntil = null; }   // bleibt für Historie erhalten
   }
+  developSecondary(state, rng, year, report);          // Version 138: Nebentouren altern, treten zurück, Nachwuchs
   report.jdc = addJdc(state.world.players, rng, year + 1, -1);   // JDC-Talente, die im neuen Jahr 16 werden
   // Nachwuchs: jedes Jahr mind. 12 Talente, Dev-Pool (nach dem Altern ≤ 23) bei ~90 halten
   const devNext = () => nonCardPros(state).filter(p => p.age + 1 <= DEV_MAX_AGE).length;
@@ -223,8 +224,45 @@ export function developWorld(state, rng, year) {
   return report;
 }
 
+// Version 138: Nebentour-Spieler entwickeln sich nach Alter (etwas ruhiger als Profis), treten ab 40 zurück (je Jahr +5 %, max. 60 %)
+// und werden durch Nachwuchs derselben Tour ersetzt (Nation wie ein zufälliges Mitglied, 18–30 J.). Damit das Niveau der Tour stabil bleibt,
+// kommt der Nachwuchs um den Start-Schnitt der Tour (`world.secBase`, beim ersten Lauf festgehalten), nie über ihren Start-Besten.
+// Jede Nebentour hat danach mindestens so viele aktive Spieler wie zu Beginn.
+export const SEC_RETIRE_FROM = 40, SEC_RETIRE_STEP = 0.05, SEC_RETIRE_MAX = 0.6;
+export function developSecondary(state, rng, year, report = { retired: [] }) {
+  const players = state.world.players, act = c => Object.values(players).filter(p => p.tier === 'secondary' && p.circuit === c);
+  const so = (state.world.secOrders ??= {});           // Reihenfolge des endenden Jahres festhalten (nur die letzten 2 Jahre)
+  for (const c of Object.keys(SECONDARY)) so[`${c}|${year}`] ??= secondaryOrder(state, c, year);
+  for (const k of Object.keys(so)) if (+k.split('|')[1] < year - 1) delete so[k];
+  const base = (state.world.secBase ??= {});
+  for (const c of Object.keys(SECONDARY)) if (!base[c]) {
+    const av = act(c).map(p => p.avg);
+    if (av.length) base[c] = { mean: Math.round(av.reduce((x, v) => x + v, 0) / av.length * 10) / 10, top: Math.max(...av), sd: 3 };
+  }
+  for (const p of Object.values(players)) {
+    if (p.tier !== 'secondary') continue;
+    const a = p.age, mean = a <= 20 ? 1.8 : a <= 23 ? 1.1 : a <= 28 ? 0.4 : a <= 36 ? 0 : a <= 45 ? -0.3 : -0.6;
+    changeStrength(p, rng.normal(mean, 1));
+    if (base[p.circuit] && p.avg > base[p.circuit].top + 2) changeStrength(p, base[p.circuit].top + 2 - p.avg);   // Nebentour: nicht weit über ihren Start-Besten
+    if (rng.chance(clamp((a - SEC_RETIRE_FROM + 1) * SEC_RETIRE_STEP, 0, SEC_RETIRE_MAX))) { report.retired.push(p.name); p.tier = 'retired'; }
+  }
+  const used = new Set(Object.values(players).map(p => p.name));
+  let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
+  for (const [circuit, c] of Object.entries(SECONDARY)) {
+    const now = act(circuit), all = Object.values(players).filter(p => p.circuit === circuit), b = base[circuit] ?? { mean: (c.avgTop ?? 85) - 4, top: c.avgTop ?? 85, sd: 3 };
+    for (let k = now.length; k < c.players.length; k++) {
+      const nation = rng.pick(all.length ? all : [{ nation: c.players[0][1] }]).nation, age = rng.int(18, 30);
+      const avg = Math.round(clamp(rng.normal(b.mean, b.sd), 40, b.top) * 10) / 10, id = `S${++sNo}`;
+      players[id] = { id, name: randomName(rng, nation, used, !!c.woman), nation, age, avg, tier: 'secondary', circuit, cardUntil: null, generated: year,
+        attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}) };
+      (report.secTalents ??= []).push(players[id].name);
+    }
+  }
+  return report;
+}
+
 // Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa): tier 'secondary', IDs S…
-// Ø = Basis der Tour − Platz in der Vorjahres-OOM; keine Entwicklung/kein Ruhestand (Pool bleibt bei 8)
+// Ø = Basis der Tour − Platz in der Vorjahres-OOM; Entwicklung/Ruhestand/Nachwuchs seit Version 138 (developSecondary)
 export function addSecondary(players, rng, startYear) {
   const have = new Set(Object.values(players).filter(p => p.tier === 'secondary').map(p => p.name));
   let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
@@ -239,13 +277,16 @@ export function addSecondary(players, rng, startYear) {
 
 // Jahres-Rangliste einer Nebentour (fest je Jahr/Karriere): Stärkere meist vorn, etwas Zufall
 export function secondaryOrder(state, circuit, year = state.date.year) {
+  // Version 138: abgeschlossene Jahre sind eingefroren (developSecondary hält die Reihenfolge vor Entwicklung/Ruhestand fest)
+  const snap = state.world.secOrders?.[`${circuit}|${year}`];
+  if (snap) return snap.filter(id => state.world.players[id]?.tier === 'secondary' || (id === 'P' && state.player.woman));
   const wos = circuit === 'women' && state.rankings?.years?.[year]?.wos;   // Version 101: echte Women's-Series-Rangliste (inkl. Spielerin P)
   if (wos && Object.keys(wos).length) {
-    const cands = [...Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === 'women'), ...(state.player.woman ? [state.player] : [])];
+    const cands = [...Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === 'women' && !(p.generated >= year)), ...(state.player.woman ? [state.player] : [])];
     return cands.sort((a, b) => (wos[b.id] ?? 0) - (wos[a.id] ?? 0) || b.avg - a.avg).map(p => p.id);
   }
   const rng = new RNG({ s: hashSeed(`sec|${circuit}|${year}|${state.seed}`) });
-  return Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === circuit)
+  return Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === circuit && !(p.generated >= year))   // Version 138: Nachwuchs erst ab dem Folgejahr
     .map(p => ({ p, v: p.avg + rng.normal(0, 2.5) })).sort((a, b) => b.v - a.v).map(x => x.p.id);
 }
 
