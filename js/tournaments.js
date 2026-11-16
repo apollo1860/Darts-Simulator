@@ -534,6 +534,14 @@ export function setEffort(state, e) {
   (live.effortHist ??= [{ leg: 0, e: effortOf(live) }]).push({ leg: live.m?.legIdx ?? 0, e });
   live.effort = e;
 }
+// Energie im laufenden Match (Version 108, nur Anzeige): Start-Energie minus Verbrauch der bisher gespielten Legs (mit Einsatz);
+// abgebucht wird wie bisher am Matchende.
+export function liveEnergy(state) {
+  const inst = state.activeEvent, live = inst?.live, e0 = state.player.energy ?? 100;
+  const legs = live?.m?.legIdx ?? 0;
+  if (!legs) return Math.round(e0);
+  return Math.max(0, Math.round(e0 - matchEnergy(legs, inst) * effortEnergyFactor(live, legs)));
+}
 // Energie-Faktor über das ganze Match: Mittel der Einsätze je Leg (Wechsel gelten ab dem laufenden Leg)
 export function effortEnergyFactor(live, legsTotal) {
   const hist = live?.effortHist;

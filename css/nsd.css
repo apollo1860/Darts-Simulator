@@ -666,3 +666,8 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .nsd-dl .dlt { position: absolute; top: 6px; right: 8px; font-weight: 800; font-size: 1.4rem; color: #fff; text-shadow: 0 2px 4px #000; }
 .nsd-dl.won .dlt { color: #6dff7d; } .nsd-dl.lost .dlt { color: #ff8f8f; }
 .nsd-dl .nsd-meter { margin: 0; border-radius: 0; }
+/* Energie im Liveticker (Version 108): kleiner Balken unter dem Format, sinkt mit jedem Leg */
+.dc-energy { position: relative; margin: 6px auto 0; width: 78px; height: 14px; border-radius: 7px; background: #2a2f37; overflow: hidden; border: 1px solid #555; }
+.dc-energy i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(#5cff6a, #1fae2c); transition: width .8s ease; }
+.dc-energy.low i { background: linear-gradient(#ff7a7a, #c0392b); }
+.dc-energy span { position: relative; display: block; text-align: center; font-size: .7rem; font-weight: 800; line-height: 14px; color: #fff; text-shadow: 0 1px 2px #000; }

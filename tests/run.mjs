@@ -2617,4 +2617,19 @@ test('New Star Darts v107: Einsatz (1–3 Herzen) im Match und Dilemma-Entscheid
   for (let w = 0; w < 20; w++) { lone.date.week = 3 + w; C.dilemmaWeek(lone, rng); } assert.equal(lone.dilemma ?? null, null);
 });
 
+test('New Star Darts v108: Einsatz bleibt bis zur manuellen Änderung, Energie sinkt im Liveticker sichtbar', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), CAL = await import('../js/calendar.js'), MS = await import('../js/matchState.js'), TM = await import('../js/throwModel.js');
+  const s = N.newNsdCareer({ first: 'E', last: 'L', nation: 'DE', age: 25, slot: 1, seed: 21 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+  T.enterEvent(s, CAL.eventsInWeek(s, 2026, 6).find(x => x.cat === 'pc').id); const live = T.startManualMatch(s);
+  assert.equal(T.effortOf(live), 2); assert.equal(T.liveEnergy(s), 100);
+  T.setEffort(s, 3);
+  const rng = new RNG(3), a = { sco: 90, fin: 90, men: 90, foc: 90, cal: 90 }; let last = 100;
+  while (!live.m.done && live.m.legIdx < 4) { if (live.m.turn === live.me && !live.m.visit.darts.length) T.keyMoment(s); const d = TM.aiDart(live.m, live.m.turn, a, rng, TM.aiSigma(a)); MS.throwDart(live.m, d.hit, d);
+    assert.equal(T.effortOf(live), 3, 'Einsatz bleibt über Spielszenen hinweg'); const e = T.liveEnergy(s); assert.ok(e <= last); last = e; }
+  assert.ok(last < 100 && last === Math.round(100 - N.matchEnergy(live.m.legIdx, s.activeEvent) * 1.35));
+  // neues Match → wieder 2 Herzen
+  T.simulateLiveRest(s); T.nextRound(s);
+  if (T.playerMatch(s.activeEvent) && !T.playerMatch(s.activeEvent).winner) assert.equal(T.effortOf(T.startManualMatch(s)), 2);
+});
+
 console.log(`\n${n} Tests ok`);

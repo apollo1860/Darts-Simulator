@@ -8,7 +8,7 @@ import { flag } from '../../../../data/nations.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
-  keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort } from '../../../tournaments.js';
+  keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
@@ -94,7 +94,11 @@ function throwBar() {
   ui.barEl.innerHTML = '<span class="nsd-gap"></span><button class="nsd-btn wide nsd-throw" id="throw"><span class="ic" style="color:#2bd33a">🎯</span><span class="lb">Werfen</span></button><span class="nsd-gap"></span>';
   ui.barEl.querySelector('#throw').addEventListener('pointerdown', e => { e.preventDefault(); onAction(); });
 }
-function normalBar() { ui.barEl.innerHTML = ui.barHtml; bindBar(); }
+function normalBar() {
+  ui.barEl.innerHTML = ui.barHtml; bindBar();
+  const ic = ui.barEl.querySelector('#l-eff .ic'); if (ic) ic.innerHTML = effIcon(effortOf(ui.live));   // Version 108: gewählter Einsatz bleibt sichtbar
+  const pz = ui.barEl.querySelector('#l-pause .lb'); if (pz && ui.paused) pz.textContent = 'Weiter';
+}
 const $t = () => ui.barEl.querySelector('#throw');
 
 export function unmount() { if (!ui) return; stopAll(); document.removeEventListener('keydown', onKey); ui = null; }
@@ -387,12 +391,15 @@ function draw(ev) {
   };
   let body = '';
   for (let r = 0; r < rows; r++) body += `<div class="dc-row">${cell(me, r, 'left')}<div class="dc-no">${r + 1}</div>${cell(op, r, 'right')}</div>`;
-  const e = Math.round(ui.s.player.energy ?? 100);
+  const e = liveEnergy(ui.s);   // Version 108: sinkt sichtbar mit jedem gespielten Leg (je nach Einsatz)
   ui.el.innerHTML = `<div class="dc-top">${head(me, 'left')}
       <div class="dc-mid"><div class="dc-badge"><small>Legs</small>${m.legs[me]}:${m.legs[op]}</div>
-        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-fmt">${formatLines(m.format).join('<br>')}</div><div class="dc-legno">⚡ ${e} %</div></div>
+        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-fmt">${formatLines(m.format).join('<br>')}</div><div class="dc-energy ${e < 20 ? 'low' : ''}"><i style="width:${e}%"></i><span>⚡ ${e} %</span></div></div>
       ${head(op, 'right')}</div>
     <div class="dc-list" id="dc-list">${body}</div>`;
   const list = ui.el.querySelector('#dc-list');
   list.scrollTop = list.scrollHeight;
+  const eb = ui.el.querySelector('.dc-energy i');                 // Energie sinkt sichtbar (vom letzten Stand aus)
+  if (eb && ui.lastE != null && ui.lastE !== e) { eb.style.width = `${ui.lastE}%`; requestAnimationFrame(() => requestAnimationFrame(() => { eb.style.width = `${e}%`; })); }
+  ui.lastE = e;
 }
