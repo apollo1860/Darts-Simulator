@@ -122,8 +122,12 @@ export const sponsorBlockWeeks = state => Math.max(0, (sp(state).blockUntil ?? 0
 // Wochenbetrag (Basis): Status, Fans, PDC-Rang
 export function sponsorBase(state) {
   const p = state.player, r = rankOf(state, 'pdc', 'P') ?? 150;
-  return 1 + 0.08 * p.star.level + 0.03 * (p.rel.fans ?? 0) + Math.max(0, (80 - r) / 20);
+  return 1 + SPONSOR_SLOPE.star * p.star.level + SPONSOR_SLOPE.fans * (p.rel.fans ?? 0) + Math.max(0, (80 - r) / 20);
 }
+// Version 104 (Nutzerwunsch „zu schnell zu hoch“): flacherer Anstieg – Status/Fans zählen weniger (vorher 0,08/0,03) und der Status-Faktor
+// wirkt nur halb (+2,5 % statt +5 % je Stufe). Laufende Verträge bleiben unverändert.
+export const SPONSOR_SLOPE = { star: 0.06, fans: 0.025 };
+export const sponsorGrowth = level => 1 + 0.025 * (Math.max(1, level) - 1);
 // Sponsor für ein Angebot (Version 70/71): `taken` = Branchen mit laufendem Vertrag (pro Branche nur ein Sponsor). Bis Star-Status 10 nur kleine
 // fiktive Marken (zahlen wenig); ab 11 meist echte Marken – Stufen ab 11 / 20 / 40, leichter Fokus auf die zuletzt freigeschaltete Stufe;
 // je bekannter die Marke, desto besser die Bezahlung. Die Branche wird gleichverteilt gewählt (nicht nach Markenzahl), dann die Marke.
@@ -162,7 +166,7 @@ export function sponsorWeek(state, rng) {
   const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng) : null;
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
-    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * sp0.pay * SPONSOR_PAY));
+    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * sp0.pay * SPONSOR_PAY));
     // Prämien: Wochenhonorar + Siegprämie, manchmal 180er-Prämie und/oder Major-Teilnahme
     s.offer = { name, branche, real: sp0.real, fame: sp0.fame, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
       s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
@@ -180,7 +184,7 @@ function controversialOffer(state, m, rng) {
   s.cAt ??= wk + rng.int(CONTROVERSY_FIRST[0], CONTROVERSY_FIRST[1]);
   if (s.cOffer || hasControversial(state) || wk < s.cAt) return;
   const b = rng.pick(CONTROVERSIAL.filter(x => x.name !== s.cLast)); s.cLast = b.name;
-  const perWeek = Math.max(2, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * starFactor(p.star.level) * CONTROVERSIAL_PAY * SPONSOR_PAY));
+  const perWeek = Math.max(2, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * CONTROVERSIAL_PAY * SPONSOR_PAY));
   s.cOffer = { name: b.name, sector: b.sector, tag: b.tag, perWeek, win: Math.max(1, Math.round(perWeek * 0.4)), weeks: CONTROVERSY_OFFER_WEEKS, length: rng.pick(CONTROVERSY_LENGTHS) };
   s.cAt = wk + rng.int(CONTROVERSY_GAP[0], CONTROVERSY_GAP[1]);
   addNews(state, 'info', `⚠️ Umstrittenes Sponsor-Angebot: ${b.name}`, `${b.tag} · ${perWeek} ★ pro Woche für ${s.cOffer.length} Wochen – sehr gut bezahlt, aber Fans und andere Sponsoren könnten verärgert reagieren. Entscheide im Sponsoren-Screen.`);

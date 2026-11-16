@@ -2090,7 +2090,7 @@ test('New Star Darts v70/71: echte Marken nach Branchen – eine Branche je Spon
   // Bezahlung: kleine Marken wenig, bekannte mehr, je Bekanntheit steigend
   assert.ok(R.SMALL_PAY < R.FAME_PAY[1]); for (let f = 2; f <= 5; f++) assert.ok(R.FAME_PAY[f] > R.FAME_PAY[f - 1]);
   const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 20, slot: 1, seed: 6 }); s.team = { manager: 'm3', trainer: null }; s.player.star.level = 15; s.player.rel.fans = 50;
-  C.nameTeam(s); const ratio = { small: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, m = C.managerOf(s), unit = C.sponsorBase(s) * m.mult * N.starFactor(15) * R.SPONSOR_PAY;   // Version 93: alle Beträge × SPONSOR_PAY
+  C.nameTeam(s); const ratio = { small: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, m = C.managerOf(s), unit = C.sponsorBase(s) * m.mult * C.sponsorGrowth(15) * R.SPONSOR_PAY;   // Version 93: alle Beträge × SPONSOR_PAY
   for (let k = 0; k < 4000; k++) { s.nsdSponsors = { active: [], offer: null }; C.sponsorWeek(s, rng); const o = s.nsdSponsors.offer; if (o) { assert.ok(typeof o.real === 'boolean' && o.fame >= 0 && o.branche === br(o.name)); (o.real ? ratio[o.fame] : ratio.small).push(o.perWeek / unit); } }
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
   for (const f of [2, 3, 4, 5]) assert.ok(Math.abs(mean(ratio[f]) - R.FAME_PAY[f]) < 0.12, `Bekanntheit ${f}: ${mean(ratio[f])} statt ${R.FAME_PAY[f]}`);
@@ -2139,7 +2139,7 @@ test('New Star Darts v73: umstrittene Sponsoren – ab Status 25, alle 1–2 Jah
   // Angebot verfällt nach 4 Wochen; Bezahlung deutlich über normal
   const t = mk(30); t.nsdSponsors = { active: [], offer: null, cAt: 0 }; let o = null; for (let k = 0; k < 5 && !o; k++) { tick(t); C.sponsorWeek(t, rng); o = t.nsdSponsors.cOffer; }
   assert.ok(o && o.weeks === 4, 'Angebot da'); for (let k = 0; k < 4; k++) { tick(t); C.sponsorWeek(t, rng); } assert.equal(t.nsdSponsors.cOffer, null, 'verfällt');
-  const unit = C.sponsorBase(t) * C.managerOf(t).mult * N.starFactor(30) * R.SPONSOR_PAY, pays = [];
+  const unit = C.sponsorBase(t) * C.managerOf(t).mult * C.sponsorGrowth(30) * R.SPONSOR_PAY, pays = [];
   for (let k = 0; k < 600; k++) { t.nsdSponsors = { active: [], offer: null, cAt: 0 }; tick(t); C.sponsorWeek(t, rng); if (t.nsdSponsors.cOffer) pays.push(t.nsdSponsors.cOffer.perWeek / unit); }
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length; assert.ok(Math.abs(mean(pays) - X.CONTROVERSIAL_PAY) < 0.2, `Bezahlfaktor ${mean(pays)}`);
   // Annehmen: außerhalb der Branchenregel und der 5 Plätze, Fans sofort −3, nur ein umstrittener Vertrag
@@ -2574,6 +2574,12 @@ test("New Star Darts v101: Women's Series für Spielerinnen (Wochenenden, Rangli
   // Männer sehen die Women's Series nicht
   const m = N.newNsdCareer({ first: 'M', last: 'N', nation: 'DE', age: 25, seed: 8 });
   assert.ok(!C.shownTo(m, ev)); assert.equal(T.eventStatus(m, ev).playable, false);
+});
+
+test('New Star Darts v104: Sponsorengelder steigen flacher mit dem Status', async () => {
+  const C = await import('../js/career.js'), N = await import('../js/nsd.js');
+  assert.deepEqual(C.SPONSOR_SLOPE, { star: 0.06, fans: 0.025 });
+  assert.equal(C.sponsorGrowth(1), 1); assert.ok(Math.abs(C.sponsorGrowth(41) - 2) < 1e-9); assert.ok(C.sponsorGrowth(30) < N.starFactor(30));
 });
 
 console.log(`\n${n} Tests ok`);
