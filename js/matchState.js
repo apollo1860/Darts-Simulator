@@ -20,7 +20,7 @@ const legsTo = m => m.format.legs;
 const setsTo = m => m.format.sets || 1;
 
 // Version 132: „Two clear legs“ (World Matchplay, `format.clear` = 2): mit 2 Legs Vorsprung gewinnen;
-// höchstens `format.extra` (6) Zusatzlegs, dann entscheidet ein Sudden-Death-Leg (Ausbullen um den Anwurf)
+// höchstens `format.extra` (6) Zusatzlegs, dann entscheidet ein Sudden-Death-Leg (Anwurf per Zufall)
 export const maxLegs = f => 2 * f.legs - 1 + (f.extra ?? 0);
 export function legsWin(f, legs, w) {
   if (legs[w] < f.legs) return false;
@@ -121,8 +121,8 @@ function endLeg(m, w, ev) {
     if (m.sets[w] >= setsTo(m)) return finish(m, w, ev);
     m.legs = [0, 0]; m.setStarter = 1 - m.setStarter; m.legStarter = m.setStarter;
   } else m.legStarter = 1 - m.legStarter;
-  // Sudden Death: Ausbullen um den Anwurf (ohne RNG im Zustand: Parität der bisher geworfenen Punkte)
-  if (isSuddenDeath(m.format, m.legs)) { m.legStarter = (m.stats[0].points + m.stats[1].points + m.legIdx) % 2; m.suddenDeath = true; ev.suddenDeath = true; }
+  // Sudden Death: Anwurf per Zufall – beim Matchstart gewürfelt (`m.sdStarter`, tournaments.js), sonst Parität der Punkte
+  if (isSuddenDeath(m.format, m.legs)) { m.legStarter = m.sdStarter ?? (m.stats[0].points + m.stats[1].points + m.legIdx) % 2; m.suddenDeath = true; ev.suddenDeath = true; }
   m.rem = [501, 501]; m.legDarts = [0, 0]; m.last = [null, null];
   m.legPoints = [0, 0]; m.legVisits = [[], []];
   m.turn = m.legStarter;

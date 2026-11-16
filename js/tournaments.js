@@ -431,6 +431,7 @@ export function startManualMatch(state) {
     const rng = new RNG(state.rng);
     const team = inst.teams ? [m.a, m.b].map(id => inst.teams[id]?.members.length ?? 1) : null;   // World Cup: Einzelstatistik je Mitglied
     inst.live = { m: createMatch(inst.rounds[inst.current].format, rng.chance(0.5) ? 0 : 1, team), me: m.a === 'P' ? 0 : 1 };
+    if (inst.live.m.format.clear) inst.live.m.sdStarter = rng.chance(0.5) ? 0 : 1;   // Version 133: Anwurf im Sudden Death per Zufall
   }
   return inst.live;
 }

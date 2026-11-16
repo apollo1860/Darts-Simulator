@@ -159,7 +159,7 @@ export function simulateMatch(attrsA, attrsB, format, rng, opts = {}) {
     legIdx++; legs[w]++;
     log.push(w);
     legStarter = 1 - legStarter;
-    if (!isSets && isSuddenDeath(format, legs)) legStarter = rng.chance(0.5) ? 0 : 1;   // Sudden Death: Ausbullen
+    if (!isSets && isSuddenDeath(format, legs)) legStarter = rng.chance(0.5) ? 0 : 1;   // Sudden Death: Anwurf per Zufall
     if (isSets ? legs[w] >= legsTo : legsWin(format, legs, w)) {
       if (!isSets) break;
       sets[w]++;

@@ -2864,7 +2864,7 @@ test('New Star Darts v132: Two clear legs im World Matchplay (max. 6 Zusatzlegs,
   assert.ok(MS.legsWin(f, [13, 12], 0), '13:12 im Sudden Death gewinnt');
   assert.ok(MS.legsWin({ legs: 10 }, [10, 9], 0), 'ohne Regel: First to 10');
   // Live-Zustand: Legs per Checkout beenden
-  const m = MS.createMatch(f, 0);
+  const m = MS.createMatch(f, 0); m.sdStarter = 1;
   const winLeg = w => { m.rem[w] = 40; m.turn = w; m.visit = { darts: [], start: 40 }; return MS.throwDart(m, { score: 40, double: true, label: 'D20', ring: 'double', mult: 2, num: 20 }); };
   for (let i = 0; i < 9; i++) { winLeg(0); winLeg(1); }
   assert.equal(MS.wouldWinMatch(m, 0), false, '9:9 – kein Matchdart');
@@ -2872,6 +2872,7 @@ test('New Star Darts v132: Two clear legs im World Matchplay (max. 6 Zusatzlegs,
   assert.ok(MS.wouldWinMatch(m, 0), '10:9 – Matchdart');
   for (let i = 0; i < 2; i++) { winLeg(1); winLeg(0); }
   winLeg(1); assert.ok(MS.isSuddenDeath(m.format, m.legs) && m.suddenDeath, '12:12 Sudden Death');
+  assert.equal(m.legStarter, 1, 'Anwurf im Sudden Death = zufällig gewürfelter sdStarter');
   assert.ok(MS.isDecider(m), 'Sudden Death = Entscheidungsleg');
   winLeg(1); assert.ok(m.done && m.winner === 1, '12:13 Sieg im Sudden Death');
   // Simulation: kein Sieg mit nur 1 Leg Vorsprung, höchstens 25 Legs
