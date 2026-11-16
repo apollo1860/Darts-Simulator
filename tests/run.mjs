@@ -2990,4 +2990,23 @@ test('New Star Darts v138: Nebentour-Spieler altern, treten zurück und werden e
   assert.ok(act('dpnz').every(p => p.nation === 'NZ'), 'Nachwuchs aus der Region');
 });
 
+test('New Star Darts v140: Osteuropa-Qualifier (European Tour) mit SK/RS/RO/BG/UA, ohne Gastgeberland', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), W = await import('../js/world.js'), { CALENDAR, ET_REGIONS } = await import('../data/tournaments.js');
+  for (const n of ['SK', 'RS', 'RO', 'BG', 'UA']) assert.ok(ET_REGIONS.ee.nations.includes(n), n);
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 4 });
+  const czech = CALENDAR.find(e => e.cat === 'et' && e.country === 'CZ'), other = CALENDAR.find(e => e.cat === 'et' && e.country === 'DE');
+  const pros = W.nonCardPros(s);
+  // starker Tscheche und starker Slowake ohne Karte
+  const cz = pros[0], sk = pros[1]; cz.nation = 'CZ'; cz.avg = 99; sk.nation = 'SK'; sk.avg = 98;
+  for (const p of pros.slice(2)) if (ET_REGIONS.ee.nations.includes(p.nation)) p.avg = Math.min(p.avg, 80);
+  let czWins = 0, skIn = 0;
+  for (let y = 0; y < 30; y++) {
+    s.date.year = 2026 + y;
+    if (T.regionQualifier(s, czech, 'ee') === cz.id) czWins++;
+    if (T.regionQualifier(s, other, 'ee') === sk.id || T.regionQualifier(s, other, 'ee') === cz.id) skIn++;
+  }
+  assert.equal(czWins, 0, 'Czech Darts Open: kein Tscheche über den Osteuropa-Qualifier');
+  assert.ok(skIn > 10, `Slowakei zugelassen (${skIn}/30)`);
+});
+
 console.log(`\n${n} Tests ok`);

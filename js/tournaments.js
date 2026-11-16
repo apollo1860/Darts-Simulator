@@ -170,8 +170,9 @@ export function etDirect(state) {
 }
 // Regionaler Qualifier (Hintergrund): Spieler ohne Karte der Region, Stärkere gewinnen öfter (fest je Event/Jahr)
 export const REGION_MIN = 8;
-function regionQualifier(state, ev, key) {
-  const nations = ET_REGIONS[key].nations;
+export function regionQualifier(state, ev, key) {
+  // Version 140: Spieler des Gastgeberlands gehören in den Host Nation Qualifier (z. B. Tschechen beim Czech Darts Open)
+  const nations = ET_REGIONS[key].nations.filter(n => n !== ev.country);
   const cands = () => [...nonCardPros(state), ...playersOfTier(state, 'secondary', 'amateur')].filter(p => !p.woman && nations.includes(p.nation));
   let all = cands();
   for (let i = 0; all.length < REGION_MIN; i++) { addAmateurs(state, nations[i % nations.length], 1); all = cands(); }   // fiktive Amateure

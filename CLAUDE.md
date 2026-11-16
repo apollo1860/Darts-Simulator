@@ -97,6 +97,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 137**: World Series: `wsInvites` (PL-Spieler, 0–2 durch Top 16 ersetzt) + `wsLocals`/`WS_REGIONS` (majors.js, 8 stärkste der Region, NZ-Mindestzahl); Kalender 2026 (Bahrain, Saudi-Arabien, Nordic, US, NZ, AUS, Finals KW 38).
 - **Version 138**: Nebentouren altern (`developSecondary`: Rücktritt ab 40, Nachwuchs um `world.secBase`, Ranglisten-Schnappschuss `world.secOrders`).
 - **Version 139**: Bouncer halbiert (`bounce` Brass 0,6 % … Signature 0,05 %, `BOUNCE_P` 0,025).
+- **Version 140**: ET-Osteuropa-Qualifier + SK/RS/RO/BG/UA, Gastgeberland ausgeschlossen (`regionQualifier`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

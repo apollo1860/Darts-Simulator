@@ -53,7 +53,7 @@ export const NSD_BLOCKED = new Set(['local', 'ddv', 'wdf', 'qschool', 'challenge
 // Regionale ET-Qualifier (je 1 Platz, nur Spieler ohne Tourcard, laufen im Hintergrund)
 export const ET_REGIONS = {
   nb: { label: 'Nordic & Baltic', nations: ['DK', 'SE', 'NO', 'FI', 'EE', 'LV', 'LT'] },
-  ee: { label: 'Osteuropa', nations: ['PL', 'CZ', 'HU', 'HR', 'SI'] },
+  ee: { label: 'Osteuropa', nations: ['PL', 'CZ', 'HU', 'HR', 'SI', 'SK', 'RS', 'RO', 'BG', 'UA'] },   // Version 140: + Slowakei, Serbien, Rumänien, Bulgarien, Ukraine
 };
 
 // Internationale WM-Qualifier (Turniere, je 1 Sieger, Asian Championship 2). Dazu direkte Plätze in wmDirect (majors.js):
