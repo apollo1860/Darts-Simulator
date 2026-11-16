@@ -678,3 +678,6 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .dc-energy i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(#5cff6a, #1fae2c); transition: width .8s ease; }
 .dc-energy.low i { background: linear-gradient(#ff7a7a, #c0392b); }
 .dc-energy span { position: relative; display: block; text-align: center; font-size: .7rem; font-weight: 800; line-height: 14px; color: #fff; text-shadow: 0 1px 2px #000; }
+
+/* Version 132: Sudden-Death-Leg (Two clear legs, World Matchplay) */
+.dc-sd { color: #ff5252; letter-spacing: .05em; }

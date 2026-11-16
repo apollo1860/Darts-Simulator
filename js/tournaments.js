@@ -4,7 +4,7 @@ import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS, ET_REGIONS } from '../data/tou
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
-import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider } from './matchState.js';
+import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider, inExtension } from './matchState.js';
 import { BOGEY, scoreAt, targetPoint, checkoutRoute } from './board.js';
 import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER } from './obstruction.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
@@ -610,7 +610,7 @@ export const matchLen = lm => lm.format.legs * (lm.format.sets || 1);
 export const boardPace = lm => Math.min(1, LONG_MATCH / matchLen(lm));
 // Häufigkeitsfaktor für Board-Momente in langen Matches (1 = kurze Matches, ungedrosselt)
 export const boardRate = (state, lm) => (boardPace(lm) >= 1 ? 1 : boardPace(lm) * BOARD_MORE * (state.activeEvent?.fmt === 'wm' ? WM_BOARD : 1));
-export const lateMatch = lm => wouldWinMatch(lm, 0) || wouldWinMatch(lm, 1);
+export const lateMatch = lm => wouldWinMatch(lm, 0) || wouldWinMatch(lm, 1) || inExtension(lm.format, lm.legs);   // Version 132: Verlängerung (Two clear legs) = Schlussphase
 function paced(state, lm, me, chance = 1) {
   const live = state.activeEvent.live, pace = boardPace(lm), key = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`;
   if (live.kmKey === key) return true;                                   // diese Aufnahme wurde schon vergeben (Neuladen, erneute Prüfung)

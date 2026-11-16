@@ -2850,4 +2850,39 @@ test('New Star Darts v131: Major-Titel bringen deutlich mehr Star-Status (Matchp
   assert.equal(N.titleStarBonus(20, 'dev', 'youth'), Math.round(25 * 1.3 * 1.19 * 10) / 10, 'Youth-WM unverändert');
 });
 
+test('New Star Darts v132: Two clear legs im World Matchplay (max. 6 Zusatzlegs, dann Sudden Death)', async () => {
+  const MS = await import('../js/matchState.js'), E = await import('../js/matchEngine.js'), { RNG } = await import('../js/rng.js');
+  const D = await import('../data/tournaments.js');
+  const fmt = D.FORMATS.matchplay.default;
+  assert.equal(fmt.clear, 2, 'Matchplay-Format mit clear: 2');
+  const f = { legs: 10, clear: 2, extra: 6 };
+  assert.equal(MS.legsWin(f, [10, 9], 0), false, '10:9 reicht nicht');
+  assert.ok(MS.legsWin(f, [10, 8], 0), '10:8 gewinnt');
+  assert.ok(MS.legsWin(f, [12, 10], 0), '12:10 gewinnt');
+  assert.equal(MS.legsWin(f, [12, 11], 0), false, '12:11 läuft weiter');
+  assert.ok(MS.isSuddenDeath(f, [12, 12]), '12:12 → Sudden Death');
+  assert.ok(MS.legsWin(f, [13, 12], 0), '13:12 im Sudden Death gewinnt');
+  assert.ok(MS.legsWin({ legs: 10 }, [10, 9], 0), 'ohne Regel: First to 10');
+  // Live-Zustand: Legs per Checkout beenden
+  const m = MS.createMatch(f, 0);
+  const winLeg = w => { m.rem[w] = 40; m.turn = w; m.visit = { darts: [], start: 40 }; return MS.throwDart(m, { score: 40, double: true, label: 'D20', ring: 'double', mult: 2, num: 20 }); };
+  for (let i = 0; i < 9; i++) { winLeg(0); winLeg(1); }
+  assert.equal(MS.wouldWinMatch(m, 0), false, '9:9 – kein Matchdart');
+  winLeg(0); assert.equal(m.done, false, '10:9 läuft weiter');
+  assert.ok(MS.wouldWinMatch(m, 0), '10:9 – Matchdart');
+  for (let i = 0; i < 2; i++) { winLeg(1); winLeg(0); }
+  winLeg(1); assert.ok(MS.isSuddenDeath(m.format, m.legs) && m.suddenDeath, '12:12 Sudden Death');
+  assert.ok(MS.isDecider(m), 'Sudden Death = Entscheidungsleg');
+  winLeg(1); assert.ok(m.done && m.winner === 1, '12:13 Sieg im Sudden Death');
+  // Simulation: kein Sieg mit nur 1 Leg Vorsprung, höchstens 25 Legs
+  const rng = new RNG(7), a = { sco: 80, fin: 80, men: 80, foc: 80, cal: 80 };
+  let ext = 0;
+  for (let i = 0; i < 300; i++) {
+    const r = E.simulateMatch(a, a, f, rng), [x, y] = r.score, hi = Math.max(x, y), lo = Math.min(x, y);
+    assert.ok(hi >= 10 && x + y <= 25 && (hi - lo >= 2 || x + y === 25), `Ergebnis ${x}:${y}`);
+    if (hi > 10) ext++;
+  }
+  assert.ok(ext > 20, `Verlängerungen kommen vor (${ext})`);
+});
+
 console.log(`\n${n} Tests ok`);

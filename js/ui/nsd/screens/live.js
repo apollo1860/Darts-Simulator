@@ -5,7 +5,7 @@ import { esc, fmtNum, surname } from '../../../util.js';
 import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { flag } from '../../../../data/nations.js';
-import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
+import { legAverage, liveAverage, dartsLeft, isSuddenDeath, inExtension } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy, nineAlive, nineStill } from '../../../tournaments.js';
@@ -205,7 +205,7 @@ function tvBoard(thrower) {
     return `<div class="tvsb-row">${nine}<span class="tvsb-ind">${thrower === i ? '▶' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
       <span class="tvsb-flag">${flag(t?.nation ?? p?.nation)}</span>${sets ? `<span class="tvsb-box">${m.sets[i]}</span>` : ''}<span class="tvsb-box">${m.legs[i]}</span><span class="tvsb-rem">${m.rem[i]}</span></div>`;
   };
-  return `<div class="tvsb-head"><span class="tvsb-title">${esc(round.name)} – First to ${sets ? `${m.format.sets} Sets` : m.format.legs}</span>${sets ? '<span class="tvsb-col">Sets</span>' : ''}<span class="tvsb-col">Legs</span><span class="tvsb-col w"></span></div>
+  return `<div class="tvsb-head"><span class="tvsb-title">${esc(round.name)} – ${isSuddenDeath(m.format, m.legs) ? 'Sudden Death' : inExtension(m.format, m.legs) ? '2 Legs Vorsprung' : `First to ${sets ? `${m.format.sets} Sets` : m.format.legs}`}</span>${sets ? '<span class="tvsb-col">Sets</span>' : ''}<span class="tvsb-col">Legs</span><span class="tvsb-col w"></span></div>
     ${row(ui.me)}${row(1 - ui.me)}
     <div class="tvsb-foot"><span class="tvsb-title">${inst.year ?? ui.s.date.year} ${esc(inst.name)}</span><span class="tvsb-logo">nsd<b>live</b></span></div>`;
 }
@@ -404,7 +404,7 @@ function draw(ev) {
   const e = liveEnergy(ui.s);   // Version 108: sinkt sichtbar mit jedem gespielten Leg (je nach Einsatz)
   ui.el.innerHTML = `<div class="dc-top">${head(me, 'left')}
       <div class="dc-mid"><div class="dc-badge"><small>Legs</small>${m.legs[me]}:${m.legs[op]}</div>
-        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-fmt">${formatLines(m.format).join('<br>')}</div><div class="dc-energy ${e < 20 ? 'low' : ''}"><i style="width:${e}%"></i><span>⚡ ${e} %</span></div></div>
+        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-fmt">${formatLines(m.format).join('<br>')}${isSuddenDeath(m.format, m.legs) ? '<br><b class="dc-sd">SUDDEN DEATH</b>' : ''}</div><div class="dc-energy ${e < 20 ? 'low' : ''}"><i style="width:${e}%"></i><span>⚡ ${e} %</span></div></div>
       ${head(op, 'right')}</div>
     <div class="dc-list" id="dc-list">${body}</div>`;
   const list = ui.el.querySelector('#dc-list');

@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 131;
+export const APP_VERSION = 132;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -300,7 +300,7 @@ export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, 
     g *= Math.max(0.85, Math.min(1.5, 1 + oppStrength / 20));    // Gegner stärker (+) / schwächer (−)
     return Math.round(g * w * 10) / 10;
   }
-  const close = to > 1 ? my / (to - 1) : 0;                      // 1 = knapp verloren
+  const close = to > 1 ? Math.min(1, my / (to - 1)) : 0;        // 1 = knapp verloren (Two clear legs: auch über to − 1)
   // Bis Star-Status 10: auch Niederlagen bringen etwas (1–3 % des Balkens), außer Ø unter 85 oder zu null verloren
   if (level <= 10 && avg >= 85 && my > 0) return Math.round(starNeed(level) * (1 + 2 * close) / 100 * 10) / 10;
   // Gute Leistung trotz Niederlage (Note über 6,0): kleines Plus

@@ -2,6 +2,7 @@
 // und für alle KI-Matches genutzt. DOM-frei.
 import { targetAverage, checkoutBase, calcError } from './player.js';
 import { clamp } from './util.js';
+import { legsWin, isSuddenDeath } from './matchState.js';
 
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 const LEAVES = [32, 40, 16, 36, 24, 20, 8, 32, 40];   // bevorzugte Doppel-Reste
@@ -153,12 +154,13 @@ export function simulateMatch(attrsA, attrsB, format, rng, opts = {}) {
   let setStarter = opts.starter ?? (rng.chance(0.5) ? 0 : 1), legStarter = setStarter, legIdx = 0;
   const log = [];
   for (;;) {
-    const wouldWin = i => legs[i] + 1 >= legsTo && (!isSets || sets[i] + 1 >= setsTo);
+    const wouldWin = i => (isSets ? legs[i] + 1 >= legsTo && sets[i] + 1 >= setsTo : legsWin(format, legs.map((l, j) => l + (j === i ? 1 : 0)), i));
     const w = simLeg(legStarter, prof, st, rng, { wouldWin, legIdx, mem });
     legIdx++; legs[w]++;
     log.push(w);
     legStarter = 1 - legStarter;
-    if (legs[w] >= legsTo) {
+    if (!isSets && isSuddenDeath(format, legs)) legStarter = rng.chance(0.5) ? 0 : 1;   // Sudden Death: Ausbullen
+    if (isSets ? legs[w] >= legsTo : legsWin(format, legs, w)) {
       if (!isSets) break;
       sets[w]++;
       if (sets[w] >= setsTo) break;
@@ -188,4 +190,4 @@ export function finalizeStats(s) {
 
 export const formatLabel = f => f.sets ? `Best of ${f.sets * 2 - 1} Sets` : `Best of ${f.legs * 2 - 1} Legs`;
 // Zeilen fürs Scoreboard: bei Sätzen zusätzlich die Legs je Satz
-export const formatLines = f => (f.sets ? [formatLabel(f), `Satz: Best of ${f.legs * 2 - 1}`] : [`Best of ${f.legs * 2 - 1}`, 'Legs']);
+export const formatLines = f => (f.sets ? [formatLabel(f), `Satz: Best of ${f.legs * 2 - 1}`] : [`Best of ${f.legs * 2 - 1}`, f.clear ? 'Legs · 2 Legs Vorsprung' : 'Legs']);

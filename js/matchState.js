@@ -19,8 +19,23 @@ export function createMatch(format, starter = 0, team = null) {
 const legsTo = m => m.format.legs;
 const setsTo = m => m.format.sets || 1;
 
+// Version 132: „Two clear legs“ (World Matchplay, `format.clear` = 2): mit 2 Legs Vorsprung gewinnen;
+// höchstens `format.extra` (6) Zusatzlegs, dann entscheidet ein Sudden-Death-Leg (Ausbullen um den Anwurf)
+export const maxLegs = f => 2 * f.legs - 1 + (f.extra ?? 0);
+export function legsWin(f, legs, w) {
+  if (legs[w] < f.legs) return false;
+  if (!f.clear || f.sets) return true;
+  return legs[w] - legs[1 - w] >= f.clear || legs[0] + legs[1] >= maxLegs(f);
+}
+// Nächstes Leg ist das Sudden-Death-Leg (z. B. 12:12 bei First to 10)
+export const isSuddenDeath = (f, legs) => !!f.clear && !f.sets && legs[0] === legs[1] && legs[0] + legs[1] === maxLegs(f) - 1;
+// Verlängerung läuft (beide mindestens First-to − 1, noch kein Sieger)
+export const inExtension = (f, legs) => !!f.clear && !f.sets && Math.min(...legs) >= f.legs - 1;
+
 // Gewinnt Spieler i mit dem aktuellen Leg das Match?
-export const wouldWinMatch = (m, i) => m.legs[i] + 1 >= legsTo(m) && (!m.format.sets || m.sets[i] + 1 >= setsTo(m));
+export const wouldWinMatch = (m, i) => (m.format.sets
+  ? m.legs[i] + 1 >= legsTo(m) && m.sets[i] + 1 >= setsTo(m)
+  : legsWin(m.format, m.legs.map((l, j) => l + (j === i ? 1 : 0)), i));
 // Entscheidungsleg (beide einen Leg vom Matchgewinn entfernt)
 export const isDecider = m => wouldWinMatch(m, 0) && wouldWinMatch(m, 1);
 export const dartsLeft = m => 3 - m.visit.darts.length;
@@ -100,12 +115,14 @@ function endLeg(m, w, ev) {
   m.legs[w]++; m.legIdx++; m.log.push(w);
   ev.legEnd = true; ev.legWinner = w;
   m.lastLeg = { visits: m.legVisits, starter: m.legStarter, winner: w, avg: [0, 1].map(i => legAverage(m, i)), rem: [...m.rem] };
-  if (m.legs[w] >= legsTo(m)) {
+  if (m.format.sets ? m.legs[w] >= legsTo(m) : legsWin(m.format, m.legs, w)) {
     if (!m.format.sets) return finish(m, w, ev);
     m.sets[w]++; ev.setEnd = true;
     if (m.sets[w] >= setsTo(m)) return finish(m, w, ev);
     m.legs = [0, 0]; m.setStarter = 1 - m.setStarter; m.legStarter = m.setStarter;
   } else m.legStarter = 1 - m.legStarter;
+  // Sudden Death: Ausbullen um den Anwurf (ohne RNG im Zustand: Parität der bisher geworfenen Punkte)
+  if (isSuddenDeath(m.format, m.legs)) { m.legStarter = (m.stats[0].points + m.stats[1].points + m.legIdx) % 2; m.suddenDeath = true; ev.suddenDeath = true; }
   m.rem = [501, 501]; m.legDarts = [0, 0]; m.last = [null, null];
   m.legPoints = [0, 0]; m.legVisits = [[], []];
   m.turn = m.legStarter;
