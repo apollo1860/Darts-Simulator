@@ -372,7 +372,8 @@ function stopLine() {
   ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
-  banner(h.label === 'BOUNCER' ? '❌ BOUNCER!' : h.label === 'ROBIN' ? '🏹 ROBIN HOOD!' : txt, !r.ev?.bust && h.label !== 'BOUNCER' && h.label !== 'ROBIN');
+  const noIn = needsIn(ui.live.m, ui.me) && !['BOUNCER', 'ROBIN'].includes(h.label);   // Version 147: Double-in noch offen → der Dart zählt nicht
+  banner(h.label === 'BOUNCER' ? '❌ BOUNCER!' : h.label === 'ROBIN' ? '🏹 ROBIN HOOD!' : noIn ? `${fieldName(h.label)} – zählt nicht` : txt, !r.ev?.bust && h.label !== 'BOUNCER' && h.label !== 'ROBIN' && !noIn);
   if (!r.visitOver) { ui.timer = setTimeout(() => { if (ui?.aim) { $('#banner').className = 'board-banner'; nextDart(); } }, 700); return; }
   ui.timer = setTimeout(() => { if (!ui) return; closeOverlay(); afterVisit(r.ev, ui.me); }, r.ev?.checkout ? 1600 : 1200);
 }

@@ -377,10 +377,13 @@ export function playerMatch(inst) {
 // Leistungsdaten; World Cup: Liste der beiden Teamspieler (der Bessere zuerst, sie wechseln sich je Aufnahme ab)
 // Bühne (Majors, große Namen): Erfahrung zählt zusätzlich (form.js)
 const soloAttrs = (state, id, inst, sf, opp) => withAngle(state, id, soloAttrs0(state, id, inst, sf, opp));
+// Version 147: Lieblingsdoppel für Double-in je KI-Spieler fest – 75 % Tops (D20), 25 % D16
+export const DIN_D16_SHARE = 0.25;
+export const dinPrefOf = (state, id) => (new RNG({ s: hashSeed(`din|${id}|${state.seed ?? 0}`) }).chance(DIN_D16_SHARE) ? 16 : 20);
 // Einsteckwinkel (obstruction.js): wirkt im dartgenauen Live-Modell über attrs.angle
 const withAngle = (state, id, a) => {
   const angle = angleOf(state, id);
-  if (id !== 'P') return { ...a, angle };
+  if (id !== 'P') return { ...a, angle, dinPref: dinPrefOf(state, id) };
   const bounce = dartBounce(state.player.gear?.id);    // Version 135: Bouncer je Dart (Schnellsimulation: Grundchance kostet Punkte)
   return { ...a, angle, bounce, robin: flightRobin(flightPrice(state.player)), angleMult: angleEfficiency(angle) * (1 - bounce.base) };   // robin: Version 136 (Flight)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
 };
@@ -511,7 +514,8 @@ export function keyMoment(state) {
   if (dinScene(state)) return 'din';                              // Version 144: Double-in – erste Aufnahme des Legs zu 75 % selbst (extra)
   if (nineAlive(state)) return wouldWinMatch(lm, live.me) && lm.rem[live.me] <= 170 ? 'match' : 'nine';   // 9-Darter: extra, zählt nicht mit
   if (bigFish(state)) return wouldWinMatch(lm, live.me) ? 'match' : 'fish';   // Version 129: Rest 170 – immer selbst, extra
-  const kind = pickMoment(state, live, lm) ?? forcedMoment(live, lm);
+  let kind = pickMoment(state, live, lm) ?? forcedMoment(live, lm);
+  if (kind === 'scoring' && needsIn(lm, live.me)) kind = 'din';   // noch nicht „drin“: die Szene heißt Double-in
   if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
   return kind;
 }
@@ -546,6 +550,7 @@ export function nineAlive(state) {
   if (!lm || lm.done || inst.teams || lm.turn !== live.me || lm.visit.darts.length) return false;
   const v = lm.legVisits?.[live.me] ?? [], r = lm.rem[live.me];
   if (lm.legDarts?.[live.me] !== v.length * 3 || v.some(x => x.bust)) return false;
+  if (lm.format?.din) return (v.length === 1 || v.length === 2) && nineStill(lm, live.me);   // Version 147: Double-in – z. B. 160 (D20 T20 T20), 180, 161
   if (v.length === 1) return v[0].score >= NINE_FIRST;
   if (v.length === 2) return v[0].score >= NINE_FIRST && r <= 170 && !BOGEY.has(r);
   return false;

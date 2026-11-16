@@ -20,6 +20,7 @@ export function makeProfile(attrs, rng, mod = {}) {
     foc: attrs.foc,
     ce: attrs.ce ?? calcError(attrs.cal),
     exp: attrs.exp ?? 0,
+    din16: attrs.dinPref === 16,                          // Double-in: Lieblingsdoppel D16 statt Tops
   };
 }
 
@@ -117,12 +118,14 @@ const targetAvgRef = p => p.avgBase ?? p.avg;
 
 // Version 144: Double-in – Aufnahme, solange noch kein Doppel getroffen ist: je Dart Chance aufs Doppel (meist D20, selten D1/D5);
 // nach dem Treffer zählen die restlichen Darts normal. Rückgabe wie visit() + in (true = jetzt drin).
-export const DIN_HIT = 1.1;   // Chance je Dart = Checkout-Basis × DIN_HIT (D20 ist das bevorzugte Doppel, Nachbar-Doppel zählen mit)
+export const DIN_NEIGHBOUR = 0.07;
+export const DIN_HIT = 1.0;   // Chance je Dart = Checkout-Basis × DIN_HIT (Version 147: 1,0 – passt zum Dart-Modell, Nachbar-Doppel inklusive)
 export function inVisit(p, rng, fatigue) {
   const h = clamp(p.co * DIN_HIT, 0.05, 0.75);
   for (let d = 1; d <= 3; d++) {
     if (!rng.chance(h)) continue;
-    const dbl = rng.chance(0.85) ? 40 : rng.pick([2, 10]);
+    // Version 147: Lieblingsdoppel Tops (D20, selten D1/D5) oder D16 (selten D8/D7); Nachbar-Doppel ≈ 7 % wie im Dart-Modell
+    const dbl = p.din16 ? (rng.chance(1 - DIN_NEIGHBOUR) ? 32 : rng.pick([16, 14])) : (rng.chance(1 - DIN_NEIGHBOUR) ? 40 : rng.pick([2, 10]));
     // Version 146: restliche Darts dartgenau auf die 20 (T20 / S20 / Nachbar 1 oder 5) → typisch 80, 120, 160 statt krummer Werte
     const e = p.avg * fatigue * SCORING_BOOST / 3, q = clamp((e - 16.6) / 43.4, 0.03, 0.85);
     let rest = 0;

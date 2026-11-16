@@ -61,14 +61,20 @@ function maybeMiscalc(target, rem, ce, rng) {
   return rem > 60 ? rng.pick(['T20', 'T19', 'T18']) : 'S' + rng.int(1, 20);
 }
 
+export const DIN_LATERAL = 2.2, DIN_SWITCH = 0.5;   // Double-in: seitliche Streuung × 2,2; Wechsel aufs andere Doppel ab halb verbautem Feld
 // KI-Dart: Ziel wählen + werfen. Rückgabe {target, x, y, hit}
 export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced = null) {
   // forced = vom Spieler gewählter Weg (keine Rechenfehler); attrs.ce = eigene Fehlerquote (Tour-Modus, aus Rechnen 0–60)
-  const din = needsIn(m, i);                           // Version 144: Double-in – erst ein Doppel (D20)
-  let target = forced ?? (din ? 'D20' : maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng));
+  // Version 144/147: Double-in – erst ein Doppel: Lieblingsdoppel (`attrs.dinPref`: Tops, manche D16); ist es verbaut, das andere
+  const din = needsIn(m, i), dinA = attrs.dinPref === 16 ? 'D16' : 'D20', dinB = dinA === 'D16' ? 'D20' : 'D16';
+  let target = forced ?? (din ? dinA : maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng));
   // Einsteckwinkel: Steckende Darts dieser Aufnahme verbauen das Feld (obstruction.js). Im reinen Scoring wechselt die KI auf T19/T18/T17.
   const ang = attrs.angle, tips = m.visit.tips;
   let block = ang != null && tips?.length ? blockage(targetPoint(target), tips, ang) : 0;
+  if (din && forced == null && block >= DIN_SWITCH) {
+    const b2 = blockage(targetPoint(dinB), tips, ang);
+    if (b2 <= block - 0.3) { target = dinB; block = b2; }
+  }
   if (block >= SWITCH_AT && forced == null && !din && m.rem[i] > 230) {
     const alt = ['T19', 'T18', 'T17'].map(t => [t, blockage(targetPoint(t), tips, ang)]).sort((a, b) => a[1] - b[1])[0];
     if (alt[1] <= block - 0.3) { target = alt[0]; block = alt[1]; }
@@ -77,7 +83,13 @@ export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced 
   const base = isDoubleLabel(target) ? sig.dbl : sig.score;
   const s = base * mult * pressureFactor(m, i, target, attrs.men, attrs.exp) * fatigueFactor(m, attrs.foc)
     * (ang != null ? stability(ang, isDoubleLabel(target)) * (1 + BLOCK_SIGMA * block) : 1);
-  const x = p.x + rng.normal(0, s), y = p.y + rng.normal(0, s);
+  let x, y;
+  if (din && isDoubleLabel(target) && target !== 'BULL') {
+    // Version 147: Einstiegs-Doppel streuen seitlich deutlich mehr als in der Höhe (entlang des Doppelrings) → gelegentlich das Nachbar-Doppel
+    // (Tops → D1/D5, D16 → D8/D7), wie in echt; die Trefferquote auf ein Doppel bleibt etwa gleich.
+    const r = Math.hypot(p.x, p.y), ux = p.x / r, uy = p.y / r, a = rng.normal(0, s), b = rng.normal(0, s * DIN_LATERAL);
+    x = p.x + ux * a - uy * b; y = p.y + uy * a + ux * b;
+  } else { x = p.x + rng.normal(0, s); y = p.y + rng.normal(0, s); }
   const bp = bounceChance(block, attrs.bounce);         // Version 135: eigene Darts (attrs.bounce) – KI ohne Angabe wie bisher
   const rp = robinChance({ x, y }, tips, attrs.robin);   // Version 136: Robin Hood (Dart im Flight des vorherigen)
   const hit = bp > 0 && rng.chance(bp) ? BOUNCER : rp > 0 && rng.chance(rp) ? ROBIN : scoreAt(x, y);

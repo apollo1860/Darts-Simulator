@@ -101,6 +101,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 142**: `SPONSOR_PAY` 0,56 (vorher 0,7), Migration `payV` 3 (`PAY_V` in data/sponsorsreal.js).
 - **Version 143**: Keine 180er-Prämie bei Sponsoren mehr (`s180` immer 0, `dropSponsor180` in `migrate`).
 - **Version 144**: World Grand Prix Double-in (`din` im Format; `needsIn`/`m.inn` matchState.js, D20 in `aiDart`, `inVisit` matchEngine.js); erste eigene Aufnahme je Leg zu 75 % Szene `din` (`dinScene`, extra). Ältere Angabe „Double-In vereinfacht weggelassen“ ist überholt.
+- **Version 147**: Double-in realistischer: `DIN_LATERAL` (Nachbar-Doppel), `dinPrefOf`/`attrs.dinPref` (Tops oder D16), `DIN_SWITCH`, Sim `DIN_NEIGHBOUR`/`DIN_HIT` 1,0, 9-Darter über `nineStill`, Banner „zählt nicht“.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

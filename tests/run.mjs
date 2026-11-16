@@ -3054,4 +3054,46 @@ test('New Star Darts v146: Double-in-Einstieg in der Schnellsimulation dartgenau
   for (const v of [80, 120, 160]) assert.ok(top.includes(v), `${v} unter den häufigsten (${top})`);
 });
 
+test('New Star Darts v147: Double-in-Einstiege realistisch – erster zählender Dart immer ein Doppel, auch Nachbar-Doppel, Lieblingsdoppel D16', async () => {
+  const MS = await import('../js/matchState.js'), TM = await import('../js/throwModel.js'), E = await import('../js/matchEngine.js'), T = await import('../js/tournaments.js');
+  const B = await import('../js/board.js'), P = await import('../js/player.js'), { RNG } = await import('../js/rng.js');
+  const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
+  const entries = pref => {
+    const rng = new RNG(5), a = { ...P.attrsForAverage(95, rng), angle: 18, dinPref: pref }, first = {};
+    for (let k = 0; k < 2500; k++) {
+      const m = MS.createMatch({ legs: 3, din: true }, 0);
+      for (let v = 0; v < 12 && MS.needsIn(m, 0); v++) {
+        for (let d = 0; d < 3; d++) {
+          const was = MS.needsIn(m, 0), x = TM.aiDart(m, 0, a, rng), r0 = m.rem[0]; MS.throwDart(m, x.hit, x);
+          if (was && m.rem[0] !== r0) { assert.ok(x.hit.double, `erster zählender Dart ${x.hit.label}`); first[x.hit.label] = (first[x.hit.label] ?? 0) + 1; }
+          else if (was) assert.equal(m.rem[0], 501, 'vor dem Doppel zählt nichts');
+        }
+        for (let d = 0; d < 3; d++) MS.throwDart(m, { label: 'S1', score: 0, double: false, mult: 1, num: 1 });
+      }
+    }
+    const tot = Object.values(first).reduce((x, y) => x + y, 0);
+    return l => (first[l] ?? 0) / tot;
+  };
+  const tops = entries(20), d16 = entries(16);
+  assert.ok(tops('D20') > 0.65 && tops('D1') > 0.02 && tops('D5') > 0.02 && tops('D1') + tops('D5') < 0.2, `Tops: D20 ${tops('D20').toFixed(2)}, D1 ${tops('D1').toFixed(3)}, D5 ${tops('D5').toFixed(3)}`);
+  assert.ok(d16('D16') > 0.65 && d16('D8') > 0.02 && d16('D7') > 0.02, `D16: ${d16('D16').toFixed(2)}, D8 ${d16('D8').toFixed(3)}, D7 ${d16('D7').toFixed(3)}`);
+  // Lieblingsdoppel je KI-Spieler fest, meist Tops
+  const st = { seed: 7 }; let n16 = 0; for (let i = 0; i < 400; i++) { const v = T.dinPrefOf(st, 'T' + i); assert.equal(v, T.dinPrefOf(st, 'T' + i)); if (v === 16) n16++; }
+  assert.ok(n16 > 60 && n16 < 140, `D16-Spieler ${n16}/400`);
+  // Schnellsimulation: Einstieg immer über ein Doppel (40/2/10 bzw. 32/16/14) + Rest auf die 20
+  const rng = new RNG(2), ok = new Set([60, 20, 1, 5]);
+  for (const din16 of [false, true]) for (let i = 0; i < 3000; i++) {
+    const v = E.inVisit({ ...E.makeProfile(P.attrsForAverage(95, rng), null), din16 }, rng, 1);
+    if (!v.in) { assert.equal(v.pts, 0); continue; }
+    const dbls = din16 ? [32, 16, 14] : [40, 2, 10];
+    const fits = dbls.some(d => { const r = v.pts - d; if (r === 0) return true; for (const x of ok) { if (r === x) return true; for (const y of ok) if (r === x + y) return true; } return false; });
+    assert.ok(fits, `Einstieg ${v.pts} (${din16 ? 'D16' : 'Tops'})`);
+  }
+  // 9-Darter mit Double-in: 160 (D20 T20 T20) hält ihn am Leben, 140 (D20 T20 S20 …) nicht
+  const mk = darts => { const m = MS.createMatch({ legs: 3, din: true }, 0); darts.forEach(l => MS.throwDart(m, H(l))); ['S1', 'S1', 'S1'].forEach(l => MS.throwDart(m, H(l))); return { activeEvent: { live: { m, me: 0 } }, player: { energy: 100 } }; };
+  assert.ok(T.nineAlive(mk(['D20', 'T20', 'T20'])), '160 → 9-Darter möglich');
+  assert.equal(T.nineAlive(mk(['D20', 'T20', 'S20'])), false, '120 → nicht mehr');
+  assert.equal(T.nineAlive(mk(['T20', 'D20', 'T20'])), false, 'erster Dart zählte nicht');
+});
+
 console.log(`\n${n} Tests ok`);
