@@ -3,8 +3,8 @@
 // priced (true = Gewinn wächst wie die Preise statt wie die Einnahmen, z. B. Rubbellos-Jackpot), idle (true = Trainingsrückstand zurücksetzen), single (Beziehung endet), meet (neue Freundin, Startwert), chance {p, ok, fail}.
 // Texte: {partner} = Name der Freundin. Aktionen (Auftritte, Feiern …) kosten immer 60 % Energie (nur ab 60 % wählbar);
 // Beziehungs-Änderungen durch Ereignisse sind auf ±2 begrenzt (life.js).
-export const PARTNER_NAMES_M = ['Lukas', 'Jonas', 'Leon', 'Finn', 'Paul', 'Ben', 'Tom', 'Max', 'Noah', 'Elias', 'Jack', 'Oliver', 'Harry', 'Daan', 'Sem', 'Liam', 'Mats', 'Felix', 'Tim', 'Niklas'];   // Version 100: Partner von Spielerinnen
-export const PARTNER_NAMES = ['Lena', 'Laura', 'Sarah', 'Julia', 'Anna', 'Lisa', 'Marie', 'Sophie', 'Emma', 'Mia', 'Hannah', 'Jessica', 'Nina', 'Kim', 'Chloe', 'Emily', 'Olivia', 'Sanne', 'Femke', 'Alicia'];
+export const PARTNER_NAMES_M = ['Lukas', 'Jonas', 'Leon', 'Finn', 'Paul', 'Ben', 'Tom', 'Max', 'Noah', 'Elias', 'Jack', 'Oliver', 'Harry', 'Daan', 'Sem', 'Liam', 'Mats', 'Felix', 'Tim', 'Niklas', 'Jan', 'Moritz', 'Julian', 'David', 'Simon', 'Fabian', 'Florian', 'Tobias', 'Sebastian', 'Philipp', 'Alexander', 'Daniel', 'Marcel', 'Kevin', 'Dennis', 'Patrick', 'Christian', 'Dominik', 'Marco', 'Sven', 'Kai', 'Lars', 'Erik', 'Henrik', 'Malte', 'Jannik', 'Luca', 'Matteo', 'Emil', 'Theo', 'Anton', 'Jakob', 'Oskar', 'Milan', 'Can', 'Yusuf', 'Ryan', 'Ethan', 'George', 'Charlie', 'Thomas', 'James', 'Lewis', 'Dylan', 'Bram', 'Ruben', 'Thijs', 'Jesse', 'Pieter', 'Lorenzo', 'Tomas', 'Mateo', 'Hugo', 'Louis', 'Rafael', 'Mikkel', 'Jonathan', 'Arne', 'Ole', 'Henry'];   // Version 100: Partner von Spielerinnen
+export const PARTNER_NAMES = ['Lena', 'Laura', 'Sarah', 'Julia', 'Anna', 'Lisa', 'Marie', 'Sophie', 'Emma', 'Mia', 'Hannah', 'Jessica', 'Nina', 'Kim', 'Chloe', 'Emily', 'Olivia', 'Sanne', 'Femke', 'Alicia', 'Lea', 'Leonie', 'Clara', 'Johanna', 'Amelie', 'Charlotte', 'Lina', 'Ella', 'Emilia', 'Paula', 'Luisa', 'Greta', 'Mila', 'Frieda', 'Ida', 'Isabel', 'Jana', 'Katharina', 'Vanessa', 'Melanie', 'Sandra', 'Nicole', 'Tanja', 'Stefanie', 'Carina', 'Selina', 'Michelle', 'Jasmin', 'Vivien', 'Celine', 'Nadine', 'Franziska', 'Theresa', 'Miriam', 'Ronja', 'Svenja', 'Kira', 'Maja', 'Elif', 'Aylin', 'Zoe', 'Ava', 'Grace', 'Ruby', 'Isla', 'Amber', 'Lotte', 'Eva', 'Noor', 'Fleur', 'Ilse', 'Giulia', 'Chiara', 'Sofia', 'Elena', 'Lucia', 'Camille', 'Ines', 'Natalia', 'Zuzana'];   // Version 124: je 80 Namen
 const hasPartner = p => (p.rel?.partner ?? 0) > 0;
 
 export const LIFE_EVENTS = [
@@ -23,6 +23,10 @@ export const LIFE_EVENTS = [
     opts: [{ label: 'Großes Geschenk', stars: -15, partner: 10, sat: 3, out: 'Volltreffer – sie ist begeistert.' },
       { label: 'Blumen', stars: -2, partner: 3, out: 'Eine nette Geste.' },
       { label: 'Vergessen …', partner: -12, sat: -4, out: 'Oh oh. Das gibt Ärger.' }] },
+  // Version 124: Affären-Angebot – Zufriedenheit rauf, fliegt aber zu 10 % auf (dann Trennung bzw. Scheidung). {lover} = Name der Affäre.
+  { id: 'affair', icon: '💋', if: hasPartner, text: '{lover} flirtet nach dem Turnier heftig mit dir und will dich unbedingt wiedersehen.',
+    opts: [{ label: 'Darauf einlassen', sat: 12, chance: { p: 0.1, ok: { single: true, sat: -15, out: 'Die Affäre mit {lover} fliegt auf – {partner} hat genug. Es ist aus.' }, fail: { out: 'Ein aufregendes Abenteuer mit {lover}.' } } },
+      { label: 'Abblitzen lassen', partner: 1, out: 'Du bleibst {partner} treu.' }] },
   { id: 'jealous', icon: '😤', if: hasPartner, text: '{partner} fühlt sich vernachlässigt: „Immer nur Darts!“',
     opts: [{ label: 'Wochenende frei nehmen', energy: 10, partner: 6, out: 'Ein ruhiges Wochenende zu zweit tut euch gut.' },
       { label: 'Darts geht vor', partner: -8, chance: { p: 0.25, ok: { single: true, sat: -10, out: '{partner} macht Schluss.' }, fail: { out: '{partner} zieht sich zurück.' } } }] },

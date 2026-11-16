@@ -2747,4 +2747,21 @@ test('New Star Darts v122: Hochzeit bei Beziehung 100 und über 1 Jahr zusammen,
   assert.ok(s.news.some(n => /Scheidung/.test(n.title)));
 });
 
+test('New Star Darts v124: je 80 Partnernamen, Affären-Angebot fliegt zu 10 % auf (Trennung bzw. Scheidung)', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), E = await import('../data/lifeevents.js');
+  assert.equal(new Set(E.PARTNER_NAMES).size, 80); assert.equal(new Set(E.PARTNER_NAMES_M).size, 80);
+  const ev = L.eventById('affair'); assert.ok(ev && !/10|auffliegen|Risiko/.test(ev.text), 'kein Erklärtext');
+  let found = 0, n = 400;
+  for (let k = 0; k < n; k++) {
+    const s = N.newNsdCareer({ first: 'A', last: 'F', nation: 'DE', age: 25, slot: 1, seed: 70 + (k % 5) }), p = s.player, rng = new RNG(k);
+    p.partnerName = 'Lena'; p.rel.partner = 60; p.partnerSince = 0; if (k % 2) p.married = { year: 2026, week: 3 }; s.stars = 100;
+    s.lifeEvent = { id: 'affair', name: null, lover: 'Mia' };
+    assert.ok(L.lifeEventView(s).text.startsWith('Mia'));
+    const sat0 = p.satisfaction, r = L.resolveLifeEvent(s, 0, rng);
+    if (!p.partnerName) { found++; if (k % 2) assert.equal(s.stars, 50, 'Scheidung: halbes Sterngeld'); assert.ok(/Mia/.test(r.text) && /Lena/.test(r.text)); }
+    else assert.ok(p.satisfaction > sat0);
+  }
+  assert.ok(found > n * 0.05 && found < n * 0.16, `${found} von ${n} aufgeflogen`);
+});
+
 console.log(`\n${n} Tests ok`);

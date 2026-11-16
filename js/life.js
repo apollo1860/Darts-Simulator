@@ -8,7 +8,7 @@ import { rankOf } from './rankings.js';
 import { RNG } from './rng.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const fill = (txt, p) => partnerText(txt.replaceAll('{partner}', p.partnerName ?? (p.woman ? 'Er' : 'Sie')), p);   // Version 100: Spielerinnen → Freund
+const fill = (txt, p) => partnerText(txt.replaceAll('{lover}', p.lover ?? 'Jemand').replaceAll('{partner}', p.partnerName ?? (p.woman ? 'Er' : 'Sie')), p);   // Version 100: Spielerinnen → Freund
 
 // ---- Lifestyle-Shop ----
 export const ownedItems = p => LIFESTYLE.filter(x => p.owned?.includes(x.id));
@@ -109,13 +109,14 @@ export function rollLifeEvent(state, rng) {
   if (state.lifeEvent || !rng.chance(LIFE_EVENT_CHANCE)) return null;
   const pool = LIFE_EVENTS.filter(e => (!e.if || e.if(p, state)) && e.id !== state.lastLifeEvent);
   const ev = rng.pick(pool);
-  state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(p.woman ? PARTNER_NAMES_M : PARTNER_NAMES) : null };
+  const names = p.woman ? PARTNER_NAMES_M : PARTNER_NAMES;
+  state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(names) : null, lover: ev.id === 'affair' ? rng.pick(names.filter(n => n !== p.partnerName)) : null };
   return state.lifeEvent;
 }
 export function lifeEventView(state) {
   const le = state.lifeEvent, ev = le && eventById(le.id);
   if (!ev) return null;
-  const p = { ...state.player, partnerName: le.name ?? state.player.partnerName };
+  const p = { ...state.player, partnerName: le.name ?? state.player.partnerName, lover: le.lover };
   const paid = ev.opts.find(o => o.stars < 0), price = paid ? starPrice(-paid.stars, state.player.star.level) : 0;   // Preis im Text = Preis im Knopf
   return { icon: ev.icon, text: fill(ev.text, p).replaceAll('{preis}', price), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
     energy: o.energy < 0 ? -o.energy : 0, tired: o.energy < 0 && (state.player.energy ?? 0) < -o.energy })) };
@@ -158,7 +159,7 @@ export function resolveLifeEvent(state, idx, rng) {
   state.lastLifeEvent = le.id;
   state.lifeEvent = null;
   checkAchievements(state);
-  return { text: fill(text, { partnerName: p.partnerName ?? name, woman: p.woman }), changes };
+  return { text: fill(text, { partnerName: p.partnerName ?? name, woman: p.woman, lover: le.lover }), changes };
 }
 export function breakUp(state, news = true) {
   const p = state.player, name = p.partnerName ?? partnerText('Deine Freundin', p), wed = !!p.married;
