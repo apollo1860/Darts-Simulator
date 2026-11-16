@@ -3018,6 +3018,7 @@ test('New Star Darts v144: World Grand Prix mit Double-in, erste Aufnahme zu 75 
   const B = await import('../js/board.js'), P = await import('../js/player.js'), { FORMATS } = await import('../data/tournaments.js'), { RNG } = await import('../js/rng.js');
   const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
   assert.ok(FORMATS.wgp.default.din && Object.values(FORMATS.wgp.byRemaining).every(f => f.din), 'WGP: Double-in in allen Runden');
+  assert.deepEqual([FORMATS.wgp.default.sets, FORMATS.wgp.byRemaining[16].sets, FORMATS.wgp.byRemaining[8].sets, FORMATS.wgp.byRemaining[4].sets, FORMATS.wgp.byRemaining[2].sets], [2, 3, 3, 5, 6], 'v145: Bo3/Bo5/Bo5/Bo9/Bo11 Sets');
   assert.ok(E.formatLines(FORMATS.wgp.default).includes('Double-in · Double-out') && /Double-in/.test(E.formatLabel(FORMATS.wgp.default)));
   // Punkte zählen erst ab dem ersten Doppel
   const m = MS.createMatch({ sets: 1, legs: 3, din: true }, 0);
