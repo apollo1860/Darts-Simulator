@@ -57,6 +57,7 @@ export function mount(root, app) {
   root.querySelector('#w-next').onclick = async () => {
     if (s.activeEvent) return app.go('event');
     if (s.lifeEvent) return app.go('lifeevent', { back: 'week' });
+    if (s.dilemma) return app.go('dilemma', { back: 'week' });
     if (s.interview) return app.go('interview');
     const open = eventsInWeek(s, s.date.year, s.date.week).filter(e => shownTo(s, e) && eventStatus(s, e).playable);
     if (open.length && !await confirmDialog('Woche beenden?', `${open.map(e => esc(e.name)).join(', ')} – ohne dich.`, 'Weiter')) return;

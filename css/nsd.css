@@ -648,3 +648,21 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .tvsb-logo b { background: #fff; color: #24262f; padding: 0 4px; margin-left: 3px; border-radius: 2px; }
 .nsd-aim-info:empty { display: none; }
 
+/* Einsatz-Herzen im Liveticker (Version 107) */
+.nsd-eff { font-size: 1.15rem; letter-spacing: -3px; white-space: nowrap; }
+.nsd-eff.e1 { font-size: 1.6rem; }
+/* Dilemma (Version 107): zwei Bilder, versetzt wie im Vorbild, darunter der Beziehungsbalken */
+.nsd-dls { display: flex; flex-direction: column; gap: 10px; padding: 8px 0 12px; }
+.nsd-dl { all: unset; box-sizing: border-box; display: block; width: 70%; cursor: pointer; background: #2a2f37; border: 2px solid #9aa6b2; border-radius: 6px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,.4); transition: transform .1s; }
+.nsd-dl.left { align-self: flex-start; margin-left: 8px; }
+.nsd-dl.right { align-self: flex-end; margin-right: 8px; }
+.nsd-dl:active { transform: scale(.98); }
+.nsd-dl[disabled] { cursor: default; }
+.nsd-dl.won { border-color: #39d353; box-shadow: 0 0 14px rgba(57,211,83,.55); }
+.nsd-dl.lost { opacity: .85; filter: grayscale(.35); }
+.nsd-dl .pic { position: relative; aspect-ratio: 16 / 10; }
+.nsd-dl .pic .nsd-art { width: 100%; height: 100%; display: block; }
+.nsd-dl .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 8px; font-weight: 700; font-size: .95rem; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.65)); text-shadow: var(--nsd-shadow); }
+.nsd-dl .dlt { position: absolute; top: 6px; right: 8px; font-weight: 800; font-size: 1.4rem; color: #fff; text-shadow: 0 2px 4px #000; }
+.nsd-dl.won .dlt { color: #6dff7d; } .nsd-dl.lost .dlt { color: #ff8f8f; }
+.nsd-dl .nsd-meter { margin: 0; border-radius: 0; }

@@ -8,7 +8,7 @@ import { flag } from '../../../../data/nations.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
-  keyMoment, aimParams, liveHumanDart, liveThrower } from '../../../tournaments.js';
+  keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
@@ -25,6 +25,8 @@ const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
 const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME' };
 const HELP = '<p><b>Spielmomente</b> 🎲: Etwa alle ein bis zwei Matches passiert ein Zwischenfall (rutschiger Dart, Zwischenruf, Blitzlicht …). Du wählst eine von zwei Optionen – jede kann mit gleicher Chance gut oder schlecht ausgehen. Dein Wurf (und die Simulation) wird für einige Aufnahmen besser oder schlechter; Fans, Manager und Sponsoren können dauerhaft etwas mitbekommen.</p><p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
 let ui = null;
+// Einsatz (Version 107): 1 ❤ gelb, 2 ❤ orange (Standard), 3 ❤ rot – mehr Einsatz = mehr Spielszenen, aber mehr Energieverbrauch
+const effIcon = e => `<span class="nsd-eff e${e}">${['', '💛', '🧡🧡', '❤️❤️❤️'][e]}</span>`;
 
 export function render(app) {
   const inst = app.state.activeEvent, pm = inst && playerMatch(inst);
@@ -41,7 +43,7 @@ export function render(app) {
         <div class="nsd-aim hidden" id="aim"></div>
       </div>`,
     bottom: bar([{ id: 'l-pause', icon: '⏸', label: 'Pause' }, { id: 'l-fast', icon: '⏩', label: 'Tempo' },
-      { id: 'l-end', icon: '⏭', label: 'Sofort beenden', wide: true }]),
+      { id: 'l-eff', icon: effIcon(effortOf(inst.live)), label: 'Einsatz' }, { id: 'l-end', icon: '⏭', label: 'Beenden' }]),
   });
 }
 
@@ -74,6 +76,12 @@ function bindBar() {
   };
   q('#l-fast').onclick = e => { ui.fast = !ui.fast; e.currentTarget.classList.toggle('on', ui.fast); };
   q('#l-fast').classList.toggle('on', ui.fast);
+  q('#l-eff').onclick = e => {
+    const n = effortOf(ui.live) % 3 + 1;
+    setEffort(ui.s, n); ui.app.save();
+    e.currentTarget.querySelector('.ic').innerHTML = effIcon(n);
+    say(['', '💛 Wenig Einsatz: weniger Spielszenen, spart Energie.', '🧡 Normaler Einsatz.', '❤️ Voller Einsatz: mehr Spielszenen, kostet mehr Energie.'][n]);
+  };
   q('#l-end').onclick = async () => {
     if (ui?.aim) return;
     if (!await confirmDialog('Sofort beenden?', 'Der Rest des Matches wird ohne Anzeige simuliert – ohne deine Schlüsselmomente.', 'Beenden')) return;

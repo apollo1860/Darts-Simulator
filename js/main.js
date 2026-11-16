@@ -28,6 +28,7 @@ import * as drinks from './ui/nsd/screens/drinks.js';
 import * as darts from './ui/nsd/screens/darts.js';
 import * as lifestyle from './ui/nsd/screens/lifestyle.js';
 import * as lifeevent from './ui/nsd/screens/lifeevent.js';
+import * as dilemma from './ui/nsd/screens/dilemma.js';
 import * as achievements from './ui/nsd/screens/achievements.js';
 import * as nteam from './ui/nsd/screens/nteam.js';
 import * as nsponsors from './ui/nsd/screens/nsponsors.js';
@@ -43,7 +44,7 @@ import * as editor from './ui/nsd/screens/editor.js';
 import * as accessories from './ui/nsd/screens/accessories.js';
 
 const SCREENS = { title, menu: title, slots, options, welcome, newprofile, intro, hub: status, skills, life, league,
-  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, lifestyle, lifeevent,
+  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, darts, lifestyle, lifeevent, dilemma,
   achievements, goals, weekly, season, interview, calendar: schedule, tour: titles, stats: nstats, careerEnd: nend, team: nteam, sponsors: nsponsors, editor, accessories };
 const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile', 'practice', 'minigame'];
 // Container je Screen: NSD-Screens randlos, alte Screens im bisherigen Layout

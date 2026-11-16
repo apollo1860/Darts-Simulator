@@ -2595,4 +2595,26 @@ test('New Star Darts v106: variable Preise × 1,25, Top-Manager bringt keinen gr
   assert.equal(TM.MANAGERS.find(m => m.id === 'm3').mult, 1.9);
 });
 
+test('New Star Darts v107: Einsatz (1–3 Herzen) im Match und Dilemma-Entscheidungen alle 3–7 Wochen', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), C = await import('../js/career.js'), CAL = await import('../js/calendar.js');
+  // Einsatz: Standard 2 Herzen = bisheriges Verhalten, Energie je Leg gewichtet
+  assert.equal(T.EFFORT_DEFAULT, 2); assert.equal(T.EFFORT_ENERGY[2], 1); assert.equal(T.EFFORT_SCENES[2], 1);
+  assert.ok(T.EFFORT_ENERGY[1] < 1 && T.EFFORT_ENERGY[3] > 1 && T.EFFORT_SCENES[1] < 1 && T.EFFORT_SCENES[3] > 1);
+  assert.ok(Math.abs(T.effortEnergyFactor({ effortHist: [{ leg: 0, e: 2 }, { leg: 5, e: 3 }], effort: 3 }, 10) - 1.175) < 1e-9);
+  const energyUsed = e => {
+    const s = N.newNsdCareer({ first: 'E', last: 'F', nation: 'DE', age: 25, slot: 1, seed: 11 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+    T.enterEvent(s, CAL.eventsInWeek(s, 2026, 6).find(x => x.cat === 'pc').id); T.startManualMatch(s);
+    T.setEffort(s, e); const e0 = s.player.energy; T.simulateLiveRest(s); return e0 - s.player.energy;
+  };
+  assert.ok(energyUsed(1) < energyUsed(2) && energyUsed(2) < energyUsed(3), `${energyUsed(1)} ${energyUsed(2)} ${energyUsed(3)}`);
+  // Dilemma: alle 3–7 Wochen (sofern mind. 2 Bereiche da sind), gewählt +4–6, andere −2–4
+  const s = N.newNsdCareer({ first: 'D', last: 'L', nation: 'DE', age: 25, slot: 1, seed: 12 }); s.team = { manager: 'm1', trainer: null }; C.nameTeam(s); s.player.rel.manager = 50; s.player.rel.fans = 30;
+  const rng = new RNG(5), seen = [];
+  for (let w = 0; w < 60; w++) { s.date.week = 3 + (w % 48); s.date.year = 2026 + Math.floor((w + 3) / 52); C.dilemmaWeek(s, rng); if (s.dilemma) { seen.push(w); const d = s.dilemma; const r = C.resolveDilemma(s, 0, rng);
+    const [a, b] = d.opts.map(o => o.key); assert.ok(a !== b); assert.equal(r.after[a] - r.before[a], r.gain); assert.ok(r.gain >= 4 && r.gain <= 6 && r.loss >= 2 && r.loss <= 4); } }
+  assert.ok(seen.length >= 7 && seen.length <= 18, `${seen.length} Dilemmas`);
+  const lone = N.newNsdCareer({ first: 'O', last: 'M', nation: 'DE', age: 25, slot: 1, seed: 13 });   // ohne Manager/Sponsoren/Partner nur Fans → kein Dilemma
+  for (let w = 0; w < 20; w++) { lone.date.week = 3 + w; C.dilemmaWeek(lone, rng); } assert.equal(lone.dilemma ?? null, null);
+});
+
 console.log(`\n${n} Tests ok`);

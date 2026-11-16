@@ -17,6 +17,7 @@ export function render(app) {
       ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: fit ? 'green' : 'red' })}
     </div>
     ${s.lifeEvent ? '<button class="nsd-dark nsd-alert" data-go="lifeevent">📬 Ein Ereignis wartet auf dich!</button>' : ''}
+    ${s.dilemma ? '<button class="nsd-dark nsd-alert" data-go="dilemma">⚖️ Eine Entscheidung wartet auf dich!</button>' : ''}
     ${s.interview && !s.activeEvent ? `<button class="nsd-dark nsd-alert" data-go="interview">🎤 ${s.interview.kind === 'paulke' ? 'Elmar Paulke wartet auf dich!' : 'Ein Interview wartet auf dich!'}</button>` : ''}
     <div class="nsd-strip"><span>Alter ${p.age}</span><span class="mid">Status</span><span class="r">${coin(s.stars ?? 0)}</span></div>
     <div class="nsd-rows">
@@ -60,5 +61,5 @@ export function mount(root, app) {
   root.querySelector('#s-drinks').onclick = () => app.go('drinks');
   root.querySelector('#s-darts').onclick = () => app.go('darts');
   // Spielen: laufendes Turnier → Turnier, sonst Wochenansicht (Melden / Weiter)
-  root.querySelector('#s-play').onclick = () => app.go(app.state.ended ? 'careerEnd' : app.state.lifeEvent ? 'lifeevent' : app.state.activeEvent ? 'event' : app.state.interview ? 'interview' : 'week');
+  root.querySelector('#s-play').onclick = () => app.go(app.state.ended ? 'careerEnd' : app.state.lifeEvent ? 'lifeevent' : app.state.dilemma ? 'dilemma' : app.state.activeEvent ? 'event' : app.state.interview ? 'interview' : 'week');
 }

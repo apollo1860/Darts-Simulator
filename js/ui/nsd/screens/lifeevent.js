@@ -25,7 +25,7 @@ export function render(app, params = {}) {
 }
 export function mount(root, app, params = {}) {
   const s = app.state, back = params.back ?? 'hub';
-  root.querySelector('#le-ok')?.addEventListener('click', () => app.go(back));
+  root.querySelector('#le-ok')?.addEventListener('click', () => app.go(s.dilemma ? 'dilemma' : back, s.dilemma ? { back } : undefined));   // Version 107: danach das Dilemma
   root.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
     try { const result = resolveLifeEvent(s, +b.dataset.o, new RNG(s.rng)); app.save(); app.go('lifeevent', { result, back }); }
     catch (e) { toast(e.message, 'error'); }

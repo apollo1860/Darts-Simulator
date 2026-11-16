@@ -523,17 +523,37 @@ function forcedMoment(live, lm, me = live.me) {
   if (boardPace(lm) < 1) live.kmLeg = lm.legIdx;
   return kind;
 }
+// ---- Einsatz (Version 107, Nutzerwunsch wie im Vorbild): 1 ❤ gelb / 2 ❤ orange (Standard, bisheriges Verhalten) / 3 ❤ rot ----
+// Mehr Einsatz = mehr eigene Spielszenen, kostet aber mehr Energie (abgerechnet je Leg mit dem Einsatz, der in diesem Leg galt).
+export const EFFORT_DEFAULT = 2;
+export const EFFORT_ENERGY = { 1: 0.7, 2: 1, 3: 1.35 };     // Energie-Faktor
+export const EFFORT_SCENES = { 1: 0.5, 2: 1, 3: 1.6 };      // Faktor für Check-/Break-/Scoring-Szenen (Matchdarts, Entscheidungsleg, Mindest-Szene je Leg bleiben)
+export const effortOf = live => live?.effort ?? EFFORT_DEFAULT;
+export function setEffort(state, e) {
+  const live = state.activeEvent?.live; if (!live || ![1, 2, 3].includes(e)) return;
+  (live.effortHist ??= [{ leg: 0, e: effortOf(live) }]).push({ leg: live.m?.legIdx ?? 0, e });
+  live.effort = e;
+}
+// Energie-Faktor über das ganze Match: Mittel der Einsätze je Leg (Wechsel gelten ab dem laufenden Leg)
+export function effortEnergyFactor(live, legsTotal) {
+  const hist = live?.effortHist;
+  if (!hist?.length || !legsTotal) return EFFORT_ENERGY[effortOf(live)];
+  let sum = 0;
+  for (let i = 0; i < legsTotal; i++) sum += EFFORT_ENERGY[[...hist].reverse().find(h => h.leg <= i)?.e ?? EFFORT_DEFAULT];
+  return sum / legsTotal;
+}
 function pickMoment(state, live, lm) {
-  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r);
+  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)];
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm)) return 'decider';
-  if (fin && (lm.legStarter !== me || r > 60) && paced(state, lm, me)) return lm.legStarter !== me ? 'break' : 'finish';
+  if (fin && (lm.legStarter !== me || r > 60) && paced(state, lm, me, Math.min(1, eff))) return lm.legStarter !== me ? 'break' : 'finish';
   // ab und zu eine Scoring-Aufnahme mitten im Leg: lange Matches höchstens eine je Leg (35 %), kurze (First-to ≤ 6) bis zu zwei (je 55 %)
   if (r > 170 && r < 501) {
     const vk = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`, short = boardPace(lm) >= 1;
     if (live.scoreKey === vk) return 'scoring';                    // dieselbe Aufnahme noch einmal geprüft (Neuladen)
     const cnt = live.scoreLeg === lm.legIdx ? (live.scoreCnt ?? 0) : 0;
-    if (cnt < (short ? SCORING_SHORT_MAX : 1) && paced(state, lm, me, short ? SCORING_SHORT : 0.35)) {
+    const max = (short ? SCORING_SHORT_MAX : 1) + (eff > 1 ? 1 : 0) - (eff < 1 ? 1 : 0);   // Einsatz: 3 ❤ eine Scoring-Szene mehr je Leg, 1 ❤ eine weniger
+    if (cnt < max && paced(state, lm, me, Math.min(0.95, (short ? SCORING_SHORT : 0.35) * eff))) {
       live.scoreLeg = lm.legIdx; live.scoreCnt = cnt + 1; live.scoreKey = vk; return 'scoring';
     }
   }
@@ -558,7 +578,7 @@ function paced(state, lm, me, chance = 1) {
     const late = lateMatch(lm);
     if (live.kmLeg === lm.legIdx || (chance < 1 && !late)) return false; // höchstens ein Moment je Leg, Scoring nur in der Schlussphase
     if (!late) {
-      if (live.kmRoll?.leg !== lm.legIdx) live.kmRoll = { leg: lm.legIdx, on: new RNG(state.rng).chance(Math.min(1, 0.8 * boardRate(state, lm))) };
+      if (live.kmRoll?.leg !== lm.legIdx) live.kmRoll = { leg: lm.legIdx, on: new RNG(state.rng).chance(Math.min(1, 0.8 * boardRate(state, lm) * EFFORT_SCENES[effortOf(live)])) };
       if (!live.kmRoll.on) return false;
     }
   }
@@ -703,7 +723,8 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const fmt = inst.rounds[inst.current].format, to = fmt.sets ?? fmt.legs;
   const my = res.score[me], opp = res.score[1 - me];
   const oppId = me === 0 ? m.b : m.a, oppP = inst.teams?.[oppId] ?? getPlayer(state, oppId);
-  addEnergy(p, -matchEnergy(res.legsTotal[0] + res.legsTotal[1], inst));
+  const legsN = res.legsTotal[0] + res.legsTotal[1];
+  addEnergy(p, -Math.round(matchEnergy(legsN, inst) * effortEnergyFactor(inst.live, legsN)));   // Version 107: Einsatz (Herzen)
   const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
   const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp, oppAvg: o.avg });
   sponsorMatchPay(state, inst, won, s);                // Sponsor-Prämien (Sieg, 180er)

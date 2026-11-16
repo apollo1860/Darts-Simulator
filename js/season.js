@@ -24,7 +24,7 @@ import { slumpWeek } from './slump.js';
 import { expenseWeek } from './expenses.js';
 import { syncAttrs, addEnergy } from './nsd.js';
 import { lifeWeek, weeklyEnergy } from './life.js';
-import { careerWeek, setGoals, seasonReport, preWmInterview } from './career.js';
+import { careerWeek, setGoals, seasonReport, preWmInterview, dilemmaWeek } from './career.js';
 import { decayWeek, soberUp, expireBoosts } from './skilltrain.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
@@ -42,7 +42,7 @@ export function nextWeek(state) {
   advanceWeek(state);
   if (nsd) {
     const e0 = state.player.energy, c = careerWeek(state, new RNG(state.rng));
-    addEnergy(state.player, weeklyEnergy(state.player)); soberUp(state.player); expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng));
+    addEnergy(state.player, weeklyEnergy(state.player)); soberUp(state.player); expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); dilemmaWeek(state, new RNG(state.rng));
     state.weekly = { ...c, energy: state.player.energy - e0 };
     if (state.date.week === 1) setGoals(state);
     lastChanceCheck(state);

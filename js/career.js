@@ -11,6 +11,8 @@ import { starPrice, starPayout, starFactor, priceFactor, PRICE_MULT, addRel, add
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { getPlayer } from './world.js';
+import { DILEMMA_ACTS, DILEMMA_WEEKS, DILEMMA_GAIN, DILEMMA_LOSS } from '../data/dilemmas.js';
+import { breakUp } from './life.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const team = state => (state.team ??= { manager: null, trainer: null });
@@ -91,6 +93,34 @@ export function relAvailable(state, key) {
   if (key === 'partner') return (p.rel.partner ?? 0) > 0;
   return true;
 }
+// ---------- Dilemma (Version 107): alle 3–7 Wochen zwei Lebensbereiche zur Wahl ----------
+// state.dilemma = { opts: [{key, act}, {key, act}] } bis entschieden; state.dilemmaAt = Wochenindex des nächsten Dilemmas.
+export function dilemmaWeek(state, rng) {
+  const now = weekIndex(state);
+  if (state.dilemmaAt == null) { state.dilemmaAt = now + rng.int(...DILEMMA_WEEKS); return null; }
+  if (state.dilemma || now < state.dilemmaAt) return null;
+  const keys = ['fans', 'manager', 'sponsors', 'partner'].filter(k => relAvailable(state, k));
+  state.dilemmaAt = now + rng.int(...DILEMMA_WEEKS);
+  if (keys.length < 2) return null;                                 // z. B. noch kein Manager: dann diesmal nicht
+  const [a, b] = rng.shuffle(keys).slice(0, 2);
+  state.dilemma = { opts: [a, b].map(key => ({ key, act: rng.pick(DILEMMA_ACTS[key]).id })) };
+  return state.dilemma;
+}
+export const dilemmaAct = o => DILEMMA_ACTS[o.key].find(x => x.id === o.act) ?? DILEMMA_ACTS[o.key][0];
+// Entscheidung: gewählter Bereich + (4–6), der andere − (2–4). Rückgabe: { before, after, gain, loss }
+export function resolveDilemma(state, idx, rng) {
+  const d = state.dilemma, p = state.player;
+  if (!d || !d.opts[idx]) throw new Error('Keine Entscheidung offen');
+  const win = d.opts[idx].key, lose = d.opts[1 - idx].key;
+  const before = { [win]: p.rel[win] ?? 0, [lose]: p.rel[lose] ?? 0 };
+  const gain = rng.int(...DILEMMA_GAIN), loss = rng.int(...DILEMMA_LOSS);
+  addRel(p, win, gain); addRel(p, lose, -loss);
+  if (lose === 'manager' && p.rel.manager <= 0) fireManager(state);
+  if (lose === 'partner' && p.rel.partner <= 0) breakUp(state);
+  state.dilemma = null;
+  return { opts: d.opts, chosen: idx, before, after: { [win]: p.rel[win] ?? 0, [lose]: p.rel[lose] ?? 0 }, gain, loss };
+}
+
 export function pickRelAction(state, key, rng = new RNG(state.rng)) {
   return { key, name: rng.pick(REL_ACTIONS[key]), energy: key === 'partner' ? 0 : REL_ENERGY,
     stars: key === 'partner' ? starPrice(GIFT_PRICE, state.player.star.level) : 0, gain: REL_GAIN };
