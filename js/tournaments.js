@@ -6,7 +6,8 @@ import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider, inExtension } from './matchState.js';
 import { BOGEY, scoreAt, targetPoint, checkoutRoute } from './board.js';
-import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER } from './obstruction.js';
+import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER, bounceChance } from './obstruction.js';
+import { dartBounce } from '../data/gear.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE, secondaryOrder, womenOf } from './world.js';
@@ -378,7 +379,9 @@ const soloAttrs = (state, id, inst, sf, opp) => withAngle(state, id, soloAttrs0(
 // Einsteckwinkel (obstruction.js): wirkt im dartgenauen Live-Modell über attrs.angle
 const withAngle = (state, id, a) => {
   const angle = angleOf(state, id);
-  return id === 'P' ? { ...a, angle, angleMult: angleEfficiency(angle) } : { ...a, angle };   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
+  if (id !== 'P') return { ...a, angle };
+  const bounce = dartBounce(state.player.gear?.id);    // Version 135: Bouncer je Dart (Schnellsimulation: Grundchance kostet Punkte)
+  return { ...a, angle, bounce, angleMult: angleEfficiency(angle) * (1 - bounce.base) };   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
 };
 const soloAttrs0 = (state, id, inst, sf, opp) => {
   let staged = applyStage(perf(getPlayer(state, id)), sf);
@@ -646,7 +649,8 @@ export function liveHumanDart(state, x, y, target) {
   const live = state.activeEvent.live, lm = live.m, side = lm.turn, start = lm.visit.start;
   // Einsteckwinkel: verbautes Feld → Dart kann abprallen (Bouncer, zählt nicht)
   const block = blockage(targetPoint(target), lm.visit.tips, liveAttrs(state, side).angle ?? null), rng = new RNG(state.rng);
-  const hit = block > 0 && rng.chance(BOUNCE_P * block) ? BOUNCER : scoreAt(x, y), ev = throwDart(lm, hit, { x, y });
+  const bp = bounceChance(block, liveAttrs(state, side).bounce);   // Version 135: Bouncer-Risiko je Dart-Modell
+  const hit = bp > 0 && rng.chance(bp) ? BOUNCER : scoreAt(x, y), ev = throwDart(lm, hit, { x, y });
   const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
   if (visitOver) {
     live.route = null; tickMods(live, side);

@@ -6,6 +6,8 @@ import { frame, header, titleBand, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
+// Version 135: Bouncer-Risiko je Dart (Grundchance je Dart; bei verbautem Feld × Faktor)
+const bounceTxt = d => `${((d.bounce ?? 0) * 100).toFixed(1).replace('.', ',')} % je Dart${(d.bounceMult ?? 1) !== 1 ? ` · verbaut ×${String(d.bounceMult).replace('.', ',')}` : ''}`;
 const bonusTxt = b => TRAINABLE.filter(t => b[t.key]).map(t => `${t.label} +${b[t.key]}`).join(' · ') || 'Keine Wirkung auf Fähigkeiten';
 
 export function render(app) {
@@ -16,7 +18,7 @@ export function render(app) {
       <div class="nsd-evs">${DARTS.map(d => {
         const own = d.starter || p.darts?.includes(d.id), on = (p.gear?.id ?? 'brass9') === d.id;
         return `<div class="nsd-ev ${on ? 'on' : ''}">
-          <div class="nsd-ev-main"><div class="nsd-ev-name">🎯 ${d.name}</div><div class="nsd-ev-sub">${bonusTxt(d.bonus)}${d.starter ? ' · kostenlos, immer im Besitz' : ''}</div>
+          <div class="nsd-ev-main"><div class="nsd-ev-name">🎯 ${d.name}</div><div class="nsd-ev-sub">${bonusTxt(d.bonus)}${d.starter ? ' · kostenlos, immer im Besitz' : ''}<br>Bouncer-Risiko ${bounceTxt(d)}</div>
             ${own ? '' : `<div class="nsd-ev-sub">Preis ${coin(dartsPrice(d, lvl))}</div>`}</div>
           ${on ? '<div class="nsd-ev-why" style="color:#8dff6a">✔ Im Einsatz</div>'
             : own ? `<button class="nsd-btn" data-eq="${d.id}"><span class="lb">Nehmen</span></button>`

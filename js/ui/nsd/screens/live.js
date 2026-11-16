@@ -12,7 +12,8 @@ import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
-import { angleOf, shadowRect, severity, blockage, BLOCK_SIGMA, BOUNCE_P } from '../../../obstruction.js';
+import { angleOf, shadowRect, severity, blockage, BLOCK_SIGMA, BOUNCE_P, bounceChance } from '../../../obstruction.js';
+import { dartBounce } from '../../../../data/gear.js';
 import { canSelfPlay, skillEffective } from '../../../nsd.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { confirmDialog, modal } from '../../components.js';
@@ -306,7 +307,7 @@ function setTarget(label) {
     route ? `Weg ${route.map(fieldName).join(' – ')}` : '', a.prm.pressure ? '<span class="neg">Druck!</span>' : '', a.prm.shaky ? '<span class="neg">😰 Hand zittert</span>' : '',
     nervesNow(ui.s).pts ? '<span class="neg">😰 Nervös</span>' : '',
     mm !== 1 ? `<span class="${mm < 1 ? 'pos' : 'neg'}">🎲 Moment: Streuung ${mm < 1 ? '−' : '+'}${Math.round(Math.abs(1 - mm) * 100)} %</span>` : '',
-    blk >= 0.1 ? `<span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(BOUNCE_P * blk * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
+    blk >= 0.1 ? `<span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
   $('#info').innerHTML = hints.join(' · ');                           // das Ziel zeigen Scheibe und Chips; Spielstand: TV-Anzeige
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
   const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);

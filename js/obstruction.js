@@ -61,4 +61,6 @@ export function aiAngle(id) {
 export const angleOf = (state, id) => (id === 'P' ? (state.player.angle ?? ANGLE_DEFAULT) : aiAngle(id));
 
 // Bouncer: Dart prallt ab, zählt nicht (steckt nicht)
+// Version 135: Bouncer-Chance eines Darts = Grundchance des Dart-Modells + BOUNCE_P × verbaut × Faktor (ohne Dart-Angabe wie bisher)
+export const bounceChance = (block, b) => (b?.base ?? 0) + (block > 0 ? BOUNCE_P * block * (b?.mult ?? 1) : 0);
 export const BOUNCER = { label: 'BOUNCER', score: 0, mult: 0, num: 0, double: false };

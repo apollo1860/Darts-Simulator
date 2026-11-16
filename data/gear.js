@@ -12,11 +12,15 @@ export const DRINKS = [
 // Version 121: Man besitzt immer Darts und Flights – der Brass Dart (9 g) und der Standard-Flight sind kostenlos, automatisch im Besitz und ohne Wirkung.
 export const STARTER_DART = 'brass9';
 export const STARTER_FLIGHT = { name: 'Standard-Flight', note: 'kostenlos · ohne Wirkung' };
+// Version 135: Bouncer je Dart – `bounce` = Grundchance je Dart (auch ohne verbautes Feld), `bounceMult` × Chance bei verbautem Feld;
+// Brass am höchsten, je teurer desto niedriger (obstruction.js: bounceChance)
 export const DARTS = [
-  { id: 'brass9', name: 'Brass Dart 9 g', price: 0, bonus: {}, starter: true },
-  { id: 'brass', name: 'Messing 18 g', price: 10, bonus: { sco: 1 } },
-  { id: 't80', name: 'Tungsten 80 % 22 g', price: 35, bonus: { sco: 2, fin: 1 } },
-  { id: 't90', name: 'Tungsten 90 % 23 g', price: 80, bonus: { sco: 3, fin: 2, foc: 1 } },
-  { id: 't95', name: 'Pro 95 % 24 g', price: 170, bonus: { sco: 4, fin: 3, foc: 2 } },
-  { id: 'sig', name: 'Signature Black 97 %', price: 350, bonus: { sco: 6, fin: 4, foc: 3, cal: 1 } },
+  { id: 'brass9', name: 'Brass Dart 9 g', price: 0, bonus: {}, starter: true, bounce: 0.012, bounceMult: 2.2 },
+  { id: 'brass', name: 'Messing 18 g', price: 10, bonus: { sco: 1 }, bounce: 0.008, bounceMult: 1.7 },
+  { id: 't80', name: 'Tungsten 80 % 22 g', price: 35, bonus: { sco: 2, fin: 1 }, bounce: 0.005, bounceMult: 1.3 },
+  { id: 't90', name: 'Tungsten 90 % 23 g', price: 80, bonus: { sco: 3, fin: 2, foc: 1 }, bounce: 0.003, bounceMult: 1 },
+  { id: 't95', name: 'Pro 95 % 24 g', price: 170, bonus: { sco: 4, fin: 3, foc: 2 }, bounce: 0.002, bounceMult: 0.8 },
+  { id: 'sig', name: 'Signature Black 97 %', price: 350, bonus: { sco: 6, fin: 4, foc: 3, cal: 1 }, bounce: 0.001, bounceMult: 0.6 },
 ];
+
+export const dartBounce = id => { const d = DARTS.find(x => x.id === id) ?? DARTS[0]; return { base: d.bounce ?? 0, mult: d.bounceMult ?? 1 }; };

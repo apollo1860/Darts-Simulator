@@ -2914,4 +2914,22 @@ test('New Star Darts v134: Manager/Freundin wollen ein Fahrzeug leihen (Ja: Plus
   assert.ok(E.borrowers(s.player, s).includes('manager'));
 });
 
+test('New Star Darts v135: Bouncer-Risiko je Dart (Brass am höchsten, je teurer desto niedriger)', async () => {
+  const G = await import('../data/gear.js'), O = await import('../js/obstruction.js'), TM = await import('../js/throwModel.js'), MS = await import('../js/matchState.js');
+  const byPrice = [...G.DARTS].sort((a, b) => a.price - b.price);
+  for (let i = 1; i < byPrice.length; i++) {
+    const a = G.dartBounce(byPrice[i - 1].id), b = G.dartBounce(byPrice[i].id);
+    assert.ok(b.base < a.base && b.mult < a.mult, `${byPrice[i].name} niedriger als ${byPrice[i - 1].name}`);
+  }
+  assert.equal(G.DARTS[0].id, 'brass9'); assert.ok(G.dartBounce('brass9').base >= 0.01, 'Brass: spürbare Grundchance');
+  assert.equal(O.bounceChance(0, null), 0, 'KI ohne Angabe: kein Bouncer ohne verbautes Feld');
+  assert.equal(O.bounceChance(0.5, null), O.BOUNCE_P * 0.5, 'KI wie bisher');
+  assert.ok(O.bounceChance(0.5, G.dartBounce('brass9')) > O.bounceChance(0.5, G.dartBounce('sig')) * 3);
+  // Dart-Modell: eigener Spieler mit Brass prallt auch auf freiem Feld ab
+  const { RNG } = await import('../js/rng.js'), rng = new RNG(5), a = { sco: 90, fin: 90, men: 90, foc: 90, cal: 90 };
+  const count = bounce => { let n = 0; for (let k = 0; k < 4000; k++) { const m = MS.createMatch({ legs: 3 }, 0); if (TM.aiDart(m, 0, { ...a, bounce }, rng, TM.aiSigma(a)).hit.label === 'BOUNCER') n++; } return n; };
+  const brass = count(G.dartBounce('brass9')), sig = count(G.dartBounce('sig')), ai = count(undefined);
+  assert.ok(brass > sig * 3 && ai === 0, `Brass ${brass}, Signature ${sig}, KI ${ai}`);
+});
+
 console.log(`\n${n} Tests ok`);

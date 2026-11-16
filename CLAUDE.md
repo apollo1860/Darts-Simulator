@@ -92,6 +92,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 131**: Titel-Bonus Star-Status `titleStarBonus`/`TITLE_MULT` (nsd.js): Major ×2,5, World Matchplay ×4, WM ×8.
 - **Version 132**: Two clear legs (World Matchplay): Format `{legs, clear: 2, extra: 6}`, `legsWin`/`isSuddenDeath`/`inExtension` (matchState.js) – Sieg mit 2 Legs Vorsprung, max. 6 Zusatzlegs, dann Sudden Death.
 - **Version 134**: Ereignis „Fahrzeug leihen“ (`borrow`, `{who}`/`{car}`, Effekte `borrower`/`crash` in life.js): Ja +1 (20 % kaputt → Reparatur), Nein −2.
+- **Version 135**: Bouncer je Dart (`bounce`/`bounceMult` in data/gear.js, `bounceChance` in obstruction.js, `attrs.bounce` nur für dich): Brass 1,2 % je Dart … Signature 0,1 %.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
