@@ -2,7 +2,7 @@
 import { LIFESTYLE, LIFESTYLE_CATS } from '../../../../data/lifestyle.js';
 import { fmtNum } from '../../../util.js';
 import { lifeArt } from '../art/index.js';
-import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, weeksToRepair, brokenItems, brokenWord, fixWord } from '../../../life.js';
+import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, brokenItems, brokenWord, fixWord } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
@@ -24,14 +24,14 @@ export function render(app) {
       ${brokenItems(p).length ? `<div class="nsd-dark nsd-alert">🔧 ${brokenLabel(p)} – Reparatur ${repairAllInfo(p).sum} ★ gesamt</div>` : ''}
       ${repairAllInfo(p).list.length >= 2 ? `<button class="nsd-btn nsd-fixall" id="fixall"><span class="lb">🔧 Alles reparieren ${coin(repairAllInfo(p).cost)} <small>−${repairAllInfo(p).saved} ★ gespart</small></span></button>` : ''}
       <div class="nsd-evs">${LIFESTYLE.filter(x => x.cat === cat).map(it => {
-        const own = p.owned?.includes(it.id), broken = own && p.upkeep?.[it.id]?.broken, weeks = own && !broken ? weeksToRepair(s, it.id) : 0;
+        const own = p.owned?.includes(it.id), broken = own && p.upkeep?.[it.id]?.broken;
         return `<div class="nsd-ev nsd-ls ${it.cat === 'home' ? 'home' : ''} ${own && !broken ? 'on' : ''} ${broken ? 'broken' : ''}">
           <div class="nsd-ls-art">${lifeArt(it.id) || `<span class="nsd-ls-emoji">${it.icon}</span>`}</div>
           <div class="nsd-ev-main"><div class="nsd-ev-name">${it.name}</div>
             <div class="nsd-ev-sub nsd-ls-stats"><span title="Lifestyle">💎 +${fmtNum(it.ls, 1)}</span><span title="Zufriedenheit">😊 +${it.sat}</span>${it.regen ? `<span title="Erholung pro Woche">🛌 +${it.regen} %</span>` : ''}</div>
             ${!own ? `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it))}</div>`
               : broken ? `<div class="nsd-ev-sub nsd-bad">🔧 ${brokenWord(it, true)} – wirkt nicht mehr</div><div class="nsd-ev-sub">${fixWord(it, 'noun')} ${coin(repairCost(p, it))}</div>`
-              : `<div class="nsd-ev-sub">Wartung in ca. ${weeks} Woche${weeks === 1 ? '' : 'n'}</div>`}</div>
+              : ''}</div>
           ${!own ? `<button class="nsd-btn" data-buy="${it.id}"><span class="lb">Kaufen</span></button>`
             : broken ? `<button class="nsd-btn" data-fix="${it.id}"><span class="lb">${fixWord(it, 'Inf')}</span></button>`
             : '<div class="nsd-ev-why" style="color:#8dff6a">✔ Gehört dir</div>'}
