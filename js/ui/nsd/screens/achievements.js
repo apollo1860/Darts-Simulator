@@ -2,6 +2,7 @@
 import { ACHIEVEMENTS, MS_CATS } from '../../../../data/achievements.js';
 import { msStarPoints } from '../../../life.js';
 import { esc } from '../../../util.js';
+import { partnerText } from '../../../nsd.js';
 import { frame, header, titleBand, bar, bindHead, checkIcon } from '../frame.js';
 
 export const nsd = true;
@@ -10,8 +11,8 @@ export function render(app) {
   const groups = MS_CATS.map(([cat, label]) => {
     const list = ACHIEVEMENTS.filter(a => a.cat === cat), k = list.filter(a => got[a.id]).length;
     return `<div class="nsd-ms-group"><div class="nsd-ms-head">${label} <small>${k}/${list.length}</small></div>
-      <div class="nsd-ms-grid">${list.map(a => `<div class="nsd-ms ${got[a.id] ? 'on' : ''}" title="${esc(a.label)}">
-        <span class="ic">${a.icon}</span><span class="lb">${esc(a.label)}</span>
+      <div class="nsd-ms-grid">${list.map(a => `<div class="nsd-ms ${got[a.id] ? 'on' : ''}" title="${esc(partnerText(a.label, app.state.player))}">
+        <span class="ic">${a.icon}</span><span class="lb">${esc(partnerText(a.label, app.state.player))}</span>
         <span class="rw">${got[a.id] ? `KW ${got[a.id].week}/${got[a.id].year}` : `+${msStarPoints(a)} Status`}</span></div>`).join('')}</div></div>`;
   }).join('');
   return frame({

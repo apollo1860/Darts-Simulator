@@ -2531,4 +2531,18 @@ test('New Star Darts v98: Karriere als realer Spieler (Rangliste, Tourcard, Star
   assert.throws(() => N.newRealCareer({ name: 'Niemand Unbekannt' }));
 });
 
+test('New Star Darts v100: Spielerinnen haben einen Freund statt einer Freundin', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), LE = await import('../data/lifeevents.js');
+  const f = N.newRealCareer({ name: 'Fallon Sherrock', seed: 5 }), m = N.newNsdCareer({ first: 'M', last: 'X', nation: 'DE', age: 20, seed: 5 });
+  assert.equal(N.relLabelOf(f.player, 'partner'), 'Freund'); assert.equal(N.relLabelOf(m.player, 'partner'), 'Freundin');
+  assert.equal(N.partnerText('Noch keine Freundin – Zeit mit meiner Freundin, sonst sieht sie mich nie.', f.player), 'Noch kein Freund – Zeit mit meinem Freund, sonst sieht er mich nie.');
+  assert.equal(N.partnerText('Eine Freundin', m.player), 'Eine Freundin');
+  // Kennenlernen: männlicher Name und passende Texte
+  f.lifeEvent = null; f.lastLifeEvent = null; let le = null;
+  for (let i = 0; i < 400 && le?.id !== 'meet'; i++) { f.lifeEvent = null; le = L.rollLifeEvent(f, new RNG(i)); }
+  assert.equal(le?.id, 'meet');
+  assert.ok(LE.PARTNER_NAMES_M.includes(le.name));
+  const v = L.lifeEventView(f); assert.ok(v.text.includes('Er scheint sich') && !v.text.includes('Sie scheint'));
+});
+
 console.log(`\n${n} Tests ok`);

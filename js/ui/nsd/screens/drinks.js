@@ -1,7 +1,7 @@
 // Getränke: kaufen (★, Preis steigt mit dem Status) und trinken – Bier: Energie, Schnaps: + Rausch, Wodka: + Beziehung
 import { DRINKS, DRINK_MAX } from '../../../../data/gear.js';
 import { drinkPrice, buyDrink, drink } from '../../../skilltrain.js';
-import { relLabel } from '../../../nsd.js';
+import { relLabelOf } from '../../../nsd.js';
 import { RNG } from '../../../rng.js';
 import { frame, header, titleBand, meter, heartIcon, coin, bar, bindHead } from '../frame.js';
 import { toast } from '../../components.js';
@@ -35,7 +35,7 @@ export function mount(root, app) {
   root.querySelectorAll('[data-drink]').forEach(b => b.onclick = () => {
     try {
       const r = drink(s, b.dataset.drink, new RNG(s.rng)); app.save();
-      toast(`Prost! Energie ${r.energy} %${r.buzz ? ` · Rausch +${r.buzz}` : ''}${r.rel ? ` · ${relLabel[r.rel]} +1` : ''}`);
+      toast(`Prost! Energie ${r.energy} %${r.buzz ? ` · Rausch +${r.buzz}` : ''}${r.rel ? ` · ${relLabelOf(app.state.player, r.rel)} +1` : ''}`);
       app.refresh();
     } catch (e) { toast(e.message, 'error'); }
   });

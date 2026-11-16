@@ -1,14 +1,14 @@
 // New Star Darts (DOM-frei): Leben – Lifestyle-Shop, Zufriedenheit, Beziehungen (Freundin), Lebens-Ereignisse (Karten), Erfolge
 import { LIFESTYLE } from '../data/lifestyle.js';
-import { LIFE_EVENTS, PARTNER_NAMES } from '../data/lifeevents.js';
+import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M } from '../data/lifeevents.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
-import { starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE } from './nsd.js';
+import { starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE, partnerText } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { RNG } from './rng.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const fill = (txt, p) => txt.replaceAll('{partner}', p.partnerName ?? 'Sie');
+const fill = (txt, p) => partnerText(txt.replaceAll('{partner}', p.partnerName ?? (p.woman ? 'Er' : 'Sie')), p);   // Version 100: Spielerinnen → Freund
 
 // ---- Lifestyle-Shop ----
 export const ownedItems = p => LIFESTYLE.filter(x => p.owned?.includes(x.id));
@@ -105,7 +105,7 @@ export function rollLifeEvent(state, rng) {
   if (state.lifeEvent || !rng.chance(LIFE_EVENT_CHANCE)) return null;
   const pool = LIFE_EVENTS.filter(e => (!e.if || e.if(p, state)) && e.id !== state.lastLifeEvent);
   const ev = rng.pick(pool);
-  state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(PARTNER_NAMES) : null };
+  state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(p.woman ? PARTNER_NAMES_M : PARTNER_NAMES) : null };
   return state.lifeEvent;
 }
 export function lifeEventView(state) {
@@ -128,8 +128,8 @@ export function applyEffects(state, e) {
   if (e.sat) { p.satisfaction = clamp((p.satisfaction ?? 50) + e.sat, 0, 100); out.push(`Zufriedenheit ${sign(e.sat)}`); }
   const rel = v => Math.max(-2, Math.min(2, v));        // Ereignisse: Beziehungen höchstens ±2
   if (e.fans) { addFans(p, rel(e.fans)); out.push(`Fans ${sign(rel(e.fans))}`); }
-  if (e.meet) { p.partnerName = state.lifeEvent?.name ?? p.partnerName; p.rel.partner = e.meet; out.push(`Freundin: ${p.partnerName}`); }
-  if (e.partner && p.rel.partner > 0) { addRel(p, 'partner', rel(e.partner)); out.push(`${p.partnerName ?? 'Freundin'} ${sign(rel(e.partner))}`); }
+  if (e.meet) { p.partnerName = state.lifeEvent?.name ?? p.partnerName; p.rel.partner = e.meet; out.push(partnerText(`Freundin: ${p.partnerName}`, p)); }
+  if (e.partner && p.rel.partner > 0) { addRel(p, 'partner', rel(e.partner)); out.push(`${p.partnerName ?? partnerText('Freundin', p)} ${sign(rel(e.partner))}`); }
   for (const k of ['manager', 'sponsors']) if (e[k] && p.rel[k] > 0) { addRel(p, k, rel(e[k])); out.push(`${k === 'manager' ? 'Manager' : 'Sponsoren'} ${sign(rel(e[k]))}`); }
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
   if (e.single) breakUp(state, false);
@@ -154,10 +154,10 @@ export function resolveLifeEvent(state, idx, rng) {
   state.lastLifeEvent = le.id;
   state.lifeEvent = null;
   checkAchievements(state);
-  return { text: fill(text, { partnerName: p.partnerName ?? name }), changes };
+  return { text: fill(text, { partnerName: p.partnerName ?? name, woman: p.woman }), changes };
 }
 export function breakUp(state, news = true) {
-  const p = state.player, name = p.partnerName ?? 'Deine Freundin';
+  const p = state.player, name = p.partnerName ?? partnerText('Deine Freundin', p);
   p.rel.partner = 0; p.partnerName = null;
   if (news) addNews(state, 'info', `💔 ${name} hat Schluss gemacht`, 'Die Beziehung ist vorbei. Zu wenig Zeit füreinander …');
 }

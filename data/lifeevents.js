@@ -3,6 +3,7 @@
 // priced (true = Gewinn wächst wie die Preise statt wie die Einnahmen, z. B. Rubbellos-Jackpot), idle (true = Trainingsrückstand zurücksetzen), single (Beziehung endet), meet (neue Freundin, Startwert), chance {p, ok, fail}.
 // Texte: {partner} = Name der Freundin. Aktionen (Auftritte, Feiern …) kosten immer 60 % Energie (nur ab 60 % wählbar);
 // Beziehungs-Änderungen durch Ereignisse sind auf ±2 begrenzt (life.js).
+export const PARTNER_NAMES_M = ['Lukas', 'Jonas', 'Leon', 'Finn', 'Paul', 'Ben', 'Tom', 'Max', 'Noah', 'Elias', 'Jack', 'Oliver', 'Harry', 'Daan', 'Sem', 'Liam', 'Mats', 'Felix', 'Tim', 'Niklas'];   // Version 100: Partner von Spielerinnen
 export const PARTNER_NAMES = ['Lena', 'Laura', 'Sarah', 'Julia', 'Anna', 'Lisa', 'Marie', 'Sophie', 'Emma', 'Mia', 'Hannah', 'Jessica', 'Nina', 'Kim', 'Chloe', 'Emily', 'Olivia', 'Sanne', 'Femke', 'Alicia'];
 const hasPartner = p => (p.rel?.partner ?? 0) > 0;
 

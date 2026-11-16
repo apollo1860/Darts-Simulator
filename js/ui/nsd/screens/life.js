@@ -1,5 +1,5 @@
 // Leben: Zufriedenheit, Energie, Beziehungen (Manager, Fans, Freundin, Sponsoren), Lifestyle, Erfolge
-import { relLabel } from '../../../nsd.js';
+import { relLabel, relLabelOf, partnerText } from '../../../nsd.js';
 import { relAvailable, pickRelAction, doRelAction } from '../../../career.js';
 import { breakUp, satisfactionTarget, weeklyEnergy } from '../../../life.js';
 import { esc } from '../../../util.js';
@@ -23,7 +23,7 @@ export function render(app) {
       ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: e >= 20 ? 'green' : 'red', from: from.energy ?? null })}
     </div>
     <div class="nsd-list">${Object.keys(relLabel).map(k => `<div class="nsd-line">
-      ${meter({ label: k === 'partner' && p.partnerName ? `${esc(p.partnerName)}` : relLabel[k], pct: has[k] ? rel[k] ?? 0 : 0, tone: has[k] ? 'green' : 'grey', from: has[k] ? from.rel?.[k] ?? null : null })}
+      ${meter({ label: k === 'partner' && p.partnerName ? `${esc(p.partnerName)}` : relLabelOf(p, k), pct: has[k] ? rel[k] ?? 0 : 0, tone: has[k] ? 'green' : 'grey', from: has[k] ? from.rel?.[k] ?? null : null })}
       <button class="nsd-btn" data-rel="${k}"><span class="ic">${ICONS[k]}</span></button>
     </div>`).join('')}</div>
     <div class="nsd-strip"><span>Erholung</span><span class="mid">+${weeklyEnergy(p)} %/Woche</span><span class="r">Ziel ${Math.round(satisfactionTarget(p))}</span></div>`,
@@ -37,7 +37,7 @@ export function render(app) {
 }
 
 export function mount(root, app) {
-  bindHead(root, app, HELP);
+  bindHead(root, app, partnerText(HELP, app.state.player));
   root.querySelectorAll('[data-rel]').forEach(b => b.onclick = () => relModal(app, b.dataset.rel));
   root.querySelector('#l-ach').onclick = () => app.go('achievements');
 }
@@ -47,11 +47,11 @@ const LINK = { manager: ['team', 'Team'], sponsors: ['sponsors', 'Verträge'] };
 function relModal(app, key) {
   const s = app.state, p = s.player;
   if (!relAvailable(s, key)) {
-    const txt = { partner: 'Noch keine Freundin – vielleicht lernst du ja bald jemanden kennen …', manager: 'Noch kein Manager.', sponsors: 'Noch keine Sponsoren.' }[key];
+    const txt = partnerText({ partner: 'Noch keine Freundin – vielleicht lernst du ja bald jemanden kennen …', manager: 'Noch kein Manager.', sponsors: 'Noch keine Sponsoren.' }[key], p);
     return LINK[key] ? app.go(LINK[key][0]) : toast(txt);
   }
   const act = pickRelAction(s, key);
-  const label = key === 'partner' ? esc(p.partnerName ?? 'Freundin') : relLabel[key];
+  const label = key === 'partner' ? esc(p.partnerName ?? relLabelOf(p, 'partner')) : relLabel[key];
   const cost = act.energy ? `${act.energy} % Energie` : `${act.stars} ★`;
   const actions = [
     { label: `${act.name} (${cost})`, cls: 'btn-primary', onClick: () => {

@@ -70,6 +70,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 96**: 18 ehemalige Tourcard-Holder in der Challenge Tour (`CT_FORMER` in data/players.js, IDs `K…`, `addFormer` in world.js, auch per `migrate`), Nebentouren + Paul Lim, Xiaochen Zong (Asien), Danny Baggish (CDC), Simon Whitlock (DPA).
 - **Version 98**: Realen Spieler wählen (newprofile.js Umschalter + Suche/Auswahlliste; `realPlayers`/`realStartSkills`/`newRealCareer` in nsd.js, übernimmt ID-Daten des KI-Spielers per `renameId`, `player.real`); ohne Tourcard `state.openTour` → Challenge Tour/Q-School offen (`nsdBlocked`), kein Karriereende bei Kartenverlust (`yearEnd`).
 - **Version 99**: Reale Spieler ohne Karte → 2-Jahres-Tourcard; Spielerinnen wählbar (`player.woman`). WDF-Kalender 2026 (14 Turniere an 7 Wochenenden, `WDF` in data/tournaments.js), Feld alle ohne Tourcard inkl. Nebentouren, News zu Platin-/Gold-Siegern (`WDF_MAJOR_TIERS`, weekNews in season.js).
+- **Version 100**: Spielerinnen (`player.woman`) → „Freund“ statt „Freundin“: `partnerText(text, p)`/`relLabelOf(p, key)` in nsd.js bei allen Partner-Texten verwenden; männliche Partnernamen `PARTNER_NAMES_M` (data/lifeevents.js).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

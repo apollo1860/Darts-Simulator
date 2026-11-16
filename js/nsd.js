@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 99;
+export const APP_VERSION = 100;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -169,6 +169,13 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
 }
 
 export const relLabel = { manager: 'Manager', fans: 'Fans', partner: 'Freundin', sponsors: 'Sponsoren' };
+// Version 100: Spielerinnen haben einen Freund statt einer Freundin – Texte werden beim Anzeigen umgestellt
+const MALE_PARTNER = [['Noch keine Freundin', 'Noch kein Freund'], ['Eine Freundin', 'Ein Freund'], ['eine Freundin', 'ein Freund'], ['Deine Freundin', 'Dein Freund'],
+  ['deine Freundin', 'dein Freund'], ['deiner Freundin', 'deinem Freund'], ['meiner Freundin', 'meinem Freund'], ['meine Freundin', 'mein Freund'], ['neue Freundin', 'neuer Freund'],
+  ['Sie scheint sich', 'Er scheint sich'], ['Sie lacht dich aus und geht zu ihren Freundinnen zurück', 'Er lacht dich aus und geht zu seinen Kumpels zurück'],
+  ['sie ist begeistert', 'er ist begeistert'], ['sie hat mich beruhigt', 'er hat mich beruhigt'], ['sonst sieht sie mich nie', 'sonst sieht er mich nie'], ['Freundin', 'Freund']];
+export const partnerText = (t, p) => (p?.woman && typeof t === 'string' ? MALE_PARTNER.reduce((s, [a, b]) => s.replaceAll(a, b), t) : t);
+export const relLabelOf = (p, k) => partnerText(relLabel[k], p);
 
 // ---- Sterne-Preisgeld (Basis = Status 1; Auszahlung × starFactor) ----
 // Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).
