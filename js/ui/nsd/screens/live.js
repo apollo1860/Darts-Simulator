@@ -132,8 +132,7 @@ function showMoment(mo) {
   const info = describeMoment(ui.s, mo);
   modal({
     title: '', dismissable: false,
-    body: `<div class="mm-tag">SPIELMOMENT</div><div class="mm-title">${info.icon} ${esc(info.title)}</div><div class="mm-text">${esc(info.text)}</div>
-      <div class="mm-note">Der Ausgang ist offen – jede Option kann gut oder schlecht enden. Die Wirkung auf Scoring und Doppel gilt für einige Aufnahmen, kleine Nebenwirkungen bleiben.</div>`,
+    body: `<div class="mm-tag">SPIELMOMENT</div><div class="mm-title">${info.icon} ${esc(info.title)}</div><div class="mm-text">${esc(info.text)}</div>`,
     actions: info.options.map((o, i) => ({ label: o.label, cls: 'btn-primary', onClick: () => { setTimeout(() => chooseMoment(i), 0); } })),
   });
 }

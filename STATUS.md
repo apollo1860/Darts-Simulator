@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 119**: Spielmoment-Karte ohne den Hinweistext „Der Ausgang ist offen …“ (Nutzerwunsch); die Erklärung steht weiter in der Hilfe (?).
 - [x] **Version 118**: Rechnen-Training früher schwerer (`calcRange`: Obergrenze 60 + 200 × t statt 40 + 130 × t → L1 bis 60, L5 bis 102, L8 bis 134 – z. B. 131 –, ab L12 bis 170; Untergrenze unverändert). DartConnect: Nach einem Check bleibt das beendete Leg 1 s stehen (`CHECK_SHOW` in live.js, `m.lastLeg`), die Check-Aufnahme ist gelb und daneben steht die Anzahl der benötigten Darts (`legVisits[].darts` in matchState.js); nächste Aufnahme frühestens danach (auch bei Tempo).
 - [x] **Version 117**: Die goldene „9“ ragt links aus der TV-Spielstandsanzeige heraus (absolut positioniert neben deiner Zeile, `.tvsb.nine` mit `overflow: visible`); die Zeilen selbst bleiben unverändert (kein leerer weißer Platz in der Gegnerzeile).
 - [x] **Version 116**: Während einer 9-Darter-Szene zeigt die TV-Spielstandsanzeige links in deiner Zeile eine goldene, leicht pulsierende „9“ (`.tvsb-nine`, `ui.aim.nine` = `nineAlive` zu Beginn der Aufnahme).
