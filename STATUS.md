@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 146**: Double-in: Einstiegs-Aufnahme der Schnellsimulation dartgenau – nach dem Doppel gehen die restlichen Darts auf die 20 (T20/S20/Nachbar 1 oder 5, Treble-Chance aus dem Average) → typisch 80/120/160 wie im Dart-Modell, keine krummen Werte wie 140; Average unverändert (95 → 88).
 - [x] **Version 145**: World Grand Prix Halbfinale Best of 9 Sets (vorher 7), Finale Best of 11 Sets (vorher 9); 1. Runde Bo3, AF/VF Bo5, Sätze Bo5 Legs unverändert.
 - [x] **Version 144**: **World Grand Prix mit Double-in** (Format `din: true` in allen Runden): Punkte zählen im Leg erst ab dem ersten getroffenen Doppel (Bull zählt mit) – Live-Match (`needsIn`, `m.inn` in matchState.js, Rest bleibt 501), KI zielt auf D20 (`aiDart`), Schnellsimulation (`inVisit` in matchEngine.js, Chance je Dart = Checkout-Basis × `DIN_HIT` 1,1, meist D20). Average sinkt um ≈ 7–9 (Sim und Darts gleich, z. B. 95 → 88). Deine erste Aufnahme eines Legs ist zu 75 % eine Spielszene „🎯 DOUBLE-IN“ (`dinScene`/`DIN_SCENE`, einmal je Leg gewürfelt, zusätzlich wie 9-Darter/170), Zielvorschlag D20 + Chips D20/D16/D10/D18/Bull, Hinweis „Double-in: erst ein Doppel treffen“; Format-Anzeige „Double-in · Double-out“.
 - [x] **Version 143**: 180er-Prämie der Sponsoren gestrichen: neue Angebote ohne `s180`, `sponsorMatchPay` zahlt nur noch Sieg- und Major-Prämie; laufende Verträge/Angebote älterer Spielstände bekommen beim Laden `s180 = 0` (`dropSponsor180` in data/sponsorsreal.js).

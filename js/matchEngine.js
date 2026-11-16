@@ -118,12 +118,15 @@ const targetAvgRef = p => p.avgBase ?? p.avg;
 // Version 144: Double-in – Aufnahme, solange noch kein Doppel getroffen ist: je Dart Chance aufs Doppel (meist D20, selten D1/D5);
 // nach dem Treffer zählen die restlichen Darts normal. Rückgabe wie visit() + in (true = jetzt drin).
 export const DIN_HIT = 1.1;   // Chance je Dart = Checkout-Basis × DIN_HIT (D20 ist das bevorzugte Doppel, Nachbar-Doppel zählen mit)
-function inVisit(p, rng, fatigue) {
+export function inVisit(p, rng, fatigue) {
   const h = clamp(p.co * DIN_HIT, 0.05, 0.75);
   for (let d = 1; d <= 3; d++) {
     if (!rng.chance(h)) continue;
-    const dbl = rng.chance(0.85) ? 40 : rng.pick([2, 10]), n = 3 - d;
-    const rest = n ? clamp(Math.round(rng.normal(n * p.avg * fatigue * SCORING_BOOST / 3, p.sd * Math.sqrt(n / 3))), 0, 60 * n) : 0;
+    const dbl = rng.chance(0.85) ? 40 : rng.pick([2, 10]);
+    // Version 146: restliche Darts dartgenau auf die 20 (T20 / S20 / Nachbar 1 oder 5) → typisch 80, 120, 160 statt krummer Werte
+    const e = p.avg * fatigue * SCORING_BOOST / 3, q = clamp((e - 16.6) / 43.4, 0.03, 0.85);
+    let rest = 0;
+    for (let k = d; k < 3; k++) rest += rng.chance(q) ? 60 : rng.chance(0.8) ? 20 : rng.pick([1, 5]);
     return { pts: dbl + rest, darts: 3, finished: false, in: true };
   }
   return { pts: 0, darts: 3, finished: false, in: false };

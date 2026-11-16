@@ -3045,4 +3045,13 @@ test('New Star Darts v144: World Grand Prix mit Double-in, erste Aufnahme zu 75 
   assert.equal(T.dinScene(later), false, 'nur die erste Aufnahme');
 });
 
+test('New Star Darts v146: Double-in-Einstieg in der Schnellsimulation dartgenau (80/120/160 statt krummer Werte)', async () => {
+  const E = await import('../js/matchEngine.js'), P = await import('../js/player.js'), { RNG } = await import('../js/rng.js');
+  const rng = new RNG(8), prof = { ...E.makeProfile(P.attrsForAverage(95, rng), null) }, cnt = {};
+  for (let i = 0; i < 5000; i++) { const v = E.inVisit(prof, rng, 1); if (v.in) cnt[v.pts] = (cnt[v.pts] ?? 0) + 1; }
+  assert.ok(!cnt[140], 'keine 140 beim Einstieg');
+  const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 6).map(x => +x[0]);
+  for (const v of [80, 120, 160]) assert.ok(top.includes(v), `${v} unter den häufigsten (${top})`);
+});
+
 console.log(`\n${n} Tests ok`);
