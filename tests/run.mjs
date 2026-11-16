@@ -2743,7 +2743,7 @@ test('New Star Darts v122: Hochzeit bei Beziehung 100 und über 1 Jahr zusammen,
   // verheiratet: Beziehung sinkt nur jede zweite Woche
   const r0 = p.rel.partner; for (let w = 0; w < 4; w++) { s.date.week = 10 + w; L.lifeWeek(s, new RNG(w)); }
   assert.equal(r0 - p.rel.partner, 2);
-  L.breakUp(s); assert.equal(p.married, null); assert.equal(p.partnerName, null);
+  s.stars = 801; L.breakUp(s); assert.equal(p.married, null); assert.equal(p.partnerName, null); assert.equal(s.stars, 400.5, 'Scheidung: halbes Sterngeld');
   assert.ok(s.news.some(n => /Scheidung/.test(n.title)));
 });
 

@@ -8,7 +8,7 @@ import { toast, modal, confirmDialog } from '../../components.js';
 
 export const nsd = true;
 const ICONS = { manager: '💼', fans: '🧣', partner: '🌹', sponsors: '🤝' };
-const HELP = '<p>Deine Beziehungen beeinflussen Ereignisse, Angebote und deine Zufriedenheit. Ein grauer Balken heißt: (noch) nicht vorhanden.</p><p><b>Zufriedenheit</b> folgt deinem Lifestyle, deiner Freundin, den Fans und deinem Selbstvertrauen – und bestimmt, wie gut du dich pro Woche erholst (−10 bis +10 % Energie).</p><p>Eine Freundin will Zeit: ohne Aufmerksamkeit sinkt die Beziehung jede Woche.</p><p>💍 Bei Beziehung 100 und mehr als einem Jahr zusammen kannst du heiraten (1.500 ★). Verheiratet sinkt die Beziehung nur noch jede zweite Woche.</p><p>Tippe auf eine Beziehung, um sie zu pflegen: Fans, Manager und Sponsoren kosten 60 % Energie, ein Geschenk für die Freundin kostet ★.</p>';
+const HELP = '<p>Deine Beziehungen beeinflussen Ereignisse, Angebote und deine Zufriedenheit. Ein grauer Balken heißt: (noch) nicht vorhanden.</p><p><b>Zufriedenheit</b> folgt deinem Lifestyle, deiner Freundin, den Fans und deinem Selbstvertrauen – und bestimmt, wie gut du dich pro Woche erholst (−10 bis +10 % Energie).</p><p>Eine Freundin will Zeit: ohne Aufmerksamkeit sinkt die Beziehung jede Woche.</p><p>💍 Bei Beziehung 100 und mehr als einem Jahr zusammen kannst du heiraten (1.500 ★). Verheiratet sinkt die Beziehung nur noch jede zweite Woche. Eine Scheidung kostet die Hälfte deines Sterngelds.</p><p>Tippe auf eine Beziehung, um sie zu pflegen: Fans, Manager und Sponsoren kosten 60 % Energie, ein Geschenk für die Freundin kostet ★.</p>';
 
 // Version 94: hat sich ein Wert seit dem letzten Besuch geändert (Aktion, Ereignis, Woche), wächst der Balken sichtbar vom alten Wert aus
 // (player.lifeSeen wie starSeen, animateMeters in main.js)
@@ -65,7 +65,7 @@ function relModal(app, key) {
     try { marry(s); app.save(); toast(`💍 Ihr seid verheiratet!`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   } });
   if (key === 'partner') actions.push({ label: p.married ? 'Scheidung' : 'Schluss machen', cls: 'btn-ghost', onClick: async () => {
-    if (!await confirmDialog(p.married ? 'Wirklich scheiden lassen?' : 'Wirklich Schluss machen?', p.married ? 'Die Ehe ist dann vorbei.' : 'Die Beziehung ist dann vorbei.', p.married ? 'Scheidung' : 'Schluss machen')) return;
+    if (!await confirmDialog(p.married ? 'Wirklich scheiden lassen?' : 'Wirklich Schluss machen?', p.married ? `Die Ehe ist dann vorbei – und du verlierst die Hälfte deines Sterngelds (−${Math.round((s.stars ?? 0) / 2 * 10) / 10} ★).` : 'Die Beziehung ist dann vorbei.', p.married ? 'Scheidung' : 'Schluss machen')) return;
     breakUp(s, false); p.satisfaction = Math.max(0, (p.satisfaction ?? 50) - 8); app.save(); app.refresh();
   } });
   actions.push({ label: 'Zurück', cls: 'btn-ghost' });

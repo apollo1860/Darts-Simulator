@@ -163,10 +163,13 @@ export function resolveLifeEvent(state, idx, rng) {
 export function breakUp(state, news = true) {
   const p = state.player, name = p.partnerName ?? partnerText('Deine Freundin', p), wed = !!p.married;
   p.rel.partner = 0; p.partnerName = null; p.partnerSince = null; p.married = null;
-  if (news) addNews(state, 'info', wed ? `💔 Scheidung von ${name}` : `💔 ${name} hat Schluss gemacht`, wed ? 'Die Ehe ist gescheitert. Zu wenig Zeit füreinander …' : 'Die Beziehung ist vorbei. Zu wenig Zeit füreinander …');
+  let lost = 0;
+  if (wed) { lost = Math.round((state.stars ?? 0) * DIVORCE_SHARE * 10) / 10; state.stars = Math.round(((state.stars ?? 0) - lost) * 10) / 10; }   // Version 123: Scheidung kostet die Hälfte des Sterngelds
+  if (news || wed) addNews(state, 'info', wed ? `💔 Scheidung von ${name}` : `💔 ${name} hat Schluss gemacht`, wed ? `Die Ehe ist gescheitert – die Hälfte deines Sterngelds ist weg (−${lost} ★).` : 'Die Beziehung ist vorbei. Zu wenig Zeit füreinander …');
+  return lost;
 }
 // ---- Hochzeit (Version 122): möglich bei Beziehung 100 und mehr als einem Jahr zusammen; kostet immer 1.500 ★ (kein Status-Faktor) ----
-export const WEDDING_COST = 1500, WEDDING_WEEKS = 52, WEDDING_SAT = 15;
+export const WEDDING_COST = 1500, WEDDING_WEEKS = 52, WEDDING_SAT = 15, DIVORCE_SHARE = 0.5;
 export const weeksTogether = state => (state.player.partnerName && state.player.partnerSince != null ? absWeek(state) - state.player.partnerSince : 0);
 export const canMarry = state => { const p = state.player; return !!p.partnerName && !p.married && (p.rel.partner ?? 0) >= 100 && weeksTogether(state) > WEDDING_WEEKS; };
 export function marry(state) {

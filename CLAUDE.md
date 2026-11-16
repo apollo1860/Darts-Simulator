@@ -84,7 +84,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 118**: Rechnen-Training früher schwerer (`calcRange` Obergrenze 60 + 200 × t, max. 170). Check im DartConnect 1 s gelb mit Dart-Anzahl (`CHECK_SHOW`, `legVisits[].darts`).
 - **Version 120**: Interviews nach Spielen wirken je Antwort nur auf eine Partei (+ Star-Status) – `oneParty`/`IV_PARTIES` in career.js; Paulke unverändert.
 - **Version 121**: Paulke-Interview ebenfalls eine Partei je Antwort (+ Status/WM-Nervosität). Brass Dart 9 g (`STARTER_DART`, kostenlos, ohne Wirkung, immer im Besitz) + Standard-Flight (`STARTER_FLIGHT`). World Cup: jede eigene Aufnahme ist eine Spielszene.
-- **Version 122**: Hochzeit (`canMarry`/`marry`, `WEDDING_COST` 1.500 ★ fest, Beziehung 100 + > 52 Wochen seit `player.partnerSince`; `player.married`, Label Ehefrau/Ehemann, Beziehung sinkt nur jede 2. Woche).
+- **Version 122**: Hochzeit (`canMarry`/`marry`, `WEDDING_COST` 1.500 ★ fest, Beziehung 100 + > 52 Wochen seit `player.partnerSince`; `player.married`, Label Ehefrau/Ehemann, Beziehung sinkt nur jede 2. Woche). Version 123: Scheidung kostet 50 % des Sterngelds (`DIVORCE_SHARE`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
