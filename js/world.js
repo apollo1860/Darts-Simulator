@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -29,6 +29,7 @@ export function createWorld(rng, startYear = 2027) {
   add(DEV_PLAYERS, 'D', 'dev', null);
   add(LOCAL_PLAYERS.map(([n, nat, a, avg]) => [n, nat, a, avg - LOCAL_SHIFT]), 'L', 'local', null);
   addSecondary(players, rng, startYear);
+  addJdc(players, rng, startYear);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   // Fiktive Spieler (lokale Amateure, fiktive CT-Spieler): Namen je Karriere zufällig aus Vor-/Nachnamen der Nation
   const used = new Set(Object.values(players).filter(p => p.id[0] !== 'L').map(p => p.name));
@@ -144,6 +145,20 @@ export function changeStrength(p, delta) {
   p.attrs.sco = clamp(Math.round((before + d) * 10) / 10, 1, 100);
 }
 
+// JDC-Talente (Version 94): alle, die im Jahr `year` mindestens 16 sind und noch fehlen, als Dev-Spieler aufnehmen (IDs J1 …).
+// ageOffset: −1, wenn die Aufnahme am Jahresende vor dem Altern passiert (dann sind sie nach dem Jahreswechsel 16).
+export function addJdc(players, rng, year, ageOffset = 0) {
+  const added = [];
+  JDC_TALENTS.forEach(([name, nation, age26, lo, hi], i) => {
+    const id = `J${i + 1}`, age = age26 + (year - 2026);
+    if (players[id] || age < 16) return;
+    const avg = jdcStartAvg(lo, hi);
+    players[id] = { id, name, nation, age: age + ageOffset, avg, potential: hi, jdc: true, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 16, rng) };
+    added.push(name);
+  });
+  return added;
+}
+
 function newTalent(state, rng, year) {
   const nation = randomNation(rng), used = new Set(Object.values(state.world.players).map(p => p.name));
   const id = `G${state.world.nextId++}`;
@@ -171,11 +186,16 @@ export function developWorld(state, rng, year) {
     if (rng.chance(a <= 30 ? BREAKOUT_P : BREAKOUT_P / 3)) jump = rng.float(4, 8) * clamp((106 - p.avg) / 12, 0.25, 1);
     else if (rng.chance(a >= 33 ? SLUMP_P * 2 : SLUMP_P)) jump = -rng.float(3, 6.5);
     changeStrength(p, rng.normal(mean, 1.4) + jump);
+    if (p.potential) {                                   // JDC-Talente: bis 24 zusätzlich Richtung Potenzial, nie darüber
+      if (a < 24 && p.avg < p.potential) changeStrength(p, 0.25 * (p.potential - p.avg));
+      if (p.avg > p.potential) changeStrength(p, p.potential - p.avg);
+    }
     if (jump) (jump > 0 ? report.breakouts : report.slumps).push({ id: p.id, name: p.name, jump, tier: p.tier });
     // Ruhestand: ab 45 steigend, ohne Tourcard eher
     const pRet = a < 45 ? 0 : (a - 44) * (p.tier === 'tour' ? 0.02 : 0.05);
     if (rng.chance(pRet)) { report.retired.push(p.name); p.tier = 'retired'; p.cardUntil = null; }   // bleibt für Historie erhalten
   }
+  report.jdc = addJdc(state.world.players, rng, year + 1, -1);   // JDC-Talente, die im neuen Jahr 16 werden
   // Nachwuchs: jedes Jahr mind. 12 Talente, Dev-Pool (nach dem Altern ≤ 23) bei ~90 halten
   const devNext = () => nonCardPros(state).filter(p => p.age + 1 <= DEV_MAX_AGE).length;
   while ((report.talents.length < 12 || devNext() < 90) && report.talents.length < 40) report.talents.push(newTalent(state, rng, year).name);

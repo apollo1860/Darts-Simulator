@@ -64,6 +64,7 @@ export function eligibility(state, ev) {
       return p.qschoolYear === y ? { ok: true } : { ok: false, reason: 'Q-School-Teilnahme nötig' };
     case 'dev':
       if (p.age > DEV_MAX_AGE) return { ok: false, reason: 'Nur bis 23 Jahre' };
+      if (ev.id === 'youth-wm') return { ok: true };       // Version 94: Youth-WM – alle U24, auch Tourcard-Holder in den Top 64
       if (card) return devHolders(state, y).includes(p) ? { ok: true } : { ok: false, reason: 'Holder nur außerhalb der PDC-Top-64' };
       return { ok: true };                                 // Dev Tour: offen für alle bis 23, keine Q-School nötig
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
@@ -277,7 +278,7 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
   const slots = ev.fmt === 'wmq' ? wmTchqSlots(state) : ev.fmt === 'gsq' ? gsQualSlots(state) : ev.slots;          // Qualifier mit n Plätzen → n Sektionen
   const fmt = slots > 1 ? { ...FORMATS[fk], stopAt: slots, sections: slots } : FORMATS[fk];
   let groups = null, rounds;
-  let prelimSeeds = null, ukEntry = null;
+  let prelimSeeds = null, ukEntry = null, groupAdv = null;
   if (ev.prelim) {         // Winmau World Masters – Vorrunde: 32 Gruppen (jeder gegen jeden), Sieger → K.-o. gegen Platz 25–56
     const f = mastersPrelimField(state, withPlayer);
     groups = Array.from({ length: 32 }, () => []);
@@ -290,14 +291,15 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
     const rest = field.slice(4), pots = [0, 1, 2].map(k => rng.shuffle(rest.slice(k * 12, k * 12 + 12)));
     groups = Array.from({ length: 12 }, (_, g) => pots.map(p => p[g]).filter(Boolean)).filter(g => g.length);
     rounds = buildPrelimRounds(groups, fmt, 16, 'Gruppenphase · Spieltag');
-  } else if (ev.groups) {        // Grand Slam (48 Spieler): 3 Töpfe à 16 → 16 Dreiergruppen, Top 2 → Letzte 32
+  } else if (ev.groups) {        // Grand Slam (48 Spieler): 3 Töpfe à 16 → 16 Dreiergruppen, Version 94: nur Gruppensieger → direkt Achtelfinale
     const pots = [0, 1, 2].map(k => rng.shuffle(field.slice(k * 16, k * 16 + 16)));
     groups = Array.from({ length: 16 }, (_, g) => pots.map(p => p[g]).filter(Boolean));
-    rounds = buildGroupRounds(groups, fmt);
+    groupAdv = groups.length >= 16 ? 1 : 2;
+    rounds = buildGroupRounds(groups, fmt, groupAdv);
   } else if (fk === 'ukopen') ({ rounds, entry: ukEntry } = buildUkOpenRounds(field, fmt, rng));   // gestaffelter Einstieg
   else rounds = buildRounds(field, fmt);
   return {
-    groups, prelimSeeds, ukEntry, teams: ev.team ? wcTeams(state) : null, autoPlayer: !!ctx.auto, plNight: ev.plNight ?? null,
+    groups, groupAdv, prelimSeeds, ukEntry, teams: ev.team ? wcTeams(state) : null, autoPlayer: !!ctx.auto, plNight: ev.plNight ?? null,
     eventId: ev.id, cat: ev.cat, fmt: fk, name: subName(ev, sub), baseName: ev.name,
     city: ev.city, country: ev.country, year: state.date.year, week: state.date.week,
     count: ev.count ?? 1, sub, subLabel: subLabel(ev, sub), oom: oomTypes(ev, sub),
@@ -757,7 +759,7 @@ function advance(inst) {
     return;
   }
   r.matches = prev.isGroup ? (inst.prelimSeeds ? prelimKoMatches(inst.rounds, inst.groups, inst.prelimSeeds, new RNG({ s: hashSeed(`${inst.eventId}|${inst.year}`) }))
-    : groupKoMatches(inst.rounds, inst.groups)) : pairWinners(prev);
+    : groupKoMatches(inst.rounds, inst.groups, inst.groupAdv ?? 2)) : pairWinners(prev);
   if (prev.isGroup && inst.withPlayer && inst.playerAlive && !r.matches.some(m => m.a === 'P' || m.b === 'P')) inst.playerAlive = false;
 }
 
@@ -808,7 +810,7 @@ function settle(state, inst) {
   const year = state.date.year, oomMap = {};
   for (const id of ids) {
     const place = survivors.includes(id) ? (inst.cards ? 'CARD' : inst.stopAt > 1 ? 'QUAL' : 'W')
-      : inst.isQualifier ? (inst.cat === 'mastersq' && placeOf(inst.rounds, id)) || 'NQ' : ((inst.groups && groupPlace(inst.rounds, inst.groups, id, inst.teams ? 1 : 2)) || placeOf(inst.rounds, id));
+      : inst.isQualifier ? (inst.cat === 'mastersq' && placeOf(inst.rounds, id)) || 'NQ' : ((inst.groups && groupPlace(inst.rounds, inst.groups, id, inst.teams ? 1 : inst.groupAdv ?? 2)) || placeOf(inst.rounds, id));
     (inst.places ??= {})[id] = place;
     let prize = inst.prizes[place] ?? 0;
     if (inst.teams && id === 'P') prize = Math.round(prize * teamPrizeShare);   // World Cup: Preisgeld wird geteilt
@@ -842,6 +844,10 @@ function settle(state, inst) {
   }
   if (inst.fmt === 'pln') scorePlNight(state, inst);
   if (inst.fmt === 'plf') plLeaguePayout(state);
+  if (inst.cat === 'qschool') {                              // Q-School-Rangliste (Version 94): je gewonnenes Match 1 Punkt, je Region
+    const qs = ((qualOf(state).qs ??= {})[inst.eventId === 'qs-uk' ? 'uk' : 'eu'] ??= {});
+    for (const id of ids) qs[id] = (qs[id] ?? 0) + inst.rounds.reduce((n, r) => n + r.matches.filter(m => m.winner === id && !m.bye && m.a && m.b).length, 0);
+  }
   if (inst.cards) {                                          // Q-School: Tourcards
     for (const id of survivors) awardCard(state, id, year + 1, `${inst.baseName} ${year}`);
     addNews(state, 'draw', `${inst.name}: Tourcards vergeben`, survivors.map(id => getPlayer(state, id).name).join(', '));
@@ -859,6 +865,25 @@ function plLeaguePayout(state) {
   addNews(state, 'result', `Premier League: ${rank}. Platz`, `Platz ${rank} der Tabelle bringt ${net} ★ – für die Play-offs hat es nicht gereicht.`);
 }
 
+// Q-School (Version 94): nach den 4 Tagen beider Regionen gehen die restlichen Karten (bis 128 Holder) über die Q-School-Rangliste weg –
+// je zur Hälfte an UK und Europa (ungerade: einer mehr für Europa); innerhalb der Region nach Punkten (gewonnene Matches), bei Gleichstand nach Stärke.
+export const TOUR_CARDS = 128;
+export function qschoolRankingCards(state) {
+  const q = qualOf(state), y = state.date.year;
+  if (!q.qs || q.qsDone) return [];
+  q.qsDone = true;
+  const holders = playersOfTier(state, 'tour').length + (state.player.tour === 'tour' ? 1 : 0);
+  const free = Math.max(0, TOUR_CARDS - holders), eu = Math.ceil(free / 2), uk = free - eu, out = [];
+  const isHolder = id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour');
+  for (const [reg, n] of [['uk', uk], ['eu', eu]]) {
+    const pts = q.qs[reg] ?? {}, str = id => (id === 'P' ? overall(state.player.attrs) : overall(getPlayer(state, id)?.attrs ?? {}));
+    const list = Object.keys(pts).filter(id => !isHolder(id) && getPlayer(state, id)).sort((a, b) => pts[b] - pts[a] || str(b) - str(a)).slice(0, n);
+    for (const id of list) awardCard(state, id, y + 1, `Q-School ${reg === 'uk' ? 'UK' : 'Europa'} ${y} (Rangliste)`);
+    out.push(...list);
+  }
+  if (out.length) addNews(state, 'draw', `Q-School: ${out.length} Tourcards über die Rangliste`, out.map(id => getPlayer(state, id).name).join(', '));
+  return out;
+}
 export function awardCard(state, id, until, via) {
   if (id === 'P') {
     const p = state.player;
@@ -963,7 +988,7 @@ function nsdEventEnd(state, inst) {
   if (inst.withPlayer) maybeInterviewNsd(state, inst, new RNG(state.rng));
   if (managerOf(state) && inst.place === 'W') addRel(p, 'manager', 4);
   if (inst.place === 'W' && !inst.isQualifier) {
-    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.cat] ?? 1) * (1 + 0.01 * (p.star.level - 1)) * 10) / 10;
+    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.fmt === 'youth' ? 'youth' : inst.cat] ?? 1) * (1 + 0.01 * (p.star.level - 1)) * 10) / 10;
     inst.star = Math.round(((inst.star ?? 0) + bonus) * 10) / 10;
     inst.titleStar = bonus;
     addStarProgress(state, bonus);

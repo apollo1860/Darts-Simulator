@@ -116,8 +116,8 @@ export const CALENDAR = [
     id: `ddv-${i + 1}`, cat: 'ddv', name: `DDV-Ranglistenturnier ${i + 1}`, week: w, city, country: 'DE',
     note: '64 Spieler · viel Erfahrung',
   })),
-  { id: 'qs-uk', cat: 'qschool', name: 'Q-School UK', week: 2, city: 'Milton Keynes', country: 'ENG', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
-  { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4, note: '4 Tage · je 4 Tourcards (Halbfinalisten)' },
+  { id: 'qs-uk', cat: 'qschool', name: 'Q-School UK', week: 2, city: 'Milton Keynes', country: 'ENG', count: 4, note: '4 Tage · je Tag 2 Tourcards (Finalisten) + Restplätze über die Q-School-Rangliste' },
+  { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4, note: '4 Tage · je Tag 2 Tourcards (Finalisten) + Restplätze über die Q-School-Rangliste' },
   ...WS.map(([w, id, name, city, country]) => ({ id, cat: 'ws', fmt: id === 'ws-final' ? 'wsf' : 'ws', name, week: w, city, country, noOom: true,
     note: id === 'ws-final' ? 'Top 24 der World-Series-Wertung' : 'Einladung: Top 8 PDC + 8 Qualifikanten' })),
   // Winmau World Masters: Vorrunde (Gruppenphase + K.-o., 8 Qualifikanten) in der Woche vorher, Hauptfeld 32 = Top 24 + 8
@@ -135,9 +135,9 @@ export const CALENDAR = [
   { id: 'matchplay', cat: 'major', fmt: 'matchplay', name: 'World Matchplay', week: 29, weeks: 2, city: 'Blackpool', country: 'ENG', note: 'Top 16 PDC + Top 16 Pro Tour' },
   { id: 'wgp', cat: 'major', fmt: 'wgp', name: 'World Grand Prix', week: 40, city: 'Leicester', country: 'ENG', note: 'Top 16 PDC + Top 16 Pro Tour · Sätze' },
   { id: 'ec', cat: 'major', fmt: 'ec', name: 'European Championship', week: 42, city: 'Dortmund', country: 'DE', note: 'Top 32 der European-Tour-Wertung' },
-  { id: 'youth-wm', cat: 'dev', fmt: 'youth', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24 · zählt nicht zur Dev-OOM', noOom: true },
+  { id: 'youth-wm', cat: 'dev', fmt: 'youth', name: 'Youth-WM', week: 45, city: 'Minehead', country: 'ENG', note: 'nur U24 (auch Tourcard-Holder) · kein Preisgeld, Star-Status · Sieger spielt WM und Grand Slam', noOom: true },
   { id: 'gs-quali', cat: 'major', fmt: 'gsq', name: 'Grand Slam Tour Card Holder Qualifier', week: 45, city: 'Wigan', country: 'ENG', noOom: true, note: 'Tourcard-Holder ohne direkten Grand-Slam-Platz · alle Restplätze' },
-  { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '48 Spieler in 16 Dreiergruppen: TV-Finalisten, Pro-Tour-Titel, Nebentouren, Qualifier · Gruppenphase + K.-o. (Top 2)' },
+  { id: 'gsod', cat: 'major', fmt: 'gsod', name: 'Grand Slam of Darts', week: 46, city: 'Wolverhampton', country: 'ENG', groups: true, note: '48 Spieler in 16 Dreiergruppen, Gruppensieger → Achtelfinale: TV-Finalisten, Pro-Tour-Titel, Nebentouren, Qualifier · Gruppenphase + K.-o. (Top 2)' },
   { id: 'pcf', cat: 'major', fmt: 'pcf', name: 'Players Championship Finals', week: 48, city: 'Minehead', country: 'ENG', note: 'Top 64 der Players-Championship-OOM' },
   { id: 'wm-quali', cat: 'major', fmt: 'wmq', name: 'PDC Tour Card Holder Qualifier (WM)', week: 49, city: 'Milton Keynes', country: 'ENG', noOom: true, note: 'Last Chance: Tourcard-Holder ohne WM-Platz · alle Restplätze (mind. 2)' },
   // Internationale WM-Qualifier (je Region, nur ohne Tourcard; laufen sonst im Hintergrund)
@@ -199,7 +199,7 @@ export const FORMATS = {
   wmqs: { default: { legs: 5 }, byRemaining: { 4: { legs: 6 }, 2: { legs: 6 } } },
   hnq: { field: 64, default: { legs: 4 }, byRemaining: { 2: { legs: 5 } } },
   wdf: { field: 64, default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 6 } } },
-  qschool: { default: { legs: 5 }, stopAt: 4, cards: true },
+  qschool: { default: { legs: 5 }, stopAt: 2, cards: true },   // Version 94: die 2 Finalisten eines Tages bekommen die Karte
   pc: { field: 128, default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } } },   // Bo11, HF Bo13, F Bo15
   etq: { default: { legs: 6 }, stopAt: 10, sections: 10 },
   mastersq: { group: { sets: 3, legs: 2 }, default: { sets: 3, legs: 2 }, stopAt: 8 },   // Best of 5 Sets, Satz Best of 3 Legs         // Tour-Card-Holder-Qualifier: 10 Sektionen → 10 Qualifikanten

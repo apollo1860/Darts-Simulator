@@ -63,6 +63,7 @@ export const ACHIEVEMENTS = [
   M('event', 'etTitle', '🇪🇺', 'European-Tour-Sieg', 15, c => t(c, r => r.cat === 'et')),
   M('event', 'wsPlay', '🌐', 'World-Series-Teilnahme', 6, c => res(c, r => r.cat === 'ws')),
   M('event', 'wsTitle', '🌐', 'World-Series-Sieg', 20, c => t(c, r => r.cat === 'ws')),
+  M('event', 'youthWm', '🌟', 'Jugend-Weltmeister', 20, c => t(c, r => r.eventId === 'youth-wm')),   // Version 94
   M('event', 'major1', '👑', 'Erstes Major gespielt', 5, c => res(c, r => r.cat === 'major')),
   M('event', 'masters', '🏰', 'The Masters gewonnen', 40, c => t(c, r => r.eventId === 'masters')),
   M('event', 'ukopen', '🇬🇧', 'UK Open gewonnen', 45, c => t(c, r => r.eventId === 'uk-open')),

@@ -10,7 +10,7 @@ import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 93;
+export const APP_VERSION = 94;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -113,7 +113,7 @@ export const relLabel = { manager: 'Manager', fans: 'Fans', partner: 'Freundin',
 // Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).
 export const STAR_PRIZE_WIN = {
   pc: 15, ws: 30, wsf: 100, et: 35, wcod: 100 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
-  wgp: 150, ec: 150, pcf: 130, gsod: 200, matchplay: 225, pln: 10, plf: 350, wm: 1000, youth: 10, challenge: 5, dev: 5,
+  wgp: 150, ec: 150, pcf: 130, gsod: 200, matchplay: 225, pln: 10, plf: 350, wm: 1000, challenge: 5, dev: 5,   // Version 94: Youth-WM ohne Preisgeld
 };
 export const STAR_SHARES = { F: 0.5, SF: 0.25, QF: 0.12, L16: 0.06, L32: 0.04, L64: 0.02, G3: 0.05, G4: 0.025 };
 export const EUR_PER_STAR = 1000;   // Umrechnung der vorbelegten Ranglisten (2025/26) beim Karrierestart
@@ -132,7 +132,7 @@ export const STAR_PRIZE_FIXED = {
   matchplay: { F: 125, SF: 65, QF: 35, L16: 22.5, L32: 12.5 },
   wgp: WGP_TABLE, ec: WGP_TABLE,
   pcf: { F: 70, SF: 40, QF: 27.5, L16: 15, L32: 7, L64: 4 },
-  gsod: { F: 100, SF: 60, QF: 35, L16: 20, L32: 12.5, G3: 5 },
+  gsod: { F: 100, SF: 60, QF: 35, L16: 20, L32: 12.5, G2: 12.5, G3: 5 },   // Version 94: Gruppenzweiter (G2) bekommt den früheren Letzte-32-Betrag
   wcod: { F: 48, SF: 30, QF: 20, L16: 10, G2: 6, G3: 5 },
   wm: { F: 400, SF: 200, QF: 100, L16: 60, L32: 35, L64: 25, L128: 15 },
   plf: { F: 170, SF: 110 },
@@ -200,12 +200,13 @@ export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.roun
 // ---- Star-Status: Fortschritt aus Matches ----
 // Sieg auf Status 1 ≈ 12 % des Balkens (Bonus: zu null, hoher Average, stärkerer Gegner, große Bühne). Niederlage: kleiner Abzug.
 // Der Balken wächst je Stufe um 3 %, der Gewinn nur linear → jede Stufe dauert länger. Nie unter die erreichte Stufe.
-export const STAR_WEIGHT = { dev: 0.6, pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
+// Version 94: Youth-WM (fmt 'youth') zählt mit eigenem Gewicht – kein Preisgeld, dafür Star-Status
+export const STAR_WEIGHT = { youth: 1.3, dev: 0.6, pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
 const starScale = level => 1 + 0.01 * (level - 1);   // Gewinn wächst kaum, Balken +3 %/Stufe → jede Stufe deutlich schwerer
 // Gegner weit oben in der Order of Merit: mehr Punkte (Platz 1 ×1,6 … ab Platz 100 ×1)
 export const rankBonus = rank => 1 + 0.6 * Math.max(0, (100 - (rank ?? 999)) / 99);
 export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, cat, fmt, rating = 5, oppRank = null }) {
-  const w = (fmt === 'wm' ? 1.6 : STAR_WEIGHT[cat] ?? 1) * starScale(level);
+  const w = (fmt === 'wm' ? 1.6 : STAR_WEIGHT[fmt === 'youth' ? 'youth' : cat] ?? 1) * starScale(level);
   if (won) {
     let g = 12 * rankBonus(oppRank);
     if (opp === 0) g *= 1.4;

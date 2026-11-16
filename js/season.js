@@ -1,7 +1,7 @@
 // Saisonablauf (DOM-frei): Woche abschließen (KI-Turniere), Jahresabschluss (Tourcards, Welt-Entwicklung)
 import { RNG } from './rng.js';
 import { advanceWeek, eventsInWeek } from './calendar.js';
-import { simulateWeekAI, awardCard } from './tournaments.js';
+import { simulateWeekAI, awardCard, qschoolRankingCards, closeEvent } from './tournaments.js';
 import { orderOfMerit, OOM_TYPES, rankOf, devHolders } from './rankings.js';
 import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
 import { addNews } from './news.js';
@@ -29,9 +29,11 @@ import { decayWeek, soberUp, expireBoosts } from './skilltrain.js';
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
   if (state.activeEvent && !state.activeEvent.done) return false;
+  if (state.activeEvent?.done) closeEvent(state);           // offene Rest-Turniere des Blocks im Hintergrund zu Ende spielen
   const { year, week } = state.date;
   const evs = eventsInWeek(state, year, week);
   const ai = simulateWeekAI(state);
+  if (evs.some(e => e.cat === 'qschool')) qschoolRankingCards(state);   // Version 94: Restkarten über die Q-School-Rangliste
   const nsd = state.mode === 'nsd';                      // New Star Darts: alte €-/XP-Nebensysteme ruhen
   if (!nsd) { interviewWeekEnd(state); trainingWeekEnd(state); weeklyRecovery(state); }
   weekNews(state, evs, ai);

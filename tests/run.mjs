@@ -55,7 +55,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 98 + 50 + 63 + 1 + 90 + 81);   // + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 81 + 3);   // + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -218,7 +218,10 @@ test('Q-School: 4 Tage, Karten, Challenge-Zugang', () => {
   if (places.includes('CARD')) assert.equal(s.player.tour, 'tour');
   nextWeek(s);                                                  // UK-Q-School läuft im Hintergrund
   const tour = playersOfTier(s, 'tour').length + (s.player.tour === 'tour' ? 1 : 0);
-  assert.equal(tour, 101 + 32);
+  assert.equal(tour, 128);                                      // 101 + je Tag 2 Finalisten (16) + Restplätze über die Rangliste (11)
+  const via = playersOfTier(s, 'tour').map(p => p.cardVia ?? '');
+  assert.equal(via.filter(v => /Rangliste/.test(v)).length + (/Rangliste/.test(s.player.cardVia ?? '') ? 1 : 0), 11);
+  assert.equal(via.filter(v => /Europa.*Rangliste/.test(v)).length + (/Europa.*Rangliste/.test(s.player.cardVia ?? '') ? 1 : 0), 6);   // ungerade → 1 mehr an EU
   assert.equal(s.player.qschoolYear, 2027);
   const ct = eventsInWeek(s, 2027, 11).find(e => e.cat === 'challenge');
   s.date.week = 11; s.week = { played: false, eventId: null };
@@ -293,7 +296,7 @@ test('Pro Tour: PC-Doppel + ET (Quali → Hauptfeld) + OOM', () => {
   const etEv = eventsInWeek(s, 2027, 7).find(e => e.id === 'et-1');
   const e = ET.etEntrants(s, etEv, true), all = Object.values(e).flat();
   assert.equal(all.length, 48); assert.equal(new Set(all).size, 48);
-  assert.equal(e.seeds.length, 16); assert.equal(e.pt.length, 16); assert.ok(e.tchq.length >= 9 && e.tchq.length <= 10, `TCHQ ${e.tchq.length}`);   // 1 Quali-Sieger kann zwischen Quali und ET (Gewichtung der 2-Jahres-OOM ändert sich je Woche) schon über die Pro Tour qualifiziert sein
+  assert.equal(e.seeds.length, 16); assert.equal(e.pt.length, 16); assert.ok(e.tchq.length >= 8 && e.tchq.length <= 10, `TCHQ ${e.tchq.length}`);   // 1–2 Quali-Sieger kann zwischen Quali und ET (Gewichtung der 2-Jahres-OOM ändert sich je Woche) schon über die Pro Tour qualifiziert sein
   assert.equal(eventStatus(s, etEv).playable, ET.etQualified(s, etEv));
   if (ET.etQualified(s, etEv)) {
     enterEvent(s, 'et-1');
@@ -385,14 +388,14 @@ test('Grand Slam mit Spieler: Gruppenphase → K.-o.', () => {
   enterEvent(s, 'gsod');
   const inst = s.activeEvent;
   assert.equal(inst.groups.length, 16); assert.ok(inst.groups.every(g => g.length === 3)); assert.ok(inst.rounds[0].isGroup);
-  assert.deepEqual(inst.rounds.map(r => r.name).slice(0, 4), ['Gruppenphase · Spieltag 1', 'Gruppenphase · Spieltag 2', 'Gruppenphase · Spieltag 3', 'Letzte 32']);
+  assert.deepEqual(inst.rounds.map(r => r.name).slice(0, 4), ['Gruppenphase · Spieltag 1', 'Gruppenphase · Spieltag 2', 'Gruppenphase · Spieltag 3', 'Achtelfinale']);   // Version 94: Gruppensieger direkt ins Achtelfinale
   let guard = 0;
   while (!inst.done && guard++ < 20) {
     if (inst.playerAlive && playerMatch(inst)) playRound(s); else simulateRoundAI(s);
     nextRound(s);
   }
   assert.ok(inst.done);
-  assert.ok(['W', 'F', 'SF', 'QF', 'L16', 'L32', 'G3'].includes(inst.place), inst.place);
+  assert.ok(['W', 'F', 'SF', 'QF', 'L16', 'G2', 'G3'].includes(inst.place), inst.place);
   closeEvent(s);
 });
 
@@ -1469,15 +1472,15 @@ test('New Star Darts v37: echte Preistabellen aller PDC-Events 2026 (Summe = Pre
 test('New Star Darts v38: Grand Slam 48 Spieler (16 Dreiergruppen), Masters-Vorrunde mit Geld ab Letzte 64, Premier League Platz 5–8', async () => {
   const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), M = await import('../js/majors.js'), D = await import('../data/tournaments.js'), C = await import('../js/calendar.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 10 });
-  // Grand Slam: 16 Gruppen à 3, 3 Spieltage mit je 16 Spielen, danach Letzte 32 (16 Spiele)
+  // Grand Slam: 16 Gruppen à 3, 3 Spieltage mit je 16 Spielen, Gruppensieger → Achtelfinale (Version 94)
   s.date.week = 46;
   const gs = C.findEvent(s, 'gsod', 2026, 46) ?? D.CALENDAR.find(e => e.id === 'gsod'), g = T.runAITournament(s, gs, 0);
   assert.equal(g.fieldSize, 48); assert.equal(g.groups.length, 16);
-  assert.deepEqual(g.rounds.map(r => r.matches.length), [16, 16, 16, 16, 8, 4, 2, 1]);
+  assert.deepEqual(g.rounds.map(r => r.matches.length), [16, 16, 16, 8, 4, 2, 1]);
   const cnt = k => Object.values(g.places).filter(p => p === k).length;
-  assert.equal(cnt('G3'), 16); assert.equal(cnt('L32'), 16); assert.equal(cnt('L16'), 8); assert.equal(cnt('W'), 1);
+  assert.equal(cnt('G3'), 16); assert.equal(cnt('G2'), 16); assert.equal(cnt('L32'), 0); assert.equal(cnt('L16'), 8); assert.equal(cnt('W'), 1);
   const t = N.starPrizeTable('gsod');
-  assert.equal(t.W + t.F + 2 * t.SF + 4 * t.QF + 8 * t.L16 + 16 * t.L32 + 16 * t.G3, 1000);
+  assert.equal(t.W + t.F + 2 * t.SF + 4 * t.QF + 8 * t.L16 + 16 * t.G2 + 16 * t.G3, 1000);
   // Masters-Vorrunde: Geld erst in der K.-o.-Phase (Letzte 64/32/16), Gruppenphase ohne; 8 Qualifikanten
   s.date.week = 4;
   const mq = C.findEvent(s, 'masters-q', 2026, 4) ?? D.CALENDAR.find(e => e.id === 'masters-q'), q = T.runAITournament(s, mq, 0);
@@ -2413,6 +2416,50 @@ test('New Star Darts v93: Sponsorenzahlungen × 0,7 – neue Angebote und (einma
   const f = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 10 }); f.team = { manager: 'm3', trainer: null }; C.nameTeam(f); f.player.star.level = 30;
   const rng = new RNG(4); let o = null; for (let k = 0; k < 200 && !o; k++) { C.sponsorWeek(f, rng); o = f.nsdSponsors.offer; }
   assert.ok(o && f.nsdSponsors.payV === 2); const pw = o.perWeek; ST.migrate(f); assert.equal(f.nsdSponsors.offer.perWeek, pw);
+});
+
+test('New Star Darts v94: Youth-WM für U24-Holder, Grand Slam Gruppensieger, JDC-Talente, Namen, Interview ganzzahlig', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), W = await import('../js/world.js'), C = await import('../js/career.js'),
+    A = await import('../data/achievements.js'), P = await import('../data/players.js'), ST = await import('../js/state.js'), CAL = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'Y', last: 'W', nation: 'DE', age: 20, slot: 1, seed: 11 });
+  // Youth-WM: auch als Top-64-Holder unter 24 spielbar, kein Preisgeld, eigenes Star-Gewicht, Meilenstein
+  s.rankings.years[2025].pdc.P = 5000; s.date.week = 45; s.week = { played: false, eventId: null };
+  const yw = CAL.eventsInWeek(s, 2026, 45).find(e => e.id === 'youth-wm');
+  assert.ok(yw && T.eventStatus(s, yw).playable, 'Youth-WM spielbar');
+  assert.ok(Object.values(N.starPrizeTable('youth')).every(v => !v), 'kein Preisgeld'); assert.equal(N.STAR_WEIGHT.youth, 1.3);
+  const ms = A.ACHIEVEMENTS.find(a => a.id === 'youthWm');
+  assert.ok(ms && ms.check({ titles: [{ eventId: 'youth-wm' }], results: [] }) && !ms.check({ titles: [{ eventId: 'pc-1' }], results: [] }));
+  s.player.age = 24; assert.ok(!T.eventStatus(s, yw).playable, 'ab 24 nicht mehr');
+  // JDC-Talente: Lewis Cook (16) ist 2026 dabei, Lawrie (15) kommt zum Jahreswechsel, Potenzial wird nie überschritten
+  const ids = Object.fromEntries(Object.values(s.world.players).filter(p => p.jdc).map(p => [p.name, p]));
+  assert.deepEqual(Object.keys(ids), ['Lewis Cook']); assert.equal(ids['Lewis Cook'].age, 16); assert.equal(ids['Lewis Cook'].avg, 78.5); assert.equal(ids['Lewis Cook'].tier, 'dev');
+  ids['Lewis Cook'].avg = 91.5;
+  const rep = W.developWorld(s, new RNG(3), 2026);
+  assert.deepEqual(rep.jdc.sort(), ['Benjamin Dopfer', 'Mitchell Lawrie']);
+  assert.ok(ids['Lewis Cook'].avg <= 92);
+  const law = Object.values(s.world.players).find(p => p.name === 'Mitchell Lawrie');
+  assert.ok(law.age === 15 && law.avg === 88 && law.potential === 106);
+  // Namen/Nationen: Lenny Schlüter, Yorick Hofkens (DE) – auch alte Spielstände
+  const names = Object.values(s.world.players);
+  assert.ok(names.some(p => p.name === 'Lenny Schlüter') && !names.some(p => p.name === 'Lenny Schlueter'));
+  assert.equal(names.find(p => p.name === 'Yorick Hofkens').nation, 'DE');
+  const o = N.newNsdCareer({ first: 'O', last: 'L', nation: 'DE', age: 20, slot: 1, seed: 12 });
+  const ls = Object.values(o.world.players).find(p => p.name === 'Lenny Schlüter'); ls.name = 'Lenny Schlueter';
+  const yh = Object.values(o.world.players).find(p => p.name === 'Yorick Hofkens'); yh.nation = 'BE';
+  for (const p of Object.values(o.world.players)) if (p.jdc) delete o.world.players[p.id];
+  ST.migrate(o);
+  assert.equal(ls.name, 'Lenny Schlüter'); assert.equal(yh.nation, 'DE');
+  assert.equal(Object.values(o.world.players).filter(p => p.name === 'Lewis Cook').length, 1, 'JDC nach Migration ohne Doppelte');
+  // Interview: alle Auswirkungen ganzzahlig (WM-Nervosität in Zehnteln)
+  for (let seed = 1; seed <= 40; seed++) {
+    const t = N.newNsdCareer({ first: 'I', last: 'V', nation: 'DE', age: 25, slot: 1, seed }), rng = new RNG(seed);
+    t.interview = C.preWmInterview(t, rng, seed % 2 === 0);
+    while (t.interview && t.interview.answers.length < t.interview.qs.length) {
+      const { fx } = C.answerInterview(t, seed % 3, rng);
+      for (const [k, v] of Object.entries(fx)) assert.ok(Number.isInteger(k === 'nerves' ? Math.round(v * 10 * 1e6) / 1e6 : v), `${k} ${v}`);
+    }
+    for (const [k, v] of Object.entries(t.interview.sum)) assert.ok(Number.isInteger(k === 'nerves' ? Math.round(v * 10 * 1e6) / 1e6 : v), `Summe ${k} ${v}`);
+  }
 });
 
 console.log(`\n${n} Tests ok`);

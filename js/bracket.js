@@ -89,13 +89,14 @@ export function placeOf(rounds, id) {
 const GROUP_DAYS = { 3: [[[0, 1]], [[0, 2]], [[1, 2]]], 4: [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]] };
 export const GROUP_NAMES = 'ABCDEFGH';
 
-export function buildGroupRounds(groups, fmt) {
+// adv = Weiterkommende je Gruppe (Version 94: Grand Slam mit 16 Gruppen → nur Gruppensieger, direkt Achtelfinale)
+export function buildGroupRounds(groups, fmt, adv = 2) {
   const size = Math.max(...groups.map(g => g.length)) >= 4 ? 4 : 3;
   const rounds = GROUP_DAYS[size].map((day, d) => ({
     name: `Gruppenphase · Spieltag ${d + 1}`, remaining: groups.length * size, isGroup: true, format: fmt.group,
     matches: groups.flatMap((g, gi) => day.filter(([x, y]) => g[x] && g[y]).map(([x, y]) => ({ a: g[x], b: g[y], winner: null, score: null, group: gi }))),
   }));
-  for (let rem = groups.length * 2; rem > 1; rem /= 2) {
+  for (let rem = groups.length * adv; rem > 1; rem /= 2) {
     rounds.push({ name: fmt.sections ? (rem / 2 === fmt.stopAt ? 'Entscheidungsspiel' : `Runde ${rounds.length + 1}`) : ROUND_NAME[rem] ?? `Letzte ${rem}`, remaining: rem, format: fmt.byRemaining?.[rem] ?? fmt.default, matches: [] });
   }
   return rounds;
@@ -116,9 +117,13 @@ export function groupTable(rounds, group, gi) {
 }
 
 // Achtelfinale: Gruppensieger gegen Zweite der Nachbargruppe (A1–B2, B1–A2, C1–D2 …)
-export function groupKoMatches(rounds, groups) {
+export function groupKoMatches(rounds, groups, adv = 2) {
   const tabs = groups.map((g, gi) => groupTable(rounds, g, gi));
   const out = [];
+  if (adv === 1) {                                   // nur Gruppensieger: A1–B1, C1–D1 …
+    for (let gi = 0; gi < groups.length; gi += 2) out.push({ a: tabs[gi][0].id, b: tabs[gi + 1][0].id, winner: null, score: null });
+    return out;
+  }
   for (let gi = 0; gi < groups.length; gi += 2) {
     out.push({ a: tabs[gi][0].id, b: tabs[gi + 1][1].id, winner: null, score: null });
     out.push({ a: tabs[gi + 1][0].id, b: tabs[gi][1].id, winner: null, score: null });

@@ -10,17 +10,20 @@ export const nsd = true;
 const ICONS = { manager: '💼', fans: '🧣', partner: '🌹', sponsors: '🤝' };
 const HELP = '<p>Deine Beziehungen beeinflussen Ereignisse, Angebote und deine Zufriedenheit. Ein grauer Balken heißt: (noch) nicht vorhanden.</p><p><b>Zufriedenheit</b> folgt deinem Lifestyle, deiner Freundin, den Fans und deinem Selbstvertrauen – und bestimmt, wie gut du dich pro Woche erholst (−10 bis +10 % Energie).</p><p>Eine Freundin will Zeit: ohne Aufmerksamkeit sinkt die Beziehung jede Woche.</p><p>Tippe auf eine Beziehung, um sie zu pflegen: Fans, Manager und Sponsoren kosten 60 % Energie, ein Geschenk für die Freundin kostet ★.</p>';
 
+// Version 94: hat sich ein Wert seit dem letzten Besuch geändert (Aktion, Ereignis, Woche), wächst der Balken sichtbar vom alten Wert aus
+// (player.lifeSeen wie starSeen, animateMeters in main.js)
 export function render(app) {
-  const p = app.state.player, rel = p.rel ?? {}, e = Math.round(p.energy ?? 100);
+  const p = app.state.player, rel = p.rel ?? {}, e = Math.round(p.energy ?? 100), from = p.lifeSeen ?? {};
+  p.lifeSeen = { rel: { ...rel }, energy: e, sat: p.satisfaction ?? 50 };
   const has = { manager: !!app.state.team?.manager, sponsors: (app.state.nsdSponsors?.active?.length ?? 0) > 0 || (rel.sponsors ?? 0) > 0, partner: (rel.partner ?? 0) > 0, fans: true };
   return frame({
     body: `${header(p.name)}
     <div class="nsd-meters">
-      ${meter({ icon: '<span style="font-size:2.1rem">🙂</span>', label: 'Zufriedenheit', pct: p.satisfaction ?? 50 })}
-      ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: e >= 20 ? 'green' : 'red' })}
+      ${meter({ icon: '<span style="font-size:2.1rem">🙂</span>', label: 'Zufriedenheit', pct: p.satisfaction ?? 50, from: from.sat ?? null })}
+      ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: e >= 20 ? 'green' : 'red', from: from.energy ?? null })}
     </div>
     <div class="nsd-list">${Object.keys(relLabel).map(k => `<div class="nsd-line">
-      ${meter({ label: k === 'partner' && p.partnerName ? `${esc(p.partnerName)}` : relLabel[k], pct: has[k] ? rel[k] ?? 0 : 0, tone: has[k] ? 'green' : 'grey' })}
+      ${meter({ label: k === 'partner' && p.partnerName ? `${esc(p.partnerName)}` : relLabel[k], pct: has[k] ? rel[k] ?? 0 : 0, tone: has[k] ? 'green' : 'grey', from: has[k] ? from.rel?.[k] ?? null : null })}
       <button class="nsd-btn" data-rel="${k}"><span class="ic">${ICONS[k]}</span></button>
     </div>`).join('')}</div>
     <div class="nsd-strip"><span>Erholung</span><span class="mid">+${weeklyEnergy(p)} %/Woche</span><span class="r">Ziel ${Math.round(satisfactionTarget(p))}</span></div>`,

@@ -8,7 +8,8 @@ import { toast } from '../../components.js';
 export const nsd = true;
 const PLACE = { W: 'Turniersieg', F: 'Finale', SF: 'Halbfinale', WM: 'vor dem ersten Match', NQ: 'nicht qualifiziert' };
 const FX = [['fans', 'Fans'], ['star', 'Status'], ['manager', 'Manager'], ['sponsors', 'Sponsoren'], ['partner', 'Freundin'], ['mom', 'Selbstvertrauen'], ['sat', 'Zufriedenheit'], ['energy', 'Energie'], ['nerves', 'WM-Nervosität']];
-const num = (v, k) => `${v > 0 ? '+' : '−'}${String(Math.abs(v)).replace('.', ',')}${k === 'energy' ? ' %' : ''}`;
+// Version 94: immer ganze Zahlen – WM-Nervosität (intern Zehntel) wird ×10 angezeigt
+const num = (v, k) => `${v > 0 ? '+' : '−'}${Math.round(Math.abs(v) * (k === 'nerves' ? 10 : 1))}${k === 'energy' ? ' %' : ''}`;
 // Nervosität: weniger ist gut → Farben umgekehrt
 const fxList = fx => FX.filter(([k]) => fx?.[k]).map(([k, l]) => `<span class="${(k === 'nerves' ? -fx[k] : fx[k]) > 0 ? 'pos' : 'neg'}">${l} ${num(fx[k], k)}</span>`).join('');
 

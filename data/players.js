@@ -50,7 +50,7 @@ export const TOUR_NEW_2026 = [
   ['Owen Bates', 'ENG', 23, 89], ['Arno Merk', 'DE', 35, 87], ['Filip Bereza', 'PL', 25, 88],
   ['Rhys Griffin', 'WAL', 27, 89], ['Adam Leek', 'AU', 30, 88], ['Jeffrey Sparidaans', 'NL', 26, 88],
   ['Cristo Reyes', 'ES', 49, 88], ['Carl Sneyd', 'ENG', 30, 88], ['Niall Culleton', 'IRL', 42, 88],
-  ['Matthias Ehlers', 'DE', 30, 87], ['Yorick Hofkens', 'BE', 23, 88], ['Tom Sykes', 'ENG', 28, 88],
+  ['Matthias Ehlers', 'DE', 30, 87], ['Yorick Hofkens', 'DE', 23, 88], ['Tom Sykes', 'ENG', 28, 88],
   ['Shane McGuirk', 'IRL', 35, 88], ['Jeffrey de Zwaan', 'NL', 30, 89], ['Sietse Lap', 'NL', 28, 87],
   ['Charlie Manby', 'ENG', 21, 90], ['Samuel Price', 'ENG', 25, 88], ['Jimmy van Schie', 'NL', 36, 88],
   ['Chris Landman', 'NL', 38, 88], ['Marvin Kraft', 'DE', 25, 88], ['Benjamin Pratnemer', 'SI', 35, 88],
@@ -63,7 +63,16 @@ export const TOUR_NEW_2026 = [
 export const NATION_FIXES = { 'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL', 'Callum Goffin': 'WAL', 'Adam Leek': 'AU',
   // Version 88 (Nutzerhinweise)
   'Kai Clark': 'WAL', 'Ryan Branley': 'ENG', 'Kaya Baysal': 'ENG', 'Geoffrey Murray': 'ENG', 'Dean Fitch Jnr': 'SCO', 'Jake Eichen': 'ENG', 'Ansh Sood': 'CH',
-  'Angelo Balsamo': 'NL', 'David Fidler': 'CZ', 'David Evans': 'ENG', 'Ricardo Ulrich': 'NL', 'Martin Homola': 'SK', 'Liam Maendl-Lawrance': 'DE' };
+  'Angelo Balsamo': 'NL', 'David Fidler': 'CZ', 'David Evans': 'ENG', 'Ricardo Ulrich': 'NL', 'Martin Homola': 'SK', 'Liam Maendl-Lawrance': 'DE',
+  // Version 94
+  'Yorick Hofkens': 'DE' };
+// Namens-Korrekturen (Nutzerhinweise, gelten auch für bestehende Spielstände): alt → neu
+export const NAME_FIXES = { 'Lenny Schlueter': 'Lenny Schlüter' };
+// JDC-Talente (Nutzerliste, Version 94): [Name, Nation, Alter 2026, Ø-Spanne von, bis]. Sie kommen mit 16 in die Welt (Dev Tour):
+// Start-Ø = von + 25 % der Spanne, Potenzial = bis (Entwicklung bis 24 zusätzlich Richtung Potenzial, nie darüber – world.js developWorld).
+export const JDC_TALENTS = [['Mitchell Lawrie', 'SCO', 15, 82, 106], ['Jack Johnson', 'ENG', 13, 76, 92], ['Jayden Walker', 'ENG', 13, 77, 94],
+  ['Owen Bryceland', 'SCO', 11, 75, 90], ['Lewis Cook', 'ENG', 16, 74, 92], ['Benjamin Dopfer', 'DE', 15, 70, 90], ['Nicardo Pieper', 'DE', 14, 70, 85]];
+export const jdcStartAvg = (lo, hi) => Math.round((lo + 0.25 * (hi - lo)) * 10) / 10;
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
 export const QSCHOOL_UK_2026 = ['Rhys Griffin', 'Adam Leek', 'Carl Sneyd', 'Niall Culleton', 'Tom Sykes', 'Shane McGuirk', 'Charlie Manby',
@@ -146,10 +155,10 @@ export const DEV_AT_CT_LEVEL = ['Archie Self', 'Henry Coates', 'Nathan Potter', 
   'Harrison Leigh', 'Sam Jackson', 'Jenson Walker', 'Jenson Remory', 'Jamai van den Herik', 'Cayden Smith'];
 export const DEV_PLAYERS = [
   ['Jack Drayton', 'ENG', 22, 85.8], ['James Beeton', 'ENG', 21, 89.2], ['Jamai van den Herik', 'NL', 19, 89.0],
-  ['Angelo Balsamo', 'NL', 23, 84.2], ['Nathan Potter', 'ENG', 21, 89.0], ['Lenny Schlueter', 'DE', 20, 83.4],
+  ['Angelo Balsamo', 'NL', 23, 84.2], ['Nathan Potter', 'ENG', 21, 89.0], ['Lenny Schlüter', 'DE', 20, 83.4],
   ['Henry Coates', 'ENG', 18, 89.3], ['David Fidler', 'CZ', 23, 83.1], ['Sam Jackson', 'ENG', 21, 87.0],
   ['Florian Preis', 'DE', 19, 87.1], ['Finn Behrens', 'DE', 22, 82.5], ['Ben Townley', 'ENG', 20, 86.3],
-  ['Mylo Michiels', 'BE', 23, 82.0], ['Kaya Baysal', 'ENG', 21, 81.8], ['Lewis Cook', 'ENG', 19, 81.7],
+  ['Mylo Michiels', 'BE', 23, 82.0], ['Kaya Baysal', 'ENG', 21, 81.8],
   ['Ieuan Halsall', 'WAL', 17, 81.5], ['Keenan Thomas', 'WAL', 18, 81.0], ['Peter Kelemen', 'HU', 23, 80.9],
   ['Charlie Stocks', 'ENG', 21, 80.7], ['Jan Schmidt', 'DE', 19, 80.6], ['James Buckby', 'ENG', 17, 80.4],
   ['Connor Hopkins', 'ENG', 22, 80.2], ['Jenson Remory', 'ENG', 20, 84.1], ['Sean McKeon', 'IRL', 18, 79.9],

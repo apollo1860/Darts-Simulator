@@ -1,8 +1,8 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary } from './world.js';
-import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES } from '../data/players.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc } from './world.js';
+import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS } from '../data/players.js';
 import { scaleSponsorPay } from '../data/sponsorsreal.js';
 import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
@@ -146,7 +146,14 @@ export function migrate(s) {
   }
   // Nebentour-Pools (S…) für ältere Stände nachrüsten
   addSecondary(s.world.players, new RNG(s.rng), s.date.year);
-  for (const x of Object.values(s.world.players)) if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name];   // Nationen korrigiert (Version 69/88, Nutzerhinweise: `NATION_FIXES`)
+  for (const x of Object.values(s.world.players)) { if (NAME_FIXES[x.name]) x.name = NAME_FIXES[x.name]; if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name]; }
+  // Version 94: JDC-Talente – vorhandener Lewis Cook (Dev-Liste) bekommt sein Potenzial, fehlende Talente ab 16 kommen dazu
+  for (const x of Object.values(s.world.players)) { const j = JDC_TALENTS.find(t => t[0] === x.name); if (j && !x.potential) { x.potential = j[4]; x.jdc = true; } }
+  { const have = new Set(Object.values(s.world.players).map(x => x.name)), keep = {};
+    for (const [id, x] of Object.entries(s.world.players)) if (/^J\d+$/.test(id)) keep[id] = x;
+    JDC_TALENTS.forEach(([name], i) => { if (have.has(name) && !keep[`J${i + 1}`]) keep[`J${i + 1}`] = { skip: true }; });   // schon unter anderer ID vorhanden
+    const tmp = { ...keep }; addJdc(tmp, new RNG(s.rng), s.date.year);
+    for (const [id, x] of Object.entries(tmp)) if (!keep[id]) s.world.players[id] = x; }   // Nationen korrigiert (Version 69/88, Nutzerhinweise: `NATION_FIXES`)
   if (typeof s.stars === 'number') s.stars = Math.round(s.stars);   // ★ nur ganze Zahlen
   scaleSponsorPay(s);                                                // Version 93: Sponsorbeträge × 0,7 (laufende Verträge einmalig)
   s.version = VERSION;

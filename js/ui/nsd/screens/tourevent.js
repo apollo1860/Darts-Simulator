@@ -1,5 +1,6 @@
 // Turnier (Tour-Modus): nächstes Match (Spielen live / Simulieren), Ausgeschieden, Turnierergebnis
-import { esc, fmtNum } from '../../../util.js';
+import { esc, fmtNum, surname } from '../../../util.js';
+import { groupTable } from '../../../bracket.js';
 import { flag } from '../../../../data/nations.js';
 import { getPlayer } from '../../../world.js';
 import { formatLabel } from '../../../matchEngine.js';
@@ -27,6 +28,50 @@ function myPath(s, inst) {
     rows.push(`<tr><td class="rd">${esc(shortRound(r.name))}</td><td class="nm">${flag(nationOf(s, opp))} ${esc(nameOf(s, opp))}</td><td class="c">${m.score[me]}:${m.score[1 - me]}</td><td class="c">${won ? '✔' : '✖'}</td></tr>`);
   }
   return rows.length ? `<table class="nsd-table nsd-path">${rows.join('')}</table>` : '';
+}
+
+// Auslosung der aktuellen Runde (Version 94): kompakt und eingeklappt; in Gruppenphasen ◀ ▶ von Gruppe zu Gruppe
+const draw = { key: null, gi: 0, open: false };
+const gName = gi => (gi < 26 ? String.fromCharCode(65 + gi) : `${gi + 1}`);
+const short = (s, id) => (s.activeEvent?.teams?.[id] ? nameOf(s, id) : id === 'P' ? s.player.name : surname(nameOf(s, id)));
+function drawLine(s, m) {
+  const me = m.a === 'P' || m.b === 'P' || s.activeEvent?.teams?.[m.a]?.members?.includes('P') || s.activeEvent?.teams?.[m.b]?.members?.includes('P');
+  if (m.bye || !m.b) return `<div class="dl${me ? ' me' : ''}"><span class="l">${flag(nationOf(s, m.a))} ${esc(short(s, m.a))}</span><span class="x">Freilos</span><span class="r"></span></div>`;
+  const w = id => (m.winner === id ? ' w' : '');
+  return `<div class="dl${me ? ' me' : ''}"><span class="l${w(m.a)}">${flag(nationOf(s, m.a))} ${esc(short(s, m.a))}</span>
+    <span class="x">${m.winner && m.score ? `${m.score[0]}:${m.score[1]}` : '–'}</span><span class="r${w(m.b)}">${esc(short(s, m.b))} ${flag(nationOf(s, m.b))}</span></div>`;
+}
+function drawBody(s, inst) {
+  const round = inst.rounds[inst.current];
+  if (!(round.isGroup && inst.groups)) return round.matches.map(m => drawLine(s, m)).join('');
+  const gi = draw.gi, g = inst.groups[gi] ?? [], tab = groupTable(inst.rounds, g, gi);
+  return `<div class="dnav"><button class="nsd-btn sm" data-dg="-1">◀</button><b>Gruppe ${gName(gi)}</b><span class="n">${gi + 1}/${inst.groups.length}</span><button class="nsd-btn sm" data-dg="1">▶</button></div>
+    <div class="dtab">${tab.map((t, i) => `<div class="dt${t.id === 'P' ? ' me' : ''}"><span class="pos">${i + 1}</span><span class="nm">${flag(nationOf(s, t.id))} ${esc(short(s, t.id))}</span><span>${t.w}-${t.l}</span><span>${t.lf - t.la >= 0 ? '+' : ''}${t.lf - t.la}</span></div>`).join('')}</div>
+    ${round.matches.filter(m => m.group === gi).map(m => drawLine(s, m)).join('')}`;
+}
+function drawView(s, inst) {
+  const round = inst.rounds[inst.current];
+  if (!round?.matches?.length) return '';
+  const key = `${inst.eventId}|${inst.year}|${inst.sub ?? ''}`;
+  if (draw.key !== key) {                                       // neues Turnier: eigene Gruppe vorauswählen, eingeklappt
+    const mine = inst.groups?.findIndex(g => g.includes('P') || g.some(id => inst.teams?.[id]?.members?.includes('P')));
+    Object.assign(draw, { key, gi: Math.max(0, mine ?? 0), open: false });
+  }
+  const label = round.isGroup && inst.groups ? `${inst.groups.length} Gruppen` : `${round.matches.length} Spiele`;
+  return `<details class="nsd-draw"${draw.open ? ' open' : ''}><summary>📋 Auslosung · ${esc(shortRound(round.name))} <span class="n">${label}</span></summary>
+    <div class="nsd-draw-body">${drawBody(s, inst)}</div></details>`;
+}
+function bindDraw(root, s) {
+  const d = root.querySelector('.nsd-draw');
+  if (!d) return;
+  d.addEventListener('toggle', () => { draw.open = d.open; });
+  d.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-dg]');
+    if (!b) return;
+    const n = s.activeEvent.groups.length;
+    draw.gi = (draw.gi + Number(b.dataset.dg) + n) % n;
+    d.querySelector('.nsd-draw-body').innerHTML = drawBody(s, s.activeEvent);
+  });
 }
 
 function versus(s, inst, m) {
@@ -67,7 +112,7 @@ export function render(app) {
     const round = inst.rounds[inst.current], lm = inst.live?.m;
     return frame({
       body: `${head}${darkBar(`${esc(round.name)} · ${formatLabel(round.format)}`, 'sm')}
-        ${versus(s, inst, pm)}
+        ${versus(s, inst, pm)}${drawView(s, inst)}
         <div class="nsd-result">${energy}
           ${canSelfPlay(p) ? '' : '<div class="nsd-warn">Nicht match-fit: Die KI wirft für dich und baut Leg für Leg ab.</div>'}
           ${lm ? `<div class="nsd-warn ok">Laufendes Match: ${lm.format.sets ? `Sätze ${lm.sets[inst.live.me]}:${lm.sets[1 - inst.live.me]} · ` : ''}Legs ${lm.legs[inst.live.me]}:${lm.legs[1 - inst.live.me]}</div>` : ''}
@@ -88,6 +133,7 @@ export function mount(root, app) {
   bindHead(root, app, HELP);
   const s = app.state, on = (id, fn) => { const b = root.querySelector(id); if (b) b.onclick = fn; };
   on('#e-home', () => app.go('hub'));
+  bindDraw(root, s);
   on('#e-sim', () => { s.activeEvent.live = null; playRound(s); nextRound(s); app.save(); app.go('matchstats'); });
   on('#e-rest', () => { simulateRest(s); app.save(); app.refresh(); });
   on('#e-nextsub', () => { nextSub(s); app.save(); app.refresh(); });

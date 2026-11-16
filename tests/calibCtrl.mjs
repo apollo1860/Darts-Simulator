@@ -14,7 +14,7 @@ const fresh = seed => {
   s.team = { manager, trainer: null }; C.nameTeam(s); s.player.star.level = level; s.player.rel.fans = 70; s.player.rel.sponsors = 50; s.player.rel.manager = 60; s.stars = 8000;
   return s;
 };
-const unitOf = s => C.sponsorBase(s) * C.managerOf(s).mult * N.starFactor(level);
+const unitOf = s => C.sponsorBase(s) * C.managerOf(s).mult * N.starFactor(level) * R.SPONSOR_PAY;   // Version 93: wie im Spiel × SPONSOR_PAY
 function sim(seed, withCtrl, len, horizon) {
   const rng = new RNG(seed * 7919 + (withCtrl ? 1 : 1)), s = fresh(seed % 50 + 1), unit = unitOf(s);
   s.nsdSponsors = { active: ['Würth', 'Tipico', 'Zalando', 'Bitburger'].map((n, i) => ({ name: n, branche: R.brancheOfName(n), real: true, fame: 3 + (i % 2), perWeek: Math.round(unit * [1.15, 1.4, 1.4, 1.15][i] * rng.float(0.85, 1.15)), win: 10, s180: 0, major: 0, weeksLeft: rng.int(10, 50) })), offer: null, cAt: 1e9 };

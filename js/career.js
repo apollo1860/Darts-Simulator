@@ -451,6 +451,8 @@ export function answerInterview(state, idx, rng) {
   if (!ans) throw new Error('Unbekannte Antwort');
   const { e, ok } = toneEffect(ans.tone, { mood: iv.mood, backed: iv.backed, level: p.star.level }, rng);
   for (const [k, v] of Object.entries(ans.fx ?? {})) e[k] = (e[k] ?? 0) + v;
+  // Version 94: immer ganze Zahlen (WM-Nervosität intern in Zehnteln, angezeigt ×10)
+  for (const k of Object.keys(e)) { e[k] = k === 'nerves' ? Math.round(e[k] * 10) / 10 : Math.sign(e[k]) * Math.round(Math.abs(e[k])); if (!e[k]) delete e[k]; }   // ±0,5 → ±1
   const fx = applyIvEffect(state, e, iv), txt = IV_REACT[ans.tone][ok ? 1 : 0][0] || IV_REACT[ans.tone][1][0];
   iv.answers.push({ tone: ans.tone, fx, txt });
   const done = iv.answers.length >= iv.qs.length;
@@ -458,7 +460,7 @@ export function answerInterview(state, idx, rng) {
     const total = iv.answers.reduce((a, x) => a + (x.fx.star ?? 0), 0);
     addStarProgress(state, Math.round(total * (1 + 0.01 * (p.star.level - 1))));
     iv.total = total;
-    iv.sum = Object.fromEntries(IV_KEYS.map(k => [k, Math.round(iv.answers.reduce((a, x) => a + (x.fx[k] ?? 0), 0) * 10) / 10]).filter(([, v]) => v));
+    iv.sum = Object.fromEntries(IV_KEYS.map(k => [k, Math.round(iv.answers.reduce((a, x) => a + (x.fx[k] ?? 0), 0) * 10) / 10]).filter(([, v]) => v));   // nerves in Zehnteln, Rest ganzzahlig
     (state.flags ??= {}).interview = true;
     if (iv.kind === 'paulke') addNews(state, 'info', '🎤 Interview mit Elmar Paulke',
       iv.qualified ? `Vor der Weltmeisterschaft ${iv.year}: ${p.wmMind?.year === iv.year && p.wmMind.nerves > 0 ? 'Du hast dir selbst Druck gemacht – die Erwartungen sind gestiegen.' : 'Du gehst mit ruhigem Kopf ins Turnier.'}`
