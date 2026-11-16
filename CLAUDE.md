@@ -99,6 +99,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 139**: Bouncer halbiert (`bounce` Brass 0,6 % … Signature 0,05 %, `BOUNCE_P` 0,025).
 - **Version 140**: ET-Osteuropa-Qualifier + SK/RS/RO/BG/UA, Gastgeberland ausgeschlossen (`regionQualifier`).
 - **Version 142**: `SPONSOR_PAY` 0,56 (vorher 0,7), Migration `payV` 3 (`PAY_V` in data/sponsorsreal.js).
+- **Version 143**: Keine 180er-Prämie bei Sponsoren mehr (`s180` immer 0, `dropSponsor180` in `migrate`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

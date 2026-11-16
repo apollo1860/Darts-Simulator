@@ -4,7 +4,7 @@ import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startE
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer, markWomen } from './world.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL, CT_FORMER } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
-import { scaleSponsorPay } from '../data/sponsorsreal.js';
+import { scaleSponsorPay, dropSponsor180 } from '../data/sponsorsreal.js';
 import { DARTS, STARTER_DART } from '../data/gear.js';
 import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
@@ -187,6 +187,7 @@ export function migrate(s) {
     for (const [id, x] of Object.entries(tmp)) if (!keep[id]) s.world.players[id] = x; }   // Nationen korrigiert (Version 69/88, Nutzerhinweise: `NATION_FIXES`)
   if (typeof s.stars === 'number') s.stars = Math.round(s.stars);   // ★ nur ganze Zahlen
   scaleSponsorPay(s);                                                // Version 93/142: Sponsorbeträge × 0,7 bzw. 0,56 (laufende Verträge einmalig)
+  dropSponsor180(s);                                                 // Version 143: keine 180er-Prämie mehr
   s.version = VERSION;
   return s;
 }

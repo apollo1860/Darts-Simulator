@@ -1380,7 +1380,7 @@ test('New Star Darts v18: Fähigkeitspunkt je Star-Stufe, wohlwollende Note, Spo
   const c = s.nsdSponsors.active[0]; assert.ok(c.win >= 5 && c.s180 >= 3);
   if (o.annoyed) assert.ok(p.rel.sponsors < Math.max(rel0, 40) + 5);
   const st0 = s.stars, pay = C.sponsorMatchPay(s, { cat: 'major' }, true, { s180: 2 });
-  assert.equal(pay, c.win + 2 * c.s180); assert.equal(s.stars, st0 + pay);
+  assert.equal(pay, c.win); assert.equal(s.stars, st0 + pay);   // Version 143: keine 180er-Prämie
 });
 
 test('New Star Darts v24: Zubehör-Boosts für einige Matches', async () => {
@@ -2411,7 +2411,7 @@ test('New Star Darts v93: Sponsorenzahlungen × 0,7 – neue Angebote und (einma
   s.nsdSponsors = { active: [{ name: 'Würth', branche: 'bau', perWeek: 100, win: 50, s180: 30, major: 0, weeksLeft: 20 }, { name: 'Klein', branche: 'mode', perWeek: 1, win: 1, s180: 0, major: 2, weeksLeft: 5 }],
     offer: { name: 'Tipico', branche: 'wetten', perWeek: 40, win: 20, s180: 0, major: 80, weeks: 2 }, cOffer: { name: 'Gazprom', perWeek: 200, win: 80, weeks: 3 } };
   ST.migrate(s);
-  assert.deepEqual(s.nsdSponsors.active.map(c => [c.perWeek, c.win, c.s180, c.major]), [[56, 28, 17, 0], [1, 1, 0, 1]]);
+  assert.deepEqual(s.nsdSponsors.active.map(c => [c.perWeek, c.win, c.s180, c.major]), [[56, 28, 0, 0], [1, 1, 0, 1]]   /* v143: 180er-Prämie gestrichen */);
   assert.deepEqual([s.nsdSponsors.offer.perWeek, s.nsdSponsors.offer.win, s.nsdSponsors.offer.major], [22, 11, 45]); assert.equal(s.nsdSponsors.cOffer.perWeek, 112);
   ST.migrate(s); assert.equal(s.nsdSponsors.active[0].perWeek, 56, 'nur einmal');
   // Version 142: Spielstand nach Version 93 (payV 2) → nur noch × 0,8

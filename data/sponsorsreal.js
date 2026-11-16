@@ -20,6 +20,11 @@ export function scaleSponsorPay(state) {
   s.payV = PAY_V;
   return true;
 }
+// Version 143: 180er-Prämie gestrichen – in laufenden Verträgen/Angeboten älterer Spielstände auf 0
+export function dropSponsor180(state) {
+  const s = state.nsdSponsors;
+  for (const c of [...(s?.active ?? []), s?.offer, s?.cOffer]) if (c?.s180) c.s180 = 0;
+}
 export const REAL_FROM = [11, 20, 40];                       // Star-Status, ab dem die Marken der jeweiligen Stufe angeboten werden
 export const FAME_PAY = [0, 0.7, 0.9, 1.15, 1.4, 1.7];       // Bezahlfaktor je Bekanntheit (Index = fame)
 export const SMALL_PAY = 0.5;                                // kleine fiktive Sponsoren zahlen nur halb so viel wie ein „normaler“

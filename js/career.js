@@ -201,9 +201,9 @@ export function sponsorWeek(state, rng) {
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
     const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * (sp0.real ? realPayRamp(sp0.pay, p.star.level) : sp0.pay) * SPONSOR_PAY));
-    // Prämien: Wochenhonorar + Siegprämie, manchmal 180er-Prämie und/oder Major-Teilnahme
+    // Prämien: Wochenhonorar + Siegprämie, manchmal Major-Teilnahme (Version 143: keine 180er-Prämie mehr)
     s.offer = { name, branche, real: sp0.real, fame: sp0.fame, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
-      s180: rng.chance(0.4) ? Math.max(1, Math.round(perWeek * 0.3)) : 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
+      s180: 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
       weeks: 3, length: rng.pick([12, 20, 26, 36, 52]), bonus: 0, card: rng.int(2, 9), steps: 0, mood: 0, annoyed: false, done: false };
     addNews(state, 'info', `🤝 Sponsor-Angebot: ${name}`, `${BRANCHEN[branche].label}${sp0.real ? ' · bekannte Marke' : ''} · ${perWeek} ★ pro Woche für ${s.offer.length} Wochen${normalContracts(state).length >= SPONSOR_MAX ? ` – du hast schon ${SPONSOR_MAX} Sponsoren, für diesen Vertrag musst du einen kündigen` : ''}. Verhandle im Leben-Screen (Sponsoren).`);
   }
@@ -337,7 +337,7 @@ export function acceptOffer(state, cancel = null) {
 export function sponsorMatchPay(state, inst, won, stats) {
   let sum = 0;
   const firstMajor = inst.cat === 'major' && !inst.sponsorMajor;
-  for (const c of sp(state).active) sum += (won ? c.win ?? 0 : 0) + (c.s180 ?? 0) * (stats.s180 ?? 0) + (firstMajor ? c.major ?? 0 : 0);
+  for (const c of sp(state).active) sum += (won ? c.win ?? 0 : 0) + (firstMajor ? c.major ?? 0 : 0);   // Version 143: 180er-Prämie gestrichen
   if (firstMajor) inst.sponsorMajor = true;
   if (sum) { state.stars = (state.stars ?? 0) + sum; inst.sponsorPay = (inst.sponsorPay ?? 0) + sum; }
   return sum;
