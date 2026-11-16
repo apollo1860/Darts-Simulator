@@ -2953,4 +2953,24 @@ test('New Star Darts v136: Robin Hood – Dart im Flight des vorherigen (Standar
   assert.equal(m.rem[0], 501); assert.equal(m.visit.tips?.length ?? 0, 0);
 });
 
+test('New Star Darts v137: World Series – 8 PDC-Einladungen (meist Premier League) + 8 regionale Spieler, Kalender 2026', async () => {
+  const N = await import('../js/nsd.js'), M = await import('../js/majors.js'), W = await import('../js/world.js'), { CALENDAR } = await import('../data/tournaments.js');
+  const ids = CALENDAR.filter(e => e.cat === 'ws').map(e => e.id);
+  assert.deepEqual(ids, ['ws-bah', 'ws-sau', 'ws-nor', 'ws-us', 'ws-nz', 'ws-aus', 'ws-final']);
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 3 });
+  s.pl = { [s.date.year]: { players: M.plState(s).players } };
+  const pl = new Set(s.pl[s.date.year].players);
+  for (const ev of CALENDAR.filter(e => e.cat === 'ws' && e.fmt === 'ws')) {
+    s.date.week = ev.week;
+    const f = M.majorField(s, ev, true), reg = M.WS_REGIONS[ev.id];
+    assert.equal(f.length, 16, ev.id);
+    const loc = f.filter(id => reg.nations.includes(W.getPlayer(s, id).nation) && !pl.has(id));
+    assert.ok(loc.length >= 8, `${ev.id}: 8 regionale Spieler (${loc.length})`);
+    assert.ok(f.filter(id => pl.has(id)).length >= 6, `${ev.id}: mindestens 6 PL-Spieler`);
+    const nz = f.filter(id => W.getPlayer(s, id).nation === 'NZ').length;
+    if (ev.id === 'ws-nz') assert.ok(nz >= 4, `NZ Masters: ${nz} Neuseeländer`);
+    if (ev.id === 'ws-aus') assert.ok(nz >= 1, `Australian Masters: ${nz} Neuseeländer`);
+  }
+});
+
 console.log(`\n${n} Tests ok`);

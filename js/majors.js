@@ -2,7 +2,7 @@
 // Felder werden in der Event-Woche einmal berechnet und in state.qual[Jahr][eventId] gespeichert.
 import { orderOfMerit, moneyOf } from './rankings.js';
 import { playersOfTier, getPlayer, secondaryOrder, addAmateurs } from './world.js';
-import { overall } from './player.js';
+import { overall, targetAverage } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { nationName } from '../data/nations.js';
 import { WM_QUALIFIERS } from '../data/tournaments.js';
@@ -18,7 +18,7 @@ export const RULE_TEXT = {
   ec: 'Top 32 der European-Tour-Wertung', pcf: 'Top 64 der Players-Championship-OOM', gsod: "Finale eines TV-Majors (12 Monate), Pro-Tour-Titel, Jugend-Weltmeister, Top 2 Challenge Tour, Top 2 Women's Series oder Grand-Slam-Qualifier",
   gsq: 'Tourcard ohne direkten Grand-Slam-Platz',
   wmq: 'Tourcard ohne direkten WM-Platz', wm: 'Top 40 PDC, Top 40 Pro Tour, Jugend-Weltmeister, Platz 2–4 CT/Dev, internationaler Qualifier oder Tour Card Holder Qualifier',
-  ws: 'Einladung: Top 8 PDC OOM (+ 8 Qualifikanten)', wsf: 'Top 24 der World-Series-Wertung',
+  ws: 'Einladung: Premier-League-Spieler und weitere Top-Stars (+ 8 regionale Spieler)', wsf: 'Top 24 der World-Series-Wertung',
   pln: 'Einladung: Top 8 der PDC OOM zu Saisonbeginn', plf: 'Top 4 der Premier-League-Tabelle', wcod: 'Unter den 2 Besten einer der 40 World-Cup-Nationen',
 };
 
@@ -181,6 +181,39 @@ export function mastersPrelimField(state, withPlayer) {
   return { seeds, pool };
 }
 
+// ---- World Series (Version 137) ----
+// 8 PDC-Einladungen: die Premier-League-Spieler des Jahres (sonst Top 8 PDC), davon 0–2 durch andere Top-16-Spieler ersetzt (nie du);
+// dazu 8 regionale Spieler: die aktuell stärksten (Average) der Region – egal ob Tourcard, Challenge Tour oder Nebentour.
+export const WS_REGIONS = {
+  'ws-bah': { label: 'Asien', nations: ['JP', 'CN', 'HK', 'MO', 'PH', 'SG', 'MY', 'TH', 'IN', 'BH'] },
+  'ws-sau': { label: 'Asien', nations: ['JP', 'CN', 'HK', 'MO', 'PH', 'SG', 'MY', 'TH', 'IN', 'BH'] },
+  'ws-nor': { label: 'Skandinavien & Baltikum', nations: ['DK', 'SE', 'NO', 'FI', 'EE', 'LV', 'LT'] },
+  'ws-us': { label: 'USA & Kanada', nations: ['US', 'CA'] },
+  'ws-aus': { label: 'Australien & Neuseeland', nations: ['AU', 'NZ'], min: { NZ: 1 } },
+  'ws-nz': { label: 'Australien & Neuseeland', nations: ['AU', 'NZ'], min: { NZ: 4 } },
+};
+const WS_SWAP = [0.3, 0.45, 0.25];                     // Chance auf 0 / 1 / 2 Nicht-PL-Spieler unter den Einladungen
+export function wsInvites(state, rng, pdc = idsOf(orderOfMerit(state, 'pdc'))) {
+  const pl = state.pl?.[state.date.year]?.players?.length === 8 ? [...state.pl[state.date.year].players] : pdc.slice(0, 8);
+  const r = rng.float(0, 1), n = r < WS_SWAP[0] ? 0 : r < WS_SWAP[0] + WS_SWAP[1] ? 1 : 2;
+  const others = rng.shuffle(pdc.slice(0, 16).filter(id => !pl.includes(id)));
+  const out = rng.shuffle(pl.filter(id => id !== 'P')).slice(n).concat(pl.includes('P') ? ['P'] : []);
+  return [...out, ...others.slice(0, 8 - out.length)];
+}
+const wsStrength = p => p.avg ?? targetAverage(p.attrs ?? { sco: 0 });
+export function wsLocals(state, evId, used) {
+  const reg = WS_REGIONS[evId];
+  if (!reg) return [];
+  const cands = [...Object.values(state.world.players), state.player]
+    .filter(p => reg.nations.includes(p.nation) && !used.has(p.id) && !['retired', 'amateur'].includes(p.tier) && (p.id !== 'P' || p.tour === 'tour'))
+    .sort((a, b) => wsStrength(b) - wsStrength(a));
+  const out = [];
+  for (const [nat, k] of Object.entries(reg.min ?? {})) cands.filter(p => p.nation === nat).slice(0, k).forEach(p => out.push(p.id));
+  for (const p of cands) { if (out.length >= 8) break; if (!out.includes(p.id)) out.push(p.id); }
+  out.forEach(id => used.add(id));
+  return out.sort((a, b) => wsStrength(getPlayer(state, b)) - wsStrength(getPlayer(state, a)));
+}
+
 // ---- Felder ----
 function computeField(state, ev) {
   const rng = fieldRng(state, ev), y = state.date.year;
@@ -197,7 +230,12 @@ function computeField(state, ev) {
     case 'ec': return idsOf(orderOfMerit(state, 'eto')).slice(0, 32);
     case 'pcf': return idsOf(orderOfMerit(state, 'pco')).slice(0, 64);
     case 'ukopen': return ukOpenField(state, rng);
-    case 'ws': return [...take(pdc, 8, used), ...rng.shuffle(pdc.slice(8, 64)).slice(0, 8)];
+    case 'ws': {                             // Version 137: 8 Einladungen (gesetzt) + 8 regionale Spieler
+      const inv = wsInvites(state, rng, pdc).sort((a, b) => pdc.indexOf(a) - pdc.indexOf(b));
+      inv.forEach(id => used.add(id));
+      const loc = wsLocals(state, ev.id, used);
+      return [...inv, ...loc, ...take(pdc.slice(16, 64), 16 - inv.length - loc.length, used)];   // zu wenige Regionale: PDC 17–64
+    }
     case 'wsf': {
       const ws = orderOfMerit(state, 'ws').filter(x => x.money > 0).map(x => x.p.id);
       return [...take(ws, 24, used), ...take(pdc, 24 - used.size, used)];

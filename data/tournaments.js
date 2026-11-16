@@ -87,11 +87,12 @@ export const WM_QUALIFIERS = [
 // DDV (Deutscher Dartverband): 4 Ranglistenturniere pro Jahr, nur ohne Tourcard
 const DDV = [[9, 'Gelsenkirchen'], [20, 'Bad Nauheim'], [33, 'Hamburg'], [44, 'München']];
 
+// Version 137: World-Series-Kalender 2026 (echt): Bahrain, Saudi-Arabien, Nordic, US, Neuseeland, Australien, Finals – je 8 PDC-Einladungen + 8 regionale Spieler (majors.js: WS_REGIONS)
 const WS = [
-  [3, 'ws-bah', 'Bahrain Darts Masters', 'Manama', 'BH'], [4, 'ws-ned', 'Dutch Darts Masters', 'Leeuwarden', 'NL'],
-  [25, 'ws-nor', 'Nordic Darts Masters', 'Kopenhagen', 'DK'], [26, 'ws-us', 'US Darts Masters', 'New York', 'US'],
-  [30, 'ws-pol', 'Poland Darts Masters', 'Warschau', 'PL'], [33, 'ws-aus', 'Australian Darts Masters', 'Wollongong', 'AU'],
-  [34, 'ws-nz', 'New Zealand Darts Masters', 'Auckland', 'NZ'], [37, 'ws-final', 'World Series Finals', 'Amsterdam', 'NL'],
+  [3, 'ws-bah', 'Bahrain Darts Masters', 'Manama', 'BH'], [4, 'ws-sau', 'Saudi Arabia Darts Masters', 'Riad', 'SA'],
+  [23, 'ws-nor', 'Nordic Darts Masters', 'Kopenhagen', 'DK'], [26, 'ws-us', 'US Darts Masters', 'New York', 'US'],
+  [33, 'ws-nz', 'New Zealand Darts Masters', 'Auckland', 'NZ'], [34, 'ws-aus', 'Australian Darts Masters', 'Wollongong', 'AU'],
+  [38, 'ws-final', 'World Series Finals', 'Amsterdam', 'NL'],
 ];
 const PL_CITIES = ['Cardiff', 'Glasgow', 'Exeter', 'Dublin', 'Belfast', 'Nottingham', 'Brighton', 'Newcastle', 'Berlin', 'Manchester',
   'Rotterdam', 'Liverpool', 'Birmingham', 'Leeds', 'Aberdeen', 'Sheffield'];
@@ -125,7 +126,7 @@ export const CALENDAR = [
   { id: 'qs-uk', cat: 'qschool', name: 'Q-School UK', week: 2, city: 'Milton Keynes', country: 'ENG', count: 4, note: '4 Tage · je Tag 2 Tourcards (Finalisten) + Restplätze über die Q-School-Rangliste' },
   { id: 'qs-eu', cat: 'qschool', name: 'Q-School Europa', week: 2, city: 'Kalkar', country: 'DE', count: 4, note: '4 Tage · je Tag 2 Tourcards (Finalisten) + Restplätze über die Q-School-Rangliste' },
   ...WS.map(([w, id, name, city, country]) => ({ id, cat: 'ws', fmt: id === 'ws-final' ? 'wsf' : 'ws', name, week: w, city, country, noOom: true,
-    note: id === 'ws-final' ? 'Top 24 der World-Series-Wertung' : 'Einladung: Top 8 PDC + 8 Qualifikanten' })),
+    note: id === 'ws-final' ? 'Top 24 der World-Series-Wertung' : 'Einladung: 8 PDC-Stars (meist Premier League) + 8 regionale Spieler' })),
   // Winmau World Masters: Vorrunde (Gruppenphase + K.-o., 8 Qualifikanten) in der Woche vorher, Hauptfeld 32 = Top 24 + 8
   { id: 'masters-q', cat: 'mastersq', fmt: 'mastersq', name: 'Winmau World Masters · Vorrunde', week: 4, city: 'Milton Keynes', country: 'ENG',
     extra: true, qualifier: true, prelim: true, noOom: true, note: 'Holder ab Platz 25 + Nebentouren + JDC · 32 Gruppen, K.-o. gegen Platz 25–56 · 8 Plätze · Best of 5 Sets' },

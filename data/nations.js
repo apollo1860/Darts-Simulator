@@ -37,6 +37,7 @@ export const NATIONS = {
   SI: { name: 'Slowenien', flag: '🇸🇮' },
   GI: { name: 'Gibraltar', flag: '🇬🇮' },
   BH: { name: 'Bahrain', flag: '🇧🇭' },
+  SA: { name: 'Saudi-Arabien', flag: '🇸🇦' },
   SK: { name: 'Slowakei', flag: '🇸🇰' },
   RS: { name: 'Serbien', flag: '🇷🇸' },
   RO: { name: 'Rumänien', flag: '🇷🇴' },
