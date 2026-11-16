@@ -98,6 +98,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 138**: Nebentouren altern (`developSecondary`: Rücktritt ab 40, Nachwuchs um `world.secBase`, Ranglisten-Schnappschuss `world.secOrders`).
 - **Version 139**: Bouncer halbiert (`bounce` Brass 0,6 % … Signature 0,05 %, `BOUNCE_P` 0,025).
 - **Version 140**: ET-Osteuropa-Qualifier + SK/RS/RO/BG/UA, Gastgeberland ausgeschlossen (`regionQualifier`).
+- **Version 142**: `SPONSOR_PAY` 0,56 (vorher 0,7), Migration `payV` 3 (`PAY_V` in data/sponsorsreal.js).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

@@ -7,7 +7,7 @@ import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS, CONTROVERSY_KINDS, CONTROVERSY_PARAMS } from '../data/controversial.js';
-import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS, SPONSOR_PAY, scaleSponsorPay } from '../data/sponsorsreal.js';
+import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS, SPONSOR_PAY, PAY_V, scaleSponsorPay } from '../data/sponsorsreal.js';
 import { starPrice, starPayout, starFactor, priceFactor, PRICE_MULT, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
@@ -140,7 +140,7 @@ export function doRelAction(state, act) {
 // Version 71: Sponsoren nach Branchen – ältere Spielstände (Vertragsplätze) bekommen die Branche über den Markennamen
 export { SPONSOR_PAY, scaleSponsorPay };   // Version 93: alle Sponsorbeträge × SPONSOR_PAY (data/sponsorsreal.js)
 const sp = state => {
-  const s = (state.nsdSponsors ??= { active: [], offer: null, payV: 2 });
+  const s = (state.nsdSponsors ??= { active: [], offer: null, payV: PAY_V });
   for (const c of [...s.active, s.offer]) if (c && !c.branche) c.branche = brancheOfName(c.name);
   return s;
 };

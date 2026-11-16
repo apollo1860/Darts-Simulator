@@ -186,7 +186,7 @@ export function migrate(s) {
     const tmp = { ...keep }; addJdc(tmp, new RNG(s.rng), s.date.year);
     for (const [id, x] of Object.entries(tmp)) if (!keep[id]) s.world.players[id] = x; }   // Nationen korrigiert (Version 69/88, Nutzerhinweise: `NATION_FIXES`)
   if (typeof s.stars === 'number') s.stars = Math.round(s.stars);   // ★ nur ganze Zahlen
-  scaleSponsorPay(s);                                                // Version 93: Sponsorbeträge × 0,7 (laufende Verträge einmalig)
+  scaleSponsorPay(s);                                                // Version 93/142: Sponsorbeträge × 0,7 bzw. 0,56 (laufende Verträge einmalig)
   s.version = VERSION;
   return s;
 }

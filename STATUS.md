@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 142**: Sponsoreneinnahmen noch einmal −20 %: `SPONSOR_PAY` 0,7 → 0,56 (Wochenhonorar + Sieg-/180er-/Major-Prämien, normale und umstrittene Verträge). Laufende Verträge/Angebote älterer Spielstände werden beim Laden einmal angepasst (`payV` 3, `PAY_V`; von Stand 2 aus × 0,8, von vor Version 93 × 0,56). Annahme: „etwas“ = −20 %.
 - [x] **Version 141**: Lifestyle-Shop zeigt bei gekauften Sachen keinen Wartungstermin mehr („Wartung in ca. n Wochen“ entfernt); kaputt/marode + Reparatur bleiben.
 - [x] **Version 140**: European Tour – Osteuropa-Qualifier (`ET_REGIONS.ee`) zusätzlich mit Slowakei, Serbien, Rumänien, Bulgarien, Ukraine; Spieler des Gastgeberlands sind beim regionalen Qualifier ausgeschlossen (`regionQualifier`, z. B. Tschechen beim Czech Darts Open, Ungarn bei der Hungarian Darts Trophy – sie gehören in den Host Nation Qualifier). Albanien, Belarus, Bosnien, Georgien, Kosovo, Nordmazedonien, Moldau, Montenegro, Russland gibt es als Nationen noch nicht. Offen (bewusst nicht umgesetzt): Stichtag der Direktplätze, HNQ-Limit 2 ohne Q-School.
 - [x] **Version 139**: Bouncer halb so häufig: alle `bounce`-Grundchancen (data/gear.js: Brass 0,6 % … Signature 0,05 % je Dart) und `BOUNCE_P` (verbautes Feld, auch KI) 0,05 → 0,025 halbiert; Faktoren `bounceMult` unverändert. Energie-Test rechnet jetzt mit `weeklyEnergy` (Zufriedenheit).

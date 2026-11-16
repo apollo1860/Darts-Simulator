@@ -2405,19 +2405,23 @@ test('New Star Darts v89: Manager – Frauen-Symbol mit Frauenname, Männer-Symb
 
 test('New Star Darts v93: Sponsorenzahlungen × 0,7 – neue Angebote und (einmalig) laufende Verträge älterer Spielstände', async () => {
   const N = await import('../js/nsd.js'), C = await import('../js/career.js'), R = await import('../data/sponsorsreal.js'), ST = await import('../js/state.js');
-  assert.equal(R.SPONSOR_PAY, 0.7); assert.equal(C.SPONSOR_PAY, 0.7);
+  assert.equal(R.SPONSOR_PAY, 0.56); assert.equal(C.SPONSOR_PAY, 0.56);   // Version 142: 0,7 → 0,56
   // ältere Spielstände: laufende Verträge, offenes Angebot und umstrittenes Angebot werden beim Laden einmal angepasst
   const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 9 });
   s.nsdSponsors = { active: [{ name: 'Würth', branche: 'bau', perWeek: 100, win: 50, s180: 30, major: 0, weeksLeft: 20 }, { name: 'Klein', branche: 'mode', perWeek: 1, win: 1, s180: 0, major: 2, weeksLeft: 5 }],
     offer: { name: 'Tipico', branche: 'wetten', perWeek: 40, win: 20, s180: 0, major: 80, weeks: 2 }, cOffer: { name: 'Gazprom', perWeek: 200, win: 80, weeks: 3 } };
   ST.migrate(s);
-  assert.deepEqual(s.nsdSponsors.active.map(c => [c.perWeek, c.win, c.s180, c.major]), [[70, 35, 21, 0], [1, 1, 0, 1]]);
-  assert.deepEqual([s.nsdSponsors.offer.perWeek, s.nsdSponsors.offer.win, s.nsdSponsors.offer.major], [28, 14, 56]); assert.equal(s.nsdSponsors.cOffer.perWeek, 140);
-  ST.migrate(s); assert.equal(s.nsdSponsors.active[0].perWeek, 70, 'nur einmal');
+  assert.deepEqual(s.nsdSponsors.active.map(c => [c.perWeek, c.win, c.s180, c.major]), [[56, 28, 17, 0], [1, 1, 0, 1]]);
+  assert.deepEqual([s.nsdSponsors.offer.perWeek, s.nsdSponsors.offer.win, s.nsdSponsors.offer.major], [22, 11, 45]); assert.equal(s.nsdSponsors.cOffer.perWeek, 112);
+  ST.migrate(s); assert.equal(s.nsdSponsors.active[0].perWeek, 56, 'nur einmal');
+  // Version 142: Spielstand nach Version 93 (payV 2) → nur noch × 0,8
+  const v2 = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 11 });
+  v2.nsdSponsors = { active: [{ name: 'Würth', branche: 'bau', perWeek: 100, win: 50, s180: 0, major: 0, weeksLeft: 20 }], offer: null, payV: 2 };
+  ST.migrate(v2); assert.equal(v2.nsdSponsors.active[0].perWeek, 80); assert.equal(v2.nsdSponsors.payV, 3);
   // neue Karrieren/neue Verträge werden nicht noch einmal gekürzt
   const f = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 10 }); f.team = { manager: 'm3', trainer: null }; C.nameTeam(f); f.player.star.level = 30;
   const rng = new RNG(4); let o = null; for (let k = 0; k < 200 && !o; k++) { C.sponsorWeek(f, rng); o = f.nsdSponsors.offer; }
-  assert.ok(o && f.nsdSponsors.payV === 2); const pw = o.perWeek; ST.migrate(f); assert.equal(f.nsdSponsors.offer.perWeek, pw);
+  assert.ok(o && f.nsdSponsors.payV === 3); const pw = o.perWeek; ST.migrate(f); assert.equal(f.nsdSponsors.offer.perWeek, pw);
 });
 
 test('New Star Darts v94: Youth-WM für U24-Holder, Grand Slam Gruppensieger, JDC-Talente, Namen, Interview ganzzahlig', async () => {

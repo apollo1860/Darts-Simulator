@@ -6,13 +6,18 @@
 export const SPONSOR_MAX = 5;
 // Version 93 (Nutzerwunsch „Sponsorenzahlungen etwas zu hoch“): alle Sponsorbeträge × SPONSOR_PAY – Wochenhonorar und damit auch Sieg-/180er-/Major-Prämien,
 // normale und umstrittene Verträge (career.js). Laufende Verträge und offene Angebote älterer Spielstände werden beim Laden einmal angepasst (`payV`).
-export const SPONSOR_PAY = 0.7;
+// Version 142 (Nutzerwunsch „zu schnell zu viel Geld“): noch einmal × 0,8 → 0,56 (vorher 0,7). Stand der Anpassung je Spielstand: payV
+// (fehlt = vor Version 93, 2 = × 0,7, 3 = × 0,56) – laufende Verträge/Angebote werden beim Laden einmalig auf den neuen Stand gebracht.
+export const SPONSOR_PAY = 0.56;
+export const PAY_V = 3;
+const PAY_OF = { 2: 0.7, 3: SPONSOR_PAY };
 export function scaleSponsorPay(state) {
   const s = state.nsdSponsors;
-  if (!s || s.payV === 2) return false;
-  const f = v => (v > 0 ? Math.max(1, Math.round(v * SPONSOR_PAY)) : v);
-  for (const c of [...(s.active ?? []), s.offer, s.cOffer]) if (c) for (const k of ['perWeek', 'win', 's180', 'major']) if (c[k] != null) c[k] = f(c[k]);
-  s.payV = 2;
+  if (!s || s.payV === PAY_V) return false;
+  const k = SPONSOR_PAY / (PAY_OF[s.payV] ?? 1);
+  const f = v => (v > 0 ? Math.max(1, Math.round(v * k)) : v);
+  for (const c of [...(s.active ?? []), s.offer, s.cOffer]) if (c) for (const key of ['perWeek', 'win', 's180', 'major']) if (c[key] != null) c[key] = f(c[key]);
+  s.payV = PAY_V;
   return true;
 }
 export const REAL_FROM = [11, 20, 40];                       // Star-Status, ab dem die Marken der jeweiligen Stufe angeboten werden
