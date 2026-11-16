@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 112**: Einzelne Immobilien werden „saniert“ statt „repariert“ (`fixWord` in life.js: Knopf „Sanieren“, „Sanierung x ★“, Dialog, Toast, News); „Alles reparieren“ bleibt.
 - [x] **Version 111**: Kaputte Immobilien heißen „marode“ (`brokenWord` in life.js: Lifestyle-Karte „Marode – wirkt nicht mehr“, Hinweis „2 kaputt · 1 marode“, News „… ist marode“, Hilfetext); Gegenstände/Fahrzeuge bleiben „kaputt“.
 - [x] **Version 110**: Dilemma-Grafiken „Autogramme“ und „Selfies“ mit neutralem Hallen-Hintergrund (Scheinwerfer, Lichter, Zuschauer-Silhouetten) statt Tribüne mit Rasen (Nutzerwunsch: kein Fußball-Bezug).
 - [x] **Version 109**: Dilemma-Grafiken „Autogramme“ und „Strategiegespräch“ ohne Hände (waren schlecht erkennbar, Nutzerwunsch).

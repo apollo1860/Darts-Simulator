@@ -2,7 +2,7 @@
 import { LIFESTYLE, LIFESTYLE_CATS } from '../../../../data/lifestyle.js';
 import { fmtNum } from '../../../util.js';
 import { lifeArt } from '../art/index.js';
-import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, weeksToRepair, brokenItems, brokenWord } from '../../../life.js';
+import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, weeksToRepair, brokenItems, brokenWord, fixWord } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 
@@ -30,10 +30,10 @@ export function render(app) {
           <div class="nsd-ev-main"><div class="nsd-ev-name">${it.name}</div>
             <div class="nsd-ev-sub nsd-ls-stats"><span title="Lifestyle">💎 +${fmtNum(it.ls, 1)}</span><span title="Zufriedenheit">😊 +${it.sat}</span>${it.regen ? `<span title="Erholung pro Woche">🛌 +${it.regen} %</span>` : ''}</div>
             ${!own ? `<div class="nsd-ev-sub">Preis ${coin(itemPrice(it))}</div>`
-              : broken ? `<div class="nsd-ev-sub nsd-bad">🔧 ${brokenWord(it, true)} – wirkt nicht mehr</div><div class="nsd-ev-sub">Reparatur ${coin(repairCost(p, it))}</div>`
+              : broken ? `<div class="nsd-ev-sub nsd-bad">🔧 ${brokenWord(it, true)} – wirkt nicht mehr</div><div class="nsd-ev-sub">${fixWord(it, 'noun')} ${coin(repairCost(p, it))}</div>`
               : `<div class="nsd-ev-sub">Wartung in ca. ${weeks} Woche${weeks === 1 ? '' : 'n'}</div>`}</div>
           ${!own ? `<button class="nsd-btn" data-buy="${it.id}"><span class="lb">Kaufen</span></button>`
-            : broken ? `<button class="nsd-btn" data-fix="${it.id}"><span class="lb">Reparieren</span></button>`
+            : broken ? `<button class="nsd-btn" data-fix="${it.id}"><span class="lb">${fixWord(it, 'Inf')}</span></button>`
             : '<div class="nsd-ev-why" style="color:#8dff6a">✔ Gehört dir</div>'}
         </div>`;
       }).join('')}</div>`,
@@ -58,7 +58,7 @@ export function mount(root, app) {
   };
   root.querySelectorAll('[data-fix]').forEach(b => b.onclick = async () => {
     const it = LIFESTYLE.find(x => x.id === b.dataset.fix), cost = repairCost(s.player, it);
-    if (!await confirmDialog(`${it.name} reparieren?`, `Kostet ${cost} ★.`, 'Reparieren')) return;
-    try { repairItem(s, it.id); app.save(); toast(`🔧 ${it.name} repariert`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
+    if (!await confirmDialog(`${it.name} ${fixWord(it)}?`, `Kostet ${cost} ★.`, fixWord(it, 'Inf'))) return;
+    try { repairItem(s, it.id); app.save(); toast(`🔧 ${it.name} ${fixWord(it, 'part')}`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   });
 }

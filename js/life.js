@@ -40,6 +40,8 @@ const absWeek = s => s.date.year * 52 + s.date.week;
 const newUpkeep = (state, rng) => ({ due: absWeek(state) + rng.int(REPAIR_WEEKS[0], REPAIR_WEEKS[1]), pct: rng.int(REPAIR_PCT[0], REPAIR_PCT[1]) / 100, broken: false });
 export const brokenItems = p => ownedItems(p).filter(x => p.upkeep?.[x.id]?.broken);
 // Immobilien heißen im kaputten Zustand „marode“ (Nutzerwunsch, Version 111)
+// Einzelne Immobilie: „sanieren“ statt „reparieren“ (Version 112; „Alles reparieren“ bleibt)
+export const fixWord = (it, form = 'inf') => (it?.cat === 'home' ? { inf: 'sanieren', Inf: 'Sanieren', part: 'saniert', Part: 'Saniert', noun: 'Sanierung' } : { inf: 'reparieren', Inf: 'Reparieren', part: 'repariert', Part: 'Repariert', noun: 'Reparatur' })[form];
 export const brokenWord = (it, cap = false) => (it?.cat === 'home' ? (cap ? 'Marode' : 'marode') : (cap ? 'Kaputt' : 'kaputt'));
 export const repairCost = (p, it) => Math.max(1, Math.ceil(Math.round(itemPrice(it) * (p.upkeep?.[it.id]?.pct ?? 0.1) * 100) / 100));
 export const weeksToRepair = (state, id) => { const u = state.player.upkeep?.[id]; return u && !u.broken ? Math.max(0, u.due - absWeek(state)) : 0; };
@@ -51,7 +53,7 @@ export function repairItem(state, id) {
   state.stars = Math.round((state.stars - cost) * 10) / 10;
   p.upkeep[id] = newUpkeep(state, new RNG(state.rng));
   p.lifestyle = lifestyleOf(p);
-  addNews(state, 'info', `🔧 Repariert: ${it.name}`, `Kostete ${cost} ★ – er funktioniert wieder. Die nächste Wartung steht in ${REPAIR_WEEKS[0]}–${REPAIR_WEEKS[1]} Wochen an.`);
+  addNews(state, 'info', `🔧 ${fixWord(it, 'Part')}: ${it.name}`, `Kostete ${cost} ★ – ${it.cat === 'home' ? 'die Immobilie ist wieder in Schuss' : 'das Produkt funktioniert wieder'}. Die nächste Wartung steht in ${REPAIR_WEEKS[0]}–${REPAIR_WEEKS[1]} Wochen an.`);
   return cost;
 }
 // Alles auf einmal reparieren: ab 2 kaputten Produkten ca. 5 % Rabatt auf die Summe (mind. 1 ★ gespart)

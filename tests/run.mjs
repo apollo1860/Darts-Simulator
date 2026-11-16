@@ -2637,6 +2637,7 @@ test('New Star Darts v111: kaputte Immobilien heißen marode', async () => {
   const home = LIFESTYLE.find(x => x.cat === 'home'), item = LIFESTYLE.find(x => x.cat === 'item'), car = LIFESTYLE.find(x => x.cat !== 'home' && x.cat !== 'item');
   assert.equal(L.brokenWord(home), 'marode'); assert.equal(L.brokenWord(home, true), 'Marode');
   assert.equal(L.brokenWord(item), 'kaputt'); assert.equal(L.brokenWord(car, true), 'Kaputt');
+  assert.equal(L.fixWord(home, 'Inf'), 'Sanieren'); assert.equal(L.fixWord(item, 'Inf'), 'Reparieren'); assert.equal(L.fixWord(home, 'part'), 'saniert');
 });
 
 console.log(`\n${n} Tests ok`);
