@@ -63,7 +63,7 @@ export function throwDart(m, hit, pos = null) {
   const r = m.rem[t];
   const after = r - hit.score;
   m.visit.darts.push(hit.label);
-  if (pos && hit.label !== 'OUT' && hit.label !== 'BOUNCER') (m.visit.tips ??= []).push({ x: pos.x, y: pos.y });
+  if (pos && hit.label !== 'OUT' && hit.label !== 'BOUNCER' && hit.label !== 'ROBIN') (m.visit.tips ??= []).push({ x: pos.x, y: pos.y });
   m.legDarts[t]++;
   const ms = curMember(m, t);
   if (onDouble(r)) { s.coAtt++; if (ms) ms.coAtt++; }

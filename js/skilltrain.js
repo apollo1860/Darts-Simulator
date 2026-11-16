@@ -212,10 +212,17 @@ export function buyAccessory(state, id) {
   const cur = (p.boosts ??= []).find(b => b.id === id);
   if (a.weeks) {                                       // Premium: läuft nach Wochen ab, nicht nach Matches
     const end = weekNo(state) + a.weeks;
-    if (cur) cur.until = Math.max(cur.until, weekNo(state)) + a.weeks; else p.boosts.push({ id, name: a.name, icon: a.icon, bonus: a.bonus, until: end });
-  } else if (cur) cur.left += a.matches; else p.boosts.push({ id, name: a.name, icon: a.icon, bonus: a.bonus, left: a.matches });
+    if (cur) cur.until = Math.max(cur.until, weekNo(state)) + a.weeks; else p.boosts.push({ id, name: a.name, icon: a.icon, type: a.type, price: a.price, bonus: a.bonus, until: end });
+  } else if (cur) cur.left += a.matches; else p.boosts.push({ id, name: a.name, icon: a.icon, type: a.type, price: a.price, bonus: a.bonus, left: a.matches });
   syncAttrs(p);
   return cost;
+}
+// Version 136: Preis (Basis-★) des aktiven Flights – 0 = Standard-Flight; ältere Käufe ohne Preis: nach Stärke geschätzt (Stufenpreise)
+export const isFlight = b => /Flight/.test(b.type ?? '') || b.icon === '🪶' || b.icon === '💎';
+export function flightPrice(p) {
+  const fl = (p.boosts ?? []).filter(isFlight);
+  if (!fl.length) return 0;
+  return Math.max(...fl.map(b => b.price ?? (b.icon === '💎' ? 90 : (b.bonus?.sco ?? 0) > 15 ? 40 : (b.bonus?.sco ?? 0) > 6 ? 30 : 12)));
 }
 // Nach jedem eigenen Match: Laufzeit −1, abgelaufene fallen weg
 export function useBoosts(p) {

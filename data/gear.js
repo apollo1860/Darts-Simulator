@@ -11,7 +11,7 @@ export const DRINKS = [
 // Darts: dauerhafter Bonus (Fähigkeitspunkte), solange ausgerüstet
 // Version 121: Man besitzt immer Darts und Flights – der Brass Dart (9 g) und der Standard-Flight sind kostenlos, automatisch im Besitz und ohne Wirkung.
 export const STARTER_DART = 'brass9';
-export const STARTER_FLIGHT = { name: 'Standard-Flight', note: 'kostenlos · ohne Wirkung' };
+export const STARTER_FLIGHT = { name: 'Standard-Flight', note: 'kostenlos · ohne Wirkung auf Fähigkeiten' };
 // Version 135: Bouncer je Dart – `bounce` = Grundchance je Dart (auch ohne verbautes Feld), `bounceMult` × Chance bei verbautem Feld;
 // Brass am höchsten, je teurer desto niedriger (obstruction.js: bounceChance)
 export const DARTS = [

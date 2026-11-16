@@ -2932,4 +2932,25 @@ test('New Star Darts v135: Bouncer-Risiko je Dart (Brass am höchsten, je teurer
   assert.ok(brass > sig * 3 && ai === 0, `Brass ${brass}, Signature ${sig}, KI ${ai}`);
 });
 
+test('New Star Darts v136: Robin Hood – Dart im Flight des vorherigen (Standard-Flight am riskantesten, viel seltener als Bouncer)', async () => {
+  const O = await import('../js/obstruction.js'), TM = await import('../js/throwModel.js'), MS = await import('../js/matchState.js'), ST = await import('../js/skilltrain.js'), G = await import('../data/gear.js');
+  const { RNG } = await import('../js/rng.js');
+  assert.equal(O.robinChance({ x: 0, y: 0 }, [{ x: 10, y: 0 }], 1), 0, 'weit weg: nie');
+  assert.equal(O.robinChance({ x: 0, y: 0 }, [{ x: 1, y: 1 }], 1), O.ROBIN_P, 'genau drauf: Standard-Flight');
+  assert.ok(O.flightRobin(0) > O.flightRobin(12) && O.flightRobin(12) > O.flightRobin(40) && O.flightRobin(40) > O.flightRobin(90), 'je teurer desto niedriger');
+  assert.equal(ST.flightPrice({ boosts: [] }), 0);
+  assert.equal(ST.flightPrice({ boosts: [{ icon: '💎', bonus: { sco: 35 }, until: 9 }] }), 90, 'alter Premium-Kauf geschätzt');
+  // Häufigkeit je Dart: eigener Spieler (Standard-Flight, Brass) – Robin Hood deutlich seltener als Bouncer
+  const rng = new RNG(11), a = { sco: 90, fin: 90, men: 90, foc: 90, cal: 90 }, at = { ...a, bounce: G.dartBounce('brass9'), robin: O.flightRobin(0) };
+  let robin = 0, bounce = 0, darts = 0;
+  for (let k = 0; k < 6000; k++) {
+    const m = MS.createMatch({ legs: 3 }, 0);
+    for (let d = 0; d < 3; d++) { const r = TM.aiDart(m, 0, at, rng, TM.aiSigma(a)); darts++; if (r.hit.label === 'ROBIN') robin++; if (r.hit.label === 'BOUNCER') bounce++; MS.throwDart(m, r.hit, r); }
+  }
+  assert.ok(robin > 0 && robin * 10 < bounce, `Robin Hood ${robin}, Bouncer ${bounce} von ${darts} Darts`);
+  // Robin Hood zählt 0 und steckt nicht im Board
+  const m = MS.createMatch({ legs: 3 }, 0); MS.throwDart(m, O.ROBIN, { x: 0, y: 0 });
+  assert.equal(m.rem[0], 501); assert.equal(m.visit.tips?.length ?? 0, 0);
+});
+
 console.log(`\n${n} Tests ok`);

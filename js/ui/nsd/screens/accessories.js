@@ -4,6 +4,9 @@ import { TRAINABLE } from '../../../nsd.js';
 import { frame, header, titleBand, darkBar, coin, bar, bindHead, flightIcon, barrelIcon } from '../frame.js';
 import { toast } from '../../components.js';
 import { STARTER_FLIGHT } from '../../../../data/gear.js';
+import { flightRobin } from '../../../obstruction.js';
+// Version 136: Robin-Hood-Risiko eines Flights im Verhältnis zum Standard-Flight (100 %)
+const robinTxt = price => `Robin-Hood-Risiko ${Math.round(flightRobin(price) * 100)} %`;
 
 export const nsd = true;
 const bonusTxt = b => { const v = TRAINABLE.map(t => b[t.key] ?? 0); return v.every(x => x && x === v[0]) ? `Alle Fähigkeiten +${v[0]}` : TRAINABLE.filter(t => b[t.key]).map(t => `${t.label} +${b[t.key]}`).join(' · '); };
@@ -18,12 +21,12 @@ export function render(app) {
     body: `${header(p.name)}${titleBand('Shop')}
       <div class="nsd-strip"><span>Zubehör</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       ${act.some(b => /Flight/.test(b.type ?? '') || b.icon === '🪶' || b.icon === '💎') ? '' : `${darkBar('Flight', 'sm')}<div class="nsd-evs"><div class="nsd-ev on"><div class="nsd-ev-main"><div class="nsd-ev-name">${flightIcon(0)}${STARTER_FLIGHT.name}</div>
-        <div class="nsd-ev-sub">${STARTER_FLIGHT.note} · immer im Besitz</div></div></div></div>`}
+        <div class="nsd-ev-sub">${STARTER_FLIGHT.note} · immer im Besitz · ${robinTxt(0)}</div></div></div></div>`}
       ${act.length ? `${darkBar('Aktiv', 'sm')}<div class="nsd-evs">${act.map(b => `<div class="nsd-ev on"><div class="nsd-ev-main"><div class="nsd-ev-name">${gfx(b)}${b.name}</div>
         <div class="nsd-ev-sub">${bonusTxt(b.bonus)} · ${b.until != null ? `bis KW ${((b.until - 1) % 52) + 1}` : `noch ${b.left} Match${b.left > 1 ? 'es' : ''}`}</div></div></div>`).join('')}</div>` : ''}
       ${darkBar(`Angebot · neu in ${shopWeeksLeft(s)} Woche${shopWeeksLeft(s) > 1 ? 'n' : ''}`, 'sm')}
       <div class="nsd-evs">${shopOffers(s).map(a => `<div class="nsd-ev"><div class="nsd-ev-main"><div class="nsd-ev-name">${gfx(a)}${a.name}</div>
-        <div class="nsd-ev-sub">${a.type} · ${bonusTxt(a.bonus)} · ${a.weeks ? `${a.weeks} Wochen` : `${a.matches} Matches`}</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
+        <div class="nsd-ev-sub">${a.type} · ${bonusTxt(a.bonus)} · ${a.weeks ? `${a.weeks} Wochen` : `${a.matches} Matches`}${/Flight/.test(a.type) ? ` · ${robinTxt(a.price)}` : ''}</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
         <button class="nsd-btn" data-buy="${a.id}"><span class="lb">Kaufen</span></button></div>`).join('')}</div>`,
     bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'darts', icon: '🎯', label: 'Darts' }, { go: 'drinks', icon: '🍺', label: 'Getränke', wide: true }]),
   });

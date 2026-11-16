@@ -63,4 +63,10 @@ export const angleOf = (state, id) => (id === 'P' ? (state.player.angle ?? ANGLE
 // Bouncer: Dart prallt ab, zählt nicht (steckt nicht)
 // Version 135: Bouncer-Chance eines Darts = Grundchance des Dart-Modells + BOUNCE_P × verbaut × Faktor (ohne Dart-Angabe wie bisher)
 export const bounceChance = (block, b) => (b?.base ?? 0) + (block > 0 ? BOUNCE_P * block * (b?.mult ?? 1) : 0);
+// Version 136: Robin Hood – Dart landet (fast) genau auf einem steckenden Dart derselben Aufnahme und bleibt in dessen Flight stecken (0 Punkte).
+// Nur bei Abstand < ROBIN_R mm zur Spitze, dann ROBIN_P × Flight-Faktor: Standard-Flight 1, je teurer desto niedriger (flightRobin), KI-Profis ROBIN_AI.
+export const ROBIN_R = 3, ROBIN_P = 0.03, ROBIN_AI = 0.25;
+export const flightRobin = price => 1 / (1 + (price ?? 0) / 20);
+export const robinChance = (pt, tips, mult = ROBIN_AI) => (tips?.some(t => Math.hypot(t.x - pt.x, t.y - pt.y) < ROBIN_R) ? ROBIN_P * mult : 0);
+export const ROBIN = { label: 'ROBIN', score: 0, mult: 0, num: 0, double: false };
 export const BOUNCER = { label: 'BOUNCER', score: 0, mult: 0, num: 0, double: false };

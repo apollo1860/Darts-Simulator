@@ -6,7 +6,7 @@ import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider, inExtension } from './matchState.js';
 import { BOGEY, scoreAt, targetPoint, checkoutRoute } from './board.js';
-import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER, bounceChance } from './obstruction.js';
+import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER, bounceChance, robinChance, ROBIN, flightRobin } from './obstruction.js';
 import { dartBounce } from '../data/gear.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
@@ -34,7 +34,7 @@ import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, e
 import { overall } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
-import { useBoosts } from './skilltrain.js';
+import { useBoosts, flightPrice } from './skilltrain.js';
 import { titleArticle, finalArticle, wmTicketArticle, nineArticle } from './articles.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
@@ -381,7 +381,7 @@ const withAngle = (state, id, a) => {
   const angle = angleOf(state, id);
   if (id !== 'P') return { ...a, angle };
   const bounce = dartBounce(state.player.gear?.id);    // Version 135: Bouncer je Dart (Schnellsimulation: Grundchance kostet Punkte)
-  return { ...a, angle, bounce, angleMult: angleEfficiency(angle) * (1 - bounce.base) };   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
+  return { ...a, angle, bounce, robin: flightRobin(flightPrice(state.player)), angleMult: angleEfficiency(angle) * (1 - bounce.base) };   // robin: Version 136 (Flight)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
 };
 const soloAttrs0 = (state, id, inst, sf, opp) => {
   let staged = applyStage(perf(getPlayer(state, id)), sf);
@@ -649,8 +649,9 @@ export function liveHumanDart(state, x, y, target) {
   const live = state.activeEvent.live, lm = live.m, side = lm.turn, start = lm.visit.start;
   // Einsteckwinkel: verbautes Feld → Dart kann abprallen (Bouncer, zählt nicht)
   const block = blockage(targetPoint(target), lm.visit.tips, liveAttrs(state, side).angle ?? null), rng = new RNG(state.rng);
-  const bp = bounceChance(block, liveAttrs(state, side).bounce);   // Version 135: Bouncer-Risiko je Dart-Modell
-  const hit = bp > 0 && rng.chance(bp) ? BOUNCER : scoreAt(x, y), ev = throwDart(lm, hit, { x, y });
+  const la = liveAttrs(state, side), bp = bounceChance(block, la.bounce);   // Version 135: Bouncer-Risiko je Dart-Modell
+  const rp = robinChance({ x, y }, lm.visit.tips, la.robin);           // Version 136: Robin Hood je Flight
+  const hit = bp > 0 && rng.chance(bp) ? BOUNCER : rp > 0 && rng.chance(rp) ? ROBIN : scoreAt(x, y), ev = throwDart(lm, hit, { x, y });
   const visitOver = !!(lm.done || ev?.visitEnd || ev?.legEnd || lm.turn !== side);
   if (visitOver) {
     live.route = null; tickMods(live, side);
