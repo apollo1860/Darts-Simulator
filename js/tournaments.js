@@ -5,7 +5,7 @@ import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider } from './matchState.js';
-import { BOGEY, scoreAt, targetPoint } from './board.js';
+import { BOGEY, scoreAt, targetPoint, checkoutRoute } from './board.js';
 import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER } from './obstruction.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
@@ -513,6 +513,13 @@ export function keyMoment(state) {
 // die 2. Aufnahme und – solange der 9-Darter möglich bleibt (Rest ≤ 170, kein Bogey) – auch die 3. selbst. Diese Szenen kommen immer
 // zusätzlich: sie setzen weder `sceneLeg` (Mindest-Szene je Leg) noch `kmLeg`/Scoring-Zähler (Kontingent) und hängen nicht vom Einsatz ab.
 export const NINE_FIRST = 170;
+// Version 130: Ist der 9-Darter noch möglich (auch mitten in der Aufnahme, nach jedem Dart)? Kein Bust, höchstens 9 Darts, Rest mit den übrigen Darts checkbar.
+const canFinishIn = (rem, k) => (k <= 0 ? false : k <= 3 ? rem <= 170 && !BOGEY.has(rem) && !!checkoutRoute(rem, k) : [60, 57, 54, 51].some(t => rem - t > 1 && canFinishIn(rem - t, k - 1)));
+export function nineStill(lm, me) {
+  const v = lm.legVisits?.[me] ?? [], d = lm.legDarts?.[me] ?? 0, rem = lm.rem[me];
+  if (v.some(x => x.bust) || d > 9) return false;
+  return rem === 0 ? true : canFinishIn(rem, 9 - d);
+}
 // Version 129 (Nutzerwunsch): Stehst du zu Beginn deiner Aufnahme auf 170 („Big Fish“), wirfst du immer selbst – wie der 9-Darter extra,
 // ohne `sceneLeg`/Kontingent und unabhängig vom Einsatz.
 export function bigFish(state) {

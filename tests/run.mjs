@@ -2830,4 +2830,15 @@ test('New Star Darts v129: Rest 170 ist immer eine eigene Szene (extra, wie der 
   m.rem[live.me] = 171; m.visit.start = 171; assert.equal(T.bigFish(s), false);
 });
 
+test('New Star Darts v130: 9-Darter-Prüfung nach jedem Dart (nineStill)', async () => {
+  const T = await import('../js/tournaments.js'), MS = await import('../js/matchState.js'), B = await import('../js/board.js');
+  const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
+  const fresh = () => { const m = MS.createMatch({ legs: 3 }, 0); ['T20', 'T20', 'T20'].forEach(l => MS.throwDart(m, H(l))); ['S1', 'S1', 'S1'].forEach(l => MS.throwDart(m, H(l))); return m; };
+  let m = fresh(); assert.ok(T.nineStill(m, 0));
+  MS.throwDart(m, H('T20')); assert.ok(T.nineStill(m, 0), '261 nach 4 Darts');
+  MS.throwDart(m, H('S20')); assert.equal(T.nineStill(m, 0), false, '241 mit 4 Darts nicht mehr');
+  m = fresh(); MS.throwDart(m, H('S20')); assert.equal(T.nineStill(m, 0), false, 'erster Dart der 2. Aufnahme daneben');
+  m = fresh(); MS.throwDart(m, H('T19')); assert.ok(T.nineStill(m, 0), 'T19 geht noch (264 → 3 Darts später 141 …)');
+});
+
 console.log(`\n${n} Tests ok`);

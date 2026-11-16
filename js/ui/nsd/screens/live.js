@@ -8,7 +8,7 @@ import { flag } from '../../../../data/nations.js';
 import { legAverage, liveAverage, dartsLeft } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
-  keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy, nineAlive } from '../../../tournaments.js';
+  keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy, nineAlive, nineStill } from '../../../tournaments.js';
 import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
@@ -365,6 +365,9 @@ function stopLine() {
   const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
   if (r.dart.hit.label !== 'BOUNCER') mark(pt.x, pt.y, true);
+  if (a.nine && !r.ev?.legEnd && !nineStill(ui.live.m, ui.me)) {   // Version 130: 9-Darter nicht mehr möglich → „9“ verschwindet sofort
+    a.nine = false; const tv = $('#tvsb'); tv?.classList.remove('nine'); tv?.querySelector('.tvsb-nine')?.remove();
+  }
   ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
