@@ -527,8 +527,9 @@
 .dc-cell.left { text-align: right; }
 .dc-cell.right { text-align: center; }
 .dc-cell.ton { color: #c9c9c9; }
-.dc-cell.co { color: var(--green); }
+.dc-cell.co { color: #f5c542; }
 .dc-cell.co small { font-size: .45em; margin-left: 4px; }
+.dc-cell.co .dc-codarts { color: #fff; font-size: .55em; font-weight: 700; margin-left: 8px; }
 .dc-cell.bust { color: #d32a33; }
 .dc-cell.new { animation: dc-pop .45s var(--ease) both; }
 @keyframes dc-pop { from { opacity: 0; transform: translateY(8px); } }

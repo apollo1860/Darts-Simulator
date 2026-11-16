@@ -86,7 +86,7 @@ function endVisit(m, ev, pts) {
   }
   m.last[t] = { darts: [...m.visit.darts], score: pts, bust: ev.bust };
   m.legPoints[t] += pts;
-  m.legVisits[t].push({ score: pts, bust: ev.bust, checkout: ev.checkout, rem: m.rem[t] });
+  m.legVisits[t].push({ score: pts, bust: ev.bust, checkout: ev.checkout, rem: m.rem[t], ...(ev.checkout ? { darts: m.visit.darts.length } : {}) });   // Check: benötigte Darts
   ev.visitEnd = true;
   ev.visitScore = pts;
   m.turn = 1 - t;

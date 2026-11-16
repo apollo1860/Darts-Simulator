@@ -81,6 +81,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 111**: Kaputte Immobilien heißen „marode“ (`brokenWord(it, cap)` in life.js für alle Wartungstexte verwenden). Version 112: einzelne Immobilie „Sanieren“ (`fixWord(it, form)`), „Alles reparieren“ bleibt.
 - **Version 113**: Nervosität macht das Zielkreuz schneller (`nerveSpeed`/`NERVE_SPEED` 0,12 je Punkt, max. × 1,5 in nsd.js, angewendet in `aimParams`).
 - **Version 114/115**: Auslosung zeigt auch dich nur mit Nachnamen. 9-Darter-Szenen extra (`nineAlive` in tournaments.js: nach erster Aufnahme ≥ 170 die 2. und, solange möglich, die 3. Aufnahme selbst; zählen nicht zum Szenen-Kontingent). Version 116: goldene „9“ links in der TV-Spielstandsanzeige (`.tvsb-nine`, ragt seit Version 117 links heraus).
+- **Version 118**: Rechnen-Training früher schwerer (`calcRange` Obergrenze 60 + 200 × t, max. 170). Check im DartConnect 1 s gelb mit Dart-Anzahl (`CHECK_SHOW`, `legVisits[].darts`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

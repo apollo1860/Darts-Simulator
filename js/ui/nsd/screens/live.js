@@ -156,7 +156,8 @@ function afterVisit(ev, side) {
   comment(ev, side);
   draw(ev);
   if (ui.live.m.done) { ui.timer = setTimeout(() => ui && finish(), wait(VISIT_MS * 1.5)); return; }
-  schedule(ev?.legEnd ? VISIT_MS * 1.6 : VISIT_MS);
+  if (ev?.legEnd) { clearTimeout(ui.timer); ui.timer = setTimeout(step, Math.max(CHECK_SHOW + 150, wait(VISIT_MS * 1.6))); return; }   // Check mind. 1 s sichtbar
+  schedule(VISIT_MS);
 }
 
 // Kommentarzeile
@@ -374,13 +375,19 @@ function stopLine() {
 }
 
 // ---------- DartConnect-Tafel ----------
+// Version 118: Nach einem Check bleibt das beendete Leg kurz stehen (CHECK_SHOW ms) – Check-Aufnahme gelb + Anzahl der Darts (wie DartConnect)
+const CHECK_SHOW = 1000;
 function draw(ev) {
   const m = ui.live.m, me = ui.me, op = 1 - me;
-  const visits = m.legVisits ?? [[], []], active = m.done ? -1 : m.turn;
+  const frozen = ev?.legEnd && !m.done && m.lastLeg ? m.lastLeg : null;   // beendetes Leg noch zeigen
+  const rem = frozen ? frozen.rem : m.rem;
+  const visits = (frozen ? frozen.visits : m.legVisits) ?? [[], []], active = m.done || frozen ? -1 : m.turn;
+  if (frozen) { const tok = ui.frozen = {}; setTimeout(() => { if (ui && ui.frozen === tok) { ui.frozen = null; draw(); } }, CHECK_SHOW); }
+  else if (!ev?.legEnd) ui.frozen = null;
   const head = (i, side) => `<div class="dc-player ${side} ${active === i ? 'active' : ''}">
-      <div class="dc-name">${m.legStarter === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm">${esc(i === me && !ui.s.activeEvent?.teams ? surname(ui.s.player.name) : nm(i))}</span></div>
-      <div class="dc-scorebox">${side === 'right' ? '' : avgs(i)}<span class="dc-rem">${m.rem[i]}</span>${side === 'right' ? avgs(i) : ''}</div></div>`;
-  const avgs = i => `<div class="dc-avgs"><span class="dc-legavg">${fmtNum(legAverage(m, i), 0)}</span><span class="dc-avg">${fmtNum(liveAverage(m, i), 0)}</span></div>`;
+      <div class="dc-name">${(frozen ? frozen.starter : m.legStarter) === i ? '<i class="dc-dot"></i>' : ''}<span class="dc-nm">${esc(i === me && !ui.s.activeEvent?.teams ? surname(ui.s.player.name) : nm(i))}</span></div>
+      <div class="dc-scorebox">${side === 'right' ? '' : avgs(i)}<span class="dc-rem">${rem[i]}</span>${side === 'right' ? avgs(i) : ''}</div></div>`;
+  const avgs = i => `<div class="dc-avgs"><span class="dc-legavg">${fmtNum(frozen ? frozen.avg[i] : legAverage(m, i), 0)}</span><span class="dc-avg">${fmtNum(liveAverage(m, i), 0)}</span></div>`;
   const nextRow = active >= 0 ? visits[active].length : -1, rows = Math.max(visits[0].length, visits[1].length, nextRow + 1, 1);
   const cell = (i, r, side) => {
     const v = visits[i][r], arrow = active === i && r === nextRow ? `<i class="dc-arrow ${side}"></i>` : '';
@@ -388,7 +395,7 @@ function draw(ev) {
     const cls = v.checkout ? 'co' : v.bust ? 'bust' : v.score >= 100 ? 'ton' : '';
     const bogey = !v.checkout && !v.bust && BOGEY.has(v.rem) ? '<small class="dc-bogey">⚠</small>' : '';
     const isNew = ev?.visitEnd && ev.player === i && r === visits[i].length - 1 ? 'new' : '';
-    return `<div class="dc-cell ${side} ${cls} ${isNew}">${v.bust ? '0' : v.score}${v.checkout ? '<small>✓</small>' : ''}${bogey}</div>`;
+    return `<div class="dc-cell ${side} ${cls} ${isNew}">${v.bust ? '0' : v.score}${v.checkout ? `<small class="dc-codarts">${v.darts ?? '✓'}</small>` : ''}${bogey}</div>`;
   };
   let body = '';
   for (let r = 0; r < rows; r++) body += `<div class="dc-row">${cell(me, r, 'left')}<div class="dc-no">${r + 1}</div>${cell(op, r, 'right')}</div>`;

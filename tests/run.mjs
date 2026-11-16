@@ -2677,4 +2677,13 @@ test('New Star Darts v115: nach perfekter erster Aufnahme 9-Darter-Szenen extra'
   assert.equal(T.nineAlive(s), false);
 });
 
+test('New Star Darts v118: Rechnen früher schwerer, Check speichert die Dart-Anzahl', async () => {
+  const T = await import('../js/skilltrain.js'), MS = await import('../js/matchState.js'), B = await import('../js/board.js');
+  assert.ok(T.calcRange(8)[1] >= 131 && T.calcRange(1)[1] === 60 && T.calcRange(20)[1] === 170 && T.calcRange(12)[1] === 170);
+  const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
+  const m = MS.createMatch({ legs: 2 }, 0);
+  m.rem[m.turn] = 40; m.visit.start = 40; const t = m.turn; MS.throwDart(m, H('S20')); MS.throwDart(m, H('D10'));
+  assert.equal(m.lastLeg.visits[t].at(-1).darts, 2); assert.ok(m.lastLeg.visits[t].at(-1).checkout);
+});
+
 console.log(`\n${n} Tests ok`);

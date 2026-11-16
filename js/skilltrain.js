@@ -27,7 +27,7 @@ export const memorySwapMs = L => Math.round(1100 - (lvl(L) - 1) * 40);        //
 export const calcTime = L => (lvl(L) <= 5 ? null : Math.round(20 - 12 * (lvl(L) - 6) / 14));
 export function calcRange(L) {
   const t = (lvl(L) - 1) / 19;
-  return [Math.round(2 + t * 98), Math.round(40 + t * 130)];   // L1 2–40 … L20 100–170
+  return [Math.round(2 + t * 98), Math.min(170, Math.round(60 + t * 200))];   // Version 118: L1 2–60, L5 bis 102, L8 bis 134 (z. B. 131), ab L12 bis 170 … L20 100–170
 }
 export function calcTask(rng, L) {
   const [lo, hi] = calcRange(L);
