@@ -22,7 +22,7 @@ import { frame, bar, bindHead, checkIcon } from '../frame.js';
 export const nsd = true;
 const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
-const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME', nine: '✨ 9-DARTER MÖGLICH' };
+const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME', nine: '✨ 9-DARTER MÖGLICH', fish: '🐟 170 – BIG FISH' };
 const HELP = '<p><b>Spielmomente</b> 🎲: Etwa alle ein bis zwei Matches passiert ein Zwischenfall (rutschiger Dart, Zwischenruf, Blitzlicht …). Du wählst eine von zwei Optionen – jede kann mit gleicher Chance gut oder schlecht ausgehen. Dein Wurf (und die Simulation) wird für einige Aufnahmen besser oder schlechter; Fans, Manager und Sponsoren können dauerhaft etwas mitbekommen.</p><p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
 let ui = null;
 // Einsatz (Version 107): 1 ❤ gelb, 2 ❤ orange (Standard), 3 ❤ rot – mehr Einsatz = mehr Spielszenen, aber mehr Energieverbrauch

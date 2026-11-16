@@ -504,6 +504,7 @@ export function keyMoment(state) {
   if (!lm || lm.done || lm.turn !== live.me || lm.visit.darts.length || !canSelfPlay(state.player)) return null;
   if (liveThrower(state, live.me) !== 'P') return null;          // Doppel: Partner wirft
   if (nineAlive(state)) return wouldWinMatch(lm, live.me) && lm.rem[live.me] <= 170 ? 'match' : 'nine';   // 9-Darter: extra, zählt nicht mit
+  if (bigFish(state)) return wouldWinMatch(lm, live.me) ? 'match' : 'fish';   // Version 129: Rest 170 – immer selbst, extra
   const kind = pickMoment(state, live, lm) ?? forcedMoment(live, lm);
   if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
   return kind;
@@ -512,6 +513,12 @@ export function keyMoment(state) {
 // die 2. Aufnahme und – solange der 9-Darter möglich bleibt (Rest ≤ 170, kein Bogey) – auch die 3. selbst. Diese Szenen kommen immer
 // zusätzlich: sie setzen weder `sceneLeg` (Mindest-Szene je Leg) noch `kmLeg`/Scoring-Zähler (Kontingent) und hängen nicht vom Einsatz ab.
 export const NINE_FIRST = 170;
+// Version 129 (Nutzerwunsch): Stehst du zu Beginn deiner Aufnahme auf 170 („Big Fish“), wirfst du immer selbst – wie der 9-Darter extra,
+// ohne `sceneLeg`/Kontingent und unabhängig vom Einsatz.
+export function bigFish(state) {
+  const inst = state.activeEvent, live = inst?.live, lm = live?.m;
+  return !!lm && !lm.done && !inst.teams && lm.turn === live.me && !lm.visit.darts.length && lm.rem[live.me] === 170;
+}
 export function nineAlive(state) {
   const inst = state.activeEvent, live = inst?.live, lm = live?.m;
   if (!lm || lm.done || inst.teams || lm.turn !== live.me || lm.visit.darts.length) return false;

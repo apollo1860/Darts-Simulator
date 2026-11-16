@@ -2818,4 +2818,16 @@ test('New Star Darts v128: KI wirft im Scoring überwiegend auf T20 (mehr 180, k
   const avg = pts / dd * 3; assert.ok(avg > 92 && avg < 96.5, `Ø ${avg}`);
 });
 
+test('New Star Darts v129: Rest 170 ist immer eine eigene Szene (extra, wie der 9-Darter)', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), CAL = await import('../js/calendar.js'), MS = await import('../js/matchState.js'), B = await import('../js/board.js');
+  const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
+  const s = N.newNsdCareer({ first: 'B', last: 'F', nation: 'DE', age: 25, slot: 1, seed: 91 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+  T.enterEvent(s, CAL.eventsInWeek(s, 2026, 6).find(x => x.cat === 'pc').id); const live = T.startManualMatch(s), m = live.m;
+  T.setEffort(s, 1);
+  if (m.turn !== live.me) ['S1', 'S1', 'S1'].forEach(l => MS.throwDart(m, H(l)));
+  m.rem[live.me] = 170; m.visit.start = 170;
+  assert.ok(T.bigFish(s)); assert.equal(T.keyMoment(s), 'fish'); assert.notEqual(live.sceneLeg, m.legIdx, 'zählt nicht zum Kontingent');
+  m.rem[live.me] = 171; m.visit.start = 171; assert.equal(T.bigFish(s), false);
+});
+
 console.log(`\n${n} Tests ok`);

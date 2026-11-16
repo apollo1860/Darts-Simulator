@@ -88,6 +88,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 125**: Interview nach verlorenem Finale/Halbfinale: eigener Pool `LOSS_QS` (data/talkloss.js, Set `loss`, `MOOD_INTRO.loss`); nach Titeln `RESULT_QS`.
 - **Version 126/127**: Reale Spieler ohne Tourcard und im ersten Kartenjahr starten bei Fähigkeit 0 / Status 1, im zweiten Kartenjahr 0–3 nach Average (`realStartFor`, `tcYear`); Top 64 aus dem Average.
 - **Version 128**: Einsteckwinkel entschärft: `SWITCH_AT` 0,7, `BLOCK_SIGMA` 0,25 (obstruction.js) → KI bleibt meist auf T20 (mehr 180, kaum 171), Average unverändert.
+- **Version 129**: Rest 170 ist immer eine eigene Szene, extra wie der 9-Darter (`bigFish`, Szene `fish`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
