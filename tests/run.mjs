@@ -2764,4 +2764,18 @@ test('New Star Darts v124: je 80 Partnernamen, Affären-Angebot fliegt zu 10 % a
   assert.ok(found > n * 0.05 && found < n * 0.16, `${found} von ${n} aufgeflogen`);
 });
 
+test('New Star Darts v125: Interview nach verlorenem Finale/Halbfinale mit eigenen Fragen', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), TL = await import('../data/talkloss.js'), T = await import('../data/talk.js');
+  assert.ok(TL.LOSS_QS.length >= 20 && TL.LOSS_QS.every(q => q.a.length === 4 && q.a.every(a => a.tone && a.t)));
+  assert.ok(!TL.LOSS_QS.some(q => /Erfolg|Sieg|gewonnen|feier/i.test(q.q)), 'keine Sieger-Fragen');
+  const s = N.newNsdCareer({ first: 'L', last: 'F', nation: 'DE', age: 25, slot: 1, seed: 81 }), rng = new RNG(4);
+  for (const place of ['F', 'SF']) {
+    const iv = C.maybeInterviewNsd(s, { place, cat: 'major', name: 'X' }, rng);
+    assert.ok(iv.qs.every(q => q.set === 'loss')); assert.equal(C.ivIntro(iv), T.MOOD_INTRO.loss[String(iv.mood)]);
+    assert.ok(TL.LOSS_QS.some(q => q.q === C.ivQuestion(iv).q));
+    while (iv.answers.length < iv.qs.length) C.answerInterview(s, 0, rng);
+  }
+  assert.ok(C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X' }, rng).qs.every(q => q.set === 'result'));
+});
+
 console.log(`\n${n} Tests ok`);

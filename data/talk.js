@@ -171,4 +171,9 @@ export const MOOD_INTRO = {
     '0': 'Ein Reporter wartet am Bühnenrand auf dich.',
     '-1': 'Die Journalisten sind heute kritisch – kein leichtes Publikum.',
   },
+  loss: {                                                   // Version 125: nach verlorenem Finale/Halbfinale
+    '1': 'Trotz der Niederlage applaudiert die Halle – die Reporter sind dir wohlgesonnen.',
+    '0': 'Ein Reporter fängt dich nach der Niederlage am Bühnenrand ab.',
+    '-1': 'Die Journalisten wittern nach der Niederlage eine Geschichte – kein leichtes Gespräch.',
+  },
 };

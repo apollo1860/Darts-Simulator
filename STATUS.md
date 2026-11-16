@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 125**: Interview nach verlorenem Finale/Halbfinale mit eigenem Fragenpool (`LOSS_QS` in data/talkloss.js, 20 Fragen à 4 Antworten, Set `loss`, eigene Einleitung `MOOD_INTRO.loss`); nach Titeln weiter `RESULT_QS`.
 - [x] **Version 124**: Je 80 Partnernamen (`PARTNER_NAMES`/`PARTNER_NAMES_M`). Neues Ereignis „Affäre“ (nur mit Partner, `affair` in data/lifeevents.js, Name `{lover}` = `lifeEvent.lover`, nie der eigene Partner): „Darauf einlassen“ = Zufriedenheit +12, zu 10 % fliegt es auf → Trennung bzw. Scheidung (inkl. halbes Sterngeld) und Zufriedenheit −15; „Abblitzen lassen“ = Partner +1. Kein Hinweistext zum Risiko.
 - [x] **Version 123**: Scheidung kostet 50 % des Sterngelds (`DIVORCE_SHARE` in life.js, in `breakUp` bei verheiratet – egal ob selbst geschieden, Beziehung auf 0 oder per Ereignis; immer mit News, Hinweis im Bestätigungsdialog).
 - [x] **Version 122**: Hochzeit: Leben → Freundin/Freund → „💍 Heiraten (1.500 ★)“ erscheint nur bei Beziehung 100 und mehr als 52 Wochen zusammen (`canMarry`/`marry`/`WEDDING_COST` in life.js, `player.partnerSince` ab Kennenlernen; ältere Spielstände zählen ab jetzt). Fester Preis 1.500 ★ ohne Status-Faktor. Annahmen: Hochzeit gibt Zufriedenheit +15 und News; verheiratet heißt die Beziehung „Ehefrau“/„Ehemann“ (`relLabelOf`) und sinkt nur jede zweite Woche um 1; bei 0 bzw. „Scheidung“ endet die Ehe (News „Scheidung“).

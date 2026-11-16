@@ -2,6 +2,7 @@
 // Saisonziele, Interviews, Wochen-Update-Daten, Saisonbericht und Auszeichnungen
 import { MANAGERS, TRAINER_TITLES, TRAINER_ICONS, REL_ACTIONS } from '../data/team.js';
 import { RESULT_QS, PAULKE_IN, PAULKE_OUT, MOOD_INTRO } from '../data/talk.js';
+import { LOSS_QS } from '../data/talkloss.js';
 import { randomName } from '../data/names.js';
 import { surname } from './util.js';
 import { RNG } from './rng.js';
@@ -390,14 +391,14 @@ export function settleGoals(state) {
 // Jede Antwort hat einen Ton; die Wirkung hängt von der Lage ab (Ergebnis bzw. Form, Status), von der Stimmung der Medien
 // (−1/0/+1, nur in der Einleitung angedeutet) und etwas Zufall – es gibt keine immer richtige Antwort, fast jede hat Plus und Minus.
 // Die Antworten erscheinen gemischt. Vor der WM wirken die Antworten zusätzlich auf die Nervosität bei der WM (`player.wmMind`).
-const IV_SETS = { result: RESULT_QS, in: PAULKE_IN, out: PAULKE_OUT };
+const IV_SETS = { result: RESULT_QS, loss: LOSS_QS, in: PAULKE_IN, out: PAULKE_OUT };   // loss: nach verlorenem Finale/Halbfinale (Version 125)
 export const IV_KEYS = ['fans', 'star', 'manager', 'sponsors', 'partner', 'mom', 'nerves', 'sat', 'energy'];
 // Aktuelle (oder k-te) Frage mit Antworten in Anzeige-Reihenfolge
 export function ivQuestion(iv, k = iv.answers.length) {
   const q = iv.qs[k], src = q && IV_SETS[q.set]?.[q.i];
   return src ? { q: src.q, a: q.perm.map(j => src.a[j]) } : null;
 }
-export const ivIntro = iv => MOOD_INTRO[iv.kind === 'paulke' ? 'paulke' : 'result'][String(iv.mood ?? 0)];
+export const ivIntro = iv => MOOD_INTRO[iv.kind === 'paulke' ? 'paulke' : iv.qs?.[0]?.set === 'loss' ? 'loss' : 'result'][String(iv.mood ?? 0)];
 function newInterview(state, rng, { kind, set, n, event, place, backed, extra = {} }) {
   const pool = IV_SETS[set], idx = rng.shuffle(pool.map((_, i) => i)).slice(0, n);
   state.interview = {
@@ -409,7 +410,7 @@ function newInterview(state, rng, { kind, set, n, event, place, backed, extra = 
 export function maybeInterviewNsd(state, inst, rng) {
   const big = inst.cat !== 'pc' && inst.cat !== 'etq' && inst.cat !== 'dev' && (inst.cat !== 'wos' || inst.fmt === 'wwm');   // Dev Tour/Women's Series: nur nach Titeln
   if (inst.isQualifier || !(inst.place === 'W' || (big && ['F', 'SF'].includes(inst.place)))) return null;
-  return newInterview(state, rng, { kind: 'result', set: 'result', n: 3, event: inst.name, place: inst.place, backed: ['W', 'F'].includes(inst.place) });
+  return newInterview(state, rng, { kind: 'result', set: inst.place === 'W' ? 'result' : 'loss', n: 3, event: inst.name, place: inst.place, backed: ['W', 'F'].includes(inst.place) });   // Niederlage: eigene Fragen
 }
 // Vor jeder WM (einmal je Jahr): Elmar Paulke. Qualifiziert → WM-Fragen (wirken auf die WM-Nervosität), sonst Saison-Rückblick.
 export function preWmInterview(state, rng, qualified) {
