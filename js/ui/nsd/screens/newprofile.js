@@ -15,14 +15,14 @@ let REAL = null;
 const reals = () => (REAL ??= realPlayers());
 const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const matches = () => { const q = norm(form.search.trim()); return q ? reals().filter(r => norm(r.name).includes(q)) : reals(); };
-const realOptions = list => list.length ? list.map(r => `<option value="${esc(r.name)}" ${r.name === form.real ? 'selected' : ''}>${esc(r.name)} (${r.nation}, ${r.age})</option>`).join('')
+const realOptions = list => list.length ? list.map(r => `<option value="${esc(r.name)}" ${r.name === form.real ? 'selected' : ''}>${esc(r.name)} (${r.nation}${r.age ? `, ${r.age}` : ''})</option>`).join('')
   : '<option value="">Kein Spieler gefunden</option>';
 // Infokarte zum gewählten realen Spieler: Nation, Alter, Tour, geschätzte Start-Fähigkeiten
 function realInfo() {
   const r = reals().find(x => x.name === form.real);
   if (!r) return '<div class="nsd-angle-note">Spieler suchen und auswählen.</div>';
   const sk = realStartSkills(r.avg), row = (l, v) => `<div class="nsd-result-row"><span>${l}</span><b>${v}</b></div>`;
-  return `<div class="nsd-result">${row('Nation', `${flag(r.nation)} ${esc(NATIONS[r.nation]?.name ?? r.nation)}`)}${row('Alter', `${r.age} Jahre`)}${row('Bisher', r.card ? 'Tourcard-Holder' : esc(r.group))}${row('Start', r.card ? 'mit seiner Tourcard' : 'neue Tourcard 2026/27')}
+  return `<div class="nsd-result">${row('Nation', `${flag(r.nation)} ${esc(NATIONS[r.nation]?.name ?? r.nation)}`)}${row('Alter', r.age ? `${r.age} Jahre` : '–')}${row('Bisher', r.card ? 'Tourcard-Holder' : esc(r.group))}${row('Start', r.card ? 'mit seiner Tourcard' : 'neue Tourcard 2026/27')}
     ${row('Scoring · Finishing', `${sk.sco} · ${sk.fin}`)}${row('Fokus · Rechnen', `${sk.foc} · ${sk.cal}`)}${row('Star-Status (Mental)', sk.men)}</div>`;
 }
 

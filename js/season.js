@@ -68,7 +68,7 @@ export function nextWeek(state) {
 function weekNews(state, evs, ai) {
   const p = state.player, y = state.date.year;
   // Majors / World Series: Sieger
-  for (const i of ai.filter(x => (x.cat === 'major' || x.cat === 'ws' || x.fmt === 'plf') && x.stopAt === 1)) {
+  for (const i of ai.filter(x => (x.cat === 'major' || x.cat === 'ws' || x.fmt === 'plf' || x.fmt === 'wwm') && x.stopAt === 1)) {
     addNews(state, 'result', `🏆 ${i.name}: ${getPlayer(state, i.survivors[0])?.name ?? '?'} gewinnt`,
       i.fieldSize ? `${i.fieldSize} ${i.teams ? 'Teams' : 'Spieler'}.` : '');
   }

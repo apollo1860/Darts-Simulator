@@ -55,7 +55,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 85 + 3 + 18);   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 167 + 3 + 19);   // Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -366,7 +366,7 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   assert.ok(q.wmqSurvivors.length >= 2 && q.wmqSurvivors.every(id => q.wm.includes(id)));      // TCHQ: Restplätze, mind. 2
   assert.equal(Object.keys(q.wmReg).length, 21); assert.equal(Object.values(q.wmReg).flat().length, 22); assert.ok(q.wmYouth);   // 21 Qualifier, Asian Championship 2
   for (const [c, n] of Object.entries({ asia: 5, cdc: 2, nb: 2, dpa: 1, dpnz: 1 })) assert.ok(q.wm.filter(id => getPlayer(s, id)?.circuit === c).length >= n);
-  assert.equal(q.wm.filter(id => getPlayer(s, id)?.woman).length, 4);                    // Women's Series Platz 2–5
+  assert.equal(q.wm.filter(id => getPlayer(s, id)?.circuit === 'women').length, 4);   // Women's Series Platz 2–5 (Beau Greaves kommt über Tour/Dev Tour)
   assert.ok(!q.wm.includes(secondaryOrder(s, 'women', 2027)[0]));
   assert.ok(q.wmReg.uki.every(id => ['ENG', 'SCO', 'WAL', 'NIR', 'IRL'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
@@ -1263,12 +1263,12 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   const { majorField, mastersPrelimField } = await import('../js/majors.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 16 });
   const sec = playersOfTier(s, 'secondary');
-  assert.equal(sec.length, 85);   // Version 96: + Zong, Lim, Baggish, Whitlock
+  assert.equal(sec.length, 167);   // Version 96: + Zong, Lim, Baggish, Whitlock; Version 101: 91 Spielerinnen
   for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb', 'ee']) {
     const o = secondaryOrder(s, c, 2025); assert.ok(o.length >= 8);
     assert.deepEqual(o, secondaryOrder(s, c, 2025));                   // fest je Jahr
   }
-  assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= 55 && p.avg <= 100));
+  assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= (p.circuit === 'women' ? 35 : 55) && p.avg <= 100));
   // Masters-Vorrunde: je Nebentour der Beste
   const pf = mastersPrelimField(s, false);
   assert.equal(pf.pool.filter(id => s.world.players[id]?.tier === 'secondary').length, 6);
@@ -2481,7 +2481,7 @@ test('New Star Darts v96: ehemalige Tourcard-Holder in der Challenge Tour, neue 
   const N = await import('../js/nsd.js'), ST = await import('../js/state.js'), P = await import('../data/players.js');
   const s = N.newNsdCareer({ first: 'C', last: 'T', nation: 'DE', age: 20, slot: 1, seed: 6 });
   const by = n => Object.values(s.world.players).find(p => p.name === n);
-  assert.equal(P.CT_FORMER.length, 18);
+  assert.equal(P.CT_FORMER.length, 19);   // Version 101: + Noa-Lynn van Leuven
   for (const [n] of P.CT_FORMER) assert.ok(['challenge', 'dev'].includes(by(n)?.tier), n);
   assert.deepEqual([by('Wesley Harms').nation, by('Wesley Harms').tier, by('Florian Hempel').age], ['NL', 'challenge', 35]);
   assert.equal(by('Leighton Bennett').age, 20);
@@ -2489,7 +2489,7 @@ test('New Star Darts v96: ehemalige Tourcard-Holder in der Challenge Tour, neue 
   // alter Spielstand ohne die Neuen
   for (const p of Object.values(s.world.players)) if (/^K\d+$/.test(p.id) || ['Simon Whitlock', 'Paul Lim'].includes(p.name)) delete s.world.players[p.id];
   s.date.year = 2027; ST.migrate(s);
-  assert.equal(Object.values(s.world.players).filter(p => /^K\d+$/.test(p.id)).length, 18);
+  assert.equal(Object.values(s.world.players).filter(p => /^K\d+$/.test(p.id)).length, 19);
   assert.equal(by('Florian Hempel').age, 36); assert.ok(by('Simon Whitlock') && by('Paul Lim'));
   ST.migrate(s); assert.equal(Object.values(s.world.players).filter(p => p.name === 'Florian Hempel').length, 1, 'keine Doppelten');
 });
@@ -2510,7 +2510,7 @@ test('New Star Darts v97: Alterskorrekturen der neuen Spieler – auch in alten 
 test('New Star Darts v98: Karriere als realer Spieler (Rangliste, Tourcard, Start-Fähigkeiten, ohne Karte über Challenge Tour/Q-School)', async () => {
   const N = await import('../js/nsd.js'), CAL = await import('../js/calendar.js'), T = await import('../js/tournaments.js');
   const L = N.realPlayers();
-  assert.ok(L.length > 350 && L.every(r => r.age >= 16) && L.find(r => r.name === 'Fallon Sherrock')?.woman && !L.some(r => r.name === 'Mitchell Lawrie'));   // Version 99: Frauen wählbar
+  assert.ok(L.length > 350 && L.every(r => r.age == null ? r.woman : r.age >= 16) && L.find(r => r.name === 'Fallon Sherrock')?.woman && !L.some(r => r.name === 'Mitchell Lawrie'));   // Version 99: Frauen wählbar
   assert.equal(new Set(L.map(r => r.name)).size, L.length);
   // Littler: Tourcard, Platz 1 (Rangliste übernommen), hohe Fähigkeiten und Status, KI-Littler weg
   const s = N.newRealCareer({ name: 'Luke Littler', seed: 1 }), p = s.player;
@@ -2543,6 +2543,31 @@ test('New Star Darts v100: Spielerinnen haben einen Freund statt einer Freundin'
   assert.equal(le?.id, 'meet');
   assert.ok(LE.PARTNER_NAMES_M.includes(le.name));
   const v = L.lifeEventView(f); assert.ok(v.text.includes('Er scheint sich') && !v.text.includes('Sie scheint'));
+});
+
+test("New Star Darts v101: Women's Series für Spielerinnen (Wochenenden, Rangliste, Women's World Matchplay), Noa-Lynn in der Challenge Tour", async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), C = await import('../js/calendar.js'), W = await import('../js/world.js'), D = await import('../data/tournaments.js');
+  assert.equal(D.CALENDAR.filter(e => e.cat === 'wos' && e.count === 4).length, 6); assert.ok(D.CALENDAR.find(e => e.id === 'wwm'));
+  const s = N.newRealCareer({ name: 'Fallon Sherrock', seed: 7 }), by = n => Object.values(s.world.players).find(p => p.name === n);
+  assert.equal(by('Noa-Lynn van Leuven').tier, 'challenge'); assert.ok(!by('Noa-Lynn van Leuven').woman);
+  assert.equal(by('Rhian O\'Sullivan').avg, 76.2); assert.equal(by('Nicole Porm').avg, 37.9); assert.ok(by('Beau Greaves').woman);
+  s.date.week = 9; s.week = { played: false, eventId: null };
+  const ev = C.eventsInWeek(s, 2026, 9).find(e => e.cat === 'wos');
+  assert.ok(C.shownTo(s, ev) && T.eventStatus(s, ev).playable);
+  T.enterEvent(s, ev.id, { count: 4 });
+  assert.equal(s.activeEvent.fieldSize, 64); assert.ok(s.activeEvent.rounds[0].matches.every(m => W.getPlayer(s, m.a)?.woman && (!m.b || W.getPlayer(s, m.b)?.woman)));
+  for (;;) { T.simulateRest(s); if (!s.activeEvent.hasNext) break; T.nextSub(s); }
+  T.closeEvent(s);
+  const oom = orderOfMerit(s, 'wos');
+  assert.ok(oom.some(x => x.p.id === 'P' && x.money > 0) && oom.filter(x => x.money > 0).length >= 30);
+  assert.deepEqual(W.secondaryOrder(s, 'women').slice(0, 3), oom.filter(x => x.p.tier !== 'tour').slice(0, 3).map(x => x.p.id));   // Rangliste vergibt die Plätze
+  // Matchplay: nur Top 8, gesetzt nach Rangliste
+  s.date.week = 29; s.week = { played: false, eventId: null };
+  const wwm = C.eventsInWeek(s, 2026, 29).find(e => e.id === 'wwm');
+  assert.equal(T.eventStatus(s, wwm).playable, W.secondaryOrder(s, 'women').slice(0, 8).includes('P'));
+  // Männer sehen die Women's Series nicht
+  const m = N.newNsdCareer({ first: 'M', last: 'N', nation: 'DE', age: 25, seed: 8 });
+  assert.ok(!C.shownTo(m, ev)); assert.equal(T.eventStatus(m, ev).playable, false);
 });
 
 console.log(`\n${n} Tests ok`);

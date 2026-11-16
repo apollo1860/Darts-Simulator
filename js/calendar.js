@@ -48,7 +48,8 @@ export const nsdBlocked = (state, ev) => state.mode === 'nsd' && NSD_BLOCKED.has
   && !(ev.cat === 'qschool' && state.lastChance?.year === state.date.year)
   && !(ev.cat === 'dev' && state.player.age <= DEV_MAX_AGE)
   && !(state.openTour && state.player.tour !== 'tour' && (ev.cat === 'qschool' || ev.cat === 'challenge'));   // Version 98: realer Spieler ohne Karte
-export const shownTo = (state, ev) => !nsdBlocked(state, ev) && (ev.cat !== 'wmreg' || (!ev.aiOnly && ev.nations.includes(state.player.nation)));
+export const shownTo = (state, ev) => !nsdBlocked(state, ev) && (ev.cat !== 'wmreg' || (!ev.aiOnly && ev.nations.includes(state.player.nation)))
+  && (ev.cat !== 'wos' || !!state.player.woman);   // Version 101: Women's Series nur für Spielerinnen sichtbar
 
 export function findEvent(state, id, year = state.date.year, week = state.date.week) {
   return eventsInWeek(state, year, week).find(e => e.id === id) ?? null;

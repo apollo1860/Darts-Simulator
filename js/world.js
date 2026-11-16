@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -31,6 +31,7 @@ export function createWorld(rng, startYear = 2027) {
   addSecondary(players, rng, startYear);
   addJdc(players, rng, startYear);
   addFormer(players, rng, startYear);
+  markWomen(players);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   // Fiktive Spieler (lokale Amateure, fiktive CT-Spieler): Namen je Karriere zufällig aus Vor-/Nachnamen der Nation
   const used = new Set(Object.values(players).filter(p => p.id[0] !== 'L').map(p => p.name));
@@ -146,6 +147,10 @@ export function changeStrength(p, delta) {
   p.attrs.sco = clamp(Math.round((before + d) * 10) / 10, 1, 100);
 }
 
+// Spielerinnen (Version 101): Women's Series = alle Spielerinnen der Welt (Nebentour + Holderinnen wie Beau Greaves)
+export function markWomen(players) { for (const p of Object.values(players)) if (WOMEN_ON_TOUR.includes(p.name)) p.woman = true; }
+export const womenOf = state => Object.values(state.world.players).filter(p => p.woman && p.tier !== 'retired');
+
 // Ehemalige Tourcard-Holder (Version 96): fehlende als Challenge-Spieler aufnehmen (IDs K1 …), auch in alten Spielständen
 export function addFormer(players, rng, year) {
   const have = new Set(Object.values(players).map(p => p.name));
@@ -226,7 +231,7 @@ export function addSecondary(players, rng, startYear) {
   for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base], i) => {
     if (have.has(name)) return;
     const age = age0 ?? rng.int(25, 45) + (2026 - startYear);
-    const avg = Math.round((base ? base * rng.float(1 - SECONDARY_SPREAD, 1 + SECONDARY_SPREAD) : c.avgTop - i) * 10) / 10, id = `S${++sNo}`;
+    const avg = Math.round((base ? (c.exact ? base : base * rng.float(1 - SECONDARY_SPREAD, 1 + SECONDARY_SPREAD)) : c.avgTop - i) * 10) / 10, id = `S${++sNo}`;   // exact: Average aus der Vorlage
     players[id] = { id, name, nation, age: age - (2026 - startYear), avg, tier: 'secondary', circuit, cardUntil: null,
       attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}) };
   });
@@ -234,6 +239,11 @@ export function addSecondary(players, rng, startYear) {
 
 // Jahres-Rangliste einer Nebentour (fest je Jahr/Karriere): Stärkere meist vorn, etwas Zufall
 export function secondaryOrder(state, circuit, year = state.date.year) {
+  const wos = circuit === 'women' && state.rankings?.years?.[year]?.wos;   // Version 101: echte Women's-Series-Rangliste (inkl. Spielerin P)
+  if (wos && Object.keys(wos).length) {
+    const cands = [...Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === 'women'), ...(state.player.woman ? [state.player] : [])];
+    return cands.sort((a, b) => (wos[b.id] ?? 0) - (wos[a.id] ?? 0) || b.avg - a.avg).map(p => p.id);
+  }
   const rng = new RNG({ s: hashSeed(`sec|${circuit}|${year}|${state.seed}`) });
   return Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === circuit)
     .map(p => ({ p, v: p.avg + rng.normal(0, 2.5) })).sort((a, b) => b.v - a.v).map(x => x.p.id);

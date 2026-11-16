@@ -1,7 +1,7 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer } from './world.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer, markWomen } from './world.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL, CT_FORMER } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { scaleSponsorPay } from '../data/sponsorsreal.js';
@@ -147,7 +147,18 @@ export function migrate(s) {
   }
   // Nebentour-Pools (S…) für ältere Stände nachrüsten
   addSecondary(s.world.players, new RNG(s.rng), s.date.year);
+  // Version 101: Noa-Lynn van Leuven → Challenge Tour, Spielerinnen mit Average der Nutzer-Rangliste
+  if ((s.womenV ?? 0) < 101) {
+    const r = new RNG(s.rng), wl = new Map(SECONDARY.women.players.map(x => [x[0], x]));
+    for (const x of Object.values(s.world.players)) {
+      if (x.name === 'Noa-Lynn van Leuven' && x.tier === 'secondary') { delete x.circuit; delete x.woman; x.tier = x.age <= 23 ? 'dev' : 'challenge'; x.avg = 85; x.attrs = attrsForAverage(85, r); }
+      const w = x.tier === 'secondary' && x.circuit === 'women' && wl.get(x.name);
+      if (w) { x.nation = w[1]; x.avg = w[3]; x.attrs = attrsForAverage(w[3], r); }
+    }
+    s.womenV = 101;
+  }
   addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
+  markWomen(s.world.players);
   for (const x of Object.values(s.world.players)) { if (NAME_FIXES[x.name]) x.name = NAME_FIXES[x.name]; if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name]; }
   // Version 95: geprüfter Spielerpool (Nutzerliste, Stichtag 01.01.2026) – Nation und Alter echter Spieler auch in bestehenden Spielständen
   if ((s.poolV ?? 0) < 97) {   // Version 97: + ehemalige Holder (Alterskorrekturen)

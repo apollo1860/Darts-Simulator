@@ -71,6 +71,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 98**: Realen Spieler wählen (newprofile.js Umschalter + Suche/Auswahlliste; `realPlayers`/`realStartSkills`/`newRealCareer` in nsd.js, übernimmt ID-Daten des KI-Spielers per `renameId`, `player.real`); ohne Tourcard `state.openTour` → Challenge Tour/Q-School offen (`nsdBlocked`), kein Karriereende bei Kartenverlust (`yearEnd`).
 - **Version 99**: Reale Spieler ohne Karte → 2-Jahres-Tourcard; Spielerinnen wählbar (`player.woman`). WDF-Kalender 2026 (14 Turniere an 7 Wochenenden, `WDF` in data/tournaments.js), Feld alle ohne Tourcard inkl. Nebentouren, News zu Platin-/Gold-Siegern (`WDF_MAJOR_TIERS`, weekNews in season.js).
 - **Version 100**: Spielerinnen (`player.woman`) → „Freund“ statt „Freundin“: `partnerText(text, p)`/`relLabelOf(p, key)` in nsd.js bei allen Partner-Texten verwenden; männliche Partnernamen `PARTNER_NAMES_M` (data/lifeevents.js).
+- **Version 101**: Women's Series (Kategorie `wos`, `wos-1…6` à 4 Turniere KW 9/16/23/30/36/44 + `wwm` Women's World Matchplay KW 29 Top 8) nur für Spielerinnen; Pool = alle `woman`-Spieler (`womenOf` in world.js: Nebentour `women` mit exakten Nutzer-Averages + `WOMEN_ON_TOUR` wie Beau Greaves); Rangliste `wos` (rankings.js) → `secondaryOrder('women')` für GS/WM/Masters-Vorrunde; Noa-Lynn van Leuven in der Challenge Tour.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

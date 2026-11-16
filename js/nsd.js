@@ -9,11 +9,11 @@ import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 import { ratingForAvgExact } from './player.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES, WOMEN_ON_TOUR } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 100;
+export const APP_VERSION = 101;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -117,8 +117,8 @@ export function realPlayers() {
   const out = [], seen = new Set();
   const add = (name0, nation, age, avg, card, group, woman = false) => {
     const name = NAME_FIXES[name0] ?? name0;
-    if (seen.has(name) || age == null || age < 16) return;
-    seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group, ...(woman ? { woman } : {}) });
+    if (seen.has(name) || (age == null ? !woman : age < 16)) return;   // Spielerinnen ohne bekanntes Alter: Alter aus der Welt
+    woman ||= WOMEN_ON_TOUR.includes(name); seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group, ...(woman ? { woman } : {}) });
   };
   for (const [n, nat, a, avg] of [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026]) add(n, nat, a - 1, avg, true, 'Tourcard');   // Listen auf Basis 2027
   for (const [n, nat, a, avg] of [...CHALLENGE_PLAYERS.slice(0, -CT_FICTIONAL), ...CT_FORMER]) add(n, nat, a - 1, avg, false, 'Challenge Tour');
@@ -149,7 +149,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   const r = realPlayers().find(x => x.name === name);
   if (!r) throw new Error('Unbekannter Spieler');
   const [first, ...rest] = name.split(' ');
-  const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: r.age, hand, slot, seed, angle });
+  const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: r.age ?? 30, hand, slot, seed, angle });
   const p = s.player, y = s.date.year, ai = Object.values(s.world.players).find(x => x.name === name && !x.rival);
   if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
   // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
@@ -181,7 +181,7 @@ export const relLabelOf = (p, k) => partnerText(relLabel[k], p);
 // Siegprämie je Format; Runden-Anteile wie unten. Gilt im Tour-Modus für alle Spieler (Ranglisten in Basis-★).
 export const STAR_PRIZE_WIN = {
   pc: 15, ws: 30, wsf: 100, et: 35, wcod: 100 /* je Team, dein Anteil 50 % */, masters: 100, ukopen: 120,
-  wgp: 150, ec: 150, pcf: 130, gsod: 200, matchplay: 225, pln: 10, plf: 350, wm: 1000, challenge: 5, dev: 5,   // Version 94: Youth-WM ohne Preisgeld
+  wgp: 150, ec: 150, pcf: 130, gsod: 200, matchplay: 225, pln: 10, plf: 350, wm: 1000, challenge: 5, dev: 5, wos: 2.5, wwm: 10,   // Version 94: Youth-WM ohne Preisgeld
 };
 export const STAR_SHARES = { F: 0.5, SF: 0.25, QF: 0.12, L16: 0.06, L32: 0.04, L64: 0.02, G3: 0.05, G4: 0.025 };
 export const EUR_PER_STAR = 1000;   // Umrechnung der vorbelegten Ranglisten (2025/26) beim Karrierestart
@@ -204,7 +204,9 @@ export const STAR_PRIZE_FIXED = {
   wcod: { F: 48, SF: 30, QF: 20, L16: 10, G2: 6, G3: 5 },
   wm: { F: 400, SF: 200, QF: 100, L16: 60, L32: 35, L64: 25, L128: 15 },
   plf: { F: 170, SF: 110 },
-  mastersq: { L16: 2.5, L32: 1, L64: 0.75 },   // Masters-Vorrunde: Geld erst ab der K.-o.-Phase (Letzte 64), Gruppenphase ohne
+  mastersq: { L16: 2.5, L32: 1, L64: 0.75 },
+  wos: { F: 1.25, SF: 0.8, QF: 0.5, L16: 0.3 },        // Women's Series (Version 101, Annahme)
+  wwm: { F: 5, SF: 2.5, QF: 1.25 },                     // Women's World Matchplay   // Masters-Vorrunde: Geld erst ab der K.-o.-Phase (Letzte 64), Gruppenphase ohne
 };
 // Premier League: Platz 5–8 der Tabelle (Platz 1–4 spielen die Play-offs: 350/170/110)
 export const PL_LEAGUE_PAY = { 5: 95, 6: 90, 7: 85, 8: 80 };
@@ -225,7 +227,7 @@ export const starShow = (base, level) => Math.round(base * starFactor(level));
 // Version 63: ein Match kostet deutlich mehr Energie; Version 76: Legs kosten etwas mehr: (3 + 1,0 × Legs) %, höchstens 30 % (vorher 0,8 je Leg, Deckel 25 %). Floor-Turniere (Players Championships, Qualifier,
 // Nebentouren) sind mit × 0,75 leichter als Bühne (European Tour, Majors, World Series, Premier League, WM). Vorher 2 + 0,4 × Legs.
 export const ENERGY_WEEK = 40, ENERGY_LOW = 20, ENERGY_PER_LEG = 1.0, ENERGY_BASE = 3, ENERGY_CAP = 30, ENERGY_FLOOR = 0.75;
-export const FLOOR_CATS = ['pc', 'etq', 'hnq', 'wmreg', 'mastersq', 'wdf', 'challenge', 'dev', 'ddv', 'qschool'];
+export const FLOOR_CATS = ['pc', 'etq', 'hnq', 'wmreg', 'mastersq', 'wdf', 'challenge', 'dev', 'ddv', 'qschool', 'wos'];
 export const isFloor = inst => !!inst && (!!inst.isQualifier || FLOOR_CATS.includes(inst.cat));
 export const energyKind = inst => (isFloor(inst) ? ENERGY_FLOOR : 1);
 export const matchEnergy = (legs, inst = null) => Math.min(ENERGY_CAP, Math.round((ENERGY_BASE + ENERGY_PER_LEG * legs) * energyKind(inst)));
@@ -269,12 +271,12 @@ export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.roun
 // Sieg auf Status 1 ≈ 12 % des Balkens (Bonus: zu null, hoher Average, stärkerer Gegner, große Bühne). Niederlage: kleiner Abzug.
 // Der Balken wächst je Stufe um 3 %, der Gewinn nur linear → jede Stufe dauert länger. Nie unter die erreichte Stufe.
 // Version 94: Youth-WM (fmt 'youth') zählt mit eigenem Gewicht – kein Preisgeld, dafür Star-Status
-export const STAR_WEIGHT = { youth: 1.3, dev: 0.6, pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
+export const STAR_WEIGHT = { youth: 1.3, wwm: 1.0, wos: 0.6, dev: 0.6, pc: 1, etq: 0.8, et: 1.15, ws: 1.2, pl: 1.3, major: 1.4 };
 const starScale = level => 1 + 0.01 * (level - 1);   // Gewinn wächst kaum, Balken +3 %/Stufe → jede Stufe deutlich schwerer
 // Gegner weit oben in der Order of Merit: mehr Punkte (Platz 1 ×1,6 … ab Platz 100 ×1)
 export const rankBonus = rank => 1 + 0.6 * Math.max(0, (100 - (rank ?? 999)) / 99);
 export function starMatchDelta(level, { won, my, opp, to, avg, oppStrength = 0, cat, fmt, rating = 5, oppRank = null }) {
-  const w = (fmt === 'wm' ? 1.6 : STAR_WEIGHT[fmt === 'youth' ? 'youth' : cat] ?? 1) * starScale(level);
+  const w = (fmt === 'wm' ? 1.6 : STAR_WEIGHT[fmt === 'youth' || fmt === 'wwm' ? fmt : cat] ?? 1) * starScale(level);
   if (won) {
     let g = 12 * rankBonus(oppRank);
     if (opp === 0) g *= 1.4;

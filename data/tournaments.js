@@ -12,6 +12,7 @@ export const CATEGORIES = {
   qschool:   { label: 'Q-School',          short: 'Q-SCHOOL', phase: 3 },
   challenge: { label: 'Challenge Tour',    short: 'CT', phase: 3 },
   dev:       { label: 'Development Tour',  short: 'DEV', phase: 3 },
+  wos:       { label: "Women's Series",    short: 'WOS', phase: 3 },   // Version 101: nur für Spielerinnen
   pc:        { label: 'Players Championship', short: 'PC', phase: 4 },
   et:        { label: 'European Tour',     short: 'ET', phase: 4 },
   etq:       { label: 'ET-Qualifier (Tour Card Holder)', short: 'TCHQ', phase: 4 },
@@ -28,6 +29,10 @@ const pcCities = ['Leicester', 'Leicester', 'Wigan', 'Leicester', 'Milton Keynes
 const ctWeeks = [11, 19, 29, 37, 42];
 const devWeeks = [14, 22, 32, 39, 43];
 export const TOUR_WEEKEND_EVENTS = 5;
+// Women's Series (Version 101, Annahme): 6 Wochenenden à 4 Turniere in Wochen ohne Players Championship/Major + Women's World Matchplay (Top 8, KW 29)
+const wosWeeks = [9, 16, 23, 30, 36, 44];
+const wosCities = ['Wigan', 'Leicester', 'Hildesheim', 'Milton Keynes', 'Wigan', 'Leicester'];
+export const WOS_WEEKEND_EVENTS = 4;
 const tourCities = ['Milton Keynes', 'Leicester', 'Hildesheim', 'Wigan'];
 const cityCountry = c => (c === 'Hildesheim' ? 'DE' : 'ENG');
 
@@ -173,6 +178,11 @@ export const CALENDAR = [
     id: `ct-${i + 1}`, cat: 'challenge', name: `Challenge Tour ${i * 5 + 1}–${i * 5 + 5}`,
     week: w, city: tourCities[i % 4], country: cityCountry(tourCities[i % 4]), count: TOUR_WEEKEND_EVENTS, pick: true,
   })),
+  ...wosWeeks.map((w, i) => ({
+    id: `wos-${i + 1}`, cat: 'wos', name: `Women's Series ${i * 4 + 1}–${i * 4 + 4}`, week: w, city: wosCities[i], country: cityCountry(wosCities[i]),
+    count: WOS_WEEKEND_EVENTS, pick: true, note: 'nur für Spielerinnen · Top 8 der Rangliste → Women\'s World Matchplay',
+  })),
+  { id: 'wwm', cat: 'wos', fmt: 'wwm', name: "Women's World Matchplay", week: 29, city: 'Blackpool', country: 'ENG', noOom: true, note: "Top 8 der Women's Series" },
   ...devWeeks.map((w, i) => ({
     id: `dev-${i + 1}`, cat: 'dev', name: `Development Tour ${i * 5 + 1}–${i * 5 + 5}`,
     week: w, city: tourCities[(i + 2) % 4], country: cityCountry(tourCities[(i + 2) % 4]), count: TOUR_WEEKEND_EVENTS, pick: true,
@@ -206,6 +216,8 @@ export const FORMATS = {
   et: { default: { legs: 6 }, byRemaining: { 4: { legs: 7 }, 2: { legs: 8 } }, seeds: 16 },
   challenge: { default: { legs: 5 } },                               // durchgehend Bo9
   dev: { default: { legs: 4 }, byRemaining: { 8: { legs: 5 }, 4: { legs: 5 }, 2: { legs: 5 } } },   // Bo7, ab VF Bo9
+  wos: { field: 64, default: { legs: 4 }, byRemaining: { 2: { legs: 5 } } },   // Women's Series: Bo7, Finale Bo9 (Annahme)
+  wwm: { default: { legs: 4 }, byRemaining: { 4: { legs: 5 }, 2: { legs: 6 } } },   // Women's World Matchplay: VF Bo7, HF Bo9, F Bo11
   youth: { default: { legs: 5 }, byRemaining: { 8: { legs: 6 }, 4: { legs: 6 }, 2: { legs: 7 } } },
   // Majors & Events (Phase 5)
   masters: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },

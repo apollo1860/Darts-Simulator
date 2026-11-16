@@ -117,7 +117,10 @@ export const CT_FORMER = [
   ['Nathan Rafferty', 'NIR', 26, 87.0], ['Danny Jansen', 'NL', 24, 86.5], ['Martijn Kleermaker', 'NL', 35, 86.5], ['Adrian Lewis', 'ENG', 41, 86.5],
   ['Josh Payne', 'ENG', 33, 86.0], ['Leighton Bennett', 'ENG', 21, 86.0], ['Jitse van der Wal', 'NL', 27, 85.5], ['Nico Kurz', 'DE', 29, 85.5],
   ['Wesley Harms', 'NL', 42, 85.5], ['Dom Taylor', 'ENG', 28, 85.0], ['Ryan Hogarth', 'SCO', 34, 84.5], ['René Eidams', 'DE', 37, 84.5],
-  ['Dragutin Horvat', 'DE', 50, 84.0], ['Darren Webster', 'ENG', 58, 84.0]];
+  ['Dragutin Horvat', 'DE', 50, 84.0], ['Darren Webster', 'ENG', 58, 84.0],
+  ['Noa-Lynn van Leuven', 'NL', 30, 85.0]];   // Version 101: spielt bei den Männern (Nutzerhinweis), Average geschätzt
+// Spielerinnen mit Tourcard bzw. in den Männer-Listen (spielen zusätzlich die Women's Series)
+export const WOMEN_ON_TOUR = ['Beau Greaves'];
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
 export const CHALLENGE_PLAYERS = [
   ['Joe Hunt', 'ENG', 34, 91.0], ['Derek Coulson', 'WAL', 58, 90.9], ['Tommy Morris', 'ENG', 34, 90.7],

@@ -9,7 +9,7 @@ import { BOGEY, scoreAt, targetPoint } from './board.js';
 import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER } from './obstruction.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
-import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE } from './world.js';
+import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE, secondaryOrder, womenOf } from './world.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, pointsGained } from './player.js';
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
@@ -38,7 +38,7 @@ import { titleArticle, finalArticle, wmTicketArticle, nineArticle } from './arti
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
 
 export const IMPLEMENTED_PHASE = 5;
-export const AI_CATS = ['qschool', 'challenge', 'dev', 'pc', 'etq', 'mastersq', 'hnq', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs', 'wmreg'];   // laufen ohne Spieler im Hintergrund
+export const AI_CATS = ['qschool', 'challenge', 'dev', 'wos', 'pc', 'etq', 'mastersq', 'hnq', 'et', 'major', 'ws', 'pl', 'wdf', 'wmqs', 'wmreg'];   // laufen ohne Spieler im Hintergrund
 
 // Inhaltliche Berechtigung
 export function eligibility(state, ev) {
@@ -67,6 +67,11 @@ export function eligibility(state, ev) {
       if (ev.id === 'youth-wm') return { ok: true };       // Version 94: Youth-WM – alle U24, auch Tourcard-Holder in den Top 64
       if (card) return devHolders(state, y).includes(p) ? { ok: true } : { ok: false, reason: 'Holder nur außerhalb der PDC-Top-64' };
       return { ok: true };                                 // Dev Tour: offen für alle bis 23, keine Q-School nötig
+    case 'wos': {                                        // Version 101: Women's Series nur für Spielerinnen; Matchplay = Top 8 der Rangliste
+      if (!p.woman) return { ok: false, reason: 'Nur für Spielerinnen' };
+      if (ev.fmt === 'wwm') return secondaryOrder(state, 'women').slice(0, 8).includes('P') ? { ok: true } : { ok: false, reason: "Nur Top 8 der Women's Series" };
+      return { ok: true };
+    }
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
     case 'et': return etQualified(state, ev) ? { ok: true } : { ok: false, reason: card ? 'Nicht qualifiziert (TCHQ verpasst?)' : 'Tourcard oder Host-Nation-Qualifier nötig' };
     case 'mastersq': {                                   // Winmau World Masters – Vorrunde: Holder außerhalb der Top 24
@@ -121,6 +126,7 @@ const oomTypes = (ev, sub) => {
   if (ev.cat === 'major') return ['pdc'];
   if (ev.cat === 'et') return ['pdc', 'protour', 'eto'];
   if (ev.cat === 'challenge' || ev.cat === 'dev') return [ev.cat];
+  if (ev.cat === 'wos') return ['wos'];                                  // Women's Series (Women's World Matchplay: noOom)
   if (ev.cat === 'pc') return ['pdc', 'protour', 'pco'];
   return [];
 };
@@ -247,6 +253,12 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   if (ev.cat === 'hnq') {                    // Gastgebernation: Spieler ohne Karte, DDV/lokal – keine Setzliste
     const pool = rng.shuffle(hnqPool(state, ev));
     ids = pool.slice(0, FORMATS.hnq.field - (withPlayer ? 1 : 0));
+    return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
+  }
+  if (ev.cat === 'wos') {                    // Version 101: Women's Series = alle Spielerinnen (offene Auslosung); Matchplay = Top 8 der Rangliste, gesetzt
+    if (ev.fmt === 'wwm') { const ord = secondaryOrder(state, 'women'); return (withPlayer ? ord : ord.filter(id => id !== 'P')).slice(0, 8); }
+    const pool = rng.shuffle(womenOf(state).map(p => p.id));
+    ids = pool.slice(0, (FORMATS.wos.field) - (withPlayer ? 1 : 0));
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'wdf') {                    // offene Auslosung: Spieler ohne Karte + DDV-Pool, keine Setzliste
@@ -988,7 +1000,7 @@ function nsdEventEnd(state, inst) {
   if (inst.withPlayer) maybeInterviewNsd(state, inst, new RNG(state.rng));
   if (managerOf(state) && inst.place === 'W') addRel(p, 'manager', 4);
   if (inst.place === 'W' && !inst.isQualifier) {
-    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.fmt === 'youth' ? 'youth' : inst.cat] ?? 1) * (1 + 0.01 * (p.star.level - 1)) * 10) / 10;
+    const bonus = Math.round(STAR_TITLE * (inst.fmt === 'wm' ? 1.6 : STAR_WEIGHT[inst.fmt === 'youth' || inst.fmt === 'wwm' ? inst.fmt : inst.cat] ?? 1) * (1 + 0.01 * (p.star.level - 1)) * 10) / 10;
     inst.star = Math.round(((inst.star ?? 0) + bonus) * 10) / 10;
     inst.titleStar = bonus;
     addStarProgress(state, bonus);
