@@ -1,7 +1,7 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc } from './world.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer } from './world.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { scaleSponsorPay } from '../data/sponsorsreal.js';
@@ -147,6 +147,7 @@ export function migrate(s) {
   }
   // Nebentour-Pools (S…) für ältere Stände nachrüsten
   addSecondary(s.world.players, new RNG(s.rng), s.date.year);
+  addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
   for (const x of Object.values(s.world.players)) { if (NAME_FIXES[x.name]) x.name = NAME_FIXES[x.name]; if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name]; }
   // Version 95: geprüfter Spielerpool (Nutzerliste, Stichtag 01.01.2026) – Nation und Alter echter Spieler auch in bestehenden Spielständen
   if ((s.poolV ?? 0) < 95) {

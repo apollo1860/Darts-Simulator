@@ -55,7 +55,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 81 + 3);   // + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 85 + 3 + 18);   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -1261,7 +1261,7 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   const { majorField, mastersPrelimField } = await import('../js/majors.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 16 });
   const sec = playersOfTier(s, 'secondary');
-  assert.equal(sec.length, 81);
+  assert.equal(sec.length, 85);   // Version 96: + Zong, Lim, Baggish, Whitlock
   for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb', 'ee']) {
     const o = secondaryOrder(s, c, 2025); assert.ok(o.length >= 8);
     assert.deepEqual(o, secondaryOrder(s, c, 2025));                   // fest je Jahr
@@ -2473,6 +2473,23 @@ test('New Star Darts v95: geprüfter Spielerpool (Nation + Alter) – neue Karri
   s.date.year = 2028; delete s.poolV; by('Luke Littler').age = 30; by('Brendan Dolan').nation = 'IRL';
   ST.migrate(s);
   assert.equal(by('Luke Littler').age, 20); assert.equal(by('Brendan Dolan').nation, 'NIR'); assert.equal(s.poolV, 95);
+});
+
+test('New Star Darts v96: ehemalige Tourcard-Holder in der Challenge Tour, neue Nebentour-Spieler – auch in alten Spielständen', async () => {
+  const N = await import('../js/nsd.js'), ST = await import('../js/state.js'), P = await import('../data/players.js');
+  const s = N.newNsdCareer({ first: 'C', last: 'T', nation: 'DE', age: 20, slot: 1, seed: 6 });
+  const by = n => Object.values(s.world.players).find(p => p.name === n);
+  assert.equal(P.CT_FORMER.length, 18);
+  for (const [n] of P.CT_FORMER) assert.ok(['challenge', 'dev'].includes(by(n)?.tier), n);
+  assert.deepEqual([by('Wesley Harms').nation, by('Wesley Harms').tier, by('Florian Hempel').age], ['NL', 'challenge', 35]);
+  assert.equal(by('Leighton Bennett').age, 20);
+  assert.deepEqual(['Simon Whitlock', 'Paul Lim', 'Xiaochen Zong', 'Danny Baggish'].map(n => by(n)?.circuit), ['dpa', 'asia', 'asia', 'cdc']);
+  // alter Spielstand ohne die Neuen
+  for (const p of Object.values(s.world.players)) if (/^K\d+$/.test(p.id) || ['Simon Whitlock', 'Paul Lim'].includes(p.name)) delete s.world.players[p.id];
+  s.date.year = 2027; ST.migrate(s);
+  assert.equal(Object.values(s.world.players).filter(p => /^K\d+$/.test(p.id)).length, 18);
+  assert.equal(by('Florian Hempel').age, 36); assert.ok(by('Simon Whitlock') && by('Paul Lim'));
+  ST.migrate(s); assert.equal(Object.values(s.world.players).filter(p => p.name === 'Florian Hempel').length, 1, 'keine Doppelten');
 });
 
 console.log(`\n${n} Tests ok`);

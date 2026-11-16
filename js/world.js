@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -30,6 +30,7 @@ export function createWorld(rng, startYear = 2027) {
   add(LOCAL_PLAYERS.map(([n, nat, a, avg]) => [n, nat, a, avg - LOCAL_SHIFT]), 'L', 'local', null);
   addSecondary(players, rng, startYear);
   addJdc(players, rng, startYear);
+  addFormer(players, rng, startYear);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   // Fiktive Spieler (lokale Amateure, fiktive CT-Spieler): Namen je Karriere zufällig aus Vor-/Nachnamen der Nation
   const used = new Set(Object.values(players).filter(p => p.id[0] !== 'L').map(p => p.name));
@@ -143,6 +144,17 @@ export function changeStrength(p, delta) {
   const d = ratingForAvgExact(p.avg) - before;
   for (const k of ['fin', 'men', 'foc', 'cal']) p.attrs[k] = clamp(Math.round(p.attrs[k] + d), 1, 100);
   p.attrs.sco = clamp(Math.round((before + d) * 10) / 10, 1, 100);
+}
+
+// Ehemalige Tourcard-Holder (Version 96): fehlende als Challenge-Spieler aufnehmen (IDs K1 …), auch in alten Spielständen
+export function addFormer(players, rng, year) {
+  const have = new Set(Object.values(players).map(p => p.name));
+  CT_FORMER.forEach(([name, nation, age27, avg], i) => {
+    const id = `K${i + 1}`;
+    if (players[id] || have.has(name)) return;
+    const age = age27 - 1 + (year - 2026);
+    players[id] = { id, name, nation, age, avg, tier: age <= DEV_MAX_AGE ? 'dev' : 'challenge', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng) };
+  });
 }
 
 // JDC-Talente (Version 94): alle, die im Jahr `year` mindestens 16 sind und noch fehlen, als Dev-Spieler aufnehmen (IDs J1 …).

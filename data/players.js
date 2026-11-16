@@ -110,6 +110,14 @@ export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
 // --- Challenge Tour (nur ohne Tourcard): Nutzerliste CT-OOM, Plätze 1–75 ---
 // Stärke aus Platzierung: 91 Ø − 0,14 je Platz (75 → 80,6). Dev-Spieler auf der Liste stehen nur in DEV_PLAYERS
 // (spielen ohnehin CT mit; Average = max(Dev, CT)). Danach 30 fiktive Europäer (~66–72 Ø) als Kanonenfutter.
+// Ehemalige Tourcard-Holder ohne Karte 2026 (Version 96, Nutzerwunsch) → Challenge Tour, IDs K…; Alter auf Basis 2027 (= Alter 01.01.2026 + 1, aus Claudes Wissen),
+// Average geschätzt. Werden auch alten Spielständen hinzugefügt (world.js addFormer).
+export const CT_FORMER = [
+  ['Florian Hempel', 'DE', 36, 88.0], ['Rowby-John Rodriguez', 'AT', 32, 87.5], ['José de Sousa', 'PT', 52, 87.5], ['Jim Williams', 'WAL', 42, 87.5],
+  ['Nathan Rafferty', 'NIR', 26, 87.0], ['Danny Jansen', 'NL', 30, 86.5], ['Martijn Kleermaker', 'NL', 35, 86.5], ['Adrian Lewis', 'ENG', 41, 86.5],
+  ['Josh Payne', 'ENG', 36, 86.0], ['Leighton Bennett', 'ENG', 21, 86.0], ['Jitse van der Wal', 'NL', 30, 85.5], ['Nico Kurz', 'DE', 29, 85.5],
+  ['Wesley Harms', 'NL', 42, 85.5], ['Dom Taylor', 'ENG', 29, 85.0], ['Ryan Hogarth', 'SCO', 39, 84.5], ['René Eidams', 'DE', 37, 84.5],
+  ['Dragutin Horvat', 'DE', 49, 84.0], ['Darren Webster', 'ENG', 58, 84.0]];
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
 export const CHALLENGE_PLAYERS = [
   ['Joe Hunt', 'ENG', 34, 91.0], ['Derek Coulson', 'WAL', 58, 90.9], ['Tommy Morris', 'ENG', 34, 90.7],
