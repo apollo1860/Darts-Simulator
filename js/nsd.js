@@ -8,9 +8,12 @@ import { starArticle } from './articles.js';
 import { DARTS } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
+import { ratingForAvgExact } from './player.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES } from '../data/players.js';
+import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 97;
+export const APP_VERSION = 98;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -104,6 +107,68 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
   nameTeam(s);
   addNews(s, 'info', `Willkommen auf der Tour, ${first}!`,
     `Über die Q-School ${y} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
+  return s;
+}
+
+// ---- Reale Spieler (Version 98): Karriere als echter Profi starten ----
+// Liste aller echten Spieler der Welt zum Spielstart 2026 (ohne Frauen – Spieler sind männlich; JDC erst ab 16):
+// {name, nation, age (2026), avg (Startwert der Welt), card, group}
+export function realPlayers() {
+  const out = [], seen = new Set();
+  const add = (name0, nation, age, avg, card, group) => {
+    const name = NAME_FIXES[name0] ?? name0;
+    if (seen.has(name) || age == null || age < 16) return;
+    seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group });
+  };
+  for (const [n, nat, a, avg] of [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026]) add(n, nat, a - 1, avg, true, 'Tourcard');   // Listen auf Basis 2027
+  for (const [n, nat, a, avg] of [...CHALLENGE_PLAYERS.slice(0, -CT_FICTIONAL), ...CT_FORMER]) add(n, nat, a - 1, avg, false, 'Challenge Tour');
+  for (const [n, nat, a, avg] of DEV_PLAYERS) add(n, nat, a - 1, avg, false, 'Development Tour');
+  for (const [n, nat, a, lo, hi] of JDC_TALENTS) add(n, nat, a, jdcStartAvg(lo, hi), false, 'JDC-Talent');
+  for (const c of Object.values(SECONDARY)) if (!c.woman) c.players.forEach(([n, nat, a, base], i) => add(n, nat, a, base ?? c.avgTop - i, false, c.label));
+  return out.sort((x, y) => x.name.localeCompare(y.name, 'de'));
+}
+// Start-Fähigkeiten eines echten Spielers aus seinem Average (Mittelwerte von attrsForAverage, Attribut → Fähigkeit 0–60);
+// Mental = Star-Status. Unter Ø ~86 liegt alles bei 0 (wie ein neuer Holder).
+const toSkill = attr => Math.max(0, Math.min(SKILL_MAX, Math.round((attr - ATTR_BASE) / ATTR_PER_POINT)));
+export function realStartSkills(avg) {
+  const sco = ratingForAvgExact(avg);
+  return { sco: toSkill(sco), fin: toSkill(sco - 1), foc: toSkill(sco - 1), cal: toSkill(sco), men: Math.max(1, toSkill(sco - 2)) };
+}
+const fillSkill = v => Array.from({ length: SKILL_LEVELS }, (_, i) => Math.max(0, Math.min(3, v - 3 * i)));
+// ID im Spielstand umbenennen (Ranglisten, Qualifikationen): Schlüssel und Werte
+function renameId(o, from, to) {
+  if (!o || typeof o !== 'object') return;
+  for (const k of Object.keys(o)) {
+    const v = o[k];
+    if (v && typeof v === 'object') renameId(v, from, to);
+    else if (v === from) o[k] = to;
+    if (k === from) { o[to] = o[k]; delete o[k]; }
+  }
+}
+export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_DEFAULT }) {
+  const r = realPlayers().find(x => x.name === name);
+  if (!r) throw new Error('Unbekannter Spieler');
+  const [first, ...rest] = name.split(' ');
+  const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: r.age, hand, slot, seed, angle });
+  const p = s.player, y = s.date.year, ai = Object.values(s.world.players).find(x => x.name === name && !x.rival);
+  if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
+  if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}` });
+  else {                                               // ohne Tourcard: Challenge Tour (Q-School 2026 gespielt), jedes Jahr Q-School möglich
+    Object.assign(p, { tour: 'none', cardUntil: null, cardVia: null, everTourcard: CT_FORMER.some(x => x[0] === name), qschoolYear: y });
+    s.openTour = true;
+  }
+  const sk = realStartSkills(ai?.avg ?? r.avg);
+  for (const t of TRAINABLE) p.skills[t.key] = fillSkill(sk[t.key]);
+  p.star = { level: sk.men, xp: 0 }; p.starSeen = { level: sk.men, xp: 0 };
+  p.rel.fans = Math.max(10, Math.min(90, Math.round(10 + 1.6 * (sk.men - 1))));
+  s.stars = Math.round(START_STARS * drinkFactor(sk.men));   // gleiche Kaufkraft wie ein Neuling (Getränkepreise wachsen mit dem Status)
+  Object.assign(p, { assessed: true, real: name, proMatches: 999 });
+  syncAttrs(p);
+  s.news = [];
+  addNews(s, 'info', `Willkommen, ${name}!`, p.tour === 'tour'
+    ? `Du startest als ${name} in die Saison ${y} – Tourcard bis Ende ${p.cardUntil}.`
+    : `Du startest als ${name} ohne Tourcard in die Saison ${y}: Challenge Tour${p.age <= 23 ? ' und Development Tour' : ''} – und jedes Jahr die Q-School.`);
+  setGoals(s);
   return s;
 }
 

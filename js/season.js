@@ -151,9 +151,12 @@ export function yearEnd(state) {
     lost.push(pl.name);
     if (pl.id === 'P') {
       p.tour = 'none'; p.cardUntil = null;
-      if (state.mode === 'nsd') {                          // New Star Darts: letzte Chance Q-School, sonst Karriereende
+      if (state.mode === 'nsd' && state.openTour) {        // Version 98: realer Spieler – Karriere geht über Challenge Tour/Q-School weiter
+        addNews(state, 'ranking', '⚠️ Tourcard verloren', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). Weiter geht es über die Q-School in KW 2 und die Challenge Tour.`);
+        cardArticle(state, 'lost', x.rank);
+      } else if (state.mode === 'nsd') {                   // New Star Darts: letzte Chance Q-School, sonst Karriereende
         state.lastChance = { year: y + 1 };
-        addNews(state, 'ranking', '⚠️ Tourcard verloren – LAST CHANCE', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). In KW 2 ${y + 1} hast du eine letzte Chance: Erreiche an einem Q-School-Tag das Halbfinale – sonst ist deine Karriere vorbei.`);
+        addNews(state, 'ranking', '⚠️ Tourcard verloren – LAST CHANCE', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). In KW 2 ${y + 1} hast du eine letzte Chance: Hol dir in der Q-School eine Tourcard (Finale eines Tages oder über die Q-School-Rangliste) – sonst ist deine Karriere vorbei.`);
         cardArticle(state, 'lost', x.rank);
       } else addNews(state, 'ranking', 'Tourcard verloren', `Platz ${x.rank} der PDC Order of Merit reicht nicht (Top 64 nötig). Zurück zur Q-School.`);
     } else { pl.tier = 'challenge'; pl.cardUntil = null; }

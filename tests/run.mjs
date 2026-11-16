@@ -2505,4 +2505,29 @@ test('New Star Darts v97: Alterskorrekturen der neuen Spieler – auch in alten 
   assert.deepEqual([by('Danny Jansen').age, by('Danny Jansen').tier, by('Xiaochen Zong').age], [23, 'dev', 27]);
 });
 
+test('New Star Darts v98: Karriere als realer Spieler (Rangliste, Tourcard, Start-Fähigkeiten, ohne Karte über Challenge Tour/Q-School)', async () => {
+  const N = await import('../js/nsd.js'), CAL = await import('../js/calendar.js'), T = await import('../js/tournaments.js');
+  const L = N.realPlayers();
+  assert.ok(L.length > 350 && L.every(r => r.age >= 16) && !L.some(r => r.name === 'Fallon Sherrock') && !L.some(r => r.name === 'Mitchell Lawrie'));
+  assert.equal(new Set(L.map(r => r.name)).size, L.length);
+  // Littler: Tourcard, Platz 1 (Rangliste übernommen), hohe Fähigkeiten und Status, KI-Littler weg
+  const s = N.newRealCareer({ name: 'Luke Littler', seed: 1 }), p = s.player;
+  assert.equal(p.name, 'Luke Littler'); assert.equal(p.nation, 'ENG'); assert.equal(p.age, 18);
+  assert.equal(p.tour, 'tour'); assert.equal(rankOf(s, 'pdc', 'P'), 1);
+  assert.ok(!Object.values(s.world.players).some(x => x.name === 'Luke Littler'));
+  assert.ok(N.skillValue(p, 'sco') >= 50 && p.star.level >= 40 && p.assessed && s.stars > 1000);
+  assert.ok(Math.abs(p.attrs.sco - 98.8) < 0.5);
+  // schwächerer Holder: deutlich niedrigere Werte; Spieler ohne Karte: Challenge Tour + Q-School offen, keine Last-Chance-Regel
+  const w = N.newRealCareer({ name: 'Martin Schindler', seed: 2 });
+  assert.ok(N.skillValue(w.player, 'sco') < N.skillValue(p, 'sco') && w.player.star.level < p.star.level);
+  const h = N.newRealCareer({ name: 'Florian Hempel', seed: 3 });
+  assert.equal(h.player.tour, 'none'); assert.ok(h.openTour); assert.equal(h.player.qschoolYear, 2026);
+  h.date.week = 11; h.week = { played: false, eventId: null };
+  const ct = CAL.eventsInWeek(h, 2026, 11).find(e => e.cat === 'challenge');
+  assert.ok(ct && CAL.shownTo(h, ct) && T.eventStatus(h, ct).playable);
+  assert.ok(!CAL.nsdBlocked(h, { cat: 'qschool' }));
+  assert.ok(CAL.nsdBlocked(s, { cat: 'challenge' }), 'Holder: Challenge Tour weiter gesperrt');
+  assert.throws(() => N.newRealCareer({ name: 'Niemand Unbekannt' }));
+});
+
 console.log(`\n${n} Tests ok`);

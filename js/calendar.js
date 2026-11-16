@@ -46,7 +46,8 @@ export function eventsInWeek(state, year, week) {
 // Version 87: Development Tour für Spieler bis 23 Jahre sichtbar (ob du mitspielen darfst – nur außerhalb der PDC-Top-64 –, prüft `eligibility`); ältere sehen sie nicht
 export const nsdBlocked = (state, ev) => state.mode === 'nsd' && NSD_BLOCKED.has(ev.cat)
   && !(ev.cat === 'qschool' && state.lastChance?.year === state.date.year)
-  && !(ev.cat === 'dev' && state.player.age <= DEV_MAX_AGE);
+  && !(ev.cat === 'dev' && state.player.age <= DEV_MAX_AGE)
+  && !(state.openTour && state.player.tour !== 'tour' && (ev.cat === 'qschool' || ev.cat === 'challenge'));   // Version 98: realer Spieler ohne Karte
 export const shownTo = (state, ev) => !nsdBlocked(state, ev) && (ev.cat !== 'wmreg' || (!ev.aiOnly && ev.nations.includes(state.player.nation)));
 
 export function findEvent(state, id, year = state.date.year, week = state.date.week) {

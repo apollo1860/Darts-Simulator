@@ -1,7 +1,7 @@
-// Spielerprofil erstellen: Vorname, Nachname, Nation, Alter, Wurfhand
-import { NATIONS } from '../../../../data/nations.js';
+// Spielerprofil erstellen: eigener Spieler (Vorname, Nachname, Nation, Alter, Wurfhand) oder realer Spieler (Version 98: Suche + Auswahlliste)
+import { NATIONS, flag } from '../../../../data/nations.js';
 import { START_AGES } from '../../../player.js';
-import { newNsdCareer } from '../../../nsd.js';
+import { newNsdCareer, newRealCareer, realPlayers, realStartSkills } from '../../../nsd.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, severity, stability } from '../../../obstruction.js';
 import { saveGame, listSlots } from '../../../state.js';
 import { randomSeed } from '../../../rng.js';
@@ -10,7 +10,21 @@ import { frame, titleBand, darkBar, bar, arrowIcon, checkIcon } from '../frame.j
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
-const form = { first: '', last: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT };
+const form = { mode: 'own', first: '', last: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT, search: '', real: '' };
+let REAL = null;
+const reals = () => (REAL ??= realPlayers());
+const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const matches = () => { const q = norm(form.search.trim()); return q ? reals().filter(r => norm(r.name).includes(q)) : reals(); };
+const realOptions = list => list.length ? list.map(r => `<option value="${esc(r.name)}" ${r.name === form.real ? 'selected' : ''}>${esc(r.name)} (${r.nation}, ${r.age})</option>`).join('')
+  : '<option value="">Kein Spieler gefunden</option>';
+// Infokarte zum gewählten realen Spieler: Nation, Alter, Tour, geschätzte Start-Fähigkeiten
+function realInfo() {
+  const r = reals().find(x => x.name === form.real);
+  if (!r) return '<div class="nsd-angle-note">Spieler suchen und auswählen.</div>';
+  const sk = realStartSkills(r.avg), row = (l, v) => `<div class="nsd-result-row"><span>${l}</span><b>${v}</b></div>`;
+  return `<div class="nsd-result">${row('Nation', `${flag(r.nation)} ${esc(NATIONS[r.nation]?.name ?? r.nation)}`)}${row('Alter', `${r.age} Jahre`)}${row('Start', r.card ? 'mit Tourcard' : esc(r.group))}
+    ${row('Scoring · Finishing', `${sk.sco} · ${sk.fin}`)}${row('Fokus · Rechnen', `${sk.foc} · ${sk.cal}`)}${row('Star-Status (Mental)', sk.men)}</div>`;
+}
 
 // Seitenansicht: Board links, Dart steckt im roten Feld; positiver Winkel = hinteres Ende (Flight) oben
 const dartSvg = a => `<svg class="nsd-angle-svg" viewBox="0 0 260 150" aria-hidden="true">
@@ -29,6 +43,14 @@ export function render() {
   return frame({
     body: `${titleBand('Spielerprofil erstellen')}
     <div class="nsd-rows">
+      <div class="nsd-seg" id="p-mode">${[['own', 'Eigener Spieler'], ['real', 'Realer Spieler']].map(([m, l]) =>
+        `<button class="nsd-btn ${form.mode === m ? 'blue' : ''}" data-m="${m}"><span class="lb">${l}</span></button>`).join('')}</div>
+      ${form.mode === 'real' ? `${darkBar('Spieler suchen')}<input class="nsd-input" id="p-search" maxlength="30" placeholder="Name eingeben …" value="${esc(form.search)}" autocomplete="off">
+      <div class="nsd-field arrow"><select class="nsd-select" id="p-real">${realOptions(matches())}</select></div>
+      <div id="p-info">${realInfo()}</div>
+      <div class="nsd-stack">${darkBar('Wurfhand', 'sm')}
+        <div class="nsd-seg" id="p-hand">${[['R', 'Rechts'], ['L', 'Links']].map(([h, l]) =>
+          `<button class="nsd-btn ${form.hand === h ? 'blue' : ''}" data-h="${h}"><span class="lb">${l}</span></button>`).join('')}</div></div>` : `
       ${darkBar('Vorname')}<input class="nsd-input" id="p-first" maxlength="16" value="${esc(form.first)}" autocomplete="off">
       ${darkBar('Nachname')}<input class="nsd-input" id="p-last" maxlength="18" value="${esc(form.last)}" autocomplete="off">
       ${darkBar('Nation')}
@@ -41,7 +63,7 @@ export function render() {
         <div class="nsd-stack">${darkBar('Wurfhand', 'sm')}
           <div class="nsd-seg" id="p-hand">${[['R', 'Rechts'], ['L', 'Links']].map(([h, l]) =>
             `<button class="nsd-btn ${form.hand === h ? 'blue' : ''}" data-h="${h}"><span class="lb">${l}</span></button>`).join('')}</div></div>
-      </div>
+      </div>`}
       ${darkBar('Einschlagwinkel der Darts')}
       <div class="nsd-angle">
         <div class="nsd-angle-row"><input type="range" class="nsd-range" id="p-angle" min="${ANGLE_MIN}" max="${ANGLE_MAX}" step="1" value="${form.angle}"><b id="p-angle-v">${form.angle}°</b></div>
@@ -56,11 +78,25 @@ export function render() {
 }
 
 export function mount(root, app, params) {
-  const f = root.querySelector('#p-first'), l = root.querySelector('#p-last');
-  f.oninput = () => { form.first = f.value; };
-  l.oninput = () => { form.last = l.value; };
-  root.querySelector('#p-nation').onchange = e => { form.nation = e.target.value; };
-  root.querySelector('#p-age').onchange = e => { form.age = +e.target.value; };
+  const on = (sel, ev, fn) => { const el = root.querySelector(sel); if (el) el[ev] = fn; };
+  root.querySelector('#p-mode').onclick = e => { const b = e.target.closest('[data-m]'); if (b && b.dataset.m !== form.mode) { form.mode = b.dataset.m; app.refresh(); } };
+  on('#p-first', 'oninput', e => { form.first = e.target.value; });
+  on('#p-last', 'oninput', e => { form.last = e.target.value; });
+  on('#p-nation', 'onchange', e => { form.nation = e.target.value; });
+  on('#p-age', 'onchange', e => { form.age = +e.target.value; });
+  // Realer Spieler: Eingabefeld filtert die Auswahlliste (ohne Neuaufbau, damit die Tastatur offen bleibt)
+  const sel = root.querySelector('#p-real'), info = root.querySelector('#p-info');
+  const pick = () => { form.real = sel.value; info.innerHTML = realInfo(); };
+  if (sel) {
+    if (!form.real || !matches().some(r => r.name === form.real)) pick();
+    sel.onchange = pick;
+    root.querySelector('#p-search').oninput = e => {
+      form.search = e.target.value;
+      const list = matches();
+      if (!list.some(r => r.name === form.real)) form.real = list[0]?.name ?? '';
+      sel.innerHTML = realOptions(list); info.innerHTML = realInfo();
+    };
+  }
   root.querySelector('#p-angle').oninput = e => {
     form.angle = +e.target.value;
     root.querySelector('#p-angle-v').textContent = `${form.angle}°`;
@@ -69,11 +105,13 @@ export function mount(root, app, params) {
   };
   root.querySelector('#p-hand').onclick = e => { const b = e.target.closest('[data-h]'); if (b) { form.hand = b.dataset.h; app.refresh(); } };
   root.querySelector('#p-ok').onclick = async () => {
-    const first = form.first.trim(), last = form.last.trim();
-    if (first.length < 2 || last.length < 2) return toast('Bitte Vor- und Nachnamen eingeben', 'error');
+    const first = form.first.trim(), last = form.last.trim(), real = form.mode === 'real';
+    if (real && !reals().some(r => r.name === form.real)) return toast('Bitte einen Spieler auswählen', 'error');
+    if (!real && (first.length < 2 || last.length < 2)) return toast('Bitte Vor- und Nachnamen eingeben', 'error');
     const slot = params.slot ?? 1;
     if (!listSlots().find(s => s.slot === slot).empty && !await confirmDialog('Slot überschreiben?', `In Slot ${slot} liegt bereits ein Spielstand.`, 'Überschreiben')) return;
-    app.state = newNsdCareer({ first, last, nation: form.nation, age: form.age, hand: form.hand, angle: form.angle, slot, seed: randomSeed() });
+    app.state = real ? newRealCareer({ name: form.real, hand: form.hand, angle: form.angle, slot, seed: randomSeed() })
+      : newNsdCareer({ first, last, nation: form.nation, age: form.age, hand: form.hand, angle: form.angle, slot, seed: randomSeed() });
     saveGame(app.state);
     form.first = ''; form.last = '';
     app.go('intro');
