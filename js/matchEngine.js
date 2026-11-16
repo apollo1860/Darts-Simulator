@@ -115,12 +115,26 @@ function visit(p, r, st, rng, pressure, fatigue) {
 }
 const targetAvgRef = p => p.avgBase ?? p.avg;
 
+// Version 144: Double-in – Aufnahme, solange noch kein Doppel getroffen ist: je Dart Chance aufs Doppel (meist D20, selten D1/D5);
+// nach dem Treffer zählen die restlichen Darts normal. Rückgabe wie visit() + in (true = jetzt drin).
+export const DIN_HIT = 1.1;   // Chance je Dart = Checkout-Basis × DIN_HIT (D20 ist das bevorzugte Doppel, Nachbar-Doppel zählen mit)
+function inVisit(p, rng, fatigue) {
+  const h = clamp(p.co * DIN_HIT, 0.05, 0.75);
+  for (let d = 1; d <= 3; d++) {
+    if (!rng.chance(h)) continue;
+    const dbl = rng.chance(0.85) ? 40 : rng.pick([2, 10]), n = 3 - d;
+    const rest = n ? clamp(Math.round(rng.normal(n * p.avg * fatigue * SCORING_BOOST / 3, p.sd * Math.sqrt(n / 3))), 0, 60 * n) : 0;
+    return { pts: dbl + rest, darts: 3, finished: false, in: true };
+  }
+  return { pts: 0, darts: 3, finished: false, in: false };
+}
+
 // Teams (World Cup, Version 80): Zuwachs der Seitenstatistik durch einen Besuch auf das Teammitglied übertragen
 const MEMBER_KEYS = ['points', 'darts', 's180', 's140', 's100', 'coHit', 'coAtt', 'bogey', 'calcErr'];
 const addMember = (ms, s, snap) => { for (const k of MEMBER_KEYS) ms[k] += s[k] - snap[k]; };
 
 function simLeg(starter, prof, st, rng, ctx) {
-  const rem = [501, 501], legDarts = [0, 0], visits = [0, 0];
+  const rem = [501, 501], legDarts = [0, 0], visits = [0, 0], inn = [!ctx.din, !ctx.din];
   let t = starter;
   for (let n = 0; n < 400; n++) {
     const idx = visits[t]++ % prof[t].length, p = prof[t][idx], s = st[t];   // Teams (World Cup): Partner wechseln sich ab
@@ -129,7 +143,8 @@ function simLeg(starter, prof, st, rng, ctx) {
     const pressure = ctx.wouldWin(t) ? clamp(0.8 + 0.17 * (p.men / 100) + 0.025 * p.exp, 0.55, 1.3) : 1;
     let fatigue = ctx.legIdx > 10 ? Math.max(0.9, 1 - (ctx.legIdx - 10) * 0.0025 * (1 - p.foc / 100)) : 1;
     if (ctx.wouldWin(0) && ctx.wouldWin(1)) fatigue *= 1 + 0.006 * p.exp;   // Entscheidungsleg: Scoring
-    const v = visit(p, rem[t], s, rng, pressure, fatigue);
+    const v = inn[t] ? visit(p, rem[t], s, rng, pressure, fatigue) : inVisit(p, rng, fatigue);
+    if (v.in) inn[t] = true;
     s.darts += v.darts; legDarts[t] += v.darts;
     if (!v.bust) { s.points += v.pts; rem[t] -= v.pts; addScore(s, v.pts); }
     if (ms) addMember(ms, s, snap);
@@ -155,7 +170,7 @@ export function simulateMatch(attrsA, attrsB, format, rng, opts = {}) {
   const log = [];
   for (;;) {
     const wouldWin = i => (isSets ? legs[i] + 1 >= legsTo && sets[i] + 1 >= setsTo : legsWin(format, legs.map((l, j) => l + (j === i ? 1 : 0)), i));
-    const w = simLeg(legStarter, prof, st, rng, { wouldWin, legIdx, mem });
+    const w = simLeg(legStarter, prof, st, rng, { wouldWin, legIdx, mem, din: !!format.din });
     legIdx++; legs[w]++;
     log.push(w);
     legStarter = 1 - legStarter;
@@ -188,6 +203,6 @@ export function finalizeStats(s) {
   };
 }
 
-export const formatLabel = f => f.sets ? `Best of ${f.sets * 2 - 1} Sets` : `Best of ${f.legs * 2 - 1} Legs`;
+export const formatLabel = f => (f.sets ? `Best of ${f.sets * 2 - 1} Sets` : `Best of ${f.legs * 2 - 1} Legs`) + (f.din ? ' · Double-in' : '');
 // Zeilen fürs Scoreboard: bei Sätzen zusätzlich die Legs je Satz
-export const formatLines = f => (f.sets ? [formatLabel(f), `Satz: Best of ${f.legs * 2 - 1}`] : [`Best of ${f.legs * 2 - 1}`, f.clear ? 'Legs · 2 Legs Vorsprung' : 'Legs']);
+export const formatLines = f => [...(f.sets ? [formatLabel(f), `Satz: Best of ${f.legs * 2 - 1}`] : [`Best of ${f.legs * 2 - 1}`, f.clear ? 'Legs · 2 Legs Vorsprung' : 'Legs']), ...(f.din ? ['Double-in · Double-out'] : [])];

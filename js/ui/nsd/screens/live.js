@@ -5,7 +5,7 @@ import { esc, fmtNum, surname } from '../../../util.js';
 import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
 import { flag } from '../../../../data/nations.js';
-import { legAverage, liveAverage, dartsLeft, isSuddenDeath, inExtension } from '../../../matchState.js';
+import { legAverage, liveAverage, dartsLeft, isSuddenDeath, inExtension, needsIn } from '../../../matchState.js';
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy, nineAlive, nineStill } from '../../../tournaments.js';
@@ -23,7 +23,7 @@ import { frame, bar, bindHead, checkIcon } from '../frame.js';
 export const nsd = true;
 const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
-const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME', nine: '✨ 9-DARTER MÖGLICH', fish: '🐟 170 – BIG FISH' };
+const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME', nine: '✨ 9-DARTER MÖGLICH', fish: '🐟 170 – BIG FISH', din: '🎯 DOUBLE-IN' };
 const HELP = '<p><b>Spielmomente</b> 🎲: Etwa alle ein bis zwei Matches passiert ein Zwischenfall (rutschiger Dart, Zwischenruf, Blitzlicht …). Du wählst eine von zwei Optionen – jede kann mit gleicher Chance gut oder schlecht ausgehen. Dein Wurf (und die Simulation) wird für einige Aufnahmen besser oder schlechter; Fans, Manager und Sponsoren können dauerhaft etwas mitbekommen.</p><p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
 let ui = null;
 // Einsatz (Version 107): 1 ❤ gelb, 2 ❤ orange (Standard), 3 ❤ rot – mehr Einsatz = mehr Spielszenen, aber mehr Energieverbrauch
@@ -290,8 +290,8 @@ function nextDart() {
   drawShadows();
   $('#rem').textContent = m.rem[ui.me];
   ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
-  const sug = suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next());
-  setTarget(miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng));         // schwaches Rechnen: Vorschlag manchmal falsch
+  const sug = needsIn(m, ui.me) ? 'D20' : suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next());   // Version 144: Double-in → erst ein Doppel
+  setTarget(needsIn(m, ui.me) ? sug : miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng));         // schwaches Rechnen: Vorschlag manchmal falsch
   $t().querySelector('.lb').textContent = `Werfen (Dart ${m.visit.darts.length + 1})`;
   $t().disabled = false;
 }
@@ -304,13 +304,13 @@ function setTarget(label) {
   const route = ui.ce < 0.12 ? checkoutRoute(m.rem[ui.me], dartsLeft(m)) : null;   // Weg nur bei ordentlichem Rechnen
   const blk = a.prm.block ?? 0;
   const mm = momentMult(ui.s), hints = [
-    route ? `Weg ${route.map(fieldName).join(' – ')}` : '', a.prm.pressure ? '<span class="neg">Druck!</span>' : '', a.prm.shaky ? '<span class="neg">😰 Hand zittert</span>' : '',
+    needsIn(m, ui.me) ? '<span class="neg">Double-in: erst ein Doppel treffen</span>' : '', route ? `Weg ${route.map(fieldName).join(' – ')}` : '', a.prm.pressure ? '<span class="neg">Druck!</span>' : '', a.prm.shaky ? '<span class="neg">😰 Hand zittert</span>' : '',
     nervesNow(ui.s).pts ? '<span class="neg">😰 Nervös</span>' : '',
     mm !== 1 ? `<span class="${mm < 1 ? 'pos' : 'neg'}">🎲 Moment: Streuung ${mm < 1 ? '−' : '+'}${Math.round(Math.abs(1 - mm) * 100)} %</span>` : '',
     blk >= 0.1 ? `<span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
   $('#info').innerHTML = hints.join(' · ');                           // das Ziel zeigen Scheibe und Chips; Spielstand: TV-Anzeige
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
-  const chips = [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
+  const chips = needsIn(m, ui.me) ? ['D20', 'D16', 'D10', 'D18', 'BULL'] : [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
   $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '⚠ ' : ''}${fieldName(t)}</button>`).join('');
 }
 function onKey(e) {

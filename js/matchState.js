@@ -56,12 +56,16 @@ function addScoreBand(s, pts) {
 
 // Einen Dart werten. hit = {label, score, double}. Rückgabe: Ereignis
 // pos (optional): Position des Darts in mm – wer steckt, wird für die „Verbauung“ (obstruction.js) bis zum Aufnahmeende gemerkt
+// Version 144: Double-in (World Grand Prix, `format.din`): Punkte zählen erst ab dem ersten getroffenen Doppel (inkl. Bull) im Leg
+export const needsIn = (m, i) => !!m.format?.din && !m.inn?.[i];
 export function throwDart(m, hit, pos = null) {
   if (m.done) return null;
   m.legPoints ??= [0, 0]; m.legVisits ??= [[], []];   // ältere Spielstände
   const t = m.turn, s = m.stats[t];
   const r = m.rem[t];
-  const after = r - hit.score;
+  let sc = hit.score;
+  if (needsIn(m, t)) { if (hit.double) (m.inn ??= [false, false])[t] = true; else sc = 0; }   // noch nicht „drin“: Dart zählt nichts
+  const after = r - sc;
   m.visit.darts.push(hit.label);
   if (pos && hit.label !== 'OUT' && hit.label !== 'BOUNCER' && hit.label !== 'ROBIN') (m.visit.tips ??= []).push({ x: pos.x, y: pos.y });
   m.legDarts[t]++;
@@ -123,7 +127,7 @@ function endLeg(m, w, ev) {
   } else m.legStarter = 1 - m.legStarter;
   // Sudden Death: Anwurf per Zufall – beim Matchstart gewürfelt (`m.sdStarter`, tournaments.js), sonst Parität der Punkte
   if (isSuddenDeath(m.format, m.legs)) { m.legStarter = m.sdStarter ?? (m.stats[0].points + m.stats[1].points + m.legIdx) % 2; m.suddenDeath = true; ev.suddenDeath = true; }
-  m.rem = [501, 501]; m.legDarts = [0, 0]; m.last = [null, null];
+  m.rem = [501, 501]; m.legDarts = [0, 0]; m.last = [null, null]; m.inn = [false, false];
   m.legPoints = [0, 0]; m.legVisits = [[], []];
   m.turn = m.legStarter;
   m.visit = { darts: [], start: 501 };

@@ -1,7 +1,7 @@
 // Wurfmodell (DOM-frei): KI-Würfe (Gauß-Streuung um das Ziel) und Parameter fürs manuelle Zielen
 import { targetPoint, scoreAt, suggestTarget, isDoubleLabel, labelValue, BOGEY } from './board.js';
 import { targetAverage, checkoutBase, calcError } from './player.js';
-import { wouldWinMatch, isDecider, dartsLeft, onDouble } from './matchState.js';
+import { wouldWinMatch, isDecider, dartsLeft, onDouble, needsIn } from './matchState.js';
 import { clamp } from './util.js';
 import { blockage, stability, SWITCH_AT, BLOCK_SIGMA, BOUNCE_P, BOUNCER, bounceChance, robinChance, ROBIN } from './obstruction.js';
 
@@ -64,11 +64,12 @@ function maybeMiscalc(target, rem, ce, rng) {
 // KI-Dart: Ziel wählen + werfen. Rückgabe {target, x, y, hit}
 export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced = null) {
   // forced = vom Spieler gewählter Weg (keine Rechenfehler); attrs.ce = eigene Fehlerquote (Tour-Modus, aus Rechnen 0–60)
-  let target = forced ?? maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng);
+  const din = needsIn(m, i);                           // Version 144: Double-in – erst ein Doppel (D20)
+  let target = forced ?? (din ? 'D20' : maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng));
   // Einsteckwinkel: Steckende Darts dieser Aufnahme verbauen das Feld (obstruction.js). Im reinen Scoring wechselt die KI auf T19/T18/T17.
   const ang = attrs.angle, tips = m.visit.tips;
   let block = ang != null && tips?.length ? blockage(targetPoint(target), tips, ang) : 0;
-  if (block >= SWITCH_AT && forced == null && m.rem[i] > 230) {
+  if (block >= SWITCH_AT && forced == null && !din && m.rem[i] > 230) {
     const alt = ['T19', 'T18', 'T17'].map(t => [t, blockage(targetPoint(t), tips, ang)]).sort((a, b) => a[1] - b[1])[0];
     if (alt[1] <= block - 0.3) { target = alt[0]; block = alt[1]; }
   }

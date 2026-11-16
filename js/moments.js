@@ -7,7 +7,7 @@ import { MOMENTS } from '../data/moments.js';
 import { RNG } from './rng.js';
 import { getPlayer } from './world.js';
 import { surname } from './util.js';
-import { addMod, playerMatch, lateMatch, nineAlive, bigFish } from './tournaments.js';
+import { addMod, playerMatch, lateMatch, nineAlive, bigFish, dinScene } from './tournaments.js';
 import { addFans, addRel, addEnergy } from './nsd.js';
 import { managerOf } from './career.js';
 
@@ -35,7 +35,7 @@ export function momentDue(state) {
   if (!lm || lm.done || lm.turn !== live.me || lm.visit.darts.length) return null;
   if (live.moment === undefined) planMoment(state);
   const mo = live.moment;
-  if (!mo || mo.done || lateMatch(lm) || nineAlive(state) || bigFish(state)) return null;   // kein Zwischenfall vor 9-Darter-Versuch / 170
+  if (!mo || mo.done || lateMatch(lm) || nineAlive(state) || bigFish(state) || dinScene(state)) return null;   // kein Zwischenfall vor 9-Darter-Versuch / 170
   return Math.floor(lm.stats[live.me].darts / 3) >= mo.atVisit ? mo : null;
 }
 

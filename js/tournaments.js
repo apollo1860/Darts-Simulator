@@ -4,7 +4,7 @@ import { CATEGORIES, FORMATS, QSCHOOL_UK_NATIONS, ET_REGIONS } from '../data/tou
 import { PRIZES } from '../data/prizemoney.js';
 import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
-import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider, inExtension } from './matchState.js';
+import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider, inExtension, needsIn } from './matchState.js';
 import { BOGEY, scoreAt, targetPoint, checkoutRoute } from './board.js';
 import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER, bounceChance, robinChance, ROBIN, flightRobin } from './obstruction.js';
 import { dartBounce } from '../data/gear.js';
@@ -508,11 +508,21 @@ export function keyMoment(state) {
   const live = state.activeEvent?.live, lm = live?.m;
   if (!lm || lm.done || lm.turn !== live.me || lm.visit.darts.length || !canSelfPlay(state.player)) return null;
   if (liveThrower(state, live.me) !== 'P') return null;          // Doppel: Partner wirft
+  if (dinScene(state)) return 'din';                              // Version 144: Double-in – erste Aufnahme des Legs zu 75 % selbst (extra)
   if (nineAlive(state)) return wouldWinMatch(lm, live.me) && lm.rem[live.me] <= 170 ? 'match' : 'nine';   // 9-Darter: extra, zählt nicht mit
   if (bigFish(state)) return wouldWinMatch(lm, live.me) ? 'match' : 'fish';   // Version 129: Rest 170 – immer selbst, extra
   const kind = pickMoment(state, live, lm) ?? forcedMoment(live, lm);
   if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
   return kind;
+}
+// Version 144 (Nutzerwunsch): Bei Double-in (World Grand Prix) ist deine erste Aufnahme eines Legs zu 75 % eine Spielszene – zusätzlich,
+// wie 9-Darter/170 (setzt weder `sceneLeg` noch das Kontingent). Gewürfelt einmal je Leg (`live.dinLeg`/`live.dinOn`, bleibt beim Neuladen).
+export const DIN_SCENE = 0.75;
+export function dinScene(state) {
+  const live = state.activeEvent?.live, lm = live?.m;
+  if (!lm?.format?.din || !needsIn(lm, live.me) || (lm.legVisits?.[live.me]?.length ?? 0) > 0) return false;
+  if (live.dinLeg !== lm.legIdx) { live.dinLeg = lm.legIdx; live.dinOn = new RNG(state.rng).chance(DIN_SCENE); }
+  return live.dinOn;
 }
 // Version 115 (Nutzerwunsch): Nach einer perfekten ersten Aufnahme (170/171/174/177/180 – danach ist ein 9-Darter noch möglich) wirfst du
 // die 2. Aufnahme und – solange der 9-Darter möglich bleibt (Rest ≤ 170, kein Bogey) – auch die 3. selbst. Diese Szenen kommen immer

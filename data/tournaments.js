@@ -225,7 +225,7 @@ export const FORMATS = {
   masters: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   ukopen: { default: { legs: 6 }, byRemaining: { 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   matchplay: { default: { legs: 10, clear: 2, extra: 6 }, byRemaining: { 16: { legs: 11, clear: 2, extra: 6 }, 8: { legs: 16, clear: 2, extra: 6 }, 4: { legs: 17, clear: 2, extra: 6 }, 2: { legs: 18, clear: 2, extra: 6 } } },   // Version 132: zwei Legs Vorsprung, max. 6 Zusatzlegs, dann Sudden Death   // R1 Bo19, AF Bo21, VF Bo31, HF Bo33, F Bo35
-  wgp: { default: { sets: 2, legs: 3 }, byRemaining: { 16: { sets: 3, legs: 3 }, 8: { sets: 3, legs: 3 }, 4: { sets: 4, legs: 3 }, 2: { sets: 5, legs: 3 } } },
+  wgp: { default: { sets: 2, legs: 3, din: true }, byRemaining: { 16: { sets: 3, legs: 3, din: true }, 8: { sets: 3, legs: 3, din: true }, 4: { sets: 4, legs: 3, din: true }, 2: { sets: 5, legs: 3, din: true } } },   // Version 144: Double-in
   ec: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   gsod: { group: { legs: 5 }, default: { legs: 10 }, byRemaining: { 8: { legs: 16 }, 4: { legs: 16 }, 2: { legs: 16 } } },
   pcf: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },

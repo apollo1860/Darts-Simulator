@@ -3013,4 +3013,35 @@ test('New Star Darts v140: Osteuropa-Qualifier (European Tour) mit SK/RS/RO/BG/U
   assert.ok(skIn > 10, `Slowakei zugelassen (${skIn}/30)`);
 });
 
+test('New Star Darts v144: World Grand Prix mit Double-in, erste Aufnahme zu 75 % Spielszene', async () => {
+  const MS = await import('../js/matchState.js'), E = await import('../js/matchEngine.js'), TM = await import('../js/throwModel.js'), T = await import('../js/tournaments.js');
+  const B = await import('../js/board.js'), P = await import('../js/player.js'), { FORMATS } = await import('../data/tournaments.js'), { RNG } = await import('../js/rng.js');
+  const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
+  assert.ok(FORMATS.wgp.default.din && Object.values(FORMATS.wgp.byRemaining).every(f => f.din), 'WGP: Double-in in allen Runden');
+  assert.ok(E.formatLines(FORMATS.wgp.default).includes('Double-in · Double-out') && /Double-in/.test(E.formatLabel(FORMATS.wgp.default)));
+  // Punkte zählen erst ab dem ersten Doppel
+  const m = MS.createMatch({ sets: 1, legs: 3, din: true }, 0);
+  MS.throwDart(m, H('T20')); assert.equal(m.rem[0], 501, 'T20 vor dem Doppel zählt nicht'); assert.ok(MS.needsIn(m, 0));
+  MS.throwDart(m, H('D20')); assert.equal(m.rem[0], 461); assert.equal(MS.needsIn(m, 0), false);
+  MS.throwDart(m, H('T20')); assert.equal(m.rem[0], 401, 'danach zählt alles');
+  assert.ok(MS.needsIn(m, 1), 'Gegner noch nicht drin'); MS.throwDart(m, H('BULL')); assert.equal(m.rem[1], 451, 'Bull zählt als Doppel');
+  const n = MS.createMatch({ legs: 3 }, 0); MS.throwDart(n, H('T20')); assert.equal(n.rem[0], 441, 'ohne Double-in normal');
+  // KI zielt auf D20, solange sie nicht drin ist; Averages sinken (Sim und Darts ähnlich)
+  const rng = new RNG(3), a = P.attrsForAverage(95, rng);
+  assert.equal(TM.aiDart(MS.createMatch({ legs: 3, din: true }, 0), 0, a, rng).target, 'D20');
+  let s0 = 0, s1 = 0; for (let i = 0; i < 200; i++) { s0 += E.simulateMatch(a, a, { sets: 3, legs: 3 }, rng).stats[0].avg; s1 += E.simulateMatch(a, a, { sets: 3, legs: 3, din: true }, rng).stats[0].avg; }
+  assert.ok(s1 / 200 < s0 / 200 - 4 && s1 / 200 > s0 / 200 - 14, `Sim-Ø ${(s0 / 200).toFixed(1)} → ${(s1 / 200).toFixed(1)}`);
+  // Spielszene: erste eigene Aufnahme je Leg ≈ 75 %
+  let on = 0, legs = 400;
+  for (let k = 0; k < legs; k++) {
+    const st = { rng: { s: 1000 + k }, activeEvent: { live: { m: MS.createMatch({ sets: 1, legs: 3, din: true }, 0), me: 0 } } };
+    if (T.dinScene(st)) on++;
+    assert.equal(T.dinScene(st), T.dinScene(st), 'stabil je Leg');
+  }
+  assert.ok(Math.abs(on / legs - 0.75) < 0.07, `Szenen ${on}/${legs}`);
+  const later = { rng: { s: 5 }, activeEvent: { live: { m: MS.createMatch({ sets: 1, legs: 3, din: true }, 0), me: 0 } } };
+  ['S1', 'S1', 'S1'].forEach(l => MS.throwDart(later.activeEvent.live.m, H(l))); ['S1', 'S1', 'S1'].forEach(l => MS.throwDart(later.activeEvent.live.m, H(l)));
+  assert.equal(T.dinScene(later), false, 'nur die erste Aufnahme');
+});
+
 console.log(`\n${n} Tests ok`);
