@@ -255,9 +255,11 @@ test('Mehrere Saisons: Karten, Jahreswechsel, Welt bleibt stabil', () => {
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
   assert.ok(playersOfTier(s, 'tour').every(p => p.cardUntil >= 2030 && p.cardVia));
   // Titelträger: je Saison alle Majors erfasst
-  for (const y of [2027, 2028, 2029]) for (const id of ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm', 'wcod', 'pl-final', 'youth-wm'])
+  for (const y of [2029]) for (const id of ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm', 'wcod', 'pl-final', 'youth-wm'])
     assert.ok(s.champions[y].some(c => c.eventId === id), `${id} ${y}`);
-  assert.equal(s.champions[2027].filter(c => c.cat === 'pc').length, 30);
+  assert.equal(s.champions[2029].filter(c => c.cat === 'pc').length, 30);
+  assert.ok(Object.keys(s.champions).every(y => +y >= 2029), 'Version 163: nur Vorjahr + aktuelles Jahr');
+  assert.ok(Object.keys(s.rankings.years).every(y => +y >= 2028) && Object.keys(s.qual).every(y => +y >= 2029), 'alte Jahre gelöscht');
   console.log(`   3 Saisons in ${Date.now() - t0} ms · Tour ${tour} · ohne Karte ${nonCardPros(s).length} · JSON ${(JSON.stringify(s).length / 1024).toFixed(0)} KB`);
 });
 
@@ -3262,6 +3264,54 @@ test('New Star Darts v162: Silvia Lindner spielt je Match einen Average zwischen
   for (let k = 0; k < 200; k++) { const r = E.simulateMatch(T.rangeAttrs(s, sl, { ...inst, current: k }, 'X').attrs, opp, { legs: 4 }, rng); av.push(r.stats[0].points / r.stats[0].darts * 3); }
   av.sort((a, b) => a - b);
   assert.ok(av[20] < 57 && av[180] > 70, `Spanne ${av[20].toFixed(1)}–${av[180].toFixed(1)}`);
+});
+
+test('New Star Darts v163: Altersabbau, häufiger trainieren im Alter, langsamerer Status ab Top 16', async () => {
+  const N = await import('../js/nsd.js'), K = await import('../js/skilltrain.js'), R = await import('../js/rankings.js');
+  assert.deepEqual([30, 33, 35, 36, 39, 40, 44, 45, 55].map(K.ageDecline), [0, 1, 1, 2, 2, 3, 3, 4, 4]);
+  assert.ok(K.decayFrom(25) === 9 && K.decayFrom(37) < 9 && K.decayFrom(45) === 3 && K.decayFrom(60) === 3, 'Frist sinkt bis 45 auf 3 Wochen');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 41, slot: 1, seed: 67 });
+  for (const t of N.TRAINABLE) N.setSkill(s.player, t.key, 40);
+  const lost = K.ageDeclineYear(s);
+  assert.ok(N.TRAINABLE.every(t => lost[t.key] === 3 && N.skillValue(s.player, t.key) === 37), 'mit 41: −3 je Fähigkeit');
+  assert.ok(s.news.some(n => /Alter 41/.test(n.title)));
+  // Star-Status: ab Top 16 gedämpft
+  assert.deepEqual([1, 3, 5, 8, 12, 16, 17, null].map(N.topSlow), [0.45, 0.45, 0.55, 0.55, 0.7, 0.7, 1, 1]);
+  const c = structuredClone(s); c.player.star = { level: 20, xp: 0 };
+  ((c.rankings.years[c.date.year] ??= {}).pdc ??= {}).P = 1e6;
+  assert.equal(R.rankOf(c, 'pdc', 'P'), 1);
+  N.addStarProgress(c, 50); assert.ok(Math.abs(c.player.star.xp - 50 * 0.45) < 0.11, `Top 1: ${c.player.star.xp}`);
+  const d = structuredClone(s); d.player.star = { level: 20, xp: 0 }; N.addStarProgress(d, 50); assert.equal(d.player.star.xp, 50, 'außerhalb der Top 16 ungebremst');
+});
+
+test('New Star Darts v163: Titel bringen mehr Fans, WM-Titel riesig', async () => {
+  const N = await import('../js/nsd.js');
+  const mk = f => ({ rel: { fans: f } });
+  const g = (f, inst) => { const p = mk(f); N.titleFans(p, inst); return p.rel.fans - f; };
+  assert.ok(g(60, { cat: 'pc' }) >= 1 && g(60, { cat: 'major', fmt: 'masters' }) >= 4 && g(60, { cat: 'major', fmt: 'matchplay' }) > g(60, { cat: 'major', fmt: 'masters' }));
+  assert.ok(g(60, { cat: 'major', fmt: 'masters' }) > 10 * (1 - 0.6) ** 2, 'mehr als die alte quadratische Bremse');
+  assert.equal(g(60, { cat: 'major', fmt: 'wm' }), 20, 'WM: halber Abstand zu 100');
+  assert.equal(g(20, { cat: 'major', fmt: 'wm' }), 40); assert.equal(g(95, { cat: 'major', fmt: 'wm' }), 5, 'nie über 100');
+  assert.ok(g(60, { cat: 'pl', plNight: 1 }) < 1, 'PL-Spieltag klein');
+});
+
+test('New Star Darts v163: Ausfall-Woche – Premier League kampflos (Freilos für den Gegner), World Cup mit Nachrücker', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), M = await import('../js/majors.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 71 });
+  const y = s.date.year; ((s.rankings.years[y] ??= {}).pdc ??= {}).P = 1e6;   // Platz 1 → Premier League + World Cup
+  const pl = M.plState(s); if (!pl.players.includes('P')) pl.players[7] = 'P';
+  s.date.week = 6; s.week = { played: false, eventId: null, blocked: { id: 'injury', label: 'Schwere Rückenschmerzen', icon: '🦴' } };
+  const n0 = s.results.length, out = T.simulateWeekAI(s), night = out.find(i => i.plNight);
+  assert.ok(night, 'Spieltag gespielt'); assert.ok(night.rounds[0].matches.some(m => m.walkover && (m.a === 'P' || m.b === 'P')), 'kampflos');
+  assert.equal(M.plState(s).points.P, 0, 'keine Punkte'); assert.equal(s.results.length, n0, 'kein eigenes Ergebnis');
+  assert.ok(s.news.some(x => /kampflos verloren/.test(x.title)));
+  // World Cup (KW 24)
+  s.date.week = 24; s.week = { played: false, eventId: null, blocked: { id: 'injury', label: 'Schwere Rückenschmerzen', icon: '🦴' } };
+  assert.ok(M.wcTeams(s).P, 'du wärst im Team');
+  T.simulateWeekAI(s);
+  const teams = M.wcTeams(s);
+  assert.ok(!teams.P && teams['W:DE'] && teams['W:DE'].members.length === 2 && !teams['W:DE'].members.includes('P'), 'Nachrücker');
+  assert.ok(s.news.some(x => /ohne dich/.test(x.title)));
 });
 
 console.log(`\n${n} Tests ok`);

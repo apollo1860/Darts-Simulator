@@ -1,6 +1,12 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 163**:
+  - **Spielstand klein** (`pruneSave` in rankings.js, zum Jahreswechsel + beim Laden): Preisgeld nur der letzten 3 Jahre, Titelträger und Felder/Qualifier nur Vorjahr + aktuelles Jahr → statt ≈ 67 KB nur noch ≈ 6 KB Wachstum je Saison (8 Saisons: 590 statt 1.006 KB). Titelträger-Anzeige zeigt damit höchstens Vorjahr + aktuelles Jahr.
+  - **Langsamer ab Top 16** (`topSlow`/`TOP_SLOW` in nsd.js, in `addStarProgress`): Star-Status-Gewinne × 0,7 (Top 16), × 0,55 (Top 8), × 0,45 (Top 3).
+  - **Altersabbau** (`ageDeclineYear`/`AGE_DECLINE` in skilltrain.js, Jahreswechsel): ab 33 je Fähigkeit −1 (33–35), −2 (36–39), −3 (40–44), −4 (ab 45), auch mit Training; News. Trainingsfrist sinkt jetzt schon bis 45 (statt 60) auf 3 Wochen (`DECAY_AGE_SPAN` 16), Verlustchance bis 70 %.
+  - **Titel-Fans** (`titleFans`/`TITLE_FANS` in nsd.js): Floor 3, ET/WS/Youth/Women's Matchplay 5, PL-Play-offs/Major 10, World Matchplay 14, PL-Spieltag 1 – gebremst nur mit (1 − Fans/100), mind. 15 %; **WM-Titel: halber Abstand zu 100 Fans, mind. +15**.
+  - **Ausfall-Woche** (schwere Rückenschmerzen): Premier-League-Spieltag/Play-offs kampflos verloren (`inst.walkover`, Freilos für den Gegner, keine Punkte), World Cup mit Nachrücker deiner Nation (`wcWithdraw` in majors.js).
 - [x] **Version 162**: Silvia Lindner spielt launisch: Average-Spanne 52–75 (`avgRange` als 5. Wert in data/secondary.js, `rangeAttrs` in tournaments.js): je Match (Turnier/Teil/Runde/Gegner, per Hash fest) ein eigener Average aus der Spanne – gilt in der Schnellsimulation, den Hintergrundturnieren und im Liveticker; Ranglisten-/Sortierwert `avg` = Mitte 63,5. Bestehende Spielstände über `migrate`. Annahme: „Schnitt 52–75“ = schwankend je Match (nicht ein fester Wert je Karriere).
 - [x] **Version 161**: Reale Spieler ohne hinterlegtes Alter sind wählbar (auch Männer, `realPlayers`), das Alter wird im Profil frei gewählt (Auswahl „Alter (frei wählbar)“ in der Infokarte, `newRealCareer(…, age)`; bekanntes Alter bleibt). Silvia Lindner (DE) neu im Women's-Series-Pool (Annahme: Ø 52,0, da kein Wert vorlag); Bianca Michalczyk war schon drin (Ø 52,36). `addSecondary` legt zurückgetretene Nebentour-Spieler(innen) nicht mehr neu an (Prüfung über `circuit`).
 - [x] **Version 160**: Fans nach einem Sieg nie weniger (`fansAfterMatch`: Sieg mit Note ≤ 7,0 → ±0); Niederlage bis 6,0 weiter −1, starke Niederlage über 7,0 weiter +1.

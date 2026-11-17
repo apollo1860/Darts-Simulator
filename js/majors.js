@@ -114,22 +114,41 @@ export const WC_NATIONS = [
 export function wcTeams(state) {
   const q = qualOf(state);
   if (q.wcTeams) return q.wcTeams;
-  const p = state.player, rankP = idsOf(orderOfMerit(state, 'pdc'));
-  const score = x => { const r = rankP.indexOf(x.id); return r >= 0 ? 1000 - r : overall(x.attrs); };
-  const cands = nat => [...playersOfTier(state, 'tour', 'challenge', 'dev', 'secondary', 'ddv', 'local', 'amateur'), ...(p.tour === 'tour' || p.qschoolYear === state.date.year ? [p] : [])]
-    .filter(x => x.nation === nat && !x.woman);
-  const teams = {};
+  const { score, cands } = wcPool(state), teams = {};
   for (const nat of WC_NATIONS) {
     let list = cands(nat);
     if (list.length < 2) { addAmateurs(state, nat, 2 - list.length); list = cands(nat); }
-    const two = list.sort((a, b) => score(b) - score(a)).slice(0, 2);
-    const id = two.some(x => x.id === 'P') ? 'P' : `W:${nat}`;
-    const avg = k => Math.round((two[0].attrs[k] + two[1].attrs[k]) / 2);
-    teams[id] = { id, nation: nat, name: `Team ${nationName(nat)}`, members: two.map(x => x.id), age: '–',
-      attrs: { sco: avg('sco'), fin: avg('fin'), men: avg('men'), foc: avg('foc'), cal: avg('cal') },
-      exp: Math.round(((two[0].exp ?? 0) + (two[1].exp ?? 0)) / 2), strength: score(two[0]) + score(two[1]) };
+    const t = wcTeam(nat, list.sort((a, b) => score(b) - score(a)).slice(0, 2), score);
+    teams[t.id] = t;
   }
   return (q.wcTeams = teams);
+}
+const wcPool = (state, withP = true) => {
+  const p = state.player, rankP = idsOf(orderOfMerit(state, 'pdc'));
+  const score = x => { const r = rankP.indexOf(x.id); return r >= 0 ? 1000 - r : overall(x.attrs); };
+  const cands = nat => [...playersOfTier(state, 'tour', 'challenge', 'dev', 'secondary', 'ddv', 'local', 'amateur'), ...(withP && (p.tour === 'tour' || p.qschoolYear === state.date.year) ? [p] : [])]
+    .filter(x => x.nation === nat && !x.woman);
+  return { score, cands };
+};
+function wcTeam(nat, two, score) {
+  const id = two.some(x => x.id === 'P') ? 'P' : `W:${nat}`;
+  const avg = k => Math.round((two[0].attrs[k] + two[1].attrs[k]) / 2);
+  return { id, nation: nat, name: `Team ${nationName(nat)}`, members: two.map(x => x.id), age: '–',
+    attrs: { sco: avg('sco'), fin: avg('fin'), men: avg('men'), foc: avg('foc'), cal: avg('cal') },
+    exp: Math.round(((two[0].exp ?? 0) + (two[1].exp ?? 0)) / 2), strength: score(two[0]) + score(two[1]) };
+}
+// Version 163: Ausfall (schwere Rückenschmerzen) in der World-Cup-Woche – dein Team spielt mit einem Nachrücker deiner Nation
+export function wcWithdraw(state) {
+  const q = qualOf(state), teams = wcTeams(state), t = teams.P;
+  if (!t) return null;
+  const { score, cands } = wcPool(state, false), partner = t.members.find(id => id !== 'P');
+  let list = cands(t.nation).filter(x => x.id !== partner);
+  if (!list.length) { addAmateurs(state, t.nation, 1); list = cands(t.nation).filter(x => x.id !== partner); }
+  const sub = list.sort((a, b) => score(b) - score(a))[0], mate = getPlayer(state, partner);
+  const nt = wcTeam(t.nation, [mate, sub].sort((a, b) => score(b) - score(a)), score);
+  delete teams.P; teams[nt.id] = nt;
+  if (q.wcod) q.wcod = q.wcod.map(id => (id === 'P' ? nt.id : id));   // schon fixiertes Feld
+  return sub;
 }
 
 // ---- Premier League ----

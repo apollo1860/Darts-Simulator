@@ -11,9 +11,10 @@ import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.j
 import { ratingForAvgExact, START_AGES } from './player.js';
 import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES, WOMEN_ON_TOUR } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
+import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 162;
+export const APP_VERSION = 163;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -316,8 +317,12 @@ export function titleStarBonus(level, cat, fmt) {
   const m = TITLE_MULT[fmt] ?? (cat === 'major' && fmt !== 'youth' ? TITLE_MULT.major : 1);
   return Math.round(STAR_TITLE * w * m * starScale(level) * 10) / 10;
 }
+// Version 163: ab den Top 16 der PDC-Rangliste wächst der Star-Status langsamer (Top 16 × 0,7, Top 8 × 0,55, Top 3 × 0,45) – nur Gewinne
+export const TOP_SLOW = [[3, 0.45], [8, 0.55], [16, 0.7]];
+export const topSlow = rank => (rank ? TOP_SLOW.find(([r]) => rank <= r)?.[1] ?? 1 : 1);
 export function addStarProgress(state, pts) {
   const p = state.player, st = p.star;
+  if (pts > 0 && state.mode === 'nsd') pts *= topSlow(rankOf(state, 'pdc', 'P'));
   let ups = 0;
   st.xp = Math.max(0, Math.round(((st.xp ?? 0) + pts) * 10) / 10);
   while (st.level < STAR_MAX && st.xp >= starNeed(st.level)) { st.xp = Math.round((st.xp - starNeed(st.level)) * 10) / 10; st.level++; ups++; }
@@ -359,6 +364,15 @@ export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null,
 export const addFans = (p, n) => addRel(p, 'fans', n > 0 ? Math.round(n * Math.max(0.05, (1 - (p.rel.fans ?? 0) / 100) ** 2) * 10) / 10 : n);
 export function addRel(p, key, n) { p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key]; }
 // Version 159: Fans nach jedem Match: über 7,0 +1 (ab 8,5 +2), 6,1–7,0 ±0, bis 6,0 −1 – Version 160: nach einem Sieg nie ein Verlust
+// Version 163: Titel bringen deutlich mehr Fans (gebremst nur mit (1 − Fans/100), nicht quadratisch); WM-Titel: die Hälfte des Abstands zu 100, mind. +15
+export const TITLE_FANS = { floor: 3, et: 5, ws: 5, pl: 10, major: 10, matchplay: 14 };   // PL-Spieltag: 1
+export function titleFans(p, inst) {
+  const f = p.rel.fans ?? 0;
+  if (inst.fmt === 'wm') return addRel(p, 'fans', Math.round(Math.max(15, 0.5 * (100 - f)))) - f;
+  const n = inst.plNight ? 1 : inst.fmt === 'matchplay' ? TITLE_FANS.matchplay : inst.fmt === 'youth' || inst.fmt === 'wwm' ? TITLE_FANS.et
+    : isFloor(inst) ? TITLE_FANS.floor : TITLE_FANS[inst.cat] ?? TITLE_FANS.floor;
+  return addRel(p, 'fans', Math.round(n * Math.max(0.15, 1 - f / 100) * 10) / 10) - f;
+}
 export const fansAfterMatch = (won, rating) => (rating > 7 ? 1 + (rating >= 8.5 ? 1 : 0) : rating > 6 || won ? 0 : -1);
 
 // ---- Editor (Spielstand künstlich anpassen) ----

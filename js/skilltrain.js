@@ -82,9 +82,23 @@ export function finishTraining(state, key, L, attempt, { placement = false } = {
 }
 
 // ---- Formverlust: ab 9 Wochen ohne Training kann 1 Punkt verloren gehen, ab 13 Wochen 2 … (je 4 Wochen +1) ----
-// Ab 30 körperlicher Abbau: die Schwelle sinkt bis 60 auf 3 Wochen, die Chance steigt bis 70 %
-export const DECAY_FROM = 9, DECAY_STEP = 4, DECAY_CHANCE = 0.35, DECAY_WARN = 7;
-const ageT = age => Math.max(0, Math.min(1, ((age ?? 20) - 29) / 31));
+// Ab 30 körperlicher Abbau: die Schwelle sinkt (Version 163: schon bis 45, vorher 60) auf 3 Wochen, die Chance steigt bis 70 %
+export const DECAY_FROM = 9, DECAY_STEP = 4, DECAY_CHANCE = 0.35, DECAY_WARN = 7, DECAY_AGE_FROM = 29, DECAY_AGE_SPAN = 16;
+const ageT = age => Math.max(0, Math.min(1, ((age ?? 20) - DECAY_AGE_FROM) / DECAY_AGE_SPAN));
+// Version 163: Altersabbau – zu jedem Jahreswechsel gehen ab 33 Punkte auf allen trainierbaren Fähigkeiten verloren, auch mit Training
+// (33–35: 1, 36–39: 2, 40–44: 3, ab 45: 4 je Fähigkeit); verlorene Sterne lassen sich zurücktrainieren.
+export const AGE_DECLINE = [[45, 4], [40, 3], [36, 2], [33, 1]];
+export const ageDecline = age => AGE_DECLINE.find(([a]) => (age ?? 0) >= a)?.[1] ?? 0;
+export function ageDeclineYear(state) {
+  const p = state.player, n = ageDecline(p.age);
+  if (!n) return null;
+  const lost = {};
+  for (const t of TRAINABLE) { let k = 0; for (let i = 0; i < n; i++) if (removePoint(p, t.key)) k++; if (k) lost[t.key] = k; }
+  syncAttrs(p);
+  if (Object.keys(lost).length) addNews(state, 'info', `📉 Alter ${p.age}: Fähigkeiten lassen nach`,
+    `Der Körper baut ab: ${TRAINABLE.filter(t => lost[t.key]).map(t => `${t.label} −${lost[t.key]} (jetzt ${skillValue(p, t.key)})`).join(', ')}. Trainiere, um die Sterne zurückzuholen – und trainiere öfter, sonst geht noch mehr verloren.`);
+  return lost;
+}
 export const decayFrom = (age = 20) => DECAY_FROM - Math.round(6 * ageT(age));
 export const decayChance = (age = 20) => DECAY_CHANCE + 0.35 * ageT(age);
 export const decayWarn = (age = 20) => Math.max(1, decayFrom(age) - 2);

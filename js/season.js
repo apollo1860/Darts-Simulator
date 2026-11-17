@@ -3,7 +3,7 @@ import { RNG } from './rng.js';
 import { advanceWeek, eventsInWeek } from './calendar.js';
 import { simulateWeekAI, awardCard, qschoolRankingCards, closeEvent } from './tournaments.js';
 import { WDF_MAJOR_TIERS } from '../data/tournaments.js';
-import { orderOfMerit, OOM_TYPES, rankOf, devHolders } from './rankings.js';
+import { orderOfMerit, OOM_TYPES, rankOf, devHolders, pruneSave } from './rankings.js';
 import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE, TOP_PROTECT } from './world.js';
 import { addNews } from './news.js';
 import { rankArticle, cardArticle, plArticle, plLineupArticle } from './articles.js';
@@ -26,7 +26,7 @@ import { syncAttrs, addEnergy } from './nsd.js';
 import { lifeWeek, weeklyEnergy } from './life.js';
 import { injuryWeek } from './injury.js';
 import { careerWeek, setGoals, seasonReport, preWmInterview, dilemmaWeek } from './career.js';
-import { decayWeek, soberUp, expireBoosts } from './skilltrain.js';
+import { decayWeek, soberUp, expireBoosts, ageDeclineYear } from './skilltrain.js';
 
 // „Weiter“: aktuelle Woche abschließen und zur nächsten springen. false = Turnier läuft noch.
 export function nextWeek(state) {
@@ -48,7 +48,7 @@ export function nextWeek(state) {
     if (inj) addNews(state, 'info', inj.title, inj.text);
     soberUp(state.player); expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); dilemmaWeek(state, new RNG(state.rng));
     state.weekly = { ...c, energy: state.player.energy - e0, injury: inj ? -50 : 0 };
-    if (state.date.week === 1) setGoals(state);
+    if (state.date.week === 1) { ageDeclineYear(state); setGoals(state); }   // Version 163: Altersabbau zum Jahreswechsel
     lastChanceCheck(state);
     const wm = !state.ended && eventsInWeek(state, state.date.year, state.date.week).find(e => e.id === 'wm');   // WM-Woche: Elmar Paulke bittet zum Interview
     if (wm && !state.flags?.paulke?.[state.date.year]) preWmInterview(state, new RNG(state.rng), !!eventStatus(state, wm).playable);
@@ -64,7 +64,7 @@ export function nextWeek(state) {
   }
   trackPeak(state);
   if (!nsd) rankMilestones(state);
-  if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); if (nsd) announcePl(state); }
+  if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); if (nsd) announcePl(state); pruneSave(state); }   // Version 163: alte Jahre aufräumen
   if (state.mode === 'nsd') syncAttrs(state.player);     // Fähigkeiten bestimmen die Attribute
   return true;
 }

@@ -40,6 +40,17 @@ export function settleOom(state, key, oom, map, year = state.date.year) {
   for (const y of Object.keys(r.gone ?? {})) if (+y < year) delete r.gone[y];
 }
 
+// Version 163: Spielstand klein halten – nur aufheben, was Ranglisten und Qualifikationen noch brauchen:
+// Preisgeld der letzten 3 Jahre (2-Jahres-OOM inkl. auslaufendem Vor-Vorjahr), Titelträger dieses und des Vorjahres (Grand-Slam-Qualifikation
+// über TV-Finalisten der letzten 12 Monate; Anzeige „Titelträger“), Felder/Qualifier dieses und des Vorjahres. Die eigene Bilanz liegt in results/stats.
+export const KEEP_MONEY_YEARS = 3, KEEP_CHAMPION_YEARS = 2, KEEP_QUAL_YEARS = 2;
+export function pruneSave(state, year = state.date.year) {
+  const cut = (obj, keep) => { for (const k of Object.keys(obj ?? {})) if (+k <= year - keep) delete obj[k]; };
+  cut(state.rankings?.years, KEEP_MONEY_YEARS);
+  cut(state.champions, KEEP_CHAMPION_YEARS);
+  cut(state.qual, KEEP_QUAL_YEARS);
+}
+
 // Teilnehmerkreis je Rangliste
 function members(state, type, year) {
   const p = state.player;

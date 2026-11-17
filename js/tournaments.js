@@ -16,7 +16,7 @@ import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek, nsdBlocked } from './calendar.js';
 import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches, buildUkOpenRounds, ukOpenMatches } from './bracket.js';
-import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, scorePlNight, plTable, plState, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
+import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, wcWithdraw, scorePlNight, plTable, plState, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
 import { addMoney, settleOom, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { sponsorEventPayout } from './sponsors.js';
@@ -31,7 +31,7 @@ import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
-  matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
+  matchRating, addRel, addFans, fansAfterMatch, titleFans } from './nsd.js';
 import { overall, attrsForAverage } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
@@ -839,6 +839,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
 // Alle offenen KI-Matches der aktuellen Runde simulieren
 function simRoundMatches(state, round, rng, inst) {
   for (const m of round.matches) {
+    if (!m.winner && inst.walkover && (m.a === inst.walkover || m.b === inst.walkover)) { m.winner = m.a === inst.walkover ? m.b : m.a; m.bye = true; m.walkover = true; continue; }   // kampflos
     if (m.winner || (!inst.autoPlayer && (m.a === 'P' || m.b === 'P'))) continue;
     applyResult(m, simulateMatch(attrsOf(state, m.a, inst), attrsOf(state, m.b, inst), round.format, rng));
   }
@@ -1104,7 +1105,7 @@ function nsdEventEnd(state, inst) {
     inst.star = Math.round(((inst.star ?? 0) + bonus) * 10) / 10;
     inst.titleStar = bonus;
     addStarProgress(state, bonus);
-    addFans(p, inst.cat === 'major' ? 5 : 3);
+    inst.titleFans = titleFans(p, inst);                // Version 163: Titel zählen mehr, WM riesig
     p.satisfaction = Math.min(100, (p.satisfaction ?? 30) + (inst.cat === 'major' ? 10 : 3));   // Major-Titel: deutlich zufriedener
   }
 }
@@ -1123,6 +1124,7 @@ export function closeEvent(state) {
 export function runAITournament(state, ev, sub, ctx = {}) {
   const rng = new RNG(state.rng);
   const inst = newInstance(state, ev, sub, false, rng, ctx);
+  if (ctx.walkover) inst.walkover = 'P';
   for (;;) {
     simRoundMatches(state, inst.rounds[inst.current], rng, inst);
     if (inst.current === inst.rounds.length - 1) break;
@@ -1131,6 +1133,10 @@ export function runAITournament(state, ev, sub, ctx = {}) {
   inst.done = true;
   settle(state, inst);
   inst.winner = inst.stopAt === 1 ? inst.survivors[0] : null;
+  if (inst.walkover) {                                 // Version 163: Ausfall – Gegner kommt kampflos weiter, keine Punkte für dich
+    const m = inst.rounds.flatMap(r => r.matches).find(x => x.walkover);
+    addNews(state, 'result', `${inst.name}: kampflos verloren`, `Wegen ${state.week.blocked?.label ?? 'Verletzung'} konntest du nicht antreten – Freilos für ${getPlayer(state, m?.winner)?.name ?? 'deinen Gegner'}.`);
+  }
   // Premier League / World Cup ohne Meldung: Spieler spielt automatisch mit
   if (inst.autoPlayer && inst.places?.P) {
     const nsd = state.mode === 'nsd';
@@ -1156,9 +1162,14 @@ export function simulateWeekAI(state) {
   const out = [];
   for (const ev of eventsInWeek(state, state.date.year, state.date.week)) {
     if (!AI_CATS.includes(ev.cat) || !ev.startsThisWeek || ev.id === state.week.eventId || state.week.extras?.includes(ev.id)) continue;
-    const auto = MAJOR_CATS.includes(ev.cat) && autoPlayer(state, ev);
+    let auto = MAJOR_CATS.includes(ev.cat) && autoPlayer(state, ev), walkover = false;
+    if (auto && state.week.blocked) {                  // Version 163: Ausfall-Woche – PL: Freilos für den Gegner, World Cup: Nachrücker
+      auto = false;
+      if (ev.team) { const sub = wcWithdraw(state); addNews(state, 'result', `${ev.name}: ohne dich`, `Wegen ${state.week.blocked.label} springt ${sub?.name ?? 'ein Nachrücker'} für dich ins Team.`); }
+      else { walkover = true; }
+    }
     let prev = null;
-    for (let s = 0; s < (ev.count ?? 1) && aiRunnable(state, ev); s++) out.push(prev = runAITournament(state, ev, s, { qualifiers: prev?.survivors, auto }));
+    for (let s = 0; s < (ev.count ?? 1) && aiRunnable(state, ev); s++) out.push(prev = runAITournament(state, ev, s, { qualifiers: prev?.survivors, auto, walkover }));
   }
   return out;
 }

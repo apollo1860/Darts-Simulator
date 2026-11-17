@@ -10,7 +10,9 @@ export const nsd = true;
 const HELP = `<p>Jede Fähigkeit hat 20 Trainingslevel mit je bis zu 3 Punkten (max. 60). Ein Training kostet etwas mehr als 50 % Energie.</p>
   <p><b>Mental</b> lässt sich nicht trainieren – es steigt mit jedem neuen Star-Status (bis 60).</p>
   <p>Jede neue Star-Status-Stufe bringt außerdem <b>1 freien Fähigkeitspunkt</b>, den du mit ＋ auf Scoring, Finishing, Fokus oder Rechnen verteilst.</p>
-  <p>Ab 9 Wochen ohne Training einer Fähigkeit können Punkte verloren gehen.</p>`;
+  <p>Ab 9 Wochen ohne Training einer Fähigkeit können Punkte verloren gehen. Ab 30 wird die Frist kürzer (mit 45 nur noch 3 Wochen) – im Alter musst du öfter trainieren.</p>
+  <p><b>Alter:</b> Ab 33 gehen zu jedem Jahreswechsel Punkte auf allen Fähigkeiten verloren (33–35: 1, 36–39: 2, 40–44: 3, ab 45: 4) – du kannst sie zurücktrainieren.</p>
+  <p>Ab den Top 16 der PDC-Rangliste wächst der Star-Status langsamer (Top 8 und Top 3 noch langsamer).</p>`;
 
 export function render(app) {
   const p = app.state.player, e = Math.round(p.energy ?? 100);

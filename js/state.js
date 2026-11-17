@@ -10,7 +10,7 @@ import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
-import { seedRankings } from './rankings.js';
+import { seedRankings, pruneSave } from './rankings.js';
 
 export const VERSION = 12;   // v12: New Star Darts (neuer Speicher-Schlüssel, alte Darts-Career-Stände bleiben unberührt)
 export const SLOTS = [1, 2, 3];
@@ -192,6 +192,7 @@ export function migrate(s) {
   scaleSponsorPay(s);                                                // Version 93/142: Sponsorbeträge × 0,7 bzw. 0,56 (laufende Verträge einmalig)
   dropSponsor180(s);                                                 // Version 143: keine 180er-Prämie mehr
   s.version = VERSION;
+  if (s.mode === 'nsd') pruneSave(s);   // Version 163: alte Jahre aus großen Spielständen entfernen
   return s;
 }
 
