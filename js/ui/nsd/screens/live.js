@@ -121,6 +121,7 @@ function step() {
   const key = keyMoment(ui.s);
   if (key) return startAim(key);
   if (m.turn !== ui.me && boardCall(ui.s) === 'match') return startShow('match');
+  if (m.turn !== ui.me && (m.legDarts?.[m.turn] ?? 0) === 6 && oppNine(m.turn)) return startShow('nine');   // Version 151: nur die letzten 3 Darts eines 9-Darter-Versuchs
   const side = m.turn;
   let r;
   do r = liveDartStep(ui.s); while (!r.visitOver);
@@ -202,7 +203,7 @@ function tvBoard(thrower) {
   const m = ui.live.m, inst = ui.s.activeEvent, round = inst.rounds[inst.current], sets = !!m.format.sets;
   const row = i => {
     const t = inst.teams?.[ui.ids[i]], p = getPlayer(ui.s, ui.ids[i]);
-    const nine = ui.aim?.nine && i === ui.me ? '<span class="tvsb-nine">9</span>' : '';   // 9-Darter im Gange: ragt links aus der Anzeige heraus (TV-Einblendung)
+    const nine = (i === ui.me ? ui.aim?.nine : oppNine(i)) ? `<span class="tvsb-nine" data-side="${i}">9</span>` : '';   // 9-Darter im Gange (auch beim Gegner, Version 151): ragt links heraus
     return `<div class="tvsb-row">${nine}<span class="tvsb-ind">${thrower === i ? '▶' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
       <span class="tvsb-flag">${flag(t?.nation ?? p?.nation)}</span>${sets ? `<span class="tvsb-box">${m.sets[i]}</span>` : ''}<span class="tvsb-box">${m.legs[i]}</span><span class="tvsb-rem">${m.rem[i]}</span></div>`;
   };
@@ -210,7 +211,9 @@ function tvBoard(thrower) {
     ${row(ui.me)}${row(1 - ui.me)}
     <div class="tvsb-foot"><span class="tvsb-title">${inst.year ?? ui.s.date.year} ${esc(inst.name)}</span><span class="tvsb-logo">nsd<b>live</b></span></div>`;
 }
-const drawTv = () => { const el = ui?.aimEl.querySelector('#tvsb'); if (el) { el.innerHTML = tvBoard(ui.live.m.done ? -1 : ui.live.m.turn); el.classList.toggle('nine', !!ui.aim?.nine); } };
+// Version 151: Gegner ist (nach ≥ 1 Aufnahme) noch auf Kurs zum 9-Darter → „9“ auch in seiner Zeile
+const oppNine = side => { const m = ui.live.m, d = m.legDarts?.[side] ?? 0; return !ui.s.activeEvent?.teams && d >= 3 && d < 9 && (m.legVisits?.[side]?.length ?? 0) > 0 && nineStill(m, side); };
+const drawTv = () => { const el = ui?.aimEl.querySelector('#tvsb'); if (el) { el.innerHTML = tvBoard(ui.live.m.done ? -1 : ui.live.m.turn); el.classList.toggle('nine', !!el.querySelector('.tvsb-nine')); } };
 const $ = id => ui.aimEl.querySelector(id);
 function mark(x, y, mine) {
   const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
@@ -241,7 +244,7 @@ function startShow(kind, pre = []) {
   const m = ui.live.m, side = m.turn;
   ui.show = { kind, side, start: m.visit?.start ?? m.rem[side], sum: 0 };
   ui.aimEl.classList.remove('hidden'); ui.aimEl.classList.add('opp');
-  ui.aimEl.innerHTML = boardHtml(`🔴 GEGNER WIRFT · MATCHDARTS · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>`, TV_HTML);
+  ui.aimEl.innerHTML = boardHtml(`🔴 GEGNER WIRFT · ${kind === 'nine' ? '✨ 9-DARTER-VERSUCH' : 'MATCHDARTS'} · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>`, TV_HTML);
   drawTv();
   for (const d of pre) { ui.show.sum += d.hit.score; mark(d.x, d.y, false); }
   ui.timer = setTimeout(showDart, wait(pre.length ? 1100 : 800));
@@ -253,9 +256,13 @@ function showDart() {
   $('#region').setAttribute('d', r.dart.target === 'OUT' ? '' : regionPath(r.dart.target));
   if (r.dart.hit.label !== 'BOUNCER') mark(r.dart.x, r.dart.y, false);
   ui.app.save(); draw(r.visitOver ? r.ev : null);
+  if (sh.kind === 'nine' && !r.ev?.legEnd && !nineStill(ui.live.m, sh.side)) {   // 9-Darter geplatzt → „9“ beim Gegner weg
+    const tv = $('#tvsb'); tv?.querySelector(`.tvsb-nine[data-side="${sh.side}"]`)?.remove(); if (!tv?.querySelector('.tvsb-nine')) tv?.classList.remove('nine');
+  }
   if (!r.visitOver) { ui.timer = setTimeout(showDart, wait(DART_MS)); return; }
+  const nine9 = sh.kind === 'nine' && !!r.ev?.checkout;   // Check mit dem 9. Dart = perfektes Leg
   const ok = r.ev?.checkout || (sh.kind === '180' && sh.sum === 180 && !r.ev?.bust);
-  banner(r.ev?.checkout ? 'Matchdart verwandelt' : sh.kind === '180' ? (ok ? 'ONE HUNDRED AND EIGHTY!' : `Knapp – ${sh.sum}`) : 'Überstanden!', !ok);
+  banner(sh.kind === 'nine' ? (nine9 ? '9-DARTER! Perfektes Leg' : 'Kein 9-Darter') : r.ev?.checkout ? 'Matchdart verwandelt' : sh.kind === '180' ? (ok ? 'ONE HUNDRED AND EIGHTY!' : `Knapp – ${sh.sum}`) : 'Überstanden!', !ok);
   ui.timer = setTimeout(() => { if (!ui) return; closeOverlay(); afterVisit(r.ev, sh.side); }, wait(ok ? 1800 : 1400));
 }
 
@@ -367,7 +374,7 @@ function stopLine() {
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
   if (r.dart.hit.label !== 'BOUNCER') mark(pt.x, pt.y, true);
   if (a.nine && !r.ev?.legEnd && !nineStill(ui.live.m, ui.me)) {   // Version 130: 9-Darter nicht mehr möglich → „9“ verschwindet sofort
-    a.nine = false; const tv = $('#tvsb'); tv?.classList.remove('nine'); tv?.querySelector('.tvsb-nine')?.remove();
+    a.nine = false; const tv = $('#tvsb'); tv?.querySelector(`.tvsb-nine[data-side="${ui.me}"]`)?.remove(); if (!tv?.querySelector('.tvsb-nine')) tv?.classList.remove('nine');
   }
   ui.app.save(); draw(r.visitOver ? r.ev : null);
   if (r.visitOver) ui.app.flushMilestones?.();
