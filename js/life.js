@@ -219,12 +219,13 @@ export function lifeWeek(state, rng) {
   p.satisfaction = Math.round(clamp(s + (satisfactionTarget(p) - s) * 0.08, 0, 100) * 10) / 10;   // langsam
   p.lifestyle = lifestyleOf(p);
   rollLifeEvent(state, rng);
+  if (rankOf(state, 'pdc', 'P') === 1) { const ms = (state.mstats ??= {}); ms.weeksNo1 = (ms.weeksNo1 ?? 0) + 1; }   // Version 165: Wochen auf Platz 1
   checkAchievements(state);
 }
 
 // ---- Erfolge ----
 const SELF0 = { visits: 0, s180: 0, s140: 0, ton: 0, checkouts: 0, hiFinish: 0, bigFish: 0, matchDarts: 0, bull: 0 };
-const MS0 = { nilWins: 0, deciderWins: 0, beatTop16: 0, beatTop8: 0, beatNo1: 0, bestAvg: 0, bestRating: 0 };
+const MS0 = { nilWins: 0, deciderWins: 0, beatTop16: 0, beatTop8: 0, beatNo1: 0, bestAvg: 0, bestRating: 0, weeksNo1: 0 };
 export function achievementCtx(state) {
   const p = state.player, c = state.stats?.career ?? {}, results = state.results ?? [];
   return {

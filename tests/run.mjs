@@ -3030,4 +3030,19 @@ test('New Star Darts v163: Ausfall-Woche – Premier League kampflos (Freilos f�
   assert.ok(s.news.some(x => /ohne dich/.test(x.title)));
 });
 
+test('New Star Darts v165: Meilensteine Triple Crown, Clean Sweep, 50 Wochen auf Platz 1', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), A = await import('../data/achievements.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 73 });
+  const has = id => !!s.achievements?.[id];
+  const win = (eventId, year) => s.results.unshift({ year, week: 30, eventId, name: eventId, cat: 'major', place: 'W', stars: 0 });
+  win('wm', 2026); win('matchplay', 2026); win('pl-final', 2027); L.checkAchievements(s);
+  assert.ok(!has('tripleCrown'), 'verschiedene Jahre zählen nicht');
+  win('pl-final', 2026); L.checkAchievements(s); assert.ok(has('tripleCrown'), 'Triple Crown');
+  for (const id of A.CLEAN_SWEEP.slice(0, -1)) win(id, 2028); L.checkAchievements(s); assert.ok(!has('cleanSweep'));
+  win('wm', 2028); L.checkAchievements(s); assert.ok(has('cleanSweep'), 'Clean Sweep');
+  (s.mstats ??= {}).weeksNo1 = 49; L.checkAchievements(s); assert.ok(!has('no1w50'));
+  ((s.rankings.years[s.date.year] ??= {}).pdc ??= {}).P = 1e6;
+  L.lifeWeek(s, new RNG(1)); assert.equal(s.mstats.weeksNo1, 50); assert.ok(has('no1w50'), '50 Wochen auf Platz 1');
+});
+
 console.log(`\n${n} Tests ok`);

@@ -7,6 +7,10 @@ const res = (c, f) => c.results.some(f);
 const PLACES = ['L128', 'L64', 'L32', 'L16', 'QF', 'SF', 'F', 'W'];
 const best = c => Math.max(-1, ...c.results.filter(r => r.place !== 'NQ' && r.place !== 'QUAL').map(r => PLACES.indexOf(r.place)));
 const M = (cat, id, icon, label, stars, check) => ({ cat, id, icon, label, stars, check });
+// Version 165: alle Titel eines Jahres gewonnen? (Triple Crown: WM + World Matchplay + Premier League; Clean Sweep: alle 8 Ranglisten-Majors)
+export const TRIPLE_CROWN = ['wm', 'matchplay', 'pl-final'];
+export const CLEAN_SWEEP = ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm'];
+const sameYear = (c, ids) => [...new Set(c.titles.map(r => r.year))].some(y => ids.every(id => c.titles.some(r => r.year === y && r.eventId === id)));
 
 export const ACHIEVEMENTS = [
   // --- Am Board (selbst geworfen) ---
@@ -78,6 +82,8 @@ export const ACHIEVEMENTS = [
   M('event', 'pl', '🎤', 'Premier-League-Einladung', 25, c => res(c, r => r.cat === 'pl')),
   M('event', 'plTitle', '🎤', 'Premier League gewonnen', 80, c => t(c, r => r.eventId === 'pl-final')),
   M('event', 'wc', '🌐', 'World Cup gewonnen', 30, c => t(c, r => r.eventId === 'wcod')),
+  M('event', 'tripleCrown', '👑', 'Triple Crown (WM, Matchplay und Premier League in einem Jahr)', 200, c => sameYear(c, TRIPLE_CROWN)),
+  M('event', 'cleanSweep', '🧹', 'Clean Sweep (alle Majors in einem Jahr)', 300, c => sameYear(c, CLEAN_SWEEP)),
   // --- Rangliste ---
   M('rank', 'r100', '📈', 'PDC Top 100', 3, c => c.rank && c.rank <= 100),
   M('rank', 'r64', '📈', 'PDC Top 64', 6, c => c.rank && c.rank <= 64),
@@ -87,6 +93,7 @@ export const ACHIEVEMENTS = [
   M('rank', 'r8', '📈', 'PDC Top 8', 35, c => c.rank && c.rank <= 8),
   M('rank', 'r4', '📈', 'PDC Top 4', 50, c => c.rank && c.rank <= 4),
   M('rank', 'r1', '🥇', 'Weltranglisten-Erster', 100, c => c.rank === 1),
+  M('rank', 'no1w50', '🥇', '50 Wochen auf Platz 1', 150, c => c.ms.weeksNo1 >= 50),
   M('rank', 'pt32', '📊', 'Pro Tour Top 32', 8, c => c.ptRank && c.ptRank <= 32),
   M('rank', 'pt1', '📊', 'Pro-Tour-Spitze', 30, c => c.ptRank === 1),
   // --- Star-Status ---
