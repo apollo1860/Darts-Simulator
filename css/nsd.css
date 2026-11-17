@@ -705,3 +705,7 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .nsd-iv.iv-done { gap: 6px; padding-top: 6px; padding-bottom: 6px; }
 .nsd-iv.iv-done .iv-react { font-size: 1.02rem; }
 .nsd-iv.iv-done .iv-sum { gap: 4px; }
+/* Version 150: Notenzahl erscheint leicht verzögert (einblenden + kurz größer) */
+.nsd-rate-grade b.pop { opacity: 0; transform: scale(.4); animation: nsd-grade-pop .55s cubic-bezier(.2,1.4,.4,1) .7s forwards; display: inline-block; }
+@keyframes nsd-grade-pop { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.18); } 100% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .nsd-rate-grade b.pop { animation: none; opacity: 1; transform: none; } }

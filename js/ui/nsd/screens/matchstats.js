@@ -49,7 +49,7 @@ function ratingSlide(app, s, lm, p) {
     body: `${header(p.name)}<div class="nsd-title sm"><span>Bewertung</span></div>
       <div class="nsd-rate">
         <div class="nsd-rate-res ${lm.won ? '' : 'red'}">${esc(lm.round)} · ${lm.won ? 'Sieg' : 'Niederlage'} ${lm.score[0]} : ${lm.score[1]}</div>
-        <div class="nsd-rate-grade ${tone}"><span>Note</span><b>${fmtNum(lm.rating, 1)}</b></div>
+        <div class="nsd-rate-grade ${tone}"><span>Note</span><b class="pop">${fmtNum(lm.rating, 1)}</b></div>
         <div class="nsd-relgrid">${relBars(s, lm.relBefore ?? {}, { keys: ['manager', 'fans', 'sponsors'], all: true, cls: 'sm' })}</div>
         ${starMeter(s, { starIcon, starPct, starNeed, extra: deltaTxt(lm.star ?? 0) })}
         ${meter({ icon: heartIcon(), label: `Energie ${e} % ${deltaTxt(e - e0)}`, pct: e, from: e0, tone: e >= 20 ? 'green' : 'red' })}
