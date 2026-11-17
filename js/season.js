@@ -9,19 +9,9 @@ import { addNews } from './news.js';
 import { rankArticle, cardArticle, plArticle, plLineupArticle } from './articles.js';
 import { WEEKS_PER_YEAR, surname } from './util.js';
 import { plTable, plState } from './majors.js';
-import { sponsorWeek, sponsorYearEnd } from './sponsors.js';
-import { staffWeek } from './staff.js';
-import { interviewWeekEnd } from './interviews.js';
 import { rivalYearEnd } from './rival.js';
-import { mishapWeek } from './mishaps.js';
-import { rankMilestones } from './milestones.js';
-import { exhibitionWeek, mostOverdue } from './training.js';
 import { recordHistory, trackPeak } from './history.js';
-import { trainingWeekEnd, weeklyRecovery, train, weekActivity } from './training.js';
 import { eventStatus } from './tournaments.js';
-import { homeWeek } from './home.js';
-import { slumpWeek } from './slump.js';
-import { expenseWeek } from './expenses.js';
 import { syncAttrs, addEnergy } from './nsd.js';
 import { lifeWeek, weeklyEnergy } from './life.js';
 import { injuryWeek } from './injury.js';
@@ -37,9 +27,8 @@ export function nextWeek(state) {
   const ai = simulateWeekAI(state);
   if (evs.some(e => e.cat === 'qschool')) qschoolRankingCards(state);   // Version 94: Restkarten über die Q-School-Rangliste
   const nsd = state.mode === 'nsd';                      // New Star Darts: alte €-/XP-Nebensysteme ruhen
-  if (!nsd) { interviewWeekEnd(state); trainingWeekEnd(state); weeklyRecovery(state); }
   weekNews(state, evs, ai);
-  if (week >= WEEKS_PER_YEAR) { recordHistory(state); if (nsd) seasonReport(state); else sponsorYearEnd(state); yearEnd(state); }
+  if (week >= WEEKS_PER_YEAR) { recordHistory(state); if (nsd) seasonReport(state); yearEnd(state); }
   advanceWeek(state);
   if (nsd) {
     const e0 = state.player.energy, c = careerWeek(state, new RNG(state.rng));
@@ -53,17 +42,7 @@ export function nextWeek(state) {
     const wm = !state.ended && eventsInWeek(state, state.date.year, state.date.week).find(e => e.id === 'wm');   // WM-Woche: Elmar Paulke bittet zum Interview
     if (wm && !state.flags?.paulke?.[state.date.year]) preWmInterview(state, new RNG(state.rng), !!eventStatus(state, wm).playable);
   }
-  else {
-    homeWeek(state);
-    slumpWeek(state);
-    expenseWeek(state);
-    mishapWeek(state);
-    exhibitionWeek(state);
-    sponsorWeek(state);
-    staffWeek(state);
-  }
   trackPeak(state);
-  if (!nsd) rankMilestones(state);
   if (state.date.week === 1) { updateTiers(state); newSeasonNews(state); if (nsd) announcePl(state); pruneSave(state); }   // Version 163: alte Jahre aufräumen
   if (state.mode === 'nsd') syncAttrs(state.player);     // Fähigkeiten bestimmen die Attribute
   return true;
@@ -211,17 +190,13 @@ function newSeasonNews(state) {
 }
 
 // „Zum nächsten Event springen“: Wochen ohne spielbares Event (außer lokal) überspringen.
-// autoTrain: in übersprungenen Wochen wird automatisch trainiert (zuletzt trainiertes bzw. schwächstes Attribut).
-export function jumpToNextEvent(state, { autoTrain = true, max = 20 } = {}) {
+export function jumpToNextEvent(state, { max = 20 } = {}) {
   let n = 0;
   const important = () => eventsInWeek(state, state.date.year, state.date.week)
     .some(e => e.cat !== 'local' && eventStatus(state, e).playable);
   if (important()) return 0;                                  // diese Woche gibt es schon ein Event
   do {
     if (state.activeEvent && !state.activeEvent.done) break;
-    if (autoTrain && !weekActivity(state)) {
-      train(state, mostOverdue(state));                      // das am längsten nicht trainierte Attribut
-    }
     if (!nextWeek(state)) break;
     n++;
   } while (n < max && !important());

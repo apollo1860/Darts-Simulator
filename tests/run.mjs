@@ -11,13 +11,9 @@ import { nextWeek, jumpToNextEvent } from '../js/season.js';
 import { perf, xpForLevel, addXp, levelFromXp, MAX_LEVEL } from '../js/player.js';
 import { migrate } from '../js/state.js';
 import { liveDartStep, oppMatchDartVisit, boardCall, isBigTreble } from '../js/tournaments.js';
-import * as ST from '../js/staff.js';
 import * as FO from '../js/form.js';
 import * as ET from '../js/tournaments.js';
-import * as IV from '../js/interviews.js';
 import * as RV from '../js/rival.js';
-import * as MH from '../js/mishaps.js';
-import * as MS from '../js/milestones.js';
 import { book, levelPrice } from '../js/finance.js';
 import { orderOfMerit, rankOf } from '../js/rankings.js';
 import { playersOfTier, nonCardPros, getPlayer, secondaryOrder } from '../js/world.js';
@@ -30,9 +26,6 @@ import { scoreAt, targetPoint, checkoutRoute, labelValue } from '../js/board.js'
 import { createMatch, throwDart } from '../js/matchState.js';
 import { startManualMatch, liveAiDart, simulateLiveRest, liveAiVisit } from '../js/tournaments.js';
 import { legAverage } from '../js/matchState.js';
-import * as D from '../js/distractions.js';
-import * as SP from '../js/sponsors.js';
-import * as TR from '../js/training.js';
 import * as DC from '../js/decisions.js';
 import { wave } from '../js/throwModel.js';
 
@@ -341,24 +334,6 @@ test('Lokal: 16er-Feld im eigenen Bundesland, DDV-Turnier', () => {
   simulateRest(s); closeEvent(s);
 });
 
-test('Störmoment: Chancen, Entscheidung, Modifikator', () => {
-  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 13 });
-  const loc = eventsInWeek(s, 2027, 1).find(e => e.cat === 'local');
-  enterEvent(s, loc.id);
-  const live = startManualMatch(s);
-  live.dist = { id: 'chat', atVisit: 0, who: 'opp', done: false };
-  live.m.turn = live.me;
-  assert.ok(D.distractionDue(s));
-  const info = D.describe(s, live.dist);
-  assert.equal(info.options.length, 2);
-  // Start: Fokus 60, Erfahrung −4 → 65 % − 6 % = 59 %
-  assert.equal(Math.round(info.options[0].chance * 100), 59);
-  const r = D.resolveDistraction(s, 1);
-  assert.ok(live.dist.done && typeof r.ok === 'boolean');
-  assert.ok((live.mods ?? []).length >= 1);
-  liveAiVisit(s);
-});
-
 test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 41 });
   for (let i = 0; i < 52; i++) nextWeek(s);
@@ -414,46 +389,6 @@ test('World Cup: Team mit Spieler, Preisgeld geteilt', () => {
   closeEvent(s);
 });
 
-test('Sponsoren: Angebote, Vertrag, Zahlungen, Kündigung, Ablauf', () => {
-  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 51 });
-  for (let i = 0; i < 8; i++) nextWeek(s);
-  assert.equal(s.sponsors.offers.length, 0);                       // gesperrt ohne Tourcard
-  s.player.tour = 'tour'; s.player.cardUntil = 2029; s.player.everTourcard = true;
-  for (let i = 0; i < 40 && !s.sponsors.offers.length; i++) nextWeek(s);
-  assert.ok(s.sponsors.offers.length >= 1);
-  const o = s.sponsors.offers[0];
-  assert.ok(o.amount > 0 && o.years >= 1);
-  const bal = s.finance.balance;
-  assert.ok(SP.acceptOffer(s, o.id).ok);
-  assert.equal(s.sponsors.active.length, 1);
-  if (o.type === 'annual') assert.ok(s.finance.balance > bal);
-  // gleicher Platz doppelt → abgelehnt
-  s.sponsors.offers.push({ ...o, id: 'X', name: 'Test GmbH' });
-  assert.equal(SP.acceptOffer(s, 'X').ok, false);
-  SP.cancelContract(s, o.name);
-  assert.equal(s.sponsors.active.length, 0);
-  assert.ok(SP.acceptOffer(s, 'X').ok);
-  s.sponsors.active[0].until = s.date.year;                        // läuft zum Jahresende aus
-  while (s.date.week !== 1) nextWeek(s);
-  assert.equal(s.sponsors.active.length, 0);
-  assert.ok(s.archive.seasons[2027]);
-});
-
-test('Training: Fortschritt, 1×/Woche, Formverlust ohne Training', () => {
-  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 61 });
-  const r1 = TR.train(s, 'cal');
-  assert.ok(r1 && r1.gain > 0);
-  assert.equal(TR.train(s, 'cal'), null);                          // nur einmal pro Woche
-  let ups = 0;
-  for (let i = 0; i < 14; i++) { nextWeek(s); if (TR.train(s, 'cal')?.up) ups++; }
-  assert.ok(ups >= 2 && s.player.attrs.cal >= 62, 'Rechnen ' + s.player.attrs.cal);
-  const before = Object.values(s.player.attrs).reduce((a, b) => a + b, 0);
-  for (let i = 0; i < 20; i++) nextWeek(s);                         // 20 Wochen ohne Training
-  const after = Object.values(s.player.attrs).reduce((a, b) => a + b, 0);
-  assert.ok(after < before, `${before} → ${after}`);
-  assert.ok(s.news.some(n => n.title.startsWith('Formverlust')));
-});
-
 test('Rechnen: schwache Rechner stehen öfter auf Bogey-Zahlen', () => {
   const rng = new RNG(5), A = { sco: 75, fin: 75, men: 75, foc: 75, exp: 0 };
   let ba = 0, bb = 0;
@@ -491,38 +426,6 @@ test('Checkout-Entscheidung: 3 Wege – Check, Doppel-Rest, schlechte Aufnahme; 
   assert.ok(hi > lo);
 });
 
-test('Wochenplan: 1 Aktivität, Ruhetag, Sponsortermin, Exhibition, Ermüdung, Sprung', () => {
-  const s = newCareer({ name: 'Test', nation: 'DE', hand: 'R', seed: 81 });
-  assert.equal(TR.canDo(s, 'sponsor').ok, false);                   // kein Sponsor
-  assert.equal(TR.doActivity(s, 'exhibition').ok, false);           // ohne Angebot / ohne Karte
-  s.player.tour = 'tour'; s.player.level = 30;
-  for (let i = 0; i < 40 && !TR.exOffer(s); i++) TR.exhibitionWeek(s);
-  const fee = TR.exOffer(s).fee;
-  assert.ok(fee >= 1700 && fee <= 2650, 'Gage ' + fee);            // (400 + 60·30) × 0,8–1,2
-  const r = TR.doActivity(s, 'exhibition');
-  assert.ok(r.ok && s.player.fatigue === 20 && s.finance.balance === 5000 + fee && !TR.exOffer(s));
-  s.player.tour = 'none';
-  assert.equal(TR.train(s, 'sco'), null);                           // Woche schon verplant
-  assert.equal(TR.doActivity(s, 'rest').ok, false);
-  nextWeek(s);
-  assert.equal(s.player.fatigue, 10);                               // −10 Erholung pro Woche
-  s.player.fatigue = 100;
-  assert.ok(perf(s.player).sco < s.player.attrs.sco);               // Ermüdung kostet Leistung
-  assert.ok(TR.doActivity(s, 'rest').ok); assert.equal(s.player.fatigue, 70);
-  s.player.fatigue = 0;
-  enterEvent(s, eventsInWeek(s, 2027, 2).find(e => e.cat === 'local').id);
-  simulateRest(s); closeEvent(s);
-  assert.ok(s.player.fatigue > 0);                                  // Turnier ermüdet
-  // Sprung: mit Tourcard bis zum nächsten Pro-Tour-Event, dabei automatisch trainiert
-  s.player.tour = 'tour'; s.player.cardUntil = 2028;
-  nextWeek(s);
-  const weeks = jumpToNextEvent(s);
-  assert.ok(weeks >= 1);
-  assert.ok(eventsInWeek(s, s.date.year, s.date.week).some(e => e.cat !== 'local' && eventStatus(s, e).playable));
-  assert.equal(TR.trainingOf(s).idle, 0);
-  assert.equal(jumpToNextEvent(s), 0);                              // jetzt steht ein Event an → kein Sprung
-});
-
 test('Level: 50/100 XP, steigende Kosten, Punkte je Level steigend (1 → 7), Max 100, Migration', async () => {
   assert.equal(xpForLevel(1), 50); assert.equal(xpForLevel(2), 100);
   for (let L = 2; L < MAX_LEVEL; L++) assert.ok(xpForLevel(L) - xpForLevel(L - 1) >= xpForLevel(2) - xpForLevel(1) - 10, 'Zuwachs ' + L);
@@ -540,40 +443,6 @@ test('Level: 50/100 XP, steigende Kosten, Punkte je Level steigend (1 → 7), Ma
   const old = newCareer({ name: 'M', nation: 'DE', hand: 'R', seed: 3 });
   delete old.player.level; old.player.xpTotal = 300; old.player.points = 7;
   migrate(old); assert.equal(old.player.level, 4); assert.equal(old.player.points, 7);   // verdiente Punkte bleiben
-});
-
-test('Training: XP + Turniervorbereitung (+3, 2 Wochen), schwächerer Formverlust', () => {
-  const s = newCareer({ name: 'T', nation: 'DE', hand: 'R', seed: 9 }), p = s.player;
-  const r = TR.train(s, 'fin');
-  assert.ok(r.xp >= 10 && p.xpTotal === r.xp);
-  assert.deepEqual(p.prep, { key: 'fin', bonus: 3, weeks: 2 });
-  assert.equal(perf(p).fin, p.attrs.fin + 3);
-  nextWeek(s); assert.equal(p.prep.weeks, 1);                       // nächste Woche noch aktiv
-  nextWeek(s); assert.equal(p.prep, undefined); assert.equal(perf(p).fin, p.attrs.fin);
-  p.level = 30; assert.ok(TR.trainingXp(p) > 40);                   // wächst mit dem Level
-  assert.equal(TR.DECAY_AFTER, 6);
-});
-
-test('Team: Manager-Provision, Sponsor-/Exhibition-Boni, Trainer 1 Jahr', () => {
-  const s = newCareer({ name: 'T', nation: 'DE', hand: 'R', seed: 12 });
-  assert.equal(ST.hireManager(s, 'm1'), false);                     // erst ab Tourcard
-  s.player.tour = 'tour'; s.player.cardUntil = 2028; s.player.everTourcard = true;
-  assert.equal(ST.hireManager(s, 'm3'), false);                     // Top 16 nötig
-  assert.ok(ST.hireManager(s, 'm1'));
-  const b0 = s.finance.balance;
-  book(s, 1000, 'Preisgeld Test', 'prize');
-  assert.equal(s.finance.balance, b0 + 900);                        // 10 % Provision
-  book(s, -50, 'Reise', 'travel'); assert.equal(s.finance.balance, b0 + 850);   // Ausgaben ohne Provision
-  let gigs = 0;
-  for (let i = 0; i < 30; i++) { nextWeek(s); gigs += ST.staffOf(s).gigs.length ? 1 : 0; const g = ST.staffOf(s).gigs[0]; if (g) assert.ok(ST.acceptGig(s, g.id).fee > 0); }
-  assert.ok(gigs >= 2, 'Einladungen ' + gigs);
-  s.finance.balance = 10000;
-  assert.ok(ST.hireCoach(s, 'c2')); assert.equal(s.finance.balance, 4000);
-  assert.equal(ST.xpMult(s), 1.2); assert.equal(ST.hireCoach(s, 'c1'), false);   // nur einer gleichzeitig
-  { const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local'); const x0 = s.player.xpTotal; s.week.blocked = null; s.milestones = Object.fromEntries(MS.MILESTONES.map(m => [m.id, {}]));   // Meilenstein-XP ausklammern
-    enterEvent(s, e.id); simulateRest(s); assert.equal(s.activeEvent.xp, s.player.xpTotal - x0, 'Anzeige = gutgeschriebene XP'); closeEvent(s); }
-  for (let i = 0; i < 52; i++) nextWeek(s);
-  assert.equal(ST.coachActive(s), null); assert.equal(ST.xpMult(s), 1);
 });
 
 test('Bühne: Erfahrung zählt in Majors/gegen große Namen; Selbstvertrauen', () => {
@@ -622,35 +491,6 @@ test('Gegner-Matchdarts: Erkennung + dartweiser Wurf', () => {
     assert.ok(hits > 40 && hits < 100, `finish ${hits}`);
   }
   assert.ok(isBigTreble({ mult: 3, score: 57 }) && !isBigTreble({ mult: 3, score: 51 }) && !isBigTreble({ mult: 1, score: 20 }));
-});
-
-test('Interview nach Major: 25 Floskeln, 4–6 Reihenfolge, Belohnung', () => {
-  const s = newCareer({ name: 'I', nation: 'DE', hand: 'R', seed: 31 });
-  assert.equal(IV.maybeInterview(s, { cat: 'pc', place: 'W', name: 'PC 1' }), null);          // nur Majors
-  const iv = IV.maybeInterview(s, { cat: 'major', eventId: 'wm', place: 'W', name: 'Weltmeisterschaft' });
-  assert.ok(iv && iv.tiles.length === 25 && new Set(iv.tiles).size === 25 && iv.seq.length === 6);
-  const x0 = s.player.xpTotal, c0 = s.player.clutch ?? 0;
-  const r = IV.resolveInterview(s, [...iv.seq]);
-  assert.ok(r.ok && s.player.xpTotal - x0 === r.xp && (s.player.clutch ?? 0) - c0 === 18);
-  assert.equal(s.interview, null);
-  let n = 0;
-  for (let i = 0; i < 40; i++) { const v = IV.maybeInterview(s, { cat: 'major', eventId: 'masters', place: 'L16', name: 'M' }); if (v) { n++; assert.ok(v.seq.length >= 4 && v.seq.length <= 5); IV.skipInterview(s); } }
-  assert.ok(n > 3 && n < 20, 'nur manchmal ' + n);
-  const v = IV.maybeInterview(s, { cat: 'major', eventId: 'wm', place: 'W', name: 'WM' });
-  assert.equal(IV.resolveInterview(s, [v.seq[1]]).ok, false);                                // falsche Reihenfolge
-});
-
-test('Erholung kaufen: Sauna/Massage, Preis 50–100 €, je 1× pro Woche', () => {
-  const s = newCareer({ name: 'E', nation: 'DE', hand: 'R', seed: 41 });
-  assert.equal(TR.canRecover(s, 'sauna').ok, false);                // ausgeruht
-  s.player.fatigue = 40;
-  const pr = TR.recoveryPrice(s, 'massage'), b0 = s.finance.balance;
-  assert.ok(pr >= 50 && pr <= 100 && pr === TR.recoveryPrice(s, 'massage'));   // pro Woche fest
-  assert.ok(TR.buyRecovery(s, 'massage').ok); assert.equal(s.player.fatigue, 25); assert.equal(s.finance.balance, b0 - pr);
-  assert.ok(TR.buyRecovery(s, 'sauna').ok); assert.equal(s.player.fatigue, 15);
-  assert.equal(TR.buyRecovery(s, 'sauna').ok, false);               // 1× pro Woche
-  assert.equal(TR.train(s, 'sco') !== null, true);                  // Wochenaktivität bleibt frei
-  nextWeek(s); assert.ok(TR.canRecover(s, 'sauna').ok);
 });
 
 test('WDF-Opens: nur ohne Karte, Reise 400/1.000 €, Preisgeld, kompletter Ablauf', () => {
@@ -744,66 +584,6 @@ test('Auswahl Turnieranzahl (CT) + Host-Nation-Qualifier → ET-Hauptfeld', () =
   assert.equal(s.activeEvent.fieldSize, 48);
 });
 
-test('Zufallsereignisse: Trainingsrückschlag oder Ausfall (Turniere gesperrt), Schule nur bis 18', () => {
-  let hits = 0, blocked = 0, school = 0;
-  for (let i = 0; i < 4000; i++) {
-    const s = { rng: { s: 1000 + i }, player: { age: i % 2 ? 17 : 25 }, week: {}, training: { progress: { sco: 0.9, fin: 0.9, men: 0.9, foc: 0.9, cal: 0.9 } }, news: [], date: { year: 2027, week: 5 } };
-    const m = MH.mishapWeek(s);
-    if (!m) continue;
-    hits++; if (m.blocked) { blocked++; assert.ok(s.week.blocked); } else assert.ok(Object.values(s.training.progress).some(v => v < 0.61));
-    if (m.id === 'school') { school++; assert.equal(s.player.age, 17); }
-  }
-  assert.ok(hits > 200 && hits < 400, 'Treffer ' + hits);           // ~7 %
-  assert.ok(blocked / hits > 0.15 && blocked / hits < 0.35);
-  assert.ok(school > 0);
-  const t = newCareer({ name: 'M', nation: 'DE', hand: 'R', seed: 5 });
-  t.week.blocked = { id: 'cold', label: 'Erkältung' };
-  const loc = eventsInWeek(t, 2027, 1).find(e => e.cat === 'local');
-  assert.equal(eventStatus(t, loc).playable, false);
-});
-
-test('Meilensteine: einmalig, Extra-XP, Match/Titel/Rang', () => {
-  const s = newCareer({ name: 'M', nation: 'DE', hand: 'R', seed: 95 });
-  const x0 = s.player.xpTotal;
-  MS.matchMilestones(s, { s180: 1, bestLeg: 11, points: 505, darts: 15 }, true);   // 101 Ø
-  assert.ok(['win', 's180', 'd12', 'd11', 'avg100'].every(id => MS.reached(s, id)));
-  assert.ok(!MS.reached(s, 'd10') && !MS.reached(s, 'avg110'));
-  assert.equal(s.player.xpTotal - x0, 30 + 50 + 120 + 250 + 300);
-  const x1 = s.player.xpTotal;
-  MS.matchMilestones(s, { s180: 3, bestLeg: 12, points: 330, darts: 9 }, true);    // nichts Neues außer 110er Avg
-  assert.equal(s.player.xpTotal - x1, 800);
-  MS.titleMilestones(s, { place: 'W', cat: 'wdf' }); assert.ok(MS.reached(s, 'wdf'));
-  MS.titleMilestones(s, { place: 'F', cat: 'dev' }); assert.ok(!MS.reached(s, 'dev'));
-  MS.titleMilestones(s, { place: 'W', cat: 'major', eventId: 'wm-quali' }); assert.ok(!MS.reached(s, 'major'));
-  // im echten Turnier: lokaler Sieg wird erkannt (starker Spieler, damit es sicher klappt)
-  s.player.attrs = { sco: 88, fin: 88, men: 88, foc: 88, cal: 88 };
-  for (let i = 0; i < 20 && !MS.reached(s, 'local'); i++) {
-    const e = eventsInWeek(s, s.date.year, s.date.week).find(x => x.cat === 'local');
-    if (e && !s.week.blocked) { enterEvent(s, e.id); simulateRest(s); closeEvent(s); }
-    nextWeek(s);
-  }
-  assert.ok(MS.reached(s, 'local'));
-});
-
-test('Formverlust je Attribut: jedes Attribut mind. 1× in 6 Wochen trainieren', () => {
-  const keys = ['sco', 'fin', 'men', 'foc', 'cal'];
-  // reihum trainieren (alle 5 Wochen jedes Attribut) → kein Verlust
-  const a = newCareer({ name: 'A', nation: 'DE', hand: 'R', seed: 97, bonus: { sco: 25 } });
-  for (let w = 0; w < 30; w++) { a.week.blocked = null; TR.train(a, keys[w % 5]); nextWeek(a); }
-  assert.equal(TR.trainingOf(a).lost, 0);
-  assert.ok(Object.values(TR.idleOf(a)).every(v => v < 6));
-  // nur Scoring trainieren → die anderen vier verlieren, Scoring nicht
-  const b = newCareer({ name: 'B', nation: 'DE', hand: 'R', seed: 98, bonus: { sco: 10, fin: 10, foc: 5 } });
-  const before = { ...b.player.attrs };
-  let scoUps = 0;
-  for (let w = 0; w < 20; w++) { const r = TR.train(b, 'sco'); if (r?.up) scoUps++; nextWeek(b); }
-  assert.ok(TR.trainingOf(b).lost >= 4, 'Verluste ' + TR.trainingOf(b).lost);
-  assert.equal(b.player.attrs.sco, before.sco + scoUps);              // trainiertes Attribut verliert nie
-  assert.ok(['fin', 'men', 'foc', 'cal'].filter(k => b.player.attrs[k] < before[k]).length >= 3);
-  assert.equal(TR.idleOf(b).sco, 0); assert.equal(TR.idleOf(b).fin, 20);
-  assert.equal(TR.mostOverdue(b) !== 'sco', true);
-});
-
 test('Lokale Gegner: Ø 54–74, Migration v7 → v8 einmalig', () => {
   const s = newCareer({ name: 'L', nation: 'DE', hand: 'R', seed: 4 });
   const loc = playersOfTier(s, 'local').map(p => p.avg);
@@ -827,35 +607,6 @@ test('Lampenfieber: nur Profi-Events, baut sich über 60 Profi-Matches ab', () =
   assert.deepEqual(FO.applyNerves(a, 5), { sco: 65, fin: 65, men: 65, foc: 67, cal: 70 });
 });
 
-test('Wohnen & Auto: Auszug mit 18, Jahresmiete, Effekte, Auto-Rabatt', async () => {
-  const H = await import('../js/home.js');
-  const { weeklyRecovery } = await import('../js/training.js');
-  const s = newCareer({ name: 'W', nation: 'DE', hand: 'R', seed: 41 });
-  assert.equal(H.chooseHome(s, 'wg').ok, false);                         // mit 16 noch bei den Eltern
-  assert.equal(H.buyCar(s, 'small').ok, false);
-  s.player.age = 18; s.finance.balance = 100000; H.homeWeek(s);
-  assert.ok(s.moveOut && s.moveOut.week >= 2 && s.moveOut.week <= 50 && !H.moveDue(s));
-  s.date.week = s.moveOut.week; H.homeWeek(s); assert.ok(H.moveDue(s));
-  s.date.week += 2; H.homeWeek(s);                                        // keine Wahl → Wohnheim
-  assert.equal(s.player.home.id, 'dorm'); assert.equal(s.finance.balance, 100000 - 200);
-  const a0 = perf({ ...s.player, home: null }), a1 = perf(s.player);
-  assert.equal(a1.sco, a0.sco - 1); assert.equal(a1.cal, a0.cal - 1);    // Wohnheim: leichtes Minus
-  s.player.level = 51;
-  assert.equal(H.rentOf(H.HOMES[0], 51), 200); assert.equal(H.rentOf(H.HOMES[4], 51), 75000);   // Preise steigen, Wohnheim nicht
-  const b = s.finance.balance; assert.ok(H.chooseHome(s, 'villa').ok); assert.equal(s.finance.balance, b - 75000);
-  s.player.fatigue = 50; s.player.momentum = 0; weeklyRecovery(s);
-  assert.equal(s.player.fatigue, 34); assert.equal(s.player.momentum, 0.6);
-  // Auto: Reiserabatt, Wechsel mit 30 % Inzahlungnahme, Wartung in KW 1
-  const ev = { cat: 'challenge', country: 'ENG', count: 1 };
-  assert.equal(H.buyCar(s, 'mid').ok, true); assert.equal(s.player.car.paid, 22500);
-  assert.equal(eventCost(ev, null, 51, H.travelMult(s.player)).travel, 810);
-  const b2 = s.finance.balance; assert.ok(H.buyCar(s, 'small').ok); assert.equal(s.finance.balance, b2 + 6750 - 6000);
-  s.finance.balance = 200000; s.date.year++; s.date.week = 1; const b3 = s.finance.balance; H.homeWeek(s);
-  assert.equal(s.finance.balance, b3 - 75000 - 600);                      // Villa-Miete + Wartung Kleinwagen
-  s.finance.balance = 1000; s.date.year++; H.homeWeek(s);                 // Villa zu teuer → günstigere Wohnung
-  assert.equal(s.player.home.id, 'wg'); assert.equal(s.finance.balance, 1000 - 600 - 600);
-});
-
 test('Qualifier: fehlende Spieler → fiktive Amateure (nicht zu stark)', async () => {
   const W = await import('../js/world.js');
   const s = newCareer({ name: 'A', nation: 'DE', hand: 'R', seed: 77 });
@@ -870,41 +621,6 @@ test('Qualifier: fehlende Spieler → fiktive Amateure (nicht zu stark)', async 
   s.date.week = 39;
   const e = ET.etEntrants(s, eventsInWeek(s, 2027, 39).find(x => x.cat === 'et'), false);
   assert.equal(e.region.length, 2); assert.equal(Object.values(e).flat().length, 48);
-});
-
-test('Formtiefs: Serie, Blamage, Ruhetag, Titel, Auslöser', async () => {
-  const SL = await import('../js/slump.js');
-  const s = newCareer({ name: 'F', nation: 'DE', hand: 'R', seed: 61 }), p = s.player;
-  const inst = { cat: 'challenge' }, opp = { attrs: { ...p.attrs } };
-  for (let i = 0; i < 3; i++) SL.slumpAfterMatch(s, inst, false, opp);
-  assert.ok(!p.slump);
-  SL.slumpAfterMatch(s, { cat: 'local' }, false, opp); assert.ok(!p.slump);        // lokal zählt nicht
-  SL.slumpAfterMatch(s, inst, false, opp);
-  assert.equal(p.slump.id, 'streak'); assert.equal(p.lossStreak, 0);
-  const base = perf({ ...p, slump: null }), low = perf(p);
-  assert.equal(low.sco, base.sco - 2); assert.equal(low.foc, base.foc - 2); assert.equal(low.cal, base.cal);
-  SL.slumpRest(p); assert.equal(p.slump.weeks, 2);
-  SL.slumpTitle(s, 'local'); assert.ok(p.slump);                                    // lokaler Titel hilft nicht
-  SL.slumpTitle(s, 'challenge'); assert.equal(p.slump, null);
-  // Auslöser: ausgebrannt (Ermüdung) – Häufigkeit
-  let n = 0;
-  for (let i = 0; i < 400; i++) { p.slump = null; p.fatigue = 90; p.momentum = 0; if (SL.slumpWeek(s)?.id === 'burnout') n++; }
-  assert.ok(n > 60 && n < 150, `burnout ${n}`);
-  p.slump = { id: 'sleep', weeks: 1, malus: 2 }; SL.slumpWeek(s); assert.equal(p.slump, null);   // läuft ab
-});
-
-test('Einmalige Kosten bei hohem Vermögen', async () => {
-  const EX = await import('../js/expenses.js');
-  assert.equal(EX.expenseChance(9000), 0);
-  assert.ok(Math.abs(EX.expenseChance(100000) - 0.06) < 1e-9 && EX.expenseChance(1e9) === 0.12);
-  const s = newCareer({ name: 'E', nation: 'DE', hand: 'R', seed: 62 });
-  s.finance.balance = 5000; for (let i = 0; i < 100; i++) assert.equal(EX.expenseWeek(s), null);
-  let hits = 0, maxShare = 0;
-  for (let i = 0; i < 2000; i++) {
-    s.finance.balance = 500000; const e = EX.expenseWeek(s);
-    if (e) { hits++; maxShare = Math.max(maxShare, e.amount / 500000); assert.ok(!e.needCar && !e.needHome); }
-  }
-  assert.ok(hits > 60 && hits < 200, `hits ${hits}`); assert.ok(maxShare <= 0.12 && maxShare > 0.03);
 });
 
 test('Startalter wählbar: Erfahrung, Rivale, Dev-Tour', async () => {
@@ -1372,7 +1088,7 @@ test('New Star Darts v18: Fähigkeitspunkt je Star-Stufe, wohlwollende Note, Spo
   assert.ok(N.matchRating({ won: false, avg: 84, coPct: 0.25, my: 4, opp: 6, oppAvg: 82 }) >= 6);
   assert.ok(N.matchRating({ won: true, avg: 80, coPct: 0.3, my: 6, opp: 5 }) >= 5.5);
   // Sponsor: Flight 1–10, max. 5 Versuche, Fehler → Anfangsangebot + genervt
-  s.nsdSponsors = { active: [], offer: { name: 'Test', slot: Object.keys((await import('../data/sponsors.js')).SPONSOR_SLOTS)[0], perWeek: 10, win: 5, s180: 3, major: 0, weeks: 3, length: 12, bonus: 0, card: 5, steps: 0, mood: 0, done: false } };
+  s.nsdSponsors = { active: [], offer: { name: 'Test', perWeek: 10, win: 5, s180: 3, major: 0, weeks: 3, length: 12, bonus: 0, card: 5, steps: 0, mood: 0, done: false } };
   const rng = new RNG({ s: 3 });
   let r; do { r = C.negotiate(s, s.nsdSponsors.offer.card <= 5 ? 'higher' : 'lower', rng); } while (!r.done);
   const o = s.nsdSponsors.offer;

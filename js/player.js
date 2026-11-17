@@ -60,18 +60,9 @@ export const calcError = cal => clamp((100 - (cal ?? 70)) * 0.003, 0, 0.3);
 // Leistungsdaten für die Engines (Attribute + Erfahrung)
 export const perf = p => {
   const a = { ...p.attrs, exp: p.exp ?? 0 };
-  // Ermüdung über 30 % kostet Leistung (bis −6 Scoring, −8 Fokus, −4 Finishing bei 100 %)
-  const f = Math.max(0, ((p.fatigue ?? 0) - 30) / 70);
-  if (f) { a.sco -= f * 6; a.foc -= f * 8; a.fin -= f * 4; }
   // Selbstvertrauen (Momentum): ±1,5 … ±4 auf Scoring, Finishing, Fokus
   const mb = momentumBonus(p) * (p.skills ? 0.5 : 1);   // Tour-Modus: Selbstvertrauen wirkt halb so stark
   if (mb) { a.sco += mb; a.fin += mb; a.foc += mb; }
-  // Turniervorbereitung (Training): Bonus auf das trainierte Attribut
-  // Formtief: −malus auf Scoring, Finishing, Fokus
-  if (p.slump?.weeks > 0) { a.sco -= p.slump.malus; a.fin -= p.slump.malus; a.foc -= p.slump.malus; }
-  // Studentenwohnheim: leichtes Minus bei allem
-  if (p.home?.id === 'dorm') for (const k of ['sco', 'fin', 'men', 'foc', 'cal']) a[k] -= 1;
-  if (p.prep) a[p.prep.key] = Math.min(100, a[p.prep.key] + p.prep.bonus);
   return a;
 };
 

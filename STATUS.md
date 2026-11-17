@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 164**: Aufräumen – alte Darts-Career-Module entfernt (js/distractions, mishaps, expenses, home, slump, staff, sponsors, interviews, milestones, training + data/distractions, staff, sponsors, interviews; tests/career.mjs) samt ihrer Aufrufe im Altmodus (season.js/tournaments.js, perf in player.js) und 14 Alt-Tests. CLAUDE.md neu gefasst: nur noch der aktuelle Stand, Historie bleibt hier in STATUS.md.
 - [x] **Version 163**:
   - **Spielstand klein** (`pruneSave` in rankings.js, zum Jahreswechsel + beim Laden): Preisgeld nur der letzten 3 Jahre, Titelträger und Felder/Qualifier nur Vorjahr + aktuelles Jahr → statt ≈ 67 KB nur noch ≈ 6 KB Wachstum je Saison (8 Saisons: 590 statt 1.006 KB). Titelträger-Anzeige zeigt damit höchstens Vorjahr + aktuelles Jahr.
   - **Langsamer ab Top 16** (`topSlow`/`TOP_SLOW` in nsd.js, in `addStarProgress`): Star-Status-Gewinne × 0,7 (Top 16), × 0,55 (Top 8), × 0,45 (Top 3).

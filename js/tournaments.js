@@ -19,16 +19,9 @@ import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, gr
 import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, wcWithdraw, scorePlNight, plTable, plState, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
 import { addMoney, settleOom, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
-import { sponsorEventPayout } from './sponsors.js';
 import { routeTarget, scriptedHit } from './decisions.js';
-import { addEventFatigue } from './training.js';
 import { trackTitle, recordChampion } from './history.js';
-import { xpMult } from './staff.js';
-import { maybeInterview } from './interviews.js';
-import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
-import { travelMult } from './home.js';
-import { slumpAfterMatch, slumpTitle } from './slump.js';
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch, titleFans } from './nsd.js';
@@ -91,9 +84,9 @@ export function eligibility(state, ev) {
 
 // Gesamtstatus für die UI
 export function eventStatus(state, ev, n = null) {
-  let cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1, travelMult(state.player));
+  let cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1, 1);
   if (ev.cat === 'etq' && findEvent(state, state.week.eventId)?.cat === 'pc') {   // direkt nach dem PC-Block: nur eine Übernachtung extra
-    const travel = Math.round(levelPrice(ETQ_NIGHT, state.player.level ?? 1) * travelMult(state.player) / 5) * 5;
+    const travel = Math.round(levelPrice(ETQ_NIGHT, state.player.level ?? 1) * 1 / 5) * 5;
     cost = { fee: 0, travel, total: travel, addOn: true };
   }
   if (state.mode === 'nsd') cost = { fee: 0, travel: 0, total: 0 };   // New Star Darts: keine Reisekosten
@@ -740,7 +733,7 @@ function applyResult(m, res) {
 // XP gutschreiben (inkl. Trainer-Faktor); Rückgabe = tatsächlich gutgeschriebene XP (für die Anzeige)
 function grantXp(state, xp) {
   if (state.mode === 'nsd') return 0;                 // New Star Darts: Star-Status statt XP
-  const got = Math.round(xp * xpMult(state));
+  const got = Math.round(xp);
   const ups = addXp(state.player, got);
   if (ups) addNews(state, 'xp', `⬆️ Level ${state.player.level}! +${pointsGained(state.player.level, ups)} Attributpunkte`, 'Verteile sie im Spielerprofil oder direkt nach dem Turnier.');
   return got;
@@ -774,14 +767,12 @@ function recordPlayerMatch(state, inst, m, res) {
   // Selbstvertrauen (+ Rivalen-Duell)
   const oppId = me === 0 ? m.b : m.a;
   if (isRival(state, oppId)) rivalMeeting(state, inst, won, `${sc[me]}:${sc[1 - me]}`);
-  matchMilestones(state, s, won);
   if (PRO_CATS.includes(inst.cat)) {
     const p = state.player, before = proMatchesOf(p);
     p.proMatches = before + 1;
     if (before < 60 && p.proMatches >= 60) addNews(state, 'xp', '😌 Lampenfieber verflogen', 'Nach 60 Profi-Matches fühlst du dich auf der Tour zuhause – keine Nervosität mehr.');
   }
   const step = updateMomentum(state.player, { won, opp: inst.teams?.[oppId] ?? getPlayer(state, oppId), cat: inst.cat, big: inst.big?.includes(oppId) });
-  slumpAfterMatch(state, inst, won, inst.teams?.[oppId] ?? getPlayer(state, oppId));
   if (step) addNews(state, 'xp', `${step.icon || '😐'} Selbstvertrauen: ${step.label}`, step.bonus > 0 ? `Du bist im Flow: +${step.bonus} auf Scoring, Finishing und Fokus.`
     : step.bonus < 0 ? `Die Zweifel nagen: ${step.bonus} auf Scoring, Finishing und Fokus. Siege helfen raus.` : 'Dein Selbstvertrauen ist wieder im Normalbereich.');
   if (up > 0) addNews(state, 'xp', `Erfahrung steigt auf ${expLabel(state.player.exp)}`, 'Du bleibst in engen Momenten ruhiger – Matchdarts und Entscheidungslegs gelingen dir besser.');
@@ -1028,16 +1019,13 @@ function finishEvent(state, inst) {
   const f = xpFactor(inst);
   // Teilnahme-Bonus: nach jedem Turnier kann trainiert werden
   inst.xp += grantXp(state, Math.round(XP_BASE.event * f));
-  if (place === 'W') { titleMomentum(state.player, inst.cat); if (!nsd) slumpTitle(state, inst.cat); }
+  if (place === 'W') titleMomentum(state.player, inst.cat);
   if (place === 'W' || place === 'CARD') {
     inst.xp += grantXp(state, Math.round(XP_BASE.title * f));
   }
   if (nsd) nsdEventEnd(state, inst);
   else {
     if (prize) book(state, prize, `Preisgeld ${inst.name} (${placeLabel(place, inst.cat, inst.eventId)})`, 'prize');
-    sponsorEventPayout(state, inst);
-    titleMilestones(state, inst);
-    addEventFatigue(state, inst);
   }
   trackTitle(state, inst);
   if (inst.isQualifier) {
@@ -1064,7 +1052,6 @@ function finishEvent(state, inst) {
   }
   state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place, prize: nsd ? 0 : prize, stars: inst.stars ?? 0 });
   if (nsd) checkAchievements(state);
-  else maybeInterview(state, inst);
   const money = nsd ? (inst.stars ? `${inst.stars} ★` : '') : prize ? fmtEUR(prize) : '';
   if (place === 'W') addNews(state, 'result', `TITEL! ${inst.name} gewonnen`, `Preisgeld: ${money}.`);
   if (nsd) eventArticle(state, inst, place);
@@ -1143,9 +1130,6 @@ export function runAITournament(state, ev, sub, ctx = {}) {
     if (nsd) nsdEventEnd(state, inst);
     else {
       if (inst.prize) book(state, inst.prize, `Preisgeld ${inst.name} (${placeLabel(inst.place, inst.cat, inst.eventId)})`, 'prize');
-      sponsorEventPayout(state, inst);
-      titleMilestones(state, inst);
-      addEventFatigue(state, inst);
     }
     trackTitle(state, inst);
     state.results.unshift({ year: inst.year, week: inst.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, place: inst.place, prize: nsd ? 0 : inst.prize, stars: inst.stars ?? 0 });
