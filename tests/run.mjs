@@ -3229,7 +3229,8 @@ test('New Star Darts v159: Note minimal strenger, Fans erst über 7,0 (6,1–7,0
   const N = await import('../js/nsd.js');
   assert.deepEqual([7.1, 8.4, 8.5, 10].map(r => N.fansAfterMatch(true, r)), [1, 1, 2, 2]);
   assert.deepEqual([6.1, 7.0].map(r => N.fansAfterMatch(true, r)), [0, 0]);
-  assert.deepEqual([6.0, 5.5, 2].map(r => N.fansAfterMatch(true, r)), [-1, -1, -1]);
+  assert.deepEqual([6.0, 5.5, 2].map(r => N.fansAfterMatch(true, r)), [0, 0, 0], 'Sieg: nie Verlust (Version 160)');
+  assert.deepEqual([6.0, 5.5, 2].map(r => N.fansAfterMatch(false, r)), [-1, -1, -1], 'Niederlage bis 6,0: Abzug');
   assert.equal(N.fansAfterMatch(false, 7.5), 1, 'starke Niederlage bringt auch Fans');
   const ref = N.rateRef(46); assert.ok(Math.abs(ref.avg - 99) < 1e-9 && Math.abs(ref.co - 0.43) < 1e-9);
   assert.ok(N.rateRef(30).avg > 85 + 13 * 29 / 50, 'strenger als Version 158');

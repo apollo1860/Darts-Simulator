@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 159;
+export const APP_VERSION = 160;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -357,8 +357,8 @@ export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null,
 // Fans: Zuwachs wird mit vielen Fans kleiner (100 % ist schwer zu erreichen); Verluste voll
 export const addFans = (p, n) => addRel(p, 'fans', n > 0 ? Math.round(n * Math.max(0.05, (1 - (p.rel.fans ?? 0) / 100) ** 2) * 10) / 10 : n);
 export function addRel(p, key, n) { p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key]; }
-// Version 159: Fans nach jedem Match (Sieg wie Niederlage): über 7,0 +1 (ab 8,5 +2), 6,1–7,0 ±0, bis 6,0 −1
-export const fansAfterMatch = (won, rating) => (rating > 7 ? 1 + (rating >= 8.5 ? 1 : 0) : rating > 6 ? 0 : -1);
+// Version 159: Fans nach jedem Match: über 7,0 +1 (ab 8,5 +2), 6,1–7,0 ±0, bis 6,0 −1 – Version 160: nach einem Sieg nie ein Verlust
+export const fansAfterMatch = (won, rating) => (rating > 7 ? 1 + (rating >= 8.5 ? 1 : 0) : rating > 6 || won ? 0 : -1);
 
 // ---- Editor (Spielstand künstlich anpassen) ----
 // Fähigkeit auf Wert v setzen: Level der Reihe nach mit 3 Sternen füllen
