@@ -3163,4 +3163,20 @@ test('New Star Darts v152: Verletzungen (50 % Energie, 1–2 Wochen, schwache Er
   }
 });
 
+test('New Star Darts v153: Ganz seltene schwere Rückenschmerzen sperren die Turniere der Woche', async () => {
+  const N = await import('../js/nsd.js'), J = await import('../js/injury.js'), CAL = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 47 }); s.player.assessed = true; s.date.week = 6;
+  let n = 0, back = 0, severe = null;
+  for (let k = 0; k < 6000; k++) { s.player.injury = null; s.player.injuryFree = 0; s.week = { played: false, eventId: null }; const r = J.injuryWeek(s, new RNG(k), 80);
+    if (!r) continue; n++; if (r.kind === 'back') back++;
+    if (r.severe) { assert.equal(r.kind, 'back'); assert.ok(s.week.blocked && r.weeks === 2); severe ??= k; } else assert.ok(!s.week.blocked); }
+  assert.ok(severe !== null, 'kommt vor');
+  // selten: deutlich unter jeder 5. Rückenverletzung
+  let sv = 0; for (let k = 0; k < 6000; k++) { s.player.injury = null; s.player.injuryFree = 0; s.week = { played: false, eventId: null }; const r = J.injuryWeek(s, new RNG(k), 80); if (r?.severe) sv++; }
+  assert.ok(sv / back > 0.05 && sv / back < 0.2, `Anteil ${sv}/${back}`);
+  // gesperrt: kein Turnier der Woche meldbar
+  s.player.injury = null; s.player.injuryFree = 0; s.week = { played: false, eventId: null }; J.injuryWeek(s, new RNG(severe), 80);
+  for (const ev of CAL.eventsInWeek(s, 2026, 6)) { const st = ET.eventStatus(s, ev); assert.ok(!st.playable && /Rücken/.test(st.reason)); }
+});
+
 console.log(`\n${n} Tests ok`);

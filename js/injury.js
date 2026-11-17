@@ -9,6 +9,8 @@ export const INJURIES = {
 };
 export const INJ_P = 0.05, INJ_TIRED = 0.03, INJ_TIRED_E = 30, INJ_AGE_FROM = 35, INJ_AGE_STEP = 0.01, INJ_FIT = 0.7;
 export const INJ_ENERGY = 50, INJ_LONG = 0.3, INJ_COOLDOWN = 4, INJ_REGEN = 0.4;
+// Version 153: ganz selten sind Rückenschmerzen so schlimm, dass du in dieser KW weder melden noch spielen kannst (state.week.blocked → eventStatus)
+export const INJ_SEVERE = 0.12;   // Anteil der Rückenverletzungen (≈ 1 Mal in 12–15 Saisons)
 const wk = state => state.date.year * 52 + state.date.week;
 
 export const injuryOf = p => (p?.injury ? INJURIES[p.injury.kind] ?? null : null);
@@ -32,11 +34,15 @@ export function injuryWeek(state, rng, energyBefore = state.player.energy) {
   if (p.injury && now > p.injury.until) p.injury = null;
   if (p.injury || now < (p.injuryFree ?? 0)) return null;
   if (!rng.chance(injuryChance({ ...p, energy: energyBefore }))) return null;
-  const keys = Object.keys(INJURIES), kind = keys[rng.int(0, keys.length - 1)], weeks = rng.chance(INJ_LONG) ? 2 : 1;
-  p.injury = { kind, until: now + weeks - 1 };
+  const keys = Object.keys(INJURIES), kind = keys[rng.int(0, keys.length - 1)];
+  const severe = kind === 'back' && rng.chance(INJ_SEVERE), weeks = severe || rng.chance(INJ_LONG) ? 2 : 1;
+  p.injury = { kind, until: now + weeks - 1, ...(severe ? { severe: true } : {}) };
+  if (severe) state.week.blocked = { id: 'injury', label: 'Schwere Rückenschmerzen', icon: '🦴' };
   p.injuryFree = now + weeks + INJ_COOLDOWN;
   p.energy = Math.max(0, Math.round((p.energy ?? 100) - INJ_ENERGY));
   const j = INJURIES[kind];
+  if (severe) return { kind, weeks, severe, title: `${j.icon} Schwere Rückenschmerzen – Ausfall!`,
+    text: `Du kannst dich kaum bewegen: Diese Woche kannst du kein Turnier melden oder spielen. Du verlierst sofort ${INJ_ENERGY} % Energie, auch nächste Woche streust du noch stärker und erholst dich kaum.` };
   return { kind, weeks, title: `${j.icon} Verletzt: ${j.label}`,
     text: `Du verlierst sofort ${INJ_ENERGY} % Energie. ${weeks === 1 ? 'Diese Woche' : 'Zwei Wochen lang'} streust du stärker, das Zielkreuz ist unruhiger, und du erholst dich kaum.` };
 }

@@ -7,7 +7,7 @@ import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHe
 export const nsd = true;
 const HELP = `<p><b>Ranglisten</b>: Order of Merits, Premier League, Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
   <p>Unter 20 % Energie bist du nicht match-fit: Du wirfst keine Schlüsselmomente mehr selbst und spielst immer schlechter.</p>
-  <p><b>Verletzungen</b> (Rücken, Kopf, Zahn) kosten sofort 50 % Energie und halten 1–2 Wochen: mehr Streuung, unruhigeres Zielkreuz, schwächere Aufnahmen und kaum Erholung. Überspielt (unter 30 % Energie) und ab 35 Jahren passiert es öfter, ein Fitnesstrainer senkt das Risiko.</p>`;
+  <p><b>Verletzungen</b> (Rücken, Kopf, Zahn) kosten sofort 50 % Energie und halten 1–2 Wochen: mehr Streuung, unruhigeres Zielkreuz, schwächere Aufnahmen und kaum Erholung. Ganz selten sind Rückenschmerzen so schlimm, dass du in dieser Woche kein Turnier melden oder spielen kannst. Überspielt (unter 30 % Energie) und ab 35 Jahren passiert es öfter, ein Fitnesstrainer senkt das Risiko.</p>`;
 
 export function render(app) {
   const s = app.state, p = s.player, e = Math.round(p.energy ?? 100), fit = e >= 20;
@@ -31,7 +31,7 @@ export function render(app) {
       </div>
       <div class="nsd-rowpair">
         <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">🛡️ ${p.tour === 'tour' ? `Tourcard bis Ende ${p.cardUntil}` : 'Keine Tourcard'}</div>
-        <div class="nsd-dark ${fit && !inj ? '' : 'red'}">${inj ? `${inj.icon} Verletzt` : fit ? 'Match-fit' : 'Nicht fit'}</div>
+        <div class="nsd-dark ${fit && !inj ? '' : 'red'}">${inj ? `${inj.icon} ${s.week?.blocked ? 'Ausfall' : 'Verletzt'}` : fit ? 'Match-fit' : 'Nicht fit'}</div>
       </div>
       <div class="nsd-rowpair x">
         <button class="nsd-btn row" id="s-shop"><span class="ic">🛒</span><span class="lb">Shop</span></button>
