@@ -64,7 +64,10 @@ export function throwDart(m, hit, pos = null) {
   const t = m.turn, s = m.stats[t];
   const r = m.rem[t];
   let sc = hit.score;
-  if (needsIn(m, t)) { if (hit.double) (m.inn ??= [false, false])[t] = true; else sc = 0; }   // noch nicht „drin“: Dart zählt nichts
+  if (needsIn(m, t)) {                                   // noch nicht „drin“: Dart zählt nichts
+    s.dinAtt = (s.dinAtt ?? 0) + 1;                       // Version 148: Doppelquote zum Reinkommen
+    if (hit.double) { (m.inn ??= [false, false])[t] = true; s.dinHit = (s.dinHit ?? 0) + 1; } else sc = 0;
+  }
   const after = r - sc;
   m.visit.darts.push(hit.label);
   if (pos && hit.label !== 'OUT' && hit.label !== 'BOUNCER' && hit.label !== 'ROBIN') (m.visit.tips ??= []).push({ x: pos.x, y: pos.y });
@@ -144,7 +147,7 @@ export function matchResult(m) {
     score: m.format.sets ? [...m.sets] : [...m.legs],
     legsTotal: [m.stats[0].legsWon, m.stats[1].legsWon],
     sets: m.format.sets ? [...m.sets] : null,
-    stats: m.stats.map(s => ({ ...s, avg: s.darts ? s.points / s.darts * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0 })),
+    stats: m.stats.map(s => ({ ...s, avg: s.darts ? s.points / s.darts * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0, dinPct: s.dinAtt ? (s.dinHit ?? 0) / s.dinAtt : 0 })),
     members: m.team?.some(n => n > 1) ? [0, 1].map(t => ((m.team[t] ?? 1) > 1
       ? Array.from({ length: m.team[t] }, (_, i) => { const s = m.mstats?.[t]?.[i] ?? newStats(); return { ...s, avg: s.darts ? s.points / s.darts * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0 }; })
       : null)) : null,                                   // nur World Cup: [Seite][Mitglied]

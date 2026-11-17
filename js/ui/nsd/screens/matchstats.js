@@ -7,7 +7,7 @@ import { nameOf } from './tourevent.js';
 import { getPlayer } from '../../../world.js';
 
 export const nsd = true;
-const HELP = '<p>Die <b>Note</b> (1–10) ergibt sich aus Average, Checkout-Quote, 180ern und dem Ergebnis. Gute Noten bringen Fans.</p><p><b>Star-Status</b>: Siege bringen Fortschritt (mehr bei 0er-Siegen, hohem Average, starken Gegnern und großen Turnieren), Niederlagen kosten etwas – nie unter die erreichte Stufe.</p>';
+const HELP = '<p>Die <b>Note</b> (1–10) ergibt sich aus Average, Checkout-Quote, 180ern und dem Ergebnis. Gute Noten bringen Fans.</p><p><b>Double-in</b> (nur World Grand Prix): getroffene Doppel zum Reinkommen / Darts, die dafür nötig waren.</p><p><b>Star-Status</b>: Siege bringen Fortschritt (mehr bei 0er-Siegen, hohem Average, starken Gegnern und großen Turnieren), Niederlagen kosten etwas – nie unter die erreichte Stufe.</p>';
 
 export function render(app) {
   const s = app.state, inst = s.activeEvent, lm = inst?.lastMatch, p = s.player;
@@ -31,6 +31,7 @@ export function render(app) {
         ${row('140+', a.s140, b.s140)}
         ${row('100+', a.s100, b.s100)}
         ${row('Checkout', pct(a.coPct), pct(b.coPct))}
+        ${a.dinAtt || b.dinAtt ? row('Double-in', `${pct(a.dinPct ?? (a.dinAtt ? a.dinHit / a.dinAtt : 0))}<br><small>${a.dinHit ?? 0}/${a.dinAtt ?? 0}</small>`, `${pct(b.dinPct ?? (b.dinAtt ? b.dinHit / b.dinAtt : 0))}<br><small>${b.dinHit ?? 0}/${b.dinAtt ?? 0}</small>`) : ''}
         ${row('High Finish', a.hiFinish || '–', b.hiFinish || '–')}
         ${row('Bestes Leg', a.bestLeg ? `${a.bestLeg} D.` : '–', b.bestLeg ? `${b.bestLeg} D.` : '–')}
       </table>

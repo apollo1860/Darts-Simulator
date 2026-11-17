@@ -3096,4 +3096,19 @@ test('New Star Darts v147: Double-in-Einstiege realistisch – erster zählender
   assert.equal(T.nineAlive(mk(['T20', 'D20', 'T20'])), false, 'erster Dart zählte nicht');
 });
 
+test('New Star Darts v148: Double-in-Quote in der Match-Statistik (Live und Schnellsimulation)', async () => {
+  const MS = await import('../js/matchState.js'), E = await import('../js/matchEngine.js'), B = await import('../js/board.js'), P = await import('../js/player.js'), { RNG } = await import('../js/rng.js');
+  const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
+  const m = MS.createMatch({ sets: 1, legs: 3, din: true }, 0);
+  ['S20', 'S20', 'D20'].forEach(l => MS.throwDart(m, H(l)));   // 3 Versuche, 1 Treffer
+  ['T20', 'T20', 'T20'].forEach(l => MS.throwDart(m, H(l)));   // Gegner: 3 Versuche, 0 Treffer
+  ['T20', 'T20', 'T20'].forEach(l => MS.throwDart(m, H(l)));   // du bist drin: zählt nicht mehr als Versuch
+  const r = MS.matchResult(m);
+  assert.deepEqual([r.stats[0].dinHit, r.stats[0].dinAtt], [1, 3]); assert.ok(Math.abs(r.stats[0].dinPct - 1 / 3) < 1e-9);
+  assert.deepEqual([r.stats[1].dinHit ?? 0, r.stats[1].dinAtt], [0, 3]); assert.equal(r.stats[1].dinPct, 0);
+  const rng = new RNG(3), a = P.attrsForAverage(95, rng), sim = E.simulateMatch(a, a, { sets: 3, legs: 3, din: true }, rng);
+  for (const st of sim.stats) assert.ok(st.dinAtt > 0 && st.dinHit > 0 && st.dinPct > 0.15 && st.dinPct < 0.75, `Sim-Quote ${st.dinHit}/${st.dinAtt}`);
+  const plain = E.simulateMatch(a, a, { sets: 3, legs: 3 }, rng); assert.ok(!plain.stats[0].dinAtt, 'ohne Double-in keine Quote');
+});
+
 console.log(`\n${n} Tests ok`);

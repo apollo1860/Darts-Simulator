@@ -120,10 +120,12 @@ const targetAvgRef = p => p.avgBase ?? p.avg;
 // nach dem Treffer zählen die restlichen Darts normal. Rückgabe wie visit() + in (true = jetzt drin).
 export const DIN_NEIGHBOUR = 0.07;
 export const DIN_HIT = 1.0;   // Chance je Dart = Checkout-Basis × DIN_HIT (Version 147: 1,0 – passt zum Dart-Modell, Nachbar-Doppel inklusive)
-export function inVisit(p, rng, fatigue) {
+export function inVisit(p, rng, fatigue, st = null) {
   const h = clamp(p.co * DIN_HIT, 0.05, 0.75);
   for (let d = 1; d <= 3; d++) {
+    if (st) st.dinAtt = (st.dinAtt ?? 0) + 1;            // Version 148: Doppelquote zum Reinkommen
     if (!rng.chance(h)) continue;
+    if (st) st.dinHit = (st.dinHit ?? 0) + 1;
     // Version 147: Lieblingsdoppel Tops (D20, selten D1/D5) oder D16 (selten D8/D7); Nachbar-Doppel ≈ 7 % wie im Dart-Modell
     const dbl = p.din16 ? (rng.chance(1 - DIN_NEIGHBOUR) ? 32 : rng.pick([16, 14])) : (rng.chance(1 - DIN_NEIGHBOUR) ? 40 : rng.pick([2, 10]));
     // Version 146: restliche Darts dartgenau auf die 20 (T20 / S20 / Nachbar 1 oder 5) → typisch 80, 120, 160 statt krummer Werte
@@ -149,7 +151,7 @@ function simLeg(starter, prof, st, rng, ctx) {
     const pressure = ctx.wouldWin(t) ? clamp(0.8 + 0.17 * (p.men / 100) + 0.025 * p.exp, 0.55, 1.3) : 1;
     let fatigue = ctx.legIdx > 10 ? Math.max(0.9, 1 - (ctx.legIdx - 10) * 0.0025 * (1 - p.foc / 100)) : 1;
     if (ctx.wouldWin(0) && ctx.wouldWin(1)) fatigue *= 1 + 0.006 * p.exp;   // Entscheidungsleg: Scoring
-    const v = inn[t] ? visit(p, rem[t], s, rng, pressure, fatigue) : inVisit(p, rng, fatigue);
+    const v = inn[t] ? visit(p, rem[t], s, rng, pressure, fatigue) : inVisit(p, rng, fatigue, s);
     if (v.in) inn[t] = true;
     s.darts += v.darts; legDarts[t] += v.darts;
     if (!v.bust) { s.points += v.pts; rem[t] -= v.pts; addScore(s, v.pts); }
@@ -206,6 +208,7 @@ export function finalizeStats(s) {
     ...s,
     avg: s.darts ? (s.points / s.darts) * 3 : 0,
     coPct: s.coAtt ? s.coHit / s.coAtt : 0,
+    dinPct: s.dinAtt ? (s.dinHit ?? 0) / s.dinAtt : 0,   // Double-in (World Grand Prix)
   };
 }
 
