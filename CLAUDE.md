@@ -107,6 +107,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 151**: Gegner-9-Darter: „9“ auch in seiner TV-Zeile (`oppNine`, live.js), nur seine letzten 3 Darts am Board (`startShow('nine')`).
 - **Version 152**: Verletzungen (`js/injury.js`: `injuryWeek` in `nextWeek`, 5 %/Woche + Zuschläge, 4 Wochen Abklingzeit): −50 % Energie sofort, 1–2 Wochen `player.injury`, Erholung × 0,4 (`weeklyEnergy`), Attribut-Abzug (`applyInjury` in `soloAttrs0`) + `injuryAim` in `aimParams`. Dartitis bewusst weggelassen.
 - **Version 153**: Ganz selten schwere Rückenschmerzen (`INJ_SEVERE`, `injury.severe`) → `state.week.blocked`: keine Turniere der KW meldbar/spielbar (PL/World Cup laufen automatisch weiter).
+- **Version 154**: `INJ_SEVERE` 0,04 (schwere Rückenschmerzen ≈ 1 Mal in 35–45 Saisons).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln
