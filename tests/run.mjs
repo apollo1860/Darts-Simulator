@@ -3179,4 +3179,29 @@ test('New Star Darts v153: Ganz seltene schwere Rückenschmerzen sperren die Tur
   for (const ev of CAL.eventsInWeek(s, 2026, 6)) { const st = ET.eventStatus(s, ev); assert.ok(!st.playable && /Rücken/.test(st.reason)); }
 });
 
+test('New Star Darts v156: Rücktritte der (ehemaligen) Tourcard-Spieler in den News, Top 24 hören nicht auf (außer über 65)', async () => {
+  const N = await import('../js/nsd.js'), W = await import('../js/world.js'), R = await import('../js/rankings.js'), S = await import('../js/season.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 53 }); s.player.assessed = true;
+  const y = s.date.year, top = R.orderOfMerit(s, 'pdc', y).slice(0, 24).map(x => x.p).filter(p => p.id !== 'P');
+  const star = top[0], old = top[1];
+  // geschützt: 60 Jahre, Top 24 → nie Rücktritt; über 65 → möglich
+  let quitProt = 0, quitOld = 0;
+  for (let k = 0; k < 200; k++) {
+    const c = structuredClone(s), a = c.world.players[star.id], b = c.world.players[old.id]; a.age = 60; b.age = 70;
+    const prot = new Set(top.map(p => p.id)), rep = W.developWorld(c, new RNG(k), y, prot);
+    if (a.tier === 'retired') quitProt++;
+    if (b.tier === 'retired') { quitOld++; assert.ok(rep.retiredTc.some(x => x.id === old.id), 'Tourcard-Spieler in der Liste'); }
+  }
+  assert.equal(quitProt, 0, 'Top 24 unter 66 hört nicht auf'); assert.ok(quitOld > 50, `über 65 hört auf (${quitOld}/200)`);
+  // ohne Karte nie gehabt → nicht in der Liste
+  assert.equal(W.hadCard({ id: 'F1' }), false); assert.equal(W.hadCard({ id: 'K3' }), true); assert.equal(W.hadCard({ id: 'C9', cardVia: 'Q-School' }), true);
+  // Saisonwechsel: News im neuen Jahr
+  for (const p of Object.values(s.world.players)) if (p.cardUntil && !top.includes(p)) p.age = Math.max(p.age, 58);
+  s.date.week = 52; s.week = { played: true, eventId: null }; s.activeEvent = null;
+  S.nextWeek(s);
+  assert.equal(s.date.year, y + 1);
+  const n = s.news.find(x => /Karriereende: \d+ Tourcard/.test(x.title));
+  assert.ok(n && n.year === y + 1 && n.week === 1, 'Rücktrittsliste zum Saisonstart');
+});
+
 console.log(`\n${n} Tests ok`);

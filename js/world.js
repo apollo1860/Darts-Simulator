@@ -190,8 +190,12 @@ function newTalent(state, rng, year) {
 
 // Am Jahresende (vor Alterung): Entwicklung, Ruhestand, Nachwuchs, Dev→Challenge ab 24
 export const BREAKOUT_P = 0.06, SLUMP_P = 0.04;   // Chance je Jahr auf ein Durchbruch- (bis 30 J.) bzw. Einbruchjahr
-export function developWorld(state, rng, year) {
-  const report = { retired: [], talents: [], breakouts: [], slumps: [] };
+// Version 156: Spieler mit (früherer) Tourcard – für die Rücktrittsliste in den News
+export const hadCard = p => !!(p.cardVia || p.cardUntil || String(p.id).startsWith('K'));
+export const TOP_PROTECT = 24, TOP_PROTECT_AGE = 65;   // Top 24 der PDC-OOM treten nicht zurück, außer sie sind über 65
+export function developWorld(state, rng, year, protect = new Set()) {
+  const report = { retired: [], retiredTc: [], talents: [], breakouts: [], slumps: [] };
+  const tcOut = p => { if (hadCard(p)) report.retiredTc.push({ id: p.id, name: p.name, age: p.age, nation: p.nation }); };
   for (const p of Object.values(state.world.players)) {
     if (p.tier === 'local' || p.tier === 'ddv' || p.tier === 'amateur' || p.tier === 'secondary' || p.tier === 'retired') continue;
     const a = p.age;
@@ -210,7 +214,8 @@ export function developWorld(state, rng, year) {
     if (jump) (jump > 0 ? report.breakouts : report.slumps).push({ id: p.id, name: p.name, jump, tier: p.tier });
     // Ruhestand: ab 45 steigend, ohne Tourcard eher
     const pRet = a < 45 ? 0 : (a - 44) * (p.tier === 'tour' ? 0.02 : 0.05);
-    if (rng.chance(pRet)) { report.retired.push(p.name); p.tier = 'retired'; p.cardUntil = null; }   // bleibt für Historie erhalten
+    const kept = protect.has(p.id) && a <= TOP_PROTECT_AGE;
+    if (!kept && rng.chance(pRet)) { tcOut(p); report.retired.push(p.name); p.tier = 'retired'; p.cardUntil = null; }   // bleibt für Historie erhalten
   }
   developSecondary(state, rng, year, report);          // Version 138: Nebentouren altern, treten zurück, Nachwuchs
   report.jdc = addJdc(state.world.players, rng, year + 1, -1);   // JDC-Talente, die im neuen Jahr 16 werden
@@ -220,7 +225,7 @@ export function developWorld(state, rng, year) {
   // Pool ohne Karte auf 200 begrenzen: die schwächsten Challenge-Spieler ab 26 hören auf
   const pool = nonCardPros(state);
   if (pool.length > POOL_MAX) pool.filter(p => p.age >= 26 && !p.rival).sort((x, y) => x.avg - y.avg)
-    .slice(0, pool.length - POOL_MAX).forEach(p => { p.tier = 'retired'; report.quit = (report.quit ?? 0) + 1; });
+    .slice(0, pool.length - POOL_MAX).forEach(p => { tcOut(p); p.tier = 'retired'; report.quit = (report.quit ?? 0) + 1; });
   return report;
 }
 

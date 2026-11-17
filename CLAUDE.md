@@ -108,6 +108,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 152**: Verletzungen (`js/injury.js`: `injuryWeek` in `nextWeek`, 5 %/Woche + Zuschläge, 4 Wochen Abklingzeit): −50 % Energie sofort, 1–2 Wochen `player.injury`, Erholung × 0,4 (`weeklyEnergy`), Attribut-Abzug (`applyInjury` in `soloAttrs0`) + `injuryAim` in `aimParams`. Dartitis bewusst weggelassen.
 - **Version 153**: Ganz selten schwere Rückenschmerzen (`INJ_SEVERE`, `injury.severe`) → `state.week.blocked`: keine Turniere der KW meldbar/spielbar (PL/World Cup laufen automatisch weiter).
 - **Version 155**: `INJ_SEVERE` 0,18 (schwere Rückenschmerzen ≈ 1 Mal in 8–10 Saisons; Version 154 mit 0,04 war ein Missverständnis).
+- **Version 156**: Rücktrittsliste aller (ehemaligen) Tourcard-Spieler als News zum Saisonstart (`hadCard`, `report.retiredTc`, `state.tcRetired`, `newSeasonNews`); Top 24 PDC treten nur über 65 zurück (`TOP_PROTECT`, `developWorld(…, protect)`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

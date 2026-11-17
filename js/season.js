@@ -4,7 +4,7 @@ import { advanceWeek, eventsInWeek } from './calendar.js';
 import { simulateWeekAI, awardCard, qschoolRankingCards, closeEvent } from './tournaments.js';
 import { WDF_MAJOR_TIERS } from '../data/tournaments.js';
 import { orderOfMerit, OOM_TYPES, rankOf, devHolders } from './rankings.js';
-import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE } from './world.js';
+import { developWorld, updateTiers, getPlayer, DEV_MAX_AGE, TOP_PROTECT } from './world.js';
 import { addNews } from './news.js';
 import { rankArticle, cardArticle, plArticle, plLineupArticle } from './articles.js';
 import { WEEKS_PER_YEAR, surname } from './util.js';
@@ -177,7 +177,9 @@ export function yearEnd(state) {
     } else { pl.tier = 'challenge'; pl.cardUntil = null; }
   }
   // 3) KI-Welt entwickelt sich weiter
-  const dev = developWorld(state, rng, y);
+  const top = new Set(orderOfMerit(state, 'pdc', y).slice(0, TOP_PROTECT).map(x => x.p.id));   // Version 156: Top 24 bleiben (bis 65)
+  const dev = developWorld(state, rng, y, top);
+  state.tcRetired = { year: y + 1, list: dev.retiredTc };     // Liste erscheint zum Saisonstart in den News (newSeasonNews)
   rivalYearEnd(state, rng, y);
   addNews(state, 'info', `Saisonbilanz ${y}`,
     `Neue Tourcards: ${lines.join(', ') || '–'}. Karte verloren: ${lost.length} Spieler. Rücktritte: ${dev.retired.length}${dev.retired.length ? ` (u. a. ${dev.retired.slice(0, 3).join(', ')})` : ''}. Neue Talente: ${dev.talents.length}.`);
@@ -197,6 +199,12 @@ function announcePl(state) {
 
 function newSeasonNews(state) {
   const p = state.player, y = state.date.year;
+  const tr = state.tcRetired;                              // Version 156: alle (ehemaligen) Tourcard-Spieler, die aufgehört haben
+  if (tr?.year === y) {
+    if (tr.list.length) addNews(state, 'info', `👋 Karriereende: ${tr.list.length} ${tr.list.length === 1 ? 'Tourcard-Spieler hört' : 'Tourcard-Spieler hören'} auf`,
+      `${[...tr.list].sort((a, b) => b.age - a.age).map(x => `${x.name} (${x.age})`).join(', ')}.`);
+    delete state.tcRetired;
+  }
   if (p.tour === 'tour') addNews(state, 'info', `Saison ${y}: Tourcard bis ${p.cardUntil}`, 'Q-School, Challenge und Development Tour sind für dich gesperrt.');
   else if (state.mode === 'nsd') addNews(state, 'info', `Saison ${y}: Last Chance in KW 2`, 'Melde dich in der Wochenansicht für die Q-School (UK oder Europa). Finale eines Tages oder ein Platz weit vorn in der Q-School-Rangliste = neue Tourcard.');
   else addNews(state, 'info', `Saison ${y}: Q-School in KW 2`, `Melde dich für die Q-School UK oder Europa an – sonst keine Challenge-Tour-Berechtigung in ${y}.${p.age <= DEV_MAX_AGE ? ' Die Development Tour (bis 23) kannst du auch ohne Q-School spielen.' : ''}`);
