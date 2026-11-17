@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 166;
+export const APP_VERSION = 167;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -44,7 +44,7 @@ export const drinkFactor = (level = 1) => {
   const L = Math.max(1, level), { level: a, price } = DRINK_ANCHOR;
   return L <= a ? Math.pow(price, (L - 1) / (a - 1)) : price * Math.pow(1 + DRINK_TAIL, L - a);
 };
-export const START_STARS = 15;     // Startguthaben (★ auf Status 1)
+export const START_STARS = 8;      // Startguthaben (★ auf Status 1; Version 167: 8 statt 15)
 // Start im Tour-Modus: Saison 2026 direkt nach der Q-School (KW 2)
 export const NSD_START = { year: 2026, week: 3 };
 // Star-Status-Fortschritt: je Stufe mehr Punkte nötig (Feinabstimmung Etappe 5)

@@ -47,7 +47,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Buttons Weiter/✔/Zurück immer über `arrowIcon()`/`checkIcon()` (SVG), nie Emoji.
 
 ## Start & Welt
-- Saison 2026, KW 3 (nach der Q-School), 15 ★, Alter 16–60. Eigener Spieler startet mit 2-Jahres-Tourcard, nominell einer der Schwächsten.
+- Saison 2026, KW 3 (nach der Q-School), 8 ★ (`START_STARS`), Alter 16–60. Eigener Spieler startet mit 2-Jahres-Tourcard, nominell einer der Schwächsten.
 - **Realer Spieler** wählbar (`realPlayers`/`newRealCareer`): übernimmt Daten/Ranglistenplätze des KI-Spielers; ohne hinterlegtes Alter frei wählbar; ohne Tourcard → 2-Jahres-Karte (`state.openTour`, kein Karriereende bei Kartenverlust); Spielerinnen (`player.woman`, Partner-Texte über `partnerText`/`relLabelOf`). Startwerte aus dem Average (`realStartFor`).
 - Welt: 128 Tourcard-Holder (Nutzerlisten in data/players.js), Challenge/Dev-Pool, JDC-Talente, ehemalige Holder (IDs `K…`), Nebentouren (data/secondary.js: Women's Series, Asien, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa, CDLC, Afrika). Exakte Averages wo vorgegeben; `avgRange` (5. Wert) = je Match zufälliger Average aus der Spanne (Silvia Lindner 52–75).
 - Jahreswechsel: Top 64 PDC → Karte +1 Jahr, auslaufend außerhalb → Verlust (eigener Spieler: „Last Chance“ Q-School KW 2, sonst Karriereende). CT/Dev-OOM Top 2 ohne Karte → Karte. KI entwickelt sich nach Alter + seltene Durchbruch-/Einbruchjahre; Ruhestand ab 45 (Top 24 PDC erst über 65). Rücktritte aller (ehemaligen) Tourcard-Spieler als News in KW 1.
