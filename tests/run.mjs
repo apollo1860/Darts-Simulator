@@ -3221,8 +3221,18 @@ test('New Star Darts v158: Match-Note wird mit steigendem Star-Status strenger',
   const r = [1, 10, 20, 30, 40, 51].map(level => N.matchRating({ ...good, level }));
   for (let i = 1; i < r.length; i++) assert.ok(r[i] < r[i - 1], `strenger: ${r.join(' ')}`);
   assert.equal(r[0], 10); assert.ok(r[5] < 7.5, 'auf hohem Status nur noch ordentlich');
-  assert.equal(N.matchRating({ won: true, avg: 105, coPct: 0.5, s180: 5, my: 6, opp: 1, level: 60 }), 10, 'Weltklasse bleibt 10');
+  assert.ok(N.matchRating({ won: true, avg: 105, coPct: 0.5, s180: 5, my: 6, opp: 1, level: 60 }) >= 9.5, 'Weltklasse bleibt fast 10');
   assert.ok(N.matchRating({ won: true, avg: 80, coPct: 0.2, my: 6, opp: 5, level: 60 }) >= 5.5, 'Sieg mind. 5,5');
+});
+
+test('New Star Darts v159: Note minimal strenger, Fans erst über 7,0 (6,1–7,0 ±0, darunter Abzug)', async () => {
+  const N = await import('../js/nsd.js');
+  assert.deepEqual([7.1, 8.4, 8.5, 10].map(r => N.fansAfterMatch(true, r)), [1, 1, 2, 2]);
+  assert.deepEqual([6.1, 7.0].map(r => N.fansAfterMatch(true, r)), [0, 0]);
+  assert.deepEqual([6.0, 5.5, 2].map(r => N.fansAfterMatch(true, r)), [-1, -1, -1]);
+  assert.equal(N.fansAfterMatch(false, 7.5), 1, 'starke Niederlage bringt auch Fans');
+  const ref = N.rateRef(46); assert.ok(Math.abs(ref.avg - 99) < 1e-9 && Math.abs(ref.co - 0.43) < 1e-9);
+  assert.ok(N.rateRef(30).avg > 85 + 13 * 29 / 50, 'strenger als Version 158');
 });
 
 console.log(`\n${n} Tests ok`);

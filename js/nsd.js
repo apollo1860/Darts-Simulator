@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 158;
+export const APP_VERSION = 159;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -346,7 +346,7 @@ export function spendSkillPoint(p, key) {
 // Wohlwollend: Ø ab 90 oder höherer Ø als der Gegner (auch bei Niederlage) → mind. 6,0
 // Version 158: mit steigendem Star-Status strenger – bis Stufe 51 linear: erwarteter Average 85 → 98, erwartete Checkout-Quote
 // 33 → 42 %, 180er 0,3 → 0,12 je Stück; die Schutz-Untergrenze 6 gilt erst ab erwartetem Ø + 5.
-export const rateRef = (level = 1) => { const t = Math.min(1, (level - 1) / 50); return { avg: 85 + 13 * t, co: 0.33 + 0.09 * t, s180: 0.3 * (1 - 0.6 * t) }; };
+export const rateRef = (level = 1) => { const t = Math.min(1, (level - 1) / 45); return { avg: 85 + 14 * t, co: 0.33 + 0.1 * t, s180: 0.3 * (1 - 0.65 * t) }; };   // Version 159: minimal strenger (bis Stufe 46: Ø 99, 43 %, 0,105)
 export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null, level = 1 }) {
   const ref = rateRef(level);
   let r = 6 + (avg - ref.avg) / 5 + (coPct - ref.co) * 6 + s180 * ref.s180 + (won ? 1 : -0.3) + (my - opp) * 0.1;
@@ -357,7 +357,8 @@ export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null,
 // Fans: Zuwachs wird mit vielen Fans kleiner (100 % ist schwer zu erreichen); Verluste voll
 export const addFans = (p, n) => addRel(p, 'fans', n > 0 ? Math.round(n * Math.max(0.05, (1 - (p.rel.fans ?? 0) / 100) ** 2) * 10) / 10 : n);
 export function addRel(p, key, n) { p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key]; }
-export const fansAfterMatch = (won, rating) => (won ? (rating >= 6 ? 1 : 0) + (rating >= 8.5 ? 1 : 0) : rating < 4 ? -1 : 0);
+// Version 159: Fans nach jedem Match (Sieg wie Niederlage): über 7,0 +1 (ab 8,5 +2), 6,1–7,0 ±0, bis 6,0 −1
+export const fansAfterMatch = (won, rating) => (rating > 7 ? 1 + (rating >= 8.5 ? 1 : 0) : rating > 6 ? 0 : -1);
 
 // ---- Editor (Spielstand künstlich anpassen) ----
 // Fähigkeit auf Wert v setzen: Level der Reihe nach mit 3 Sternen füllen
