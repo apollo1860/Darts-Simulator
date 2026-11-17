@@ -10,7 +10,7 @@ export const INJURIES = {
 export const INJ_P = 0.05, INJ_TIRED = 0.03, INJ_TIRED_E = 30, INJ_AGE_FROM = 35, INJ_AGE_STEP = 0.01, INJ_FIT = 0.7;
 export const INJ_ENERGY = 50, INJ_LONG = 0.3, INJ_COOLDOWN = 4, INJ_REGEN = 0.4;
 // Version 153: ganz selten sind Rückenschmerzen so schlimm, dass du in dieser KW weder melden noch spielen kannst (state.week.blocked → eventStatus)
-export const INJ_SEVERE = 0.04;   // Anteil der Rückenverletzungen (≈ 1 Mal in 35–45 Saisons; Version 154: vorher 0,12)
+export const INJ_SEVERE = 0.18;   // Anteil der Rückenverletzungen (≈ 1 Mal in 8–10 Saisons; Version 155: etwas häufiger als die ursprünglichen 0,12)
 const wk = state => state.date.year * 52 + state.date.week;
 
 export const injuryOf = p => (p?.injury ? INJURIES[p.injury.kind] ?? null : null);
