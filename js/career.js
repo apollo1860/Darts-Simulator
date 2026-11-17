@@ -500,6 +500,7 @@ export function answerInterview(state, idx, rng) {
   if (iv.answers.length >= iv.qs.length) throw new Error('Das Interview ist schon vorbei');
   const ans = ivQuestion(iv)?.a[idx];
   if (!ans) throw new Error('Unbekannte Antwort');
+  iv.relStart ??= { ...(p.rel ?? {}) };                   // Version 149: Beziehungen vor dem Interview (Balken mit Zu-/Abnahme am Ende)
   const { e, ok } = toneEffect(ans.tone, { mood: iv.mood, backed: iv.backed, level: p.star.level }, rng);
   for (const [k, v] of Object.entries(ans.fx ?? {})) e[k] = (e[k] ?? 0) + v;
   // Version 94: immer ganze Zahlen (WM-Nervosität intern in Zehnteln, angezeigt ×10)

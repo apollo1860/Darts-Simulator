@@ -788,6 +788,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const my = res.score[me], opp = res.score[1 - me];
   const oppId = me === 0 ? m.b : m.a, oppP = inst.teams?.[oppId] ?? getPlayer(state, oppId);
   const legsN = res.legsTotal[0] + res.legsTotal[1];
+  const relBefore = { ...(p.rel ?? {}) }, eBefore = Math.round(p.energy ?? 100);   // Version 149: Bewertungsseite zeigt Zu-/Abnahme
   addEnergy(p, -Math.round(matchEnergy(legsN, inst) * effortEnergyFactor(inst.live, legsN)));   // Version 107: Einsatz (Herzen)
   const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
   const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp, oppAvg: o.avg });
@@ -819,6 +820,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   inst.lastMatch = {
     round: inst.rounds[inst.current].name, opp: oppId, won, score: [my, opp], legs: [res.legsTotal[me], res.legsTotal[1 - me]],
     me: s, opp_: o, meM: res.members?.[me] ?? null, oppM: res.members?.[1 - me] ?? null, xp: 0, rating, star, ups, fans, energy: p.energy,
+    relBefore, eBefore,
   };
 }
 // Siege des Spielers im Turnier (ohne Freilose)

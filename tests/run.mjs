@@ -3111,4 +3111,25 @@ test('New Star Darts v148: Double-in-Quote in der Match-Statistik (Live und Schn
   const plain = E.simulateMatch(a, a, { sets: 3, legs: 3 }, rng); assert.ok(!plain.stats[0].dinAtt, 'ohne Double-in keine Quote');
 });
 
+test('New Star Darts v149: Bewertungsseite (Werte vor dem Match) und Interview-Balken (Beziehungen vorher)', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), CAL = await import('../js/calendar.js'), C = await import('../js/career.js'), RB = await import('../js/ui/nsd/relbars.js').catch(() => null);
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 41 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+  T.enterEvent(s, CAL.eventsInWeek(s, 2026, 6).find(x => x.cat === 'pc').id);
+  const e0 = Math.round(s.player.energy), f0 = s.player.rel.fans;
+  T.playRound(s);
+  const lm = s.activeEvent.lastMatch;
+  assert.ok(lm && lm.eBefore === e0 && lm.relBefore.fans === f0, 'Werte vor dem Match gespeichert');
+  assert.ok(lm.energy < lm.eBefore, 'Energie gesunken');
+  // Interview: Beziehungen vor der ersten Antwort
+  s.interview = null; s.activeEvent.place = 'W'; C.maybeInterviewNsd(s, s.activeEvent, new RNG(3));
+  if (s.interview) {
+    const before = { ...s.player.rel }; C.answerInterview(s, 0, new RNG(4));
+    const iv = C.interviewView(s, new RNG(5)); assert.deepEqual(iv.relStart ?? s.interview.relStart, before);
+  }
+  if (RB) {   // Balken-Helfer: nur aktive Beziehungen, Änderung als Text
+    s.team = { manager: null }; assert.deepEqual(RB.activeRels(s), ['fans']);
+    assert.ok(/\+2/.test(RB.deltaTxt(2)) && /−1,5/.test(RB.deltaTxt(-1.5)) && /±0/.test(RB.deltaTxt(0)));
+  }
+});
+
 console.log(`\n${n} Tests ok`);

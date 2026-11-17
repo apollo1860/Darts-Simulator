@@ -681,3 +681,27 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 
 /* Version 132: Sudden-Death-Leg (Two clear legs, World Matchplay) */
 .dc-sd { color: #ff5252; letter-spacing: .05em; }
+
+/* Version 149: Bewertung nach dem Match / Interview – Beziehungsbalken mit Zu-/Abnahme */
+.nsd-rate { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+.nsd-rate-grade { display: flex; align-items: center; justify-content: space-between; padding: 8px 18px; border-radius: 6px; border: 2px solid #1f1f1f;
+  background: linear-gradient(#b8f5a6 0, #8fe57a 50%, #6fd45a 50%, #86e06f 100%); font-weight: 700; font-size: 1.45rem; text-shadow: var(--nsd-shadow); }
+.nsd-rate-grade b { font-size: 1.9rem; }
+.nsd-rate-grade.good { background: linear-gradient(#ffe98a 0, #ffd84a 50%, #f2c21a 50%, #ffd23a 100%); }
+.nsd-rate-grade.bad { background: linear-gradient(#ff9a9a 0, #ff6b6b 50%, #e04848 50%, #f06060 100%); }
+.nsd-relgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.nsd-meter.sm { height: 42px; }
+.nsd-meter.sm .lb { font-size: .98rem; padding-left: 0; }
+.nsd-meter .d { margin-left: 4px; color: #fff; }
+.nsd-meter .d.neg { color: #ffd0d0; }
+.nsd-relbars { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.nsd-table.nsd-stats.compact td { padding: 4px 6px; }
+.nsd-table.nsd-stats.compact th { padding: 6px; }
+.nsd-rate-res { text-align: center; font-weight: 700; font-size: 1.15rem; text-shadow: var(--nsd-shadow); }
+.nsd-rate-res.red { color: #ff7070; }
+.nsd-iv .nsd-relbars { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; margin-top: 2px; }
+.nsd-iv .iv-thanks { font-size: .95rem; opacity: .85; font-style: italic; }
+.nsd-title.sm { min-height: 58px; padding: 6px 14px; font-size: 1.6rem; }
+.nsd-iv.iv-done { gap: 6px; padding-top: 6px; padding-bottom: 6px; }
+.nsd-iv.iv-done .iv-react { font-size: 1.02rem; }
+.nsd-iv.iv-done .iv-sum { gap: 4px; }

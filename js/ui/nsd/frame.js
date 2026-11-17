@@ -82,11 +82,11 @@ export function bindHead(root, app, help = '') {
 }
 
 // Star-Status-Balken: wächst seit der letzten Anzeige sichtbar an (Stufenaufstieg: von 0), dann gilt der Stand als gesehen
-export function starMeter(state, { starIcon: ic, starPct: pctOf, starNeed: need }) {
+export function starMeter(state, { starIcon: ic, starPct: pctOf, starNeed: need, extra = '' }) {   // extra: z. B. Zu-/Abnahme (Version 149)
   const p = state.player, lv = p.star?.level ?? 1, seen = p.starSeen ?? { level: lv, xp: p.star?.xp ?? 0 };
   const from = seen.level < lv ? 0 : seen.level > lv ? null : Math.min(100, (seen.xp / need(lv)) * 100);
   p.starSeen = { level: lv, xp: p.star?.xp ?? 0 };
-  return meter({ icon: ic(lv), label: seen.level < lv ? `Star-Status ⬆ Stufe ${lv}` : 'Star-Status', pct: pctOf(p), from, cls: seen.level < lv ? 'lvup' : '' });
+  return meter({ icon: ic(lv), label: `${seen.level < lv ? `Star-Status ⬆ Stufe ${lv}` : 'Star-Status'}${extra ? ` ${extra}` : ''}`, pct: pctOf(p), from, cls: seen.level < lv ? 'lvup' : '' });
 }
 // Nach dem Einfügen: markierte Balken auf den Zielwert wachsen lassen
 export function animateMeters(root) {
