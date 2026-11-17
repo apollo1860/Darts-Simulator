@@ -87,7 +87,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Spielbericht: Statistik-Seite + Bewertungs-Seite (Note, Beziehungen, Star-Status, Energie mit Veränderung).
 
 ## Leben & Karriere-Rahmen
-- Beziehungen: Manager, Fans, Partner(in), Sponsoren; Zufriedenheit, Lifestyle. Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien; Wartung/„marode“), Ereignis-Karten, Dilemmas alle 3–7 Wochen, Hochzeit/Scheidung, Fahrzeug leihen, Meilensteine (139, u. a. Triple Crown, Clean Sweep = alle 8 Ranglisten-Majors in einem Jahr, 50 Wochen auf Platz 1 über `mstats.weeksNo1`).
+- Beziehungen: Manager, Fans, Partner(in), Sponsoren; Zufriedenheit, Lifestyle. Lifestyle-Shop (Gegenstände, Fahrzeuge, Immobilien; Wartung/„marode“), Ereignis-Karten, Dilemmas alle 3–7 Wochen, Hochzeit/Scheidung, Fahrzeug leihen, Meilensteine (139, u. a. Triple Crown, Clean Sweep = alle 8 Ranglisten-Majors + Premier League + World Cup in einem Jahr, 50 Wochen auf Platz 1 über `mstats.weeksNo1`).
 - Manager (3 Stufen, Provision, Sponsor-Angebote), Fitnesstrainer (Pakete), Sponsoren (echte Marken nach Branchen, max. 5, Verhandlung Höher/Niedriger, umstrittene Sponsoren), Saisonziele, Saisonbericht + Auszeichnungen.
 - Interviews nur nach Bühnen-Turnieren (Sieg/Finale/Halbfinale; nie nach PC/Floor) und vor jeder WM mit Elmar Paulke; je Antwort Wirkung auf eine Partei.
 - Zeitungsartikel (Titel, Finale, WM-Ticket, Rangliste, 9-Darter, Premier-League-Aufstellung u. a.).

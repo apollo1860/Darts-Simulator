@@ -7,9 +7,9 @@ const res = (c, f) => c.results.some(f);
 const PLACES = ['L128', 'L64', 'L32', 'L16', 'QF', 'SF', 'F', 'W'];
 const best = c => Math.max(-1, ...c.results.filter(r => r.place !== 'NQ' && r.place !== 'QUAL').map(r => PLACES.indexOf(r.place)));
 const M = (cat, id, icon, label, stars, check) => ({ cat, id, icon, label, stars, check });
-// Version 165: alle Titel eines Jahres gewonnen? (Triple Crown: WM + World Matchplay + Premier League; Clean Sweep: alle 8 Ranglisten-Majors)
+// Version 165: alle Titel eines Jahres gewonnen? (Triple Crown: WM + World Matchplay + Premier League; Clean Sweep: alle Majors inkl. Premier League und World Cup – Version 166)
 export const TRIPLE_CROWN = ['wm', 'matchplay', 'pl-final'];
-export const CLEAN_SWEEP = ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm'];
+export const CLEAN_SWEEP = ['masters', 'uk-open', 'matchplay', 'wgp', 'ec', 'gsod', 'pcf', 'wm', 'pl-final', 'wcod'];
 const sameYear = (c, ids) => [...new Set(c.titles.map(r => r.year))].some(y => ids.every(id => c.titles.some(r => r.year === y && r.eventId === id)));
 
 export const ACHIEVEMENTS = [

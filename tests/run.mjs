@@ -3039,7 +3039,8 @@ test('New Star Darts v165: Meilensteine Triple Crown, Clean Sweep, 50 Wochen auf
   assert.ok(!has('tripleCrown'), 'verschiedene Jahre zählen nicht');
   win('pl-final', 2026); L.checkAchievements(s); assert.ok(has('tripleCrown'), 'Triple Crown');
   for (const id of A.CLEAN_SWEEP.slice(0, -1)) win(id, 2028); L.checkAchievements(s); assert.ok(!has('cleanSweep'));
-  win('wm', 2028); L.checkAchievements(s); assert.ok(has('cleanSweep'), 'Clean Sweep');
+  assert.ok(A.CLEAN_SWEEP.includes('pl-final') && A.CLEAN_SWEEP.includes('wcod'), 'inkl. Premier League und World Cup');
+  win(A.CLEAN_SWEEP.at(-1), 2028); L.checkAchievements(s); assert.ok(has('cleanSweep'), 'Clean Sweep');
   (s.mstats ??= {}).weeksNo1 = 49; L.checkAchievements(s); assert.ok(!has('no1w50'));
   ((s.rankings.years[s.date.year] ??= {}).pdc ??= {}).P = 1e6;
   L.lifeWeek(s, new RNG(1)); assert.equal(s.mstats.weeksNo1, 50); assert.ok(has('no1w50'), '50 Wochen auf Platz 1');
