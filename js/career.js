@@ -8,7 +8,7 @@ import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS, CONTROVERSY_KINDS, CONTROVERSY_PARAMS } from '../data/controversial.js';
 import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS, SPONSOR_PAY, PAY_V, scaleSponsorPay } from '../data/sponsorsreal.js';
-import { starPrice, starPayout, starFactor, priceFactor, PRICE_MULT, addRel, addFans, addStarProgress, addEnergy } from './nsd.js';
+import { starPrice, starPayout, starFactor, priceFactor, PRICE_MULT, addRel, addFans, addStarProgress, addEnergy, isFloor } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { getPlayer } from './world.js';
@@ -408,8 +408,10 @@ function newInterview(state, rng, { kind, set, n, event, place, backed, extra = 
   return state.interview;
 }
 export function maybeInterviewNsd(state, inst, rng) {
-  const big = inst.cat !== 'pc' && inst.cat !== 'etq' && inst.cat !== 'dev' && (inst.cat !== 'wos' || inst.fmt === 'wwm');   // Dev Tour/Women's Series: nur nach Titeln
-  if (inst.isQualifier || !(inst.place === 'W' || (big && ['F', 'SF'].includes(inst.place)))) return null;
+  // Version 157: nach Players Championships und allen Floor-Turnieren (Qualifier, Dev/Challenge Tour, Women's Series …) gar kein Interview –
+  // nur Bühnen-Events (European Tour, Majors, World Series, Premier League, WM, Women's World Matchplay)
+  if (inst.isQualifier || (isFloor(inst) && inst.fmt !== 'wwm')) return null;
+  if (!['W', 'F', 'SF'].includes(inst.place)) return null;
   return newInterview(state, rng, { kind: 'result', set: inst.place === 'W' ? 'result' : 'loss', n: 3, event: inst.name, place: inst.place, backed: ['W', 'F'].includes(inst.place) });   // Niederlage: eigene Fragen
 }
 // Vor jeder WM (einmal je Jahr): Elmar Paulke. Qualifiziert → WM-Fragen (wirken auf die WM-Nervosität), sonst Saison-Rückblick.

@@ -1162,7 +1162,7 @@ test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Sais
   assert.equal(s.nsdSponsors.active.length, 1); assert.equal(s.nsdSponsors.active[0].perWeek, val); assert.ok(p.rel.sponsors > 0);
   const st0 = s.stars; C.sponsorWeek(s, rng); assert.ok(s.stars >= st0 + val - 0);
   // Interview nach Titel
-  const iv = C.maybeInterviewNsd(s, { place: 'W', cat: 'pc', name: 'PC 1' }, rng); assert.equal(iv.qs.length, 3);
+  const iv = C.maybeInterviewNsd(s, { place: 'W', cat: 'et', name: 'ET 1' }, rng); assert.equal(iv.qs.length, 3);
   assert.equal(C.maybeInterviewNsd(s, { place: 'QF', cat: 'major', name: 'X' }, rng), null);
   s.interview = iv; const xp0 = p.star.xp, lv0 = p.star.level;
   for (let i = 0; i < 3; i++) C.answerInterview(s, 1, rng);
@@ -3202,6 +3202,16 @@ test('New Star Darts v156: Rücktritte der (ehemaligen) Tourcard-Spieler in den 
   assert.equal(s.date.year, y + 1);
   const n = s.news.find(x => /Karriereende: \d+ Tourcard/.test(x.title));
   assert.ok(n && n.year === y + 1 && n.week === 1, 'Rücktrittsliste zum Saisonstart');
+});
+
+test('New Star Darts v157: Keine Interviews nach Players Championships und Floor-Turnieren', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 59 }), rng = new RNG(5);
+  for (const cat of ['pc', 'etq', 'dev', 'challenge', 'wos', 'mastersq', 'qschool']) for (const place of ['W', 'F', 'SF'])
+    assert.equal(C.maybeInterviewNsd(s, { place, cat, name: 'X' }, rng), null, `${cat} ${place}`);
+  assert.equal(C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X', isQualifier: true }, rng), null, 'Qualifier');
+  for (const ev of [{ cat: 'et' }, { cat: 'major' }, { cat: 'ws' }, { cat: 'pl' }, { cat: 'wos', fmt: 'wwm' }])
+    assert.ok(C.maybeInterviewNsd(s, { place: 'W', name: 'X', ...ev }, rng), `Bühne ${ev.cat}`);
 });
 
 console.log(`\n${n} Tests ok`);

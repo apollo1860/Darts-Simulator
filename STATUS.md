@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 157**: Keine Interviews mehr nach Players Championships und allen Floor-Turnieren (`isFloor`: PC, Qualifier, Dev/Challenge Tour, Women's Series, Masters-Vorrunde …) – auch nicht nach Titeln. Interviews nur noch nach Bühnen-Events (European Tour, Majors, World Series, Premier League, WM, Women's World Matchplay) bei Sieg/Finale/Halbfinale (`maybeInterviewNsd`). Ältere Angaben „Interview nur nach Titeln“ (Dev Tour/PC) sind überholt.
 - [x] **Version 156**: Rücktritte zum Saisonstart: Alle Spieler mit (früherer) Tourcard (`hadCard` in world.js: `cardVia`, `cardUntil` oder ehemalige Holder `K…`), die in `developWorld` aufhören (Altersrücktritt oder Pool-Grenze), landen in `report.retiredTc` → `state.tcRetired` → News „👋 Karriereende: n Tourcard-Spieler hören auf“ mit Namen und Alter in KW 1 (`newSeasonNews`). Die Top 24 der PDC-OOM (Saisonende) treten nicht zurück, außer sie sind über 65 (`TOP_PROTECT`/`TOP_PROTECT_AGE`, Parameter `protect` von `developWorld`). Typisch ≈ 5 pro Saison.
 - [x] **Version 155**: Schwere Rückenschmerzen etwas häufiger (Nutzerwunsch, Version 154 war ein Missverständnis): `INJ_SEVERE` 0,18 der Rückenverletzungen (≈ 1 Mal in 8–10 Saisons).
 - [x] **Version 154**: Schwere Rückenschmerzen (Ausfall der Woche) deutlich seltener: `INJ_SEVERE` 0,04 statt 0,12 der Rückenverletzungen (≈ 1 Mal in 35–45 Saisons).
