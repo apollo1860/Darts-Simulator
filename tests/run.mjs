@@ -3251,4 +3251,17 @@ test('New Star Darts v161: Reale Spieler ohne Alter – Alter frei wählbar; Sil
   assert.equal(Object.keys(t.world.players).length, n0);
 });
 
+test('New Star Darts v162: Silvia Lindner spielt je Match einen Average zwischen 52 und 75', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), E = await import('../js/matchEngine.js'), P = await import('../js/player.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 3 });
+  const sl = Object.values(s.world.players).find(p => p.name === 'Silvia Lindner');
+  assert.deepEqual(sl.avgRange, [52, 75]); assert.equal(sl.avg, 63.5);
+  const inst = { eventId: 'wos-1', year: 2026, current: 0 };
+  assert.deepEqual(T.rangeAttrs(s, sl, inst, 'X').attrs, T.rangeAttrs(s, sl, inst, 'X').attrs, 'fest je Match');
+  const rng = new RNG(4), opp = P.attrsForAverage(63, rng), av = [];
+  for (let k = 0; k < 200; k++) { const r = E.simulateMatch(T.rangeAttrs(s, sl, { ...inst, current: k }, 'X').attrs, opp, { legs: 4 }, rng); av.push(r.stats[0].points / r.stats[0].darts * 3); }
+  av.sort((a, b) => a - b);
+  assert.ok(av[20] < 57 && av[180] > 70, `Spanne ${av[20].toFixed(1)}–${av[180].toFixed(1)}`);
+});
+
 console.log(`\n${n} Tests ok`);

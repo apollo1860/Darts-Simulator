@@ -271,12 +271,12 @@ export function developSecondary(state, rng, year, report = { retired: [] }) {
 export function addSecondary(players, rng, startYear) {
   const have = new Set(Object.values(players).filter(p => p.tier === 'secondary' || p.circuit).map(p => p.name));   // Version 161: auch Zurückgetretene (behalten circuit) nicht neu anlegen
   let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
-  for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base], i) => {
+  for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base, range], i) => {
     if (have.has(name)) return;
     const age = age0 ?? rng.int(25, 45) + (2026 - startYear);
     const avg = Math.round((base ? (c.exact ? base : base * rng.float(1 - SECONDARY_SPREAD, 1 + SECONDARY_SPREAD)) : c.avgTop - i) * 10) / 10, id = `S${++sNo}`;   // exact: Average aus der Vorlage
     players[id] = { id, name, nation, age: age - (2026 - startYear), avg, tier: 'secondary', circuit, cardUntil: null,
-      attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}) };
+      attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}), ...(range ? { avgRange: range } : {}) };
   });
 }
 

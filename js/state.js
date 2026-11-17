@@ -163,6 +163,9 @@ export function migrate(s) {
     }
     s.womenV = 101;
   }
+  // Version 162: Spielerinnen mit Average-Spanne (Silvia Lindner 52–75) auch in bestehenden Spielständen
+  for (const [n, , , base, range] of SECONDARY.women.players) if (range) for (const x of Object.values(s.world.players))
+    if (x.name === n && x.circuit === 'women' && !x.avgRange) { x.avgRange = range; x.avg = base; x.attrs = attrsForAverage(base, new RNG(s.rng)); }
   addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
   markWomen(s.world.players);
   for (const x of Object.values(s.world.players)) { if (NAME_FIXES[x.name]) x.name = NAME_FIXES[x.name]; if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name]; }

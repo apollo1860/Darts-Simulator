@@ -25,7 +25,7 @@ export const SECONDARY = {
     ['Vicky Cauteruccio', 'ENG', null, 62.4], ['Grace Ferridge', 'ENG', null, 62.29], ['Tracey Dean', 'ENG', null, 61.63],
     ['Paige Pauling', 'ENG', null, 61.47], ['Holly Glet', 'ENG', null, 60.84], ['Greta Tekauer', 'HU', null, 60.78],
     ['Bianca Michalczyk', 'DE', null, 52.36], ['Jan Robbins', 'WAL', null, 52.27], ['Nancy-Vanessa Braun', 'DE', null, 52.19],
-    ["Kacie O'Connor", 'ENG', null, 52.12], ['Vivian Cullimore', 'ENG', null, 52.09], ['Claire New', 'ENG', null, 52.03], ['Silvia Lindner', 'DE', null, 52.0],
+    ["Kacie O'Connor", 'ENG', null, 52.12], ['Vivian Cullimore', 'ENG', null, 52.09], ['Claire New', 'ENG', null, 52.03], ['Silvia Lindner', 'DE', null, 63.5, [52, 75]],
     ['Hannah Meek', 'ENG', null, 51.9], ['Emma Barlow', 'WAL', null, 51.42], ['Elaine Blackett', 'ENG', null, 51.09],
     ['Michaela Gillert', 'DE', null, 50.81], ['Jacqueline Abergel', 'CA', null, 50.8], ['Crissy Manley', 'ENG', null, 50.17],
     ['Louise Johnson', 'ENG', null, 50.15], ['Lenaic Cabestant', 'FR', null, 50.09], ['Miriam Fiore', 'DE', null, 50.01],

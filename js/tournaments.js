@@ -32,7 +32,7 @@ import { slumpAfterMatch, slumpTitle } from './slump.js';
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
-import { overall } from './player.js';
+import { overall, attrsForAverage } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
 import { useBoosts, flightPrice } from './skilltrain.js';
@@ -388,8 +388,15 @@ const withAngle = (state, id, a) => {
   const bounce = dartBounce(state.player.gear?.id);    // Version 135: Bouncer je Dart (Schnellsimulation: Grundchance kostet Punkte)
   return { ...a, angle, bounce, robin: flightRobin(flightPrice(state.player)), angleMult: angleEfficiency(angle) * (1 - bounce.base) };   // robin: Version 136 (Flight)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)   // angleMult: nur Schnellsimulation (KI-Mittel ist kalibriert)
 };
+// Version 162: launische Spielerinnen (avgRange, z. B. Silvia Lindner 52–75) – je Match ein eigener Average aus der Spanne,
+// fest je Turnier/Runde/Gegner (gleicher Wert bei jedem Aufruf im Live-Match)
+export const rangeAttrs = (state, pl, inst, opp) => {
+  const [lo, hi] = pl.avgRange, r = new RNG({ s: hashSeed(`rng|${pl.id}|${state.seed ?? 0}|${inst?.eventId}|${inst?.year}|${inst?.sub ?? 0}|${inst?.current ?? 0}|${opp}`) });
+  return { ...pl, attrs: attrsForAverage(Math.round(r.float(lo, hi) * 10) / 10, r) };
+};
 const soloAttrs0 = (state, id, inst, sf, opp) => {
-  let staged = applyStage(perf(getPlayer(state, id)), sf);
+  const pl0 = getPlayer(state, id), pl = pl0?.avgRange && id !== 'P' ? rangeAttrs(state, pl0, inst, opp) : pl0;
+  let staged = applyStage(perf(pl), sf);
   if (id !== 'P') return staged;
   if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)
     const nv = nervesOf(state.player, inst, opp).pts;   // Nervosität (Top-8-Gegner, Anfänger, Bühne), über Mental abbaubar
