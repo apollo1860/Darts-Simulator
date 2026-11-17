@@ -3214,4 +3214,15 @@ test('New Star Darts v157: Keine Interviews nach Players Championships und Floor
     assert.ok(C.maybeInterviewNsd(s, { place: 'W', name: 'X', ...ev }, rng), `Bühne ${ev.cat}`);
 });
 
+test('New Star Darts v158: Match-Note wird mit steigendem Star-Status strenger', async () => {
+  const N = await import('../js/nsd.js');
+  const good = { won: true, avg: 95, coPct: 0.4, s180: 2, my: 6, opp: 4 };
+  assert.equal(N.matchRating({ ...good, level: 1 }), N.matchRating(good), 'Stufe 1 wie bisher');
+  const r = [1, 10, 20, 30, 40, 51].map(level => N.matchRating({ ...good, level }));
+  for (let i = 1; i < r.length; i++) assert.ok(r[i] < r[i - 1], `strenger: ${r.join(' ')}`);
+  assert.equal(r[0], 10); assert.ok(r[5] < 7.5, 'auf hohem Status nur noch ordentlich');
+  assert.equal(N.matchRating({ won: true, avg: 105, coPct: 0.5, s180: 5, my: 6, opp: 1, level: 60 }), 10, 'Weltklasse bleibt 10');
+  assert.ok(N.matchRating({ won: true, avg: 80, coPct: 0.2, my: 6, opp: 5, level: 60 }) >= 5.5, 'Sieg mind. 5,5');
+});
+
 console.log(`\n${n} Tests ok`);

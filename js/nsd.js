@@ -13,7 +13,7 @@ import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTION
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 157;
+export const APP_VERSION = 158;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -344,9 +344,13 @@ export function spendSkillPoint(p, key) {
 
 // ---- Match-Note (1–10) und Fans ----
 // Wohlwollend: Ø ab 90 oder höherer Ø als der Gegner (auch bei Niederlage) → mind. 6,0
-export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null }) {
-  let r = 6 + (avg - 85) / 5 + (coPct - 0.33) * 6 + s180 * 0.3 + (won ? 1 : -0.3) + (my - opp) * 0.1;
-  if (avg >= 90 || (oppAvg != null && avg > oppAvg)) r = Math.max(6, r);
+// Version 158: mit steigendem Star-Status strenger – bis Stufe 51 linear: erwarteter Average 85 → 98, erwartete Checkout-Quote
+// 33 → 42 %, 180er 0,3 → 0,12 je Stück; die Schutz-Untergrenze 6 gilt erst ab erwartetem Ø + 5.
+export const rateRef = (level = 1) => { const t = Math.min(1, (level - 1) / 50); return { avg: 85 + 13 * t, co: 0.33 + 0.09 * t, s180: 0.3 * (1 - 0.6 * t) }; };
+export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null, level = 1 }) {
+  const ref = rateRef(level);
+  let r = 6 + (avg - ref.avg) / 5 + (coPct - ref.co) * 6 + s180 * ref.s180 + (won ? 1 : -0.3) + (my - opp) * 0.1;
+  if (avg >= ref.avg + 5 || (oppAvg != null && avg > oppAvg)) r = Math.max(6, r);
   if (won) r = Math.max(5.5, r);
   return Math.round(Math.max(2, Math.min(10, r)) * 10) / 10;
 }

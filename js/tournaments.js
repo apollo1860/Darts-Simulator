@@ -795,7 +795,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const relBefore = { ...(p.rel ?? {}) }, eBefore = Math.round(p.energy ?? 100);   // Version 149: Bewertungsseite zeigt Zu-/Abnahme
   addEnergy(p, -Math.round(matchEnergy(legsN, inst) * effortEnergyFactor(inst.live, legsN)));   // Version 107: Einsatz (Herzen)
   const oppStrength = oppP?.attrs ? overall(oppP.attrs) - overall(p.attrs) : 0;
-  const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp, oppAvg: o.avg });
+  const rating = matchRating({ won, avg: s.avg, coPct: s.coPct, s180: s.s180, my, opp, oppAvg: o.avg, level: p.star?.level ?? 1 });   // Version 158: strenger mit Status
   sponsorMatchPay(state, inst, won, s);                // Sponsor-Prämien (Sieg, 180er)
   if (s.bestLeg && s.bestLeg <= 9) nineArticle(state, inst.name, oppP?.name);
   useBoosts(p);                                        // Zubehör-Boosts: ein Match weniger
