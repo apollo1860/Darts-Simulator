@@ -1,6 +1,7 @@
 // DartConnect-Liveticker (Tour-Modus): Aufnahme für Aufnahme, Schlüsselmomente wirfst du selbst.
 // Zielmechanik: Ziel wählen → vertikale Linie stoppen → horizontale Linie stoppen → Dart landet zufällig im Kreis
 // am Schnittpunkt (Kreis kleiner, je besser die Fähigkeiten). Gegner-Matchdarts werden auf der Scheibe gezeigt.
+import { injuryOf } from '../../../injury.js';
 import { esc, fmtNum, surname } from '../../../util.js';
 import { getSettings, setSetting } from '../settings.js';
 import { getPlayer } from '../../../world.js';
@@ -313,6 +314,7 @@ function setTarget(label) {
   const mm = momentMult(ui.s), hints = [
     needsIn(m, ui.me) ? '<span class="neg">Double-in: erst ein Doppel treffen</span>' : '', route ? `Weg ${route.map(fieldName).join(' – ')}` : '', a.prm.pressure ? '<span class="neg">Druck!</span>' : '', a.prm.shaky ? '<span class="neg">😰 Hand zittert</span>' : '',
     nervesNow(ui.s).pts ? '<span class="neg">😰 Nervös</span>' : '',
+    a.prm.injured ? `<span class="neg">${injuryOf(ui.s.player).icon} Verletzt</span>` : '',
     mm !== 1 ? `<span class="${mm < 1 ? 'pos' : 'neg'}">🎲 Moment: Streuung ${mm < 1 ? '−' : '+'}${Math.round(Math.abs(1 - mm) * 100)} %</span>` : '',
     blk >= 0.1 ? `<span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
   $('#info').innerHTML = hints.join(' · ');                           // das Ziel zeigen Scheibe und Chips; Spielstand: TV-Anzeige
@@ -413,7 +415,7 @@ function draw(ev) {
   const e = liveEnergy(ui.s);   // Version 108: sinkt sichtbar mit jedem gespielten Leg (je nach Einsatz)
   ui.el.innerHTML = `<div class="dc-top">${head(me, 'left')}
       <div class="dc-mid"><div class="dc-badge"><small>Legs</small>${m.legs[me]}:${m.legs[op]}</div>
-        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-fmt">${formatLines(m.format).join('<br>')}${isSuddenDeath(m.format, m.legs) ? '<br><b class="dc-sd">SUDDEN DEATH</b>' : ''}</div><div class="dc-energy ${e < 20 ? 'low' : ''}"><i style="width:${e}%"></i><span>⚡ ${e} %</span></div></div>
+        ${m.format.sets ? `<div class="dc-sets">Sätze ${m.sets[me]}:${m.sets[op]}</div>` : ''}<div class="dc-fmt">${formatLines(m.format).join('<br>')}${isSuddenDeath(m.format, m.legs) ? '<br><b class="dc-sd">SUDDEN DEATH</b>' : ''}</div><div class="dc-energy ${e < 20 ? 'low' : ''}"><i style="width:${e}%"></i><span>⚡ ${e} %${injuryOf(ui.s.player) ? ` · ${injuryOf(ui.s.player).icon}` : ''}</span></div></div>
       ${head(op, 'right')}</div>
     <div class="dc-list" id="dc-list">${body}</div>`;
   const list = ui.el.querySelector('#dc-list');

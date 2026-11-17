@@ -29,6 +29,7 @@ import { matchMilestones, titleMilestones } from './milestones.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { travelMult } from './home.js';
 import { slumpAfterMatch, slumpTitle } from './slump.js';
+import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch } from './nsd.js';
 import { overall } from './player.js';
@@ -393,6 +394,7 @@ const soloAttrs0 = (state, id, inst, sf, opp) => {
   if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)
     const nv = nervesOf(state.player, inst, opp).pts;   // Nervosität (Top-8-Gegner, Anfänger, Bühne), über Mental abbaubar
     if (nv) staged = applyNerves(staged, nv);
+    staged = applyInjury(staged, state.player);          // Version 152: Verletzung
     const mal = energyMalus(state.player.energy ?? 100, inst?.live?.m?.legIdx ?? 0, energyKind(inst));
     const ce = Math.max(0, 0.07 - 0.0012 * skillEffective(state.player, 'cal'));   // Rechnen schwach → Bogey-Reste, falsche Doppel
     return mal ? { ...staged, ce, sco: staged.sco - mal, fin: staged.fin - mal, foc: staged.foc - mal } : { ...staged, ce };
@@ -656,6 +658,8 @@ export function aimParams(state, target) {
   if (live.shake.mult > 1) { p.radius *= live.shake.mult; p.shaky = live.shake.mult; }
   const sp = nerveSpeed(nervesNow(state).pts);                     // Nervosität: Zielkreuz bewegt sich schneller
   if (sp > 1) { p.freq *= sp; p.nervy = sp; }
+  const inj = injuryAim(state.player);                             // Version 152: Verletzung – mehr Streuung, unruhigeres Zielkreuz
+  if (inj) { p.radius *= inj.circle; p.freq *= inj.speed; p.injured = inj; }
   return p;
 }
 // Aktueller Streuungs-Multiplikator eines Spielmoments für dich (Anzeige im Liveticker), 1 = keiner

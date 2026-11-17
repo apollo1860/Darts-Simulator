@@ -1,12 +1,14 @@
 // Wochen-Update nach „Weiter“: Energie, Sponsoren, Trainer, Nachrichten der Woche
 import { esc } from '../../../util.js';
 import { frame, titleBand, darkBar, coin, bar, checkIcon } from '../frame.js';
+import { injuryText } from '../../../injury.js';
 
 export const nsd = true;
 export function render(app, params = {}) {
   const s = app.state, w = s.weekly ?? {}, news = params.news ?? [];
   const rows = [
     `<div class="nsd-result-row"><span>Energie</span><b>${w.energy >= 0 ? '+' : ''}${w.energy ?? 0} % → ${s.player.energy} %</b></div>`,
+    s.player.injury ? `<div class="nsd-result-row"><span>Verletzung</span><b class="neg">${esc(injuryText(s))}</b></div>` : '',
     w.sponsor ? `<div class="nsd-result-row"><span>Sponsoren</span><b>+${coin(w.sponsor)}</b></div>` : '',
     w.fee ? `<div class="nsd-result-row"><span>Fitnesstrainer</span><b>−${coin(w.fee)}</b></div>` : '',
     `<div class="nsd-result-row"><span>Guthaben</span><b>${coin(s.stars ?? 0)}</b></div>`,

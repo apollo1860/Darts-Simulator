@@ -1,6 +1,7 @@
 // Turnier (Tour-Modus): nächstes Match (Spielen live / Simulieren), Ausgeschieden, Turnierergebnis
 import { esc, fmtNum, surname } from '../../../util.js';
 import { groupTable } from '../../../bracket.js';
+import { injuryText } from '../../../injury.js';
 import { flag } from '../../../../data/nations.js';
 import { getPlayer } from '../../../world.js';
 import { formatLabel } from '../../../matchEngine.js';
@@ -85,7 +86,7 @@ function versus(s, inst, m) {
     <div class="nsd-vs-side"><div class="fl">${flag(nationOf(s, oppId))}</div><div class="nm">${esc(nameOf(s, oppId))}</div>
       <div class="dt">OOM ${r ?? '–'}</div><div class="dt">Ø ${Math.round((opp?.avg ?? 0) * 0.85)}–${Math.round((opp?.avg ?? 0) * 1.15)}</div></div>
   </div>
-  <div class="nsd-vs-info">⚡ Match kostet ca. ${cost} % Energie (${isFloor(inst) ? 'Floor' : 'Bühne'})${nv.pts ? `<br><span class="neg">😰 Nervosität −${nv.pts.toFixed(1).replace('.', ',')}: ${nv.parts.map(x => x.label).join(', ')} – Mental (Star-Status) baut sie ab</span>` : ''}</div>`;
+  <div class="nsd-vs-info">⚡ Match kostet ca. ${cost} % Energie (${isFloor(inst) ? 'Floor' : 'Bühne'})${nv.pts ? `<br><span class="neg">😰 Nervosität −${nv.pts.toFixed(1).replace('.', ',')}: ${nv.parts.map(x => x.label).join(', ')} – Mental (Star-Status) baut sie ab</span>` : ''}${s.player.injury ? `<br><span class="neg">${esc(injuryText(s))}</span>` : ''}</div>`;
 }
 
 export function render(app) {

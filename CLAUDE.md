@@ -105,6 +105,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 148**: Match-Stats `dinHit`/`dinAtt`/`dinPct` (matchState.js/matchEngine.js), Zeile „Double-in“ im Spielbericht (matchstats.js, nur bei Double-in).
 - **Version 149**: Spielbericht = Statistik-Seite + Bewertungs-Seite (`matchstats` mit `{step: 2}`: Note, Manager/Fans/Sponsoren, Star-Status, Energie mit Zu-/Abnahme aus `lastMatch.relBefore`/`eBefore`); Interview-Ende mit Balken aller aktiven Beziehungen (`iv.relStart`); Baustein `js/ui/nsd/relbars.js`. Alles muss ohne Scrollen aufs Handy passen (geprüft 390×664).
 - **Version 151**: Gegner-9-Darter: „9“ auch in seiner TV-Zeile (`oppNine`, live.js), nur seine letzten 3 Darts am Board (`startShow('nine')`).
+- **Version 152**: Verletzungen (`js/injury.js`: `injuryWeek` in `nextWeek`, 5 %/Woche + Zuschläge, 4 Wochen Abklingzeit): −50 % Energie sofort, 1–2 Wochen `player.injury`, Erholung × 0,4 (`weeklyEnergy`), Attribut-Abzug (`applyInjury` in `soloAttrs0`) + `injuryAim` in `aimParams`. Dartitis bewusst weggelassen.
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

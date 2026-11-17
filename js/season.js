@@ -24,6 +24,7 @@ import { slumpWeek } from './slump.js';
 import { expenseWeek } from './expenses.js';
 import { syncAttrs, addEnergy } from './nsd.js';
 import { lifeWeek, weeklyEnergy } from './life.js';
+import { injuryWeek } from './injury.js';
 import { careerWeek, setGoals, seasonReport, preWmInterview, dilemmaWeek } from './career.js';
 import { decayWeek, soberUp, expireBoosts } from './skilltrain.js';
 
@@ -42,8 +43,11 @@ export function nextWeek(state) {
   advanceWeek(state);
   if (nsd) {
     const e0 = state.player.energy, c = careerWeek(state, new RNG(state.rng));
-    addEnergy(state.player, weeklyEnergy(state.player)); soberUp(state.player); expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); dilemmaWeek(state, new RNG(state.rng));
-    state.weekly = { ...c, energy: state.player.energy - e0 };
+    addEnergy(state.player, weeklyEnergy(state.player));
+    const inj = injuryWeek(state, new RNG(state.rng), e0);   // Version 152: Verletzung (nach der Erholung, kostet sofort 50 %)
+    if (inj) addNews(state, 'info', inj.title, inj.text);
+    soberUp(state.player); expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); dilemmaWeek(state, new RNG(state.rng));
+    state.weekly = { ...c, energy: state.player.energy - e0, injury: inj ? -50 : 0 };
     if (state.date.week === 1) setGoals(state);
     lastChanceCheck(state);
     const wm = !state.ended && eventsInWeek(state, state.date.year, state.date.week).find(e => e.id === 'wm');   // WM-Woche: Elmar Paulke bittet zum Interview

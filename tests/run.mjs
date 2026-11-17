@@ -3132,4 +3132,35 @@ test('New Star Darts v149: Bewertungsseite (Werte vor dem Match) und Interview-B
   }
 });
 
+test('New Star Darts v152: Verletzungen (50 % Energie, 1–2 Wochen, schwache Erholung, mehr Streuung, schwächere Aufnahmen)', async () => {
+  const N = await import('../js/nsd.js'), J = await import('../js/injury.js'), L = await import('../js/life.js'), T = await import('../js/tournaments.js'), CAL = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 43 }); s.player.assessed = true;
+  const p = s.player; p.energy = 80;
+  // Chance: Grundwert, überspielt, Alter, Fitnesstrainer
+  assert.equal(J.injuryChance({ energy: 80, age: 25 }), J.INJ_P);
+  assert.ok(J.injuryChance({ energy: 20, age: 25 }) > J.INJ_P && J.injuryChance({ energy: 80, age: 40 }) > J.INJ_P);
+  assert.ok(J.injuryChance({ energy: 80, age: 25, fitness: {} }) < J.INJ_P);
+  // Verletzung erzwingen
+  let inj = null; for (let k = 0; k < 400 && !inj; k++) { p.injuryFree = 0; inj = J.injuryWeek(s, new RNG(k)); }
+  assert.ok(inj && p.injury && p.energy === 30, 'kostet sofort 50 %');
+  assert.ok([1, 2].includes(inj.weeks) && p.injury.until - (s.date.year * 52 + s.date.week) === inj.weeks - 1);
+  // Erholung stark vermindert
+  const healthy = L.weeklyEnergy({ ...p, injury: null }); assert.ok(L.weeklyEnergy(p) <= Math.round(healthy * 0.5), 'Erholung vermindert');
+  // Abklingzeit: keine zweite Verletzung direkt danach
+  const until = p.injury.until; s.date.week += inj.weeks;   // Verletzung vorbei
+  assert.equal(J.injuryWeek(s, new RNG(1), 80), null); assert.equal(p.injury, null, 'abgelaufen');
+  for (let k = 0; k < 200; k++) assert.equal(J.injuryWeek(s, new RNG(k), 80), null, 'Abklingzeit');
+  // Simulation: deutlich schwächere Aufnahmen
+  const A = { sco: 93, fin: 93, men: 93, foc: 93, cal: 93 }, hurt = J.applyInjury(A, { injury: { kind: 'back' } });
+  const avg = a => { const rng = new RNG(7); let pts = 0, d = 0; for (let i = 0; i < 300; i++) { const r = simulateMatch(a, A, { legs: 6 }, rng); pts += r.stats[0].points; d += r.stats[0].darts; } return pts / d * 3; };
+  assert.ok(avg(A) - avg(hurt) > 2, 'Average merkbar niedriger');
+  // Live: größerer Kreis, schnelleres Zielkreuz
+  s.date.week = 6; s.week = { played: false, eventId: null }; p.energy = 90; p.injury = null;
+  T.enterEvent(s, CAL.eventsInWeek(s, 2026, 6).find(x => x.cat === 'pc').id); T.startManualMatch(s);
+  if (s.activeEvent.live) {
+    const a0 = T.aimParams(s, 'T20'); p.injury = { kind: 'head', until: 9e9 };
+    const a1 = T.aimParams(s, 'T20'); assert.ok(a1.radius > a0.radius && a1.freq > a0.freq && a1.injured, JSON.stringify([a0, a1]));
+  }
+});
+
 console.log(`\n${n} Tests ok`);

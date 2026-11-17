@@ -2,6 +2,7 @@
 import { LIFESTYLE } from '../data/lifestyle.js';
 import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M, lendableCars, borrowers } from '../data/lifeevents.js';
 import { MANAGERS } from '../data/team.js';
+import { INJ_REGEN } from './injury.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import { starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE, partnerText, PRICE_MULT } from './nsd.js';
 import { addNews } from './news.js';
@@ -89,7 +90,8 @@ export function upkeepWeek(state, rng) {
 
 // ---- Wöchentliche Erholung: Basis 40 + bestes Zuhause + Fitnesstrainer + Zufriedenheit (−10 … +10) ----
 export const fitnessRegen = p => p.fitness?.regen ?? 0;
-export const weeklyEnergy = p => ENERGY_WEEK + homeRegen(p) + fitnessRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5);
+// Version 152: verletzt → Erholung stark vermindert (× INJ_REGEN)
+export const weeklyEnergy = p => { const e = ENERGY_WEEK + homeRegen(p) + fitnessRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5); return p.injury ? Math.round(e * INJ_REGEN) : e; };
 
 // Zufriedenheit: Zielwert aus Lifestyle, Freundin, Fans und Selbstvertrauen; wöchentlich 20 % Richtung Ziel
 // Zufriedenheit: Ziel aus Luxus (Lifestyle), Freundin und dem Schnitt aller bestehenden Beziehungen; Start niedrig (30)
