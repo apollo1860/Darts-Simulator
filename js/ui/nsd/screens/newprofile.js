@@ -10,19 +10,20 @@ import { frame, titleBand, darkBar, bar, arrowIcon, checkIcon } from '../frame.j
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
-const form = { mode: 'own', first: '', last: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT, search: '', real: '' };
+const form = { mode: 'own', first: '', last: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT, search: '', real: '', realAge: 25 };
 let REAL = null;
 const reals = () => (REAL ??= realPlayers());
 const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const matches = () => { const q = norm(form.search.trim()); return q ? reals().filter(r => norm(r.name).includes(q)) : reals(); };
 const realOptions = list => list.length ? list.map(r => `<option value="${esc(r.name)}" ${r.name === form.real ? 'selected' : ''}>${esc(r.name)} (${r.nation}${r.age ? `, ${r.age}` : ''})</option>`).join('')
   : '<option value="">Kein Spieler gefunden</option>';
+const ageList = () => Array.from({ length: START_AGES[1] - START_AGES[0] + 1 }, (_, i) => START_AGES[0] + i);
 // Infokarte zum gewählten realen Spieler: Nation, Alter, Tour, geschätzte Start-Fähigkeiten
 function realInfo() {
   const r = reals().find(x => x.name === form.real);
   if (!r) return '<div class="nsd-angle-note">Spieler suchen und auswählen.</div>';
   const sk = realStartFor(r), row = (l, v) => `<div class="nsd-result-row"><span>${l}</span><b>${v}</b></div>`;
-  return `<div class="nsd-result">${row('Nation', `${flag(r.nation)} ${esc(NATIONS[r.nation]?.name ?? r.nation)}`)}${row('Alter', r.age ? `${r.age} Jahre` : '–')}${row('Bisher', r.card ? 'Tourcard-Holder' : esc(r.group))}${row('Start', r.card ? 'mit seiner Tourcard' : 'neue Tourcard 2026/27')}
+  return `<div class="nsd-result">${row('Nation', `${flag(r.nation)} ${esc(NATIONS[r.nation]?.name ?? r.nation)}`)}${r.age ? row('Alter', `${r.age} Jahre`) : `<div class="nsd-result-row"><span>Alter (frei wählbar)</span><select class="nsd-select" id="p-rage" style="width:auto;height:40px;font-size:1.15rem;padding:0 14px">${ageList().map(a => `<option value="${a}" ${a === form.realAge ? 'selected' : ''}>${a} Jahre</option>`).join('')}</select></div>`}${row('Bisher', r.card ? 'Tourcard-Holder' : esc(r.group))}${row('Start', r.card ? 'mit seiner Tourcard' : 'neue Tourcard 2026/27')}
     ${row('Scoring · Finishing', `${sk.sco} · ${sk.fin}`)}${row('Fokus · Rechnen', `${sk.foc} · ${sk.cal}`)}${row('Star-Status (Mental)', sk.men)}</div>`;
 }
 
@@ -90,6 +91,7 @@ export function mount(root, app, params) {
   if (sel) {
     if (!form.real || !matches().some(r => r.name === form.real)) pick();
     sel.onchange = pick;
+    info.onchange = e => { if (e.target.id === 'p-rage') form.realAge = +e.target.value; };   // Version 161: Alter für reale Spieler ohne bekanntes Alter
     root.querySelector('#p-search').oninput = e => {
       form.search = e.target.value;
       const list = matches();
@@ -110,7 +112,7 @@ export function mount(root, app, params) {
     if (!real && (first.length < 2 || last.length < 2)) return toast('Bitte Vor- und Nachnamen eingeben', 'error');
     const slot = params.slot ?? 1;
     if (!listSlots().find(s => s.slot === slot).empty && !await confirmDialog('Slot überschreiben?', `In Slot ${slot} liegt bereits ein Spielstand.`, 'Überschreiben')) return;
-    app.state = real ? newRealCareer({ name: form.real, hand: form.hand, angle: form.angle, slot, seed: randomSeed() })
+    app.state = real ? newRealCareer({ name: form.real, hand: form.hand, angle: form.angle, slot, seed: randomSeed(), age: form.realAge })
       : newNsdCareer({ first, last, nation: form.nation, age: form.age, hand: form.hand, angle: form.angle, slot, seed: randomSeed() });
     saveGame(app.state);
     form.first = ''; form.last = '';

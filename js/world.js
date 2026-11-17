@@ -269,7 +269,7 @@ export function developSecondary(state, rng, year, report = { retired: [] }) {
 // Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa): tier 'secondary', IDs S…
 // Ø = Basis der Tour − Platz in der Vorjahres-OOM; Entwicklung/Ruhestand/Nachwuchs seit Version 138 (developSecondary)
 export function addSecondary(players, rng, startYear) {
-  const have = new Set(Object.values(players).filter(p => p.tier === 'secondary').map(p => p.name));
+  const have = new Set(Object.values(players).filter(p => p.tier === 'secondary' || p.circuit).map(p => p.name));   // Version 161: auch Zurückgetretene (behalten circuit) nicht neu anlegen
   let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
   for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base], i) => {
     if (have.has(name)) return;

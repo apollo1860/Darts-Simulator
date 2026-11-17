@@ -113,6 +113,7 @@ Etappenweise Umsetzung (eine Etappe pro Sitzung):
 - **Version 158**: Match-Note strenger mit Star-Status (`rateRef`: bis Stufe 51 erwarteter Ø 85 → 98, Checkout 33 → 42 %, 180er 0,3 → 0,12; `matchRating(…, level)`).
 - **Version 159**: `rateRef` bis Stufe 46 (Ø 99, 43 %); Fans je Match: Note > 7,0 +1 (≥ 8,5 +2), 6,1–7,0 ±0, ≤ 6,0 −1 (`fansAfterMatch`, gilt vor „Fans: Match +1 nur ab Note 6“).
 - **Version 160**: `fansAfterMatch` – nach einem Sieg nie Fan-Verlust (≤ 7,0 → ±0).
+- **Version 161**: Reale Spieler ohne Alter wählbar + Alter frei wählbar (`newRealCareer(…, age)`, `#p-rage` in newprofile.js); Silvia Lindner im Women-Pool; `addSecondary` ignoriert Zurückgetretene (`circuit`).
 - **App-Icon**: `img/` (icon-192/512, apple-touch-icon, favicon-32) + `manifest.webmanifest`, eingebunden in index.html. Neues Logo: Datei in `img/` ersetzen (gleiche Namen/Größen).
 
 ### Festgelegte Regeln

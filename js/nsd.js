@@ -8,12 +8,12 @@ import { starArticle } from './articles.js';
 import { DARTS, STARTER_DART } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
-import { ratingForAvgExact } from './player.js';
+import { ratingForAvgExact, START_AGES } from './player.js';
 import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES, WOMEN_ON_TOUR } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 160;
+export const APP_VERSION = 161;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -120,7 +120,7 @@ export function realPlayers() {
   const out = [], seen = new Set();
   const add = (name0, nation, age, avg, card, group, woman = false, tcYear = null) => {
     const name = NAME_FIXES[name0] ?? name0;
-    if (seen.has(name) || (age == null ? !woman : age < 16)) return;   // Spielerinnen ohne bekanntes Alter: Alter aus der Welt
+    if (seen.has(name) || (age != null && age < 16)) return;   // Version 161: ohne bekanntes Alter wählbar – Alter frei wählbar (Profil)
     woman ||= WOMEN_ON_TOUR.includes(name); seen.add(name); out.push({ name, nation: NATION_FIXES[name] ?? nation, age, avg, card, group, ...(woman ? { woman } : {}), ...(tcYear ? { tcYear } : {}) });
   };
   for (const [n, nat, a, avg] of TOUR_TOP64) add(n, nat, a - 1, avg, true, 'Tourcard');   // Listen auf Basis 2027
@@ -159,13 +159,14 @@ function renameId(o, from, to) {
     if (k === from) { o[to] = o[k]; delete o[k]; }
   }
 }
-export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_DEFAULT }) {
+export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_DEFAULT, age = null }) {
   const r = realPlayers().find(x => x.name === name);
   if (!r) throw new Error('Unbekannter Spieler');
   const [first, ...rest] = name.split(' ');
-  const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: r.age ?? 30, hand, slot, seed, angle });
+  const own = r.age == null && age != null ? Math.max(START_AGES[0], Math.min(START_AGES[1], Math.round(age))) : null;   // Version 161: Alter selbst gewählt
+  const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: own ?? r.age ?? 30, hand, slot, seed, angle });
   const p = s.player, y = s.date.year, ai = Object.values(s.world.players).find(x => x.name === name && !x.rival);
-  if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
+  if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = own ?? ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
   // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
   if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}` });
   if (r.woman) p.woman = true;
