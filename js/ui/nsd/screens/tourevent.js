@@ -33,7 +33,7 @@ function myPath(s, inst) {
 }
 
 // Auslosung der aktuellen Runde (Version 94): kompakt und eingeklappt; in Gruppenphasen ◀ ▶ von Gruppe zu Gruppe
-const draw = { key: null, gi: 0, open: false };
+const draw = { key: null, gi: 0, open: false, ri: 0 };
 const gName = gi => (gi < 26 ? String.fromCharCode(65 + gi) : `${gi + 1}`);
 const short = (s, id) => (s.activeEvent?.teams?.[id] ? nameOf(s, id) : id === 'P' ? surname(s.player.name) : surname(nameOf(s, id)));
 function drawLine(s, m) {
@@ -43,8 +43,37 @@ function drawLine(s, m) {
   return `<div class="dl${me ? ' me' : ''}"><span class="l${w(m.a)}">${flag(nationOf(s, m.a))} ${esc(short(s, m.a))}</span>
     <span class="x">${m.winner && m.score ? `${m.score[0]}:${m.score[1]}` : '–'}</span><span class="r${w(m.b)}">${esc(short(s, m.b))} ${flag(nationOf(s, m.b))}</span></div>`;
 }
+// Version 201: Turnierbaum – bei K.-o.-Turnieren (fester Baum) alle Runden bis zum Finale durchblättern; noch offene Runden zeigen
+// die möglichen Gegner („Sieger Spiel n“ bzw. beide Namen). Gesetzte der WM mit Setzplatz.
+const fixedTree = inst => !inst.groups && !inst.ukEntry && !inst.prelimSeeds && inst.rounds.length > 1;
+function treeRound(inst, ri) {
+  if (inst.rounds[ri]?.matches?.length) return inst.rounds[ri].matches.map(m => ({ m, pool: [m.a, m.b].filter(Boolean) }));
+  const prev = treeRound(inst, ri - 1), out = [];
+  const slot = e => (e.m?.winner ? { id: e.m.winner } : e.m && !e.m.bye ? { opts: [e.m.a, e.m.b] } : { pool: e.pool });
+  for (let i = 0; i < prev.length; i += 2) out.push({ a: slot(prev[i]), b: slot(prev[i + 1]), pool: [...prev[i].pool, ...prev[i + 1].pool] });
+  return out;
+}
+const seedTag = (inst, id) => { const i = inst.seedIds?.indexOf(id) ?? -1; return i >= 0 ? `<small class="sd">(${i + 1})</small> ` : ''; };
+function slotHtml(s, inst, x, right = false) {
+  if (x.id) return right ? `${esc(short(s, x.id))} ${seedTag(inst, x.id)}${flag(nationOf(s, x.id))}` : `${flag(nationOf(s, x.id))} ${seedTag(inst, x.id)}${esc(short(s, x.id))}`;
+  if (x.opts) return `<i>${x.opts.map(id => esc(short(s, id))).join(' / ')}</i>`;
+  // offener Bereich: nach dem bestgesetzten Spieler benannt (WM-Setzliste, sonst Feldreihenfolge = Setzliste)
+  const seeds = inst.seedIds ?? inst.field ?? [], best = [...x.pool].sort((a, b) => ((seeds.indexOf(a) + 1) || 999) - ((seeds.indexOf(b) + 1) || 999))[0];
+  const no = seeds.indexOf(best) + 1;
+  return `<i>Bereich ${esc(short(s, best))}${no ? ` (${no})` : ''}</i>`;
+}
+function treeBody(s, inst) {
+  const ri = Math.min(draw.ri, inst.rounds.length - 1), r = inst.rounds[ri];
+  const list = treeRound(inst, ri).map((e, k) => {
+    if (e.m) { const m = e.m; return `<div class="dl${m.a === 'P' || m.b === 'P' ? ' me' : ''}"><span class="l${m.winner === m.a ? ' w' : ''}">${slotHtml(s, inst, { id: m.a })}</span>
+      <span class="x">${m.bye || !m.b ? 'Freilos' : m.winner && m.score ? `${m.score[0]}:${m.score[1]}` : `#${k + 1}`}</span><span class="r${m.winner === m.b ? ' w' : ''}">${m.b ? slotHtml(s, inst, { id: m.b }, true) : ''}</span></div>`; }
+    return `<div class="dl"><span class="l">${slotHtml(s, inst, e.a)}</span><span class="x">#${k + 1}</span><span class="r">${slotHtml(s, inst, e.b, true)}</span></div>`;
+  }).join('');
+  return `<div class="dnav"><button class="nsd-btn sm" data-dr="-1">◀</button><b>${esc(shortRound(r.name))}</b><span class="n">${ri + 1}/${inst.rounds.length}</span><button class="nsd-btn sm" data-dr="1">▶</button></div>${list}`;
+}
 function drawBody(s, inst) {
   const round = inst.rounds[inst.current];
+  if (fixedTree(inst)) return treeBody(s, inst);
   if (!(round.isGroup && inst.groups)) return round.matches.map(m => drawLine(s, m)).join('');
   const gi = draw.gi, g = inst.groups[gi] ?? [], tab = groupTable(inst.rounds, g, gi);
   return `<div class="dnav"><button class="nsd-btn sm" data-dg="-1">◀</button><b>Gruppe ${gName(gi)}</b><span class="n">${gi + 1}/${inst.groups.length}</span><button class="nsd-btn sm" data-dg="1">▶</button></div>
@@ -57,10 +86,12 @@ function drawView(s, inst) {
   const key = `${inst.eventId}|${inst.year}|${inst.sub ?? ''}`;
   if (draw.key !== key) {                                       // neues Turnier: eigene Gruppe vorauswählen, eingeklappt
     const mine = inst.groups?.findIndex(g => g.includes('P') || g.some(id => inst.teams?.[id]?.members?.includes('P')));
-    Object.assign(draw, { key, gi: Math.max(0, mine ?? 0), open: false });
+    Object.assign(draw, { key, gi: Math.max(0, mine ?? 0), open: false, ri: inst.current, cur: inst.current });
   }
+  if (draw.cur !== inst.current) { draw.ri = inst.current; draw.cur = inst.current; }   // neue Runde: Baum springt mit
   const label = round.isGroup && inst.groups ? `${inst.groups.length} Gruppen` : `${round.matches.length} Spiele`;
-  return `<details class="nsd-draw"${draw.open ? ' open' : ''}><summary>📋 Auslosung · ${esc(shortRound(round.name))} <span class="n">${label}</span></summary>
+  const title = fixedTree(inst) ? 'Turnierbaum' : `Auslosung · ${esc(shortRound(round.name))}`;
+  return `<details class="nsd-draw"${draw.open ? ' open' : ''}><summary>📋 ${title} <span class="n">${label}</span></summary>
     <div class="nsd-draw-body">${drawBody(s, inst)}</div></details>`;
 }
 function bindDraw(root, s) {
@@ -68,6 +99,8 @@ function bindDraw(root, s) {
   if (!d) return;
   d.addEventListener('toggle', () => { draw.open = d.open; });
   d.addEventListener('click', ev => {
+    const r = ev.target.closest('[data-dr]');
+    if (r) { const n = s.activeEvent.rounds.length; draw.ri = Math.max(0, Math.min(n - 1, draw.ri + Number(r.dataset.dr))); d.querySelector('.nsd-draw-body').innerHTML = drawBody(s, s.activeEvent); return; }
     const b = ev.target.closest('[data-dg]');
     if (!b) return;
     const n = s.activeEvent.groups.length;

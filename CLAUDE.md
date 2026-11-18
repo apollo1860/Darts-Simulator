@@ -77,7 +77,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 ## Turniere
 - Kalender 2026 in data/tournaments.js; Floor (`FLOOR_CATS`/`isFloor`: PC, Qualifier, Nebentouren) vs. Bühne.
 - Players Championships (30), European Tour (48er-Feld, TCHQ/HNQ/Regionen), Development Tour (bis 23, außerhalb Top 64, 1–5 Turniere je Wochenende), Challenge Tour/Q-School nur mit `openTour`/Last Chance, Women's Series (nur Spielerinnen außerhalb Top 64), WDF (ohne Tourcard).
-- Majors: Masters (+ Vorrunde), UK Open (160), World Matchplay (Two clear legs), World Grand Prix (Double-in), European Championship, Grand Slam (48, Gruppensieger → Achtelfinale), PC Finals, WM (128, Sätze), World Cup (Doppel, Nationen-Teams), World Series (8 Einladungen + 8 Regionale), Premier League (Top 8, 16 Spieltage + Play-offs, automatisch mitgespielt).
+- Majors: Masters (+ Vorrunde), UK Open (160), World Matchplay (Two clear legs), World Grand Prix (Double-in), European Championship, Grand Slam (48, Gruppensieger → Achtelfinale), PC Finals, WM (128, Sätze; Gruppe A Top 32 gesetzt, B Platz 33–64, C übrige 64 – Runde 1 nur A–C/B–C, Rangliste nach den PC Finals eingefroren), World Cup (Doppel, Nationen-Teams), World Series (8 Einladungen + 8 Regionale), Premier League (Top 8, 16 Spieltage + Play-offs, automatisch mitgespielt).
 - Preisgeld immer gezahlt; Ranglisten: PDC, Pro Tour, PC, ET (2-Jahres, exakt je Turnier), CT/Dev/WoS (1 Jahr).
 
 ## Match & Liveticker (`live.js`, tournaments.js)
@@ -86,6 +86,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Zielen: zwei Linien + Kreis (`circleRadius`, Tempo steigt bei jedem Richtungswechsel), Zoom-Schalter, TV-Spielstandsanzeige.
 - Kein Ticker-Logbuch (Leg/Break/180-Kommentare) – Hinweise nur als Toast.
 - Effekte: Druck, Nervosität, Verletzung, Spielmomente (2 Optionen, 50/50), verbaute Felder/Einsteckwinkel, Bouncer (je Dart-Modell), Robin Hood (je Flight).
+- Turnier-Lobby: Turnierbaum aller Runden (K.-o. mit festem Baum) zum Durchblättern.
 - Spielbericht: Statistik-Seite + Bewertungs-Seite (Note, Beziehungen, Star-Status, Energie mit Veränderung).
 
 ## Leben & Karriere-Rahmen

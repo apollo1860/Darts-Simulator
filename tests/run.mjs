@@ -24,6 +24,7 @@ import { eventCost } from '../js/finance.js';
 import { RNG } from '../js/rng.js';
 import { simulateMatch } from '../js/matchEngine.js';
 import { scoreAt, targetPoint, checkoutRoute, labelValue, suggestTarget } from '../js/board.js';
+import { buildRounds } from '../js/bracket.js';
 import { createMatch, throwDart } from '../js/matchState.js';
 import { startManualMatch, liveAiDart, simulateLiveRest, liveAiVisit } from '../js/tournaments.js';
 import { legAverage } from '../js/matchState.js';
@@ -365,6 +366,10 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   assert.ok(q.wmReg.uki.every(id => ['ENG', 'SCO', 'WAL', 'NIR', 'IRL'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wm.slice(0, 32).every((id, i) => id === q.wmAuto[i]));                       // Top 32 PDC gesetzt
+  { const grp = id => { const i = q.wm.indexOf(id); return i < 32 ? 'A' : i < 64 ? 'B' : 'C'; }, r1 = buildRounds(q.wm, { default: { legs: 3 } })[0].matches;   // Version 201: WM-Modus A/B/C
+    assert.equal(r1.length, 64); assert.ok(r1.every(m => (grp(m.a) === 'C') !== (grp(m.b) === 'C')), 'Runde 1: A–C und B–C');
+    for (let i = 0; i < 64; i += 2) assert.ok([r1[i], r1[i + 1]].map(m => grp(m.a) + grp(m.b)).sort().join() === ['AC', 'BC'].join() || [r1[i], r1[i + 1]].map(m => [grp(m.a), grp(m.b)].sort().join('')).sort().join() === 'AC,BC', 'Runde 2: Sieger A/C gegen Sieger B/C');
+    const ord = q.wmOrder; assert.ok(q.wm.slice(0, 64).every(id => ord.indexOf(id) >= 0) && Math.max(...q.wm.slice(0, 32).map(id => ord.indexOf(id))) < Math.min(...q.wm.slice(32, 64).map(id => ord.indexOf(id)))); }
   assert.equal(q.gsod.length, 48); assert.ok(Object.keys(q.wcTeams).length >= 8);
   const pl = s.pl[2027]; assert.equal(pl.nights, 16);
   assert.equal(Object.values(pl.points).reduce((a, b) => a + b, 0), 16 * (5 + 3 + 2 + 2));

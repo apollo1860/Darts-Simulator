@@ -36,7 +36,9 @@ function wmAuto(state) {
   const q = qualOf(state);
   if (!q.wmAuto) {
     const used = new Set();
-    q.wmAuto = [...take(idsOf(orderOfMerit(state, 'pdc')), 40, used), ...take(idsOf(orderOfMerit(state, 'protour')), 40, used)];
+    const pdc = idsOf(orderOfMerit(state, 'pdc'));
+    q.wmOrder = pdc;                                           // Version 201: PDC-OOM zum Stichtag (Setzliste/Gruppen der WM)
+    q.wmAuto = [...take(pdc, 40, used), ...take(idsOf(orderOfMerit(state, 'protour')), 40, used)];
   }
   return q.wmAuto;
 }
@@ -279,7 +281,9 @@ function computeField(state, ev) {
       const q = qualOf(state), direct = wmDirect(state);
       direct.forEach(id => used.add(id));
       const tchq = take(q.wmqSurvivors ?? [], 128 - used.size, used);
-      return [...direct, ...tchq, ...take(pdc, 128 - used.size, used)];       // fehlende Plätze: PDC-Rangliste
+      const all = [...direct, ...tchq, ...take(pdc, 128 - used.size, used)];   // fehlende Plätze: PDC-Rangliste
+      const ord = q.wmOrder ?? pdc, rk = id => { const i = ord.indexOf(id); return i < 0 ? 1e4 + all.indexOf(id) : i; };
+      return all.sort((a, b) => rk(a) - rk(b));                                // Version 201: nach PDC-Platz (für Gruppe A/B/C)
     }
     case 'pln': return rng.shuffle([...plState(state).players]);
     case 'plf': return plTable(state).slice(0, 4).map(x => x.id);
@@ -291,6 +295,10 @@ function computeField(state, ev) {
 // Gesetzte zuerst, Rest zugelost
 function arrange(state, ev, ids) {
   const n = SEEDS[ev.fmt] ?? 0;
+  // Version 201 – neuer WM-Modus (128): Gruppe A = Top 32 der qualifizierten Spieler nach PDC-OOM (gesetzt, Setzpositionen),
+  // Gruppe B = Platz 33–64 (zufällig auf die Positionen 33–64), Gruppe C = übrige 64 (zufällig auf 65–128). Mit der Setzreihenfolge
+  // (Position s spielt gegen 129 − s) trifft in Runde 1 jeder A- und jeder B-Spieler auf einen C-Spieler; Runde 2: Sieger A/C gegen Sieger B/C.
+  if (ev.fmt === 'wm' && ids.length === 128) { const r = fieldRng(state, ev); return [...ids.slice(0, 32), ...r.shuffle(ids.slice(32, 64)), ...r.shuffle(ids.slice(64))]; }
   return [...ids.slice(0, n), ...fieldRng(state, ev).shuffle(ids.slice(n))];
 }
 

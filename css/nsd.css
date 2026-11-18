@@ -728,3 +728,5 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 /* Version 197: Tourcard-Holder in der PDC Order of Merit – dezenter grüner Punkt */
 .nsd-tc { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #3cc85a; box-shadow: 0 0 0 1px rgba(0,0,0,.25); vertical-align: middle; opacity: .85; }
 .nsd-table .nsd-tc-col { width: 14px; padding: 0 2px; text-align: center; }   /* eigene schmale Spalte vor dem Preisgeld (Kopf wie Preisgeld) */
+.nsd-draw .dl i { font-style: normal; opacity: .55; }   /* Turnierbaum: mögliche Gegner */
+.nsd-draw .dl .sd { opacity: .6; font-size: .72rem; }

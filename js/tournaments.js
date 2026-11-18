@@ -313,6 +313,7 @@ function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
   } else if (fk === 'ukopen') ({ rounds, entry: ukEntry } = buildUkOpenRounds(field, fmt, rng));   // gestaffelter Einstieg
   else rounds = buildRounds(field, fmt);
   return {
+    ...(ev.fmt === 'wm' ? { seedIds: field.slice(0, 32) } : {}),   // Version 201: WM-Setzplätze (Anzeige im Turnierbaum)
     groups, groupAdv, prelimSeeds, ukEntry, teams: ev.team ? wcTeams(state) : null, autoPlayer: !!ctx.auto, plNight: ev.plNight ?? null,
     eventId: ev.id, cat: ev.cat, fmt: fk, name: subName(ev, sub), baseName: ev.name,
     city: ev.city, country: ev.country, year: state.date.year, week: state.date.week,
