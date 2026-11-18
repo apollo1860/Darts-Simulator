@@ -166,6 +166,11 @@ export function migrate(s) {
   // Version 162: Spielerinnen mit Average-Spanne (Silvia Lindner 52–75) auch in bestehenden Spielständen
   for (const [circuit, c] of Object.entries(SECONDARY)) for (const [n, nat, , base, range] of c.players) if (range) for (const x of Object.values(s.world.players))   // Version 182: alle Nebentouren
     if (x.name === n && x.circuit === circuit && !x.avgRange) { x.avgRange = range; x.avg = base; x.nation = nat; x.attrs = attrsForAverage(base, new RNG(s.rng)); }
+  if ((s.asiaV ?? 0) < 183) {   // Version 183: Asian Tour mit Nutzer-Averages auch in bestehenden Spielständen
+    const al = new Map(SECONDARY.asia.players.map(r => [r[0], r]));
+    for (const x of Object.values(s.world.players)) { const r = x.circuit === 'asia' && x.tier === 'secondary' && al.get(x.name); if (r) { x.nation = r[1]; x.avg = r[3]; x.attrs = attrsForAverage(r[3], new RNG(s.rng)); } }
+    s.asiaV = 183;
+  }
   addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
   markWomen(s.world.players);
   retireSecondaryDupes(s.world.players);   // Version 181

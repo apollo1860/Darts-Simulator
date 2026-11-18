@@ -17,7 +17,7 @@ export const NAME_POOLS = {
 Object.assign(NAME_POOLS, {
   JP: { nations: ['JP'], first: ['Haruki', 'Ren', 'Sota', 'Yuto', 'Kaito', 'Daiki', 'Takumi', 'Ryo', 'Kenta', 'Shota'],
     last: ['Suzuki', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Matsumoto'] },
-  CN: { nations: ['CN', 'HK', 'SG'], first: ['Wei', 'Jun', 'Hao', 'Lei', 'Ming', 'Tao', 'Bo', 'Jian', 'Yang', 'Kai'],
+  CN: { nations: ['CN', 'HK', 'SG', 'TW'], first: ['Wei', 'Jun', 'Hao', 'Lei', 'Ming', 'Tao', 'Bo', 'Jian', 'Yang', 'Kai'],
     last: ['Li', 'Wang', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang', 'Zhou', 'Wu'] },
   IN: { nations: ['IN'], first: ['Arjun', 'Rohan', 'Vikram', 'Rahul', 'Aditya', 'Karan', 'Nikhil', 'Sanjay', 'Amit', 'Ravi'],
     last: ['Sharma', 'Patel', 'Singh', 'Kumar', 'Gupta', 'Reddy', 'Nair', 'Mehta', 'Iyer', 'Desai'] },
@@ -61,10 +61,12 @@ Object.assign(NAME_POOLS, {
     last: ['Romano', 'Rossi', 'Russo', 'Ferrari', 'Esposito', 'Bianchi', 'Colombo', 'Ricci', 'Marino', 'Greco'] },
   GR: { nations: ['GR'], first: ['Nikos', 'Giorgos', 'Dimitris', 'Kostas', 'Yannis', 'Panagiotis', 'Christos', 'Vasilis'],
     last: ['Papadakis', 'Papadopoulos', 'Georgiou', 'Nikolaidis', 'Karagiannis', 'Vlachos', 'Oikonomou', 'Dimitriou'] },
-  SEA: { nations: ['TH', 'MY'], first: ['Somchai', 'Anan', 'Kittisak', 'Niran', 'Ahmad', 'Hafiz', 'Faizal', 'Azman', 'Chaiwat', 'Rizal'],
+  SEA: { nations: ['TH', 'MY', 'BN'], first: ['Somchai', 'Anan', 'Kittisak', 'Niran', 'Ahmad', 'Hafiz', 'Faizal', 'Azman', 'Chaiwat', 'Rizal'],
     last: ['Srisuk', 'Wongsa', 'Chaiyaporn', 'Rattanakul', 'Ismail', 'Rahman', 'Abdullah', 'Hamid', 'Tan', 'Lim'] },
-  ME: { nations: ['BH'], first: ['Ahmed', 'Ali', 'Hassan', 'Yousef', 'Khalid', 'Omar', 'Faisal', 'Hamad'],
+  ME: { nations: ['BH', 'LB'], first: ['Ahmed', 'Ali', 'Hassan', 'Yousef', 'Khalid', 'Omar', 'Faisal', 'Hamad'],
     last: ['Al-Khalifa', 'Al-Sayed', 'Al-Ansari', 'Al-Mahmood', 'Haddad', 'Nasser', 'Saleh', 'Karim'] },
+  MN: { nations: ['MN'], first: ['Ganzorig', 'Bat-Erdene', 'Temuujin', 'Altangerel', 'Odkhüü', 'Jargalsaikhan', 'Batbayar', 'Enkhbold', 'Munkh-Erdene', 'Tsogt'],
+    last: ['Lkhagvasüren', 'Myagmarsüren', 'Erdenetsogt', 'Choijilsuren', 'Ulziibuyan', 'Khundaganai', 'Bayarsaikhan', 'Dorjsuren', 'Gantulga', 'Sükhbaatar'] },
   BALK: { nations: ['HR', 'SI', 'RS', 'RO', 'BG', 'BA'], first: ['Ivan', 'Matej', 'Luka', 'Marko', 'Nikola', 'Stefan', 'Andrei', 'Bogdan', 'Dimitar', 'Petar'],
     last: ['Kovačević', 'Novak', 'Horvat', 'Petrović', 'Jovanović', 'Popescu', 'Ionescu', 'Dimitrov', 'Georgiev', 'Babić'] },
 });

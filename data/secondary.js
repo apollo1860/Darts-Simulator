@@ -36,10 +36,22 @@ export const SECONDARY = {
     ['Kirsten Eickler', 'DE', null, 41.0], ['Jessica Menard', 'FR', null, 40.66], ['Bianka Langendorf', 'DE', null, 40.56],
     ['Daniela Dambek', 'DE', null, 40.2], ['Diana Doerflinger', 'DE', null, 40.15], ['Lainey Webb', 'WAL', null, 39.71],
     ['Nicole Porm', 'DE', null, 37.94]] },
-  asia: { label: 'PDC Asian Tour', avgTop: 89, players: [
-    ['Paolo Nebrida', 'PH', 31], ['Ryuta Arihara', 'JP', 37], ['Lourence Ilagan', 'PH', 47], ['Christian Perez', 'PH', 43], ['Xiaochen Zong', 'CN', 27],
-    ['Haruki Muramatsu', 'JP', 48], ['Alexis Toylo', 'PH', 33], ['Paul Lim', 'SG', 71], ['Lok Yin Lee', 'HK', 24], ['Ryusei Azemoto', 'JP', 30],
-    ['Man Lok Leung', 'HK', 26], ['Tomoya Goto', 'JP', 29], ['Motomu Sakai', 'JP', 28], ['Kam Weng Chen', 'MO', 32], ['Nitin Kumar', 'IN', 40]] },
+  // Version 183: Asian Tour nach Nutzerliste (50 Spieler, fester Ø); Xiaochen Zong, Kam Weng Chen, Nitin Kumar (alt) bleiben mit geschätztem Ø
+  asia: { label: 'PDC Asian Tour', avgTop: 92, exact: true, players: [
+    ['Haruki Muramatsu', 'JP', 48, 92], ['Ryuta Arihara', 'JP', 37, 91], ['Christian Perez', 'PH', 43, 91], ['Lourence Ilagan', 'PH', 47, 91],
+    ['Motomu Sakai', 'JP', 28, 90], ['Paolo Nebrida', 'PH', 31, 90], ['Alexis Toylo', 'PH', 33, 90], ['Paul Lim', 'SG', 71, 90],
+    ['Lok Yin Lee', 'HK', 24, 89], ['Man Lok Leung', 'HK', 26, 89], ['Christian De Los Reyes', 'PH', null, 89], ['Ryusei Azemoto', 'JP', 30, 88],
+    ['Rolly Gabiana', 'PH', null, 88], ['Yuta Hayashi', 'JP', null, 88], ['Tomoya Goto', 'JP', 29, 88], ['Yuya Fukuchi', 'JP', null, 87],
+    ['Noel Malicdem', 'PH', null, 87], ['Alain AbiAbi', 'LB', null, 86], ['Aris Quijano', 'PH', null, 86], ['Takayuki Masatsu', 'JP', null, 86],
+    ['Ganzorig Lkhagvasüren', 'MN', null, 85], ['Yoshihisa Baba', 'JP', null, 85], ['Mitsuhiko Tatsunami', 'JP', null, 85], ['Sonny Millo Balagat', 'PH', null, 85],
+    ['Joel Hizon', 'PH', null, 85], ['Sho Okano', 'JP', null, 85], ['Ting Chi Royden Lam', 'HK', null, 85], ['Altantülkhüür Myagmarsüren', 'MN', null, 84],
+    ['Satoshi Nakagawa', 'JP', null, 84], ['Eduardo Jr. Largo', 'PH', null, 84], ['Lihao Wen', 'CN', null, 84], ['Chi Jui Tseng', 'TW', null, 84],
+    ['Jun Hao Terry Tan', 'MY', null, 84], ['Yuki Yamada', 'JP', null, 84], ['Norhisame Bin Wahab', 'MY', null, 83], ['Odkhüü Khundaganai', 'MN', null, 83],
+    ['Jenn Ming Tan', 'MY', null, 83], ['Jargalsaikhan Ulziibuyan', 'MN', null, 83], ['Teng Lieh Pu Po', 'TW', null, 83], ['Yan Bin Chen', 'CN', null, 83],
+    ['Ryan Khristoffer Condat', 'PH', null, 83], ['Qingyu Zhan', 'CN', null, 83], ['Jefferson Sholin', 'PH', null, 83], ['Hiromitsu Tsuji', 'JP', null, 83],
+    ['Phuay Wei Tan', 'MY', null, 82], ['Siik Hwang Wong', 'MY', null, 82], ['Jizhou Li', 'CN', null, 82], ['Altangerel Choijilsuren', 'MN', null, 82],
+    ['Odontugs Erdenetsogt', 'MN', null, 82], ['Muhammad Asrimin Bin Awg Haji Alim', 'BN', null, 81], ['Xiaochen Zong', 'CN', 27, 85], ['Kam Weng Chen', 'MO', 32, 76],
+    ['Nitin Kumar', 'IN', 40, 75]] },
   cdc: { label: 'CDC ProTour (Nordamerika)', avgTop: 88, players: [
     ['Danny Lauby', 'US', 33], ['Danny Baggish', 'US', 42], ['Jeff Smith', 'CA', 50], ['Matt Campbell', 'CA', 36], ['Adam Sevada', 'US', 40], ['Fred Krueger', 'US', 40],
     ['Brayden Hall', 'CA', 22], ['David Cameron', 'CA', 56], ['Dawson Murschell', 'CA', 30], ['Leonard Gates', 'US', 55], ['Alex Spellman', 'US', 37], ['Jules van Dongen', 'US', 35], ['Stowe Buntz', 'US', 46]] },
