@@ -86,6 +86,11 @@ export const SECONDARY = {
     ['Jesus Salate', 'AR', 43, 88], ['Rashad Sweeting', 'BS', 35, 85], ['Norman Madhoo', 'GY', 61, 80], ['James Walklin', 'TT', 48, 79],
     ['Romero Cartwright', 'BS', 48, 75], ['Joshua Balfour', 'TT', 42, 72], ['Sudesh Fitzgerald', 'GY', 39, 70]] },
   // Version 187: Indien nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Nitin Kumar steht im Asien-Pool und behält seinen Ø
+  // Version 189: China nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Zong, Zhan, Wen, Li stehen im Asien-Pool und behalten ihren Ø
+  china: { label: 'PDC China', avgTop: 76, exact: true, players: [
+    ['Bin Zheng', 'CN', null, 76], ['Yuanjun Liu', 'CN', null, 73], ['Xicheng Han', 'CN', null, 72], ['Zhuolun Luo', 'CN', null, 72],
+    ['Tong Xu', 'CN', null, 69], ['Tianxiao Cao', 'CN', null, 68], ['Zhiwei Lin', 'CN', null, 68], ['Junlong Melvin Zheng', 'CN', null, 68],
+    ['Yingyang Mo', 'CN', null, 67], ['An Sheng Lu', 'CN', null, 66], ['Wenqing Liu', 'CN', null, 65], ['Ruiling Liu', 'CN', null, 62]] },
   india: { label: 'Indian Darts Council (IDC)', avgTop: 76, exact: true, players: [
     ['Bhav Patel', 'IN', 35, 76], ['Sangam Kumar Roy', 'IN', null, 73], ['Ankit Goenka', 'IN', 32, 72], ['Vikehelie Suohu', 'IN', null, 71],
     ['Shailender Dixit', 'IN', null, 70], ['Mohan Kumar Goel', 'IN', null, 69], ['Nikhil Roy', 'IN', null, 69], ['Amit Gilitwala', 'IN', null, 69],
