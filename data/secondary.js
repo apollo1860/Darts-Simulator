@@ -83,6 +83,12 @@ export const SECONDARY = {
   cdlc: { label: 'CDLC Tour (Karibik & Lateinamerika)', players: [
     ['Jesus Salate', 'AR', 43, 88], ['Rashad Sweeting', 'BS', 35, 85], ['Norman Madhoo', 'GY', 61, 80], ['James Walklin', 'TT', 48, 79],
     ['Romero Cartwright', 'BS', 48, 75], ['Joshua Balfour', 'TT', 42, 72], ['Sudesh Fitzgerald', 'GY', 39, 70]] },
+  // Version 187: Indien nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Nitin Kumar steht im Asien-Pool und behält seinen Ø
+  india: { label: 'Indian Darts Council (IDC)', avgTop: 76, exact: true, players: [
+    ['Bhav Patel', 'IN', 35, 76], ['Sangam Kumar Roy', 'IN', null, 73], ['Ankit Goenka', 'IN', 32, 72], ['Vikehelie Suohu', 'IN', null, 71],
+    ['Shailender Dixit', 'IN', null, 70], ['Mohan Kumar Goel', 'IN', null, 69], ['Nikhil Roy', 'IN', null, 69], ['Amit Gilitwala', 'IN', null, 69],
+    ['Aayush Kothari', 'IN', null, 68], ['Aryaveer Chokhani', 'IN', null, 68], ['Viral Mehta', 'IN', null, 67], ['Suketu Ahir', 'IN', null, 67],
+    ['Piyush Chauhan', 'IN', null, 66], ['Chirag Daga', 'IN', null, 65], ['Ashfaque Sayed', 'IN', 60, 63]] },
   africa: { label: 'African Darts Group', players: [
     ['David Munyua', 'KE', 30, 85], ['Peter Wachiuri', 'KE', 39, 84], ['Patrick Ocheng', 'UG', 45, 81], ['Pascal Wanjala', 'KE', 30, 77],
     ['Evans Njuguna', 'KE', 49, 76], ['Charles Kausi', 'KE', 36, 75], ['Okalany Clegg', 'UG', 34, 75]] },
