@@ -160,5 +160,168 @@ const ICONS = {
       <circle cx="24" cy="24" r="6" fill="#2b3340"/>`,
   })),
 };
+// ---- Version 170: weitere Icons (ersetzen die restlichen Emojis, Flaggen bleiben) ----
+const face = (skin, mouth, extra = '') => mk('0 0 48 48', false, ({ R, u }) => ({
+  defs: R('f', skin, 0.38, 0.32),
+  body: `<circle cx="24" cy="24" r="20" fill="${u('f')}" stroke="#b07a00" stroke-width="1"/><ellipse cx="17" cy="20" rx="2.6" ry="3.4" fill="#3b2a12"/><ellipse cx="31" cy="20" rx="2.6" ry="3.4" fill="#3b2a12"/>${mouth}${extra}${hl('M10 18 C11 11 17 7 23 7 C17 9 13 13 12 19 Z', 0.5)}`,
+}));
+const YEL = [[0, '#fff3a0'], [0.6, '#ffcc33'], [1, '#e89a00']];
+const medal = (a, b, rim) => mk('0 0 48 48', false, ({ L, R, u }) => ({
+  defs: L('rb', [[0, '#4f8fe8'], [1, '#1d4fa8']]) + L('rr', [[0, '#ff6b5e'], [1, '#b8160c']]) + R('m', [[0, a], [1, b]]),
+  body: `<path d="M12 2 H22 L28 20 H18 Z" fill="${u('rb')}"/><path d="M36 2 H26 L20 20 H30 Z" fill="${u('rr')}"/>
+    <circle cx="24" cy="31" r="14" fill="${u('m')}" stroke="${rim}" stroke-width="1.4"/><circle cx="24" cy="31" r="10" fill="none" stroke="${rim}" stroke-width="1" opacity=".7"/>
+    <path d="M24 24 l2.1 4.4 4.8 .6 -3.5 3.3 .9 4.8 -4.3 -2.4 -4.3 2.4 .9 -4.8 -3.5 -3.3 4.8 -.6 Z" fill="#fff" opacity=".85"/>${hl('M14 27 C15 22 19 19 23 18.5 C19 21 17 24 16.5 28 Z', 0.5)}`,
+}));
+const heartPath = 'M24 43 C24 43 4 30 4 16 C4 8 10 4 15.5 4 C19.5 4 22.5 6.5 24 9.5 C25.5 6.5 28.5 4 32.5 4 C38 4 44 8 44 16 C44 30 24 43 24 43 Z';
+Object.assign(ICONS, {
+  star: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('s', YEL),
+    body: `<path d="M24 3 l6.2 13.3 14.5 1.7 -10.7 10 2.8 14.4 -12.8 -7.1 -12.8 7.1 2.8 -14.4 -10.7 -10 14.5 -1.7 Z" fill="${u('s')}" stroke="#c46a00" stroke-width="1.3" stroke-linejoin="round"/>${hl('M24 8 L28 17 L17 19 Z', 0.55)}` })),
+  check: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('c', [[0, '#a6ec7a'], [0.5, '#4fb335'], [1, '#2a8420']]),
+    body: `<path d="M4 25 L12 18 L20 27 L40 6 L45 11 L21 41 L17 41 Z" fill="${u('c')}" stroke="#1d5a12" stroke-width="1.6" stroke-linejoin="round"/>${hl('M12 20.5 L20 29 L39 8.5 L21 31 Z', 0.35)}` })),
+  cross: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('x', [[0, '#ff8a7a'], [0.5, '#e2382b'], [1, '#a8180f']]),
+    body: `<path d="M9 14 L14 9 L24 19 L34 9 L39 14 L29 24 L39 34 L34 39 L24 29 L14 39 L9 34 L19 24 Z" fill="${u('x')}" stroke="#6e0d07" stroke-width="1.4" stroke-linejoin="round"/>${hl('M11 14 L14 11 L23 20 L20 22 Z', 0.4)}` })),
+  warning: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('w', [[0, '#fff2a0'], [1, '#f2b200']]),
+    body: `<path d="M24 4 L45 42 H3 Z" fill="${u('w')}" stroke="#a87200" stroke-width="1.6" stroke-linejoin="round"/><rect x="21.5" y="16" width="5" height="14" rx="2" fill="#2a2a2a"/><circle cx="24" cy="35.5" r="2.8" fill="#2a2a2a"/>${hl('M24 9 L28 16 H20 Z', 0.4)}` })),
+  flame: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('o', [[0, '#ffd04a'], [0.5, '#ff7a1a'], [1, '#d42a0f']]) + L('i', [[0, '#fffbd0'], [1, '#ffc23a']]),
+    body: `<path d="M24 45 C12 45 7 36 9 27 C11 19 18 16 17 6 C25 10 29 17 28 23 C31 21 32 17 32 14 C38 19 41 26 39 33 C37 41 31 45 24 45 Z" fill="${u('o')}" stroke="#a81e08" stroke-width="1"/>
+      <path d="M24 44 C18 44 15 39 16.5 34 C18 29 22 28 22 22 C27 26 29 30 28 34 C30 33 31 31 31 29 C34 33 33 39 30 42 C28.5 43.5 26.5 44 24 44 Z" fill="${u('i')}"/>` })),
+  bolt: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('b', YEL),
+    body: `<path d="M28 2 L9 27 H22 L18 46 L39 19 H26 Z" fill="${u('b')}" stroke="#b07400" stroke-width="1.4" stroke-linejoin="round"/>${hl('M27 6 L13 25 H20 Z', 0.45)}` })),
+  mic: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#e9edf1'], [0.5, '#9aa3ad'], [1, '#4b535c']], 1, 0) + L('b', [[0, '#3a3f46'], [1, '#14171b']], 1, 0),
+    body: `<path d="M23 30 L15 45" stroke="#14171b" stroke-width="5" stroke-linecap="round"/><path d="M23 30 L15 45" stroke="#4b535c" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="29" cy="17" r="12" fill="${u('h')}" stroke="#3b4148" stroke-width="1"/>${[0, 1, 2, 3].map(i => `<path d="M${19 + i * 5} ${8 + (i % 3)} L${21 + i * 5} ${27 - (i % 2)}" stroke="#3b4148" stroke-width=".8" opacity=".5"/>`).join('')}
+      <path d="M19 24 L26 31 L23 33 L17 27 Z" fill="${u('b')}"/>${hl('M21 10 C23 7 27 6 30 6 C26 8 24 10 23 13 Z', 0.6)}` })),
+  diamond: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('d', [[0, '#e6fbff'], [0.5, '#7ad7ff'], [1, '#2a8fd6']]),
+    body: `<path d="M12 8 H36 L45 19 L24 44 L3 19 Z" fill="${u('d')}" stroke="#1d6fa8" stroke-width="1.2" stroke-linejoin="round"/><path d="M3 19 H45 M12 8 L18 19 L24 44 L30 19 L36 8 M18 19 L24 8 L30 19" fill="none" stroke="#1d6fa8" stroke-width=".9" opacity=".7"/>${hl('M12 9 L17.5 18.5 H5 Z', 0.55)}` })),
+  medal: medal('#fff2a8', '#d9940a', '#8a5a00'),
+  medalS: medal('#ffffff', '#9aa7b6', '#5e6b7a'),
+  medalB: medal('#ffd7b0', '#b8682a', '#6e3a12'),
+  crown: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('c', GOLD, 1, 0),
+    body: `<path d="M5 14 L14 24 L24 8 L34 24 L43 14 L39 38 H9 Z" fill="${u('c')}" stroke="#8a5a00" stroke-width="1.2" stroke-linejoin="round"/><rect x="8" y="37" width="32" height="6" rx="1.5" fill="${u('c')}" stroke="#8a5a00" stroke-width="1"/>
+      <circle cx="24" cy="29" r="3.2" fill="#d42a2f" stroke="#7a0e06" stroke-width=".7"/><circle cx="14" cy="31" r="2.3" fill="#2a74c9"/><circle cx="34" cy="31" r="2.3" fill="#2e9c3a"/>
+      ${[[5, 14], [24, 8], [43, 14]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.8" fill="#fff2a8" stroke="#8a5a00" stroke-width=".8"/>`).join('')}` })),
+  heart: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#ff7a7a'], [1, '#c40000']]),
+    body: `<path d="${heartPath}" fill="${u('h')}" stroke="#8a0000" stroke-width="1.2"/><ellipse cx="15" cy="13" rx="6" ry="3.6" fill="#fff" opacity=".45"/>` })),
+  heartBroken: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#ff7a7a'], [1, '#c40000']]),
+    body: `<path d="${heartPath}" fill="${u('h')}" stroke="#8a0000" stroke-width="1.2"/><path d="M24 9.5 L20 18 L27 24 L21 31 L24 43" fill="none" stroke="#3a0000" stroke-width="2.4" stroke-linejoin="round"/>` })),
+  ring: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('g', GOLD, 1, 0) + L('d', [[0, '#e6fbff'], [1, '#5ac0f0']]),
+    body: `<circle cx="24" cy="30" r="13" fill="none" stroke="#8a5a00" stroke-width="6"/><circle cx="24" cy="30" r="13" fill="none" stroke="${u('g')}" stroke-width="4"/>
+      <path d="M17 12 L20 6 H28 L31 12 L24 19 Z" fill="${u('d')}" stroke="#1d6fa8" stroke-width="1"/>${hl('M19 11 L21 7 H24 L21.5 12 Z', 0.6)}` })),
+  ticket: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('t', [[0, '#ffd56b'], [1, '#e89a00']]),
+    body: `<g transform="rotate(-15 24 24)"><path d="M4 14 H44 V20 C41 20 41 28 44 28 V34 H4 V28 C7 28 7 20 4 20 Z" fill="${u('t')}" stroke="#a86400" stroke-width="1.2"/>
+      <path d="M33 15 V33" stroke="#a86400" stroke-width="1.2" stroke-dasharray="2 2"/><rect x="10" y="19" width="18" height="10" rx="1.5" fill="none" stroke="#a86400" stroke-width="1.2"/>
+      <path d="M19 21 l1.4 2.9 3.2 .4 -2.3 2.2 .6 3.1 -2.9 -1.6 -2.9 1.6 .6 -3.1 -2.3 -2.2 3.2 -.4 Z" fill="#fff" opacity=".85"/></g>` })),
+  swords: mk('0 0 48 48', false, ({ L, u }) => {
+    const sw = r => `<g transform="rotate(${r} 24 24)"><path d="M24 2 L27 6 V30 H21 V6 Z" fill="${u('bl')}" stroke="#5e666f" stroke-width=".9"/><rect x="15" y="30" width="18" height="4" rx="1.5" fill="#c98a00" stroke="#6b3f1f" stroke-width=".8"/><rect x="22" y="34" width="4" height="9" fill="#6b3f1f"/><circle cx="24" cy="44.5" r="2.4" fill="#c98a00"/></g>`;
+    return { defs: L('bl', STEEL, 1, 0), body: sw(-40) + sw(40) };
+  }),
+  wrench: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('w', STEEL, 1, 1),
+    body: `<path d="M30 4 C24 4 20 10 22 16 L5 33 C3 35 3 39 5 41 L7 43 C9 45 13 45 15 43 L32 26 C38 28 44 24 44 18 L37 24 L30 22 L28 15 L34 8 C33 5 31.5 4 30 4 Z" fill="${u('w')}" stroke="#4b535c" stroke-width="1.2" stroke-linejoin="round"/><circle cx="10" cy="38" r="2" fill="#4b535c"/>` })),
+  fitness: mk('0 0 56 48', true, ({ L, u }) => ({ defs: L('d', [[0, '#5a6470'], [0.5, '#2a3038'], [1, '#14181d']]) + L('h', STEEL),
+    body: `<rect x="12" y="21" width="32" height="6" rx="2" fill="${u('h')}" stroke="#4b535c" stroke-width=".8"/>
+      ${[[4, 12, 8, 24], [12, 8, 6, 32], [38, 8, 6, 32], [44, 12, 8, 24]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2.5" fill="${u('d')}" stroke="#0b0d10" stroke-width="1"/>`).join('')}
+      ${hl('M13.5 10 H16 V38 H13.5 Z', 0.25)}${hl('M39.5 10 H42 V38 H39.5 Z', 0.25)}` })),
+  scarf: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('s', [[0, '#ff6b5e'], [1, '#b8160c']]),
+    body: `<path d="M8 8 C16 14 32 14 40 8 L42 16 C33 22 15 22 6 16 Z" fill="${u('s')}" stroke="#6e0d07" stroke-width="1"/>
+      <path d="M28 18 L36 44 H28 L22 20 Z" fill="${u('s')}" stroke="#6e0d07" stroke-width="1"/>
+      <path d="M24.5 27 L31.5 27 M26.5 34 L33.5 34" stroke="#fff" stroke-width="3"/><path d="M15 12 V19 M24 13.5 V20.5 M33 12 V19" stroke="#fff" stroke-width="3"/>
+      <path d="M28 44 V47 M31 44 V47 M34 44 V47" stroke="#b8160c" stroke-width="1.4"/>` })),
+  party: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', [[0, '#c48bff'], [1, '#6a2ec4']]),
+    body: `<path d="M4 44 L16 14 L34 32 Z" fill="${u('p')}" stroke="#3d1580" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 34 L14 40 M11 26 L22 37 M14 19 L29 34" stroke="#ffd34d" stroke-width="2.2"/>
+      <circle cx="30" cy="9" r="2.4" fill="#ff5a5a"/><circle cx="40" cy="16" r="2.2" fill="#3cc0ff"/><circle cx="38" cy="5" r="1.8" fill="#ffd34d"/><circle cx="44" cy="28" r="2" fill="#5ad65a"/>
+      <path d="M22 6 C24 10 21 12 24 15 M33 20 C36 18 38 22 42 20" fill="none" stroke="#ff8a3d" stroke-width="2" stroke-linecap="round"/>` })),
+  dice: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('d', [[0, '#ffffff'], [1, '#d9dee5']]),
+    body: `<rect x="7" y="7" width="34" height="34" rx="7" fill="${u('d')}" stroke="#7d8896" stroke-width="1.3"/>${[[16, 16], [32, 16], [24, 24], [16, 32], [32, 32]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.2" fill="#c4161c"/>`).join('')}${hl('M10 12 C10 10 11 9.5 13 9.5 H30 L12 26 Z', 0.4)}` })),
+  faceHappy: face(YEL, '<path d="M14 28 C17 36 31 36 34 28 Z" fill="#7a2e12" stroke="#5a2008" stroke-width="1"/>'),
+  faceNeutral: face(YEL, '<path d="M16 32 H32" stroke="#5a2008" stroke-width="2.6" stroke-linecap="round"/>'),
+  faceSad: face(YEL, '<path d="M15 35 C19 29 29 29 33 35" fill="none" stroke="#5a2008" stroke-width="2.6" stroke-linecap="round"/>'),
+  faceNervous: face(YEL, '<path d="M15 33 C18 30 21 35 24 32 C27 29 30 34 33 31" fill="none" stroke="#5a2008" stroke-width="2.4" stroke-linecap="round"/>', '<path d="M38 8 C41 13 43 16 40 19 C37 21 35 17 38 8 Z" fill="#7fd3ff" stroke="#1e6fd9" stroke-width=".8"/>'),
+  faceAngry: face([[0, '#ffb08a'], [0.6, '#ff6b3d'], [1, '#c4271c']], '<path d="M15 35 C19 29 29 29 33 35" fill="none" stroke="#5a1008" stroke-width="2.6" stroke-linecap="round"/>', '<path d="M11 13 L21 17 M37 13 L27 17" stroke="#5a1008" stroke-width="2.6" stroke-linecap="round"/>'),
+  cold: mk('0 0 48 48', false, () => ({ defs: '',
+    body: `<g stroke="#2a8fd6" stroke-width="3.4" stroke-linecap="round">${[0, 60, 120].map(r => `<path d="M24 4 V44 M18 8 L24 13 L30 8 M18 40 L24 35 L30 40" transform="rotate(${r} 24 24)"/>`).join('')}</g>
+      <g stroke="#d6f3ff" stroke-width="1.4" stroke-linecap="round">${[0, 60, 120].map(r => `<path d="M24 6 V42" transform="rotate(${r} 24 24)"/>`).join('')}</g>` })),
+  chartUp: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('g', [[0, '#a6ec7a'], [1, '#2a8420']]),
+    body: `<rect x="4" y="6" width="40" height="38" rx="3" fill="#fbfbf7" stroke="#8c96a2" stroke-width="1"/><path d="M9 38 L19 27 L26 31 L39 15" fill="none" stroke="${u('g')}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 13 H41 V23 Z" fill="#2a8420"/>` })),
+  chartDown: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('r', [[0, '#ff8a7a'], [1, '#b8160c']]),
+    body: `<rect x="4" y="6" width="40" height="38" rx="3" fill="#fbfbf7" stroke="#8c96a2" stroke-width="1"/><path d="M9 14 L19 25 L26 21 L39 35" fill="none" stroke="${u('r')}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 37 H41 V27 Z" fill="#b8160c"/>` })),
+  flag: mk('0 0 48 48', false, () => ({ defs: '',
+    body: `<path d="M9 4 V46" stroke="#5e666f" stroke-width="3" stroke-linecap="round"/><path d="M10 6 C20 2 26 10 42 6 V26 C26 30 20 22 10 26 Z" fill="#fff" stroke="#2a2a2a" stroke-width="1"/>
+      ${[0, 1, 2, 3].map(c => [0, 1].map(r => `<rect x="${10 + c * 8 + (r % 2) * 0}" y="${8 + r * 9 + (c % 2) * 0}" width="4" height="4.5" fill="#2a2a2a" transform="translate(${(r + c) % 2 ? 4 : 0} ${c % 2 ? 4.5 : 0})"/>`).join('')).join('')}` })),
+  tv: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('s', [[0, '#5aa8ff'], [1, '#1a3f8a']]) + L('f', [[0, '#5a6470'], [1, '#1d2228']]),
+    body: `<path d="M16 4 L24 11 L32 4" fill="none" stroke="#5e666f" stroke-width="2"/><rect x="3" y="11" width="42" height="29" rx="4" fill="${u('f')}" stroke="#0b0d10" stroke-width="1"/>
+      <rect x="7" y="15" width="34" height="21" rx="2" fill="${u('s')}"/><rect x="14" y="40" width="20" height="4" rx="1" fill="#2a3038"/>${hl('M8 16 H24 L9 30 Z', 0.3)}` })),
+  car: mk('0 0 56 48', true, ({ L, u }) => ({ defs: L('c', [[0, '#ff7a6b'], [0.5, '#e2382b'], [1, '#8a1209']]),
+    body: `<path d="M4 34 V27 C4 24 6 23 9 22.5 L15 13 C16 11.5 18 11 20 11 H35 C37 11 38.5 12 39.5 13.5 L45 22 C50 23 52 24.5 52 28 V34 Z" fill="${u('c')}" stroke="#5a0b05" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M17 21 L21 14.5 H27 V21 Z M30 21 V14.5 H35 L39.5 21 Z" fill="#bfe6ff" stroke="#5a7a99" stroke-width=".8"/>
+      <circle cx="15" cy="35" r="6" fill="#1d2228"/><circle cx="41" cy="35" r="6" fill="#1d2228"/><circle cx="15" cy="35" r="2.5" fill="#c9ced3"/><circle cx="41" cy="35" r="2.5" fill="#c9ced3"/>
+      <rect x="47" y="25" width="4" height="3" rx="1" fill="#fff6b0"/>${hl('M8 24 L45 24 L46 26 H7 Z', 0.35)}` })),
+  plane: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', [[0, '#ffffff'], [1, '#a9b6c4']], 1, 1),
+    body: `<path d="M44 4 C42 2 38 3 35 6 L27 14 L8 9 L4 13 L20 21 L12 29 L6 28 L3 31 L11 36 L16 44 L19 41 L18 35 L26 27 L34 43 L38 39 L33 20 L41 12 C44 9 46 6 44 4 Z" fill="${u('p')}" stroke="#5e6b7a" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M35 8 L40 13" stroke="#2a74c9" stroke-width="2"/>` })),
+  phone: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('s', [[0, '#4a90ff'], [1, '#1a3f8a']]),
+    body: `<rect x="13" y="3" width="22" height="42" rx="4" fill="#1d2228" stroke="#0b0d10" stroke-width="1"/><rect x="15.5" y="8" width="17" height="30" rx="1.5" fill="${u('s')}"/><circle cx="24" cy="41.5" r="1.7" fill="#5e666f"/>${hl('M16 9 H25 L16 24 Z', 0.3)}` })),
+  bed: mk('0 0 56 48', true, ({ L, u }) => ({ defs: L('b', [[0, '#8fc6ff'], [1, '#2459b8']]) + L('w', [[0, '#c78a55'], [1, '#7f4c22']]),
+    body: `<rect x="3" y="12" width="5" height="30" rx="1.5" fill="${u('w')}"/><rect x="48" y="22" width="5" height="20" rx="1.5" fill="${u('w')}"/>
+      <rect x="6" y="28" width="44" height="8" rx="2" fill="#f4f4f0" stroke="#8c96a2" stroke-width=".8"/><path d="M18 28 H50 V24 C50 22 48 21 46 21 H22 C19 21 18 23 18 25 Z" fill="${u('b')}" stroke="#1d3f80" stroke-width=".9"/>
+      <rect x="8" y="21" width="11" height="8" rx="3.5" fill="#ffffff" stroke="#8c96a2" stroke-width=".8"/>` })),
+  globe: mk('0 0 48 48', false, ({ R, u }) => ({ defs: R('g', [[0, '#9fe0ff'], [1, '#1a6fc4']]),
+    body: `<circle cx="24" cy="24" r="20" fill="${u('g')}" stroke="#0f4a8a" stroke-width="1.2"/>
+      <path d="M12 12 C17 11 18 16 22 15 C25 14 23 19 19 21 C15 23 17 28 13 29 C9 27 8 18 12 12 Z M28 9 C33 9 38 13 40 18 C36 19 33 16 30 18 C27 20 31 25 34 26 C38 27 36 34 32 37 C29 33 27 30 26 26 C24 21 26 14 28 9 Z" fill="#55c25a" stroke="#2a7a2a" stroke-width=".8"/>${hl('M10 16 C13 9 19 6 25 6 C19 9 15 12 13 18 Z', 0.4)}` })),
+  megaphone: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('m', [[0, '#ff8a7a'], [1, '#b8160c']]),
+    body: `<path d="M6 18 H14 L36 6 V42 L14 30 H6 Z" fill="${u('m')}" stroke="#6e0d07" stroke-width="1.2" stroke-linejoin="round"/><rect x="3" y="17" width="8" height="14" rx="2" fill="#f4f4f0" stroke="#8c96a2" stroke-width=".8"/>
+      <path d="M14 30 L18 42 H23 L20 32" fill="#5e666f"/><path d="M40 17 C43 20 43 28 40 31 M43 12 C48 18 48 30 43 36" fill="none" stroke="#ffd34d" stroke-width="2.2" stroke-linecap="round"/>` })),
+  injury: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', [[0, '#ffe2c4'], [1, '#e8b48a']]),
+    body: `<g transform="rotate(-40 24 24)"><rect x="2" y="15" width="44" height="18" rx="9" fill="${u('p')}" stroke="#a0623a" stroke-width="1.1"/><rect x="16" y="15" width="16" height="18" fill="#fff5ea" stroke="#a0623a" stroke-width=".8"/>
+      ${[[19, 19], [24, 19], [29, 19], [19, 24], [24, 24], [29, 24], [19, 29], [24, 29], [29, 29]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#d9a07a"/>`).join('')}
+      <path d="M22 21 H26 V23 H28 V27 H26 V29 H22 V27 H20 V23 H22 Z" fill="#e2382b" opacity=".85"/></g>` })),
+  shirt: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('s', [[0, '#8fc6ff'], [1, '#2459b8']]),
+    body: `<path d="M17 4 C19 8 29 8 31 4 L44 11 L38 21 L34 18 V44 H14 V18 L10 21 L4 11 Z" fill="${u('s')}" stroke="#13306e" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M17 4 C19 10 29 10 31 4" fill="none" stroke="#fff" stroke-width="1.6"/><text x="24" y="34" text-anchor="middle" font-size="12" font-weight="900" fill="#fff" font-family="Arial">1</text>` })),
+  fish: mk('0 0 56 48', true, ({ L, u }) => ({ defs: L('f', [[0, '#9fe8ff'], [0.5, '#2aa3cc'], [1, '#13607a']]),
+    body: `<path d="M6 24 C14 10 34 8 44 22 L53 13 V35 L44 26 C34 40 14 38 6 24 Z" fill="${u('f')}" stroke="#0d4a5e" stroke-width="1.2" stroke-linejoin="round"/>
+      <circle cx="15" cy="21" r="3" fill="#fff"/><circle cx="15.5" cy="21" r="1.5" fill="#14171b"/><path d="M24 15 C27 20 27 28 24 33" fill="none" stroke="#0d4a5e" stroke-width="1" opacity=".6"/>${hl('M10 21 C15 14 25 12 33 14 C25 15 18 18 13 23 Z', 0.4)}` })),
+  broom: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('b', [[0, '#ffe08a'], [1, '#c98a1e']]),
+    body: `<path d="M41 3 L24 26" stroke="#7f4c22" stroke-width="3.4" stroke-linecap="round"/><path d="M24 22 L30 27 L28 30 L21 25 Z" fill="#c4271c"/>
+      <path d="M20 24 L31 32 C27 40 19 45 6 45 C9 38 13 30 20 24 Z" fill="${u('b')}" stroke="#8a5a00" stroke-width="1"/><path d="M14 33 L10 43 M19 35 L15 44 M24 36 L22 43" stroke="#8a5a00" stroke-width="1" opacity=".7"/>` })),
+  magnifier: mk('0 0 48 48', false, ({ R, u }) => ({ defs: R('g', [[0, '#e6f6ff'], [1, '#8cc8ee']]),
+    body: `<path d="M29 29 L43 43" stroke="#3b2414" stroke-width="7" stroke-linecap="round"/><path d="M29 29 L43 43" stroke="#7f4c22" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="19" cy="19" r="14" fill="${u('g')}" stroke="#5e666f" stroke-width="3.6"/>${hl('M10 16 C11 11 15 8 20 7.5 C15 10 13 13 12.5 18 Z', 0.7)}` })),
+  burst: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('b', [[0, '#fff3a0'], [0.5, '#ffb020'], [1, '#e2382b']]),
+    body: `<path d="${Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6, r = i % 2 ? 11 : 21; return `${i ? 'L' : 'M'}${(24 + r * Math.cos(a)).toFixed(1)} ${(24 + r * Math.sin(a)).toFixed(1)}`; }).join(' ')} Z" fill="${u('b')}" stroke="#a81e08" stroke-width="1.2" stroke-linejoin="round"/>` })),
+  hundred: mk('0 0 48 48', false, () => ({ defs: '',
+    body: `<text x="24" y="31" text-anchor="middle" font-size="22" font-weight="900" font-style="italic" font-family="Arial" fill="#e2382b" stroke="#7a0e06" stroke-width=".8">100</text><path d="M7 36 H41 M9 41 H39" stroke="#e2382b" stroke-width="2.6" stroke-linecap="round"/>` })),
+  pause: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', STEEL),
+    body: `<rect x="10" y="8" width="10" height="32" rx="2.5" fill="${u('p')}" stroke="#3b4148" stroke-width="1"/><rect x="28" y="8" width="10" height="32" rx="2.5" fill="${u('p')}" stroke="#3b4148" stroke-width="1"/>` })),
+  ff: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', [[0, '#b6f08c'], [1, '#2f8a22']]),
+    body: `<path d="M4 9 L23 24 L4 39 Z M24 9 L43 24 L24 39 Z" fill="${u('p')}" stroke="#1d5a12" stroke-width="1.3" stroke-linejoin="round"/>` })),
+  skip: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', [[0, '#b6f08c'], [1, '#2f8a22']]),
+    body: `<path d="M4 9 L20 24 L4 39 Z M20 9 L36 24 L20 39 Z" fill="${u('p')}" stroke="#1d5a12" stroke-width="1.3" stroke-linejoin="round"/><rect x="37" y="9" width="6" height="30" rx="1.5" fill="${u('p')}" stroke="#1d5a12" stroke-width="1.2"/>` })),
+  chat: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('c', [[0, '#ffffff'], [1, '#d7dde4']]),
+    body: `<path d="M8 6 H40 C43 6 45 8 45 11 V29 C45 32 43 34 40 34 H20 L10 43 V34 H8 C5 34 3 32 3 29 V11 C3 8 5 6 8 6 Z" fill="${u('c')}" stroke="#7d8896" stroke-width="1.2" stroke-linejoin="round"/>
+      <circle cx="15" cy="20" r="2.6" fill="#7d8896"/><circle cx="24" cy="20" r="2.6" fill="#7d8896"/><circle cx="33" cy="20" r="2.6" fill="#7d8896"/>` })),
+  letter: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('e', [[0, '#ffffff'], [1, '#dfe4ea']]),
+    body: `<rect x="3" y="10" width="42" height="29" rx="3" fill="${u('e')}" stroke="#7d8896" stroke-width="1.2"/><path d="M4 12 L24 27 L44 12" fill="none" stroke="#7d8896" stroke-width="1.4"/><circle cx="39" cy="12" r="6" fill="#e2382b" stroke="#7a0e06" stroke-width=".8"/>` })),
+  scale: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('g', GOLD, 1, 0),
+    body: `<path d="M24 6 V40 M8 12 H40" stroke="#8a5a00" stroke-width="2.6" stroke-linecap="round"/><path d="M14 44 H34 L31 39 H17 Z" fill="${u('g')}" stroke="#8a5a00" stroke-width="1"/>
+      <path d="M8 12 L3 26 M8 12 L13 26 M40 12 L35 26 M40 12 L45 26" stroke="#8a5a00" stroke-width="1"/><path d="M2 26 H14 C14 31 2 31 2 26 Z M34 26 H46 C46 31 34 31 34 26 Z" fill="${u('g')}" stroke="#8a5a00" stroke-width="1"/><circle cx="24" cy="6" r="2.6" fill="${u('g')}"/>` })),
+  plus: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', [[0, '#b6f08c'], [1, '#2f8a22']]),
+    body: `<path d="M19 6 H29 V19 H42 V29 H29 V42 H19 V29 H6 V19 H19 Z" fill="${u('p')}" stroke="#1d5a12" stroke-width="1.3" stroke-linejoin="round"/>` })),
+  hourglass: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('s', [[0, '#ffe08a'], [1, '#d9940a']]) + L('w', [[0, '#c78a55'], [1, '#7f4c22']]),
+    body: `<path d="M12 7 H36 C36 18 27 21 27 24 C27 27 36 30 36 41 H12 C12 30 21 27 21 24 C21 21 12 18 12 7 Z" fill="#eaf6ff" fill-opacity=".8" stroke="#7d8896" stroke-width="1"/>
+      <path d="M17 36 C19 31 22.5 30 24 30 C25.5 30 29 31 31 36 Z M17 13 H31 C30 17 26 19 24 21 C22 19 18 17 17 13 Z" fill="${u('s')}"/><rect x="9" y="3" width="30" height="5" rx="1.5" fill="${u('w')}"/><rect x="9" y="40" width="30" height="5" rx="1.5" fill="${u('w')}"/>` })),
+  bulb: mk('0 0 48 48', false, ({ R, u }) => ({ defs: R('b', [[0, '#fffbd0'], [1, '#ffc928']]),
+    body: `<path d="M24 3 C13 3 7 11 7 19 C7 27 15 30 16 36 H32 C33 30 41 27 41 19 C41 11 35 3 24 3 Z" fill="${u('b')}" stroke="#b07400" stroke-width="1.1"/><rect x="16" y="36" width="16" height="8" rx="2" fill="#9aa3ad" stroke="#4b535c" stroke-width=".8"/><path d="M17 40 H31" stroke="#4b535c" stroke-width=".8"/>${hl('M12 17 C13 11 17 8 22 7 C17 10 15 13 14.5 19 Z', 0.6)}` })),
+  person: mk('0 0 48 48', false, ({ L, R, u }) => ({ defs: R('sk', SKIN) + L('s', [[0, '#5a6470'], [1, '#1d2228']]),
+    body: `<path d="M8 46 C8 33 14 28 24 28 C34 28 40 33 40 46 Z" fill="${u('s')}" stroke="#0b0d10" stroke-width=".9"/><path d="M21 28 L24 36 L27 28 Z" fill="#fff"/><path d="M23 30 L25 30 L25.5 38 L24 40 L22.5 38 Z" fill="#c4161c"/>
+      <circle cx="24" cy="16" r="10" fill="${u('sk')}" stroke="#a0623a" stroke-width=".8"/><path d="M14 15 C14 5 34 5 34 15 C30 10 18 10 14 15 Z" fill="#3b2618"/>` })),
+  money: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('m', [[0, '#e0c48a'], [1, '#9c7432']]),
+    body: `<path d="M18 10 L15 4 H33 L30 10 C40 15 44 26 42 34 C40 42 33 45 24 45 C15 45 8 42 6 34 C4 26 8 15 18 10 Z" fill="${u('m')}" stroke="#5e4416" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M17 10 H31" stroke="#5e4416" stroke-width="2.4"/><text x="24" y="36" text-anchor="middle" font-size="16" font-weight="900" fill="#2e7a2e" font-family="Arial">★</text>` })),
+  gamepad: mk('0 0 56 48', true, ({ L, u }) => ({ defs: L('g', [[0, '#5a6470'], [1, '#1d2228']]),
+    body: `<path d="M14 12 H42 C50 12 54 20 54 30 C54 38 49 41 45 37 L39 31 H17 L11 37 C7 41 2 38 2 30 C2 20 6 12 14 12 Z" fill="${u('g')}" stroke="#0b0d10" stroke-width="1"/>
+      <path d="M12 19 V29 M7 24 H17" stroke="#d6dde5" stroke-width="3" stroke-linecap="round"/><circle cx="40" cy="20" r="2.6" fill="#e2382b"/><circle cx="46" cy="25" r="2.6" fill="#2e9c3a"/><circle cx="34" cy="25" r="2.6" fill="#2a74c9"/><circle cx="40" cy="30" r="2.6" fill="#ffc928"/>` })),
+  laptop: mk('0 0 56 48', true, ({ L, u }) => ({ defs: L('s', [[0, '#4a90ff'], [1, '#1a3f8a']]) + L('b', STEEL),
+    body: `<rect x="10" y="6" width="36" height="25" rx="2.5" fill="#2a3038" stroke="#0b0d10" stroke-width="1"/><rect x="13" y="9" width="30" height="19" fill="${u('s')}"/><path d="M4 34 H52 L48 41 H8 Z" fill="${u('b')}" stroke="#4b535c" stroke-width="1"/>${hl('M14 10 H26 L14 22 Z', 0.3)}` })),
+});
 export const icon = name => (ICONS[name] ?? ICONS.home)();
 export const ICON_NAMES = Object.keys(ICONS);

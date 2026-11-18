@@ -715,3 +715,10 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .nsd-dark .nsd-ico { width: 1em; height: 1em; }   /* kleine Vorrats-Icons in dunklen Feldern */
 .nsd-bar .nsd-btn .nsd-ico { width: 1.6em; height: 1.6em; } .nsd-bar .nsd-btn .nsd-ico.wide { width: 2.5em; }
 .nsd-rowpair .nsd-btn.row .nsd-ico { width: 1.55em; height: 1.55em; } .nsd-rowpair .nsd-btn.row .nsd-ico.wide { width: 2.2em; }
+/* Version 170: ersetzte Emojis im Text */
+.nsd-emo { display: inline-block; line-height: 1; vertical-align: -0.22em; }
+.nsd-emo .nsd-ico { width: 1.25em; height: 1.25em; vertical-align: top; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
+.nsd-emo .nsd-ico.wide { width: 1.8em; }
+.nsd-dark .nsd-emo .nsd-ico { width: 1.1em; height: 1.1em; }
+span.nsd-emo { display: inline-block !important; position: static !important; text-align: inherit; }   /* fremde „span“-Regeln (z. B. .dc-energy span) nicht übernehmen */
+.dc-energy .nsd-emo .nsd-ico { width: .95em; height: .95em; }

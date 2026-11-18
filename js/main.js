@@ -4,6 +4,7 @@ import { toast, modal } from './ui/components.js';
 import { flushMilestones } from './ui/nsd/msToast.js';
 import { animateMeters } from './ui/nsd/frame.js';
 import { APP_VERSION } from './nsd.js';
+import { installEmojiSwap } from './ui/nsd/emoji.js';
 // New Star Darts
 import * as title from './ui/nsd/screens/title.js';
 import * as slots from './ui/nsd/screens/slots.js';
@@ -95,6 +96,7 @@ root.addEventListener('click', e => {
 });
 
 window.app = app; // Debug
+installEmojiSwap();   // Version 170: Emojis → eigene Icons (Flaggen bleiben)
 app.go('title');
 
 // Feste Anzeige: Pinch-Zoom (iOS-Gesten, Mehrfach-Berührung) und Verschieben der Seite unterbinden
@@ -111,7 +113,7 @@ async function checkUpdate() {
     if (!(v > APP_VERSION)) return;
     const b = document.createElement('button');
     b.id = 'nsd-update'; b.className = 'nsd-update';
-    b.textContent = `🔄 Neue Version ${v} verfügbar – hier tippen zum Aktualisieren`;
+    b.textContent = `Neue Version ${v} verfügbar – hier tippen zum Aktualisieren`;
     b.onclick = () => { app.save(); location.reload(); };
     document.body.appendChild(b);
   } catch { /* offline: egal */ }
