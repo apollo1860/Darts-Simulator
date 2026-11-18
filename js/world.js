@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR, TOUR_AVG_RANGE } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR, TOUR_AVG_RANGE, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -31,6 +31,7 @@ export function createWorld(rng, startYear = 2027) {
   addSecondary(players, rng, startYear);
   addJdc(players, rng, startYear);
   addFormer(players, rng, startYear);
+  addSuperLeague(players, rng, startYear);
   markWomen(players);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   // Fiktive Spieler (lokale Amateure, fiktive CT-Spieler): Namen je Karriere zufällig aus Vor-/Nachnamen der Nation
@@ -157,6 +158,16 @@ export function markWomen(players) {
 }
 export const womenOf = state => Object.values(state.world.players).filter(p => p.woman && p.tier !== 'retired');
 
+// Super-League-Spieler (Version 185): fehlende als Dev- (≤ 23) bzw. Challenge-Spieler aufnehmen (IDs G1 …), auch in alten Spielständen
+export function addSuperLeague(players, rng, year) {
+  const have = new Set(Object.values(players).map(p => normName(p.name)));
+  SUPER_LEAGUE.forEach(([name, nation, age26, sl], i) => {
+    const id = `G${i + 1}`, age = age26 + (year - 2026), avg = Math.round((sl - SUPER_LEAGUE_SHIFT) * 10) / 10;
+    if (players[id] || have.has(normName(name))) return;
+    const tier = age <= DEV_MAX_AGE ? 'dev' : 'challenge';
+    players[id] = { id, name, nation, age, avg, tier, cardUntil: null, superLeague: true, attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
+  });
+}
 // Ehemalige Tourcard-Holder (Version 96): fehlende als Challenge-Spieler aufnehmen (IDs K1 …), auch in alten Spielständen
 export function addFormer(players, rng, year) {
   const have = new Set(Object.values(players).map(p => p.name));

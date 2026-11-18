@@ -111,6 +111,19 @@ export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
 // --- Challenge Tour (nur ohne Tourcard): Nutzerliste CT-OOM, Plätze 1–75 ---
 // Stärke aus Platzierung: 91 Ø − 0,14 je Platz (75 → 80,6). Dev-Spieler auf der Liste stehen nur in DEV_PLAYERS
 // (spielen ohnehin CT mit; Average = max(Dev, CT)). Danach 30 fiktive Europäer (~66–72 Ø) als Kanonenfutter.
+// Version 185: DDV-Super-League-Spieler (Teilnehmer 2024/25, Nutzerliste), die noch fehlten → echte Spieler ohne Karte (IDs G…):
+// bis 23 Jahre Development Tour, sonst Challenge Tour (beide spielen auch die Host-Nation-Qualifier). Format [Name, Nation, Alter 2026, Super-League-Ø];
+// Welt-Ø = Super-League-Ø − SUPER_LEAGUE_SHIFT (Annahme: bei den schon vorhandenen SL-Spielern liegt der Welt-Ø im Mittel ~4 Punkte unter dem SL-Ø).
+export const SUPER_LEAGUE_SHIFT = 4;
+export const SUPER_LEAGUE = [
+  ['Paul Krohne', 'DE', 25, 93], ['Jaimy van de Weerd', 'DE', 23, 91], ['Franz Rötzsch', 'DE', 31, 88], ['Mika Donnevert', 'DE', 18, 88],
+  ['Oliver Müller', 'DE', 42, 88], ['Patrick Reisenegger', 'AT', 30, 87], ['Michael Klönhammer', 'DE', 58, 87], ['Andree Welge', 'DE', 54, 86],
+  ['Marcel Hausotter', 'DE', 35, 85], ['Kevin Troppmann', 'DE', 27, 85], ['Carsten Hoffmann', 'DE', 45, 85], ['Kevin Jußen', 'DE', 32, 85],
+  ['Patrick Klingelhöfer', 'DE', 39, 84], ['Christian Gödl', 'AT', 34, 84], ['Lukas Nußbaum', 'DE', 25, 84], ['René Damm', 'DE', 40, 83],
+  ['René Kern', 'CH', 41, 83], ['Tim Scholz', 'DE', 26, 82], ['Deniz Baudis', 'DE', 18, 82], ['Steven Noster', 'DE', 36, 82],
+  ['Christian Schmidt', 'DE', 40, 81], ['Kevin Kuhn', 'DE', 41, 81], ['Moritz Bohrmann', 'DE', 23, 80], ['Felix Springer', 'DE', 20, 79],
+  ['Finn Chudziak', 'DE', 21, 78]];
+
 // Ehemalige Tourcard-Holder ohne Karte 2026 (Version 96, Nutzerwunsch) → Challenge Tour, IDs K…; Alter auf Basis 2027 (= Alter 01.01.2026 + 1; Version 97: Korrekturen vom Nutzer),
 // Average geschätzt. Werden auch alten Spielständen hinzugefügt (world.js addFormer).
 export const CT_FORMER = [

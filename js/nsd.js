@@ -9,12 +9,12 @@ import { DARTS, STARTER_DART } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 import { ratingForAvgExact, START_AGES } from './player.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES, WOMEN_ON_TOUR } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES, WOMEN_ON_TOUR, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 184;
+export const APP_VERSION = 185;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -129,6 +129,7 @@ export function realPlayers() {
   for (const [n, nat, a, avg] of TOUR_NEW_2026) add(n, nat, a - 1, avg, true, 'Tourcard', false, 1);   // erstes Kartenjahr
   for (const [n, nat, a, avg] of [...CHALLENGE_PLAYERS.slice(0, -CT_FICTIONAL), ...CT_FORMER]) add(n, nat, a - 1, avg, false, 'Challenge Tour');
   for (const [n, nat, a, avg] of DEV_PLAYERS) add(n, nat, a - 1, avg, false, 'Development Tour');
+  for (const [n, nat, a, sl] of SUPER_LEAGUE) add(n, nat, a, sl - SUPER_LEAGUE_SHIFT, false, a <= 23 ? 'Development Tour' : 'Challenge Tour');   // Version 185
   for (const [n, nat, a, lo, hi] of JDC_TALENTS) add(n, nat, a, jdcStartAvg(lo, hi), false, 'JDC-Talent');
   for (const c of Object.values(SECONDARY)) c.players.forEach(([n, nat, a, base], i) => add(n, nat, a, base ?? c.avgTop - i, false, c.label, !!c.woman));
   return out.sort((x, y) => x.name.localeCompare(y.name, 'de'));

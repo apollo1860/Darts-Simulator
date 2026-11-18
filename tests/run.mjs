@@ -48,7 +48,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 244 + 4 + 19);   // Version 184: + Tergel Khurelkhuu (JDC, 16 in 2027) · Version 183: Asien 53 · Version 182: Osteuropa 46 · Version 181: Radek Szagański nur noch Challenge Tour · Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 244 + 4 + 19 + 25);   // Version 185: + 25 Super-League-Spieler · Version 184: + Tergel Khurelkhuu (JDC, 16 in 2027) · Version 183: Asien 53 · Version 182: Osteuropa 46 · Version 181: Radek Szagański nur noch Challenge Tour · Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
