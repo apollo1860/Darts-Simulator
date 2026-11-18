@@ -24,7 +24,7 @@ import { frame, bar, bindHead, checkIcon } from '../frame.js';
 export const nsd = true;
 const VISIT_MS = 1300, DART_MS = 1000;
 const BOGEY = new Set([169, 168, 166, 165, 163, 162, 159]);
-const KIND = { match: '🎯 MATCHDARTS', decider: '⚔️ ENTSCHEIDUNGSLEG', break: '💥 BREAK-CHANCE', finish: '🎯 CHECK-CHANCE', scoring: '💪 SCORING-AUFNAHME', nine: '✨ 9-DARTER MÖGLICH', fish: '🐟 170 – BIG FISH', din: '🎯 DOUBLE-IN' };
+const KIND = { match: 'MATCHDARTS', decider: 'ENTSCHEIDUNGSLEG', break: 'BREAK-CHANCE', finish: 'CHECK-CHANCE', scoring: 'SCORING-AUFNAHME', nine: '9-DARTER MÖGLICH', fish: '170 – BIG FISH', din: 'DOUBLE-IN' };   // Version 171: Spielszenen ohne Symbole
 const HELP = '<p><b>Spielmomente</b> 🎲: Etwa alle ein bis zwei Matches passiert ein Zwischenfall (rutschiger Dart, Zwischenruf, Blitzlicht …). Du wählst eine von zwei Optionen – jede kann mit gleicher Chance gut oder schlecht ausgehen. Dein Wurf (und die Simulation) wird für einige Aufnahmen besser oder schlechter; Fans, Manager und Sponsoren können dauerhaft etwas mitbekommen.</p><p>Bei Schlüsselmomenten wirfst du selbst: Ziel antippen (oder Vorschlag nehmen), dann mit dem grünen Knopf unten zweimal stoppen. Die Zoom-Hilfe beim Checken schaltest du am Board mit „🔍 Zoom“ an oder aus. Der Dart landet irgendwo im Kreis – je besser deine Fähigkeiten, desto kleiner der Kreis. Druck (Matchdarts, Entscheidungsleg) vergrößert ihn.</p><p><b>Einsteckwinkel:</b> Steckende Darts deiner Aufnahme verbauen mit ihrem Flight das Feld darüber (roter Streifen). Je steiler dein Winkel, desto länger der Schatten. Wer ein verbautes Feld stur weiter anspielt, streut mehr (größerer Kreis) und riskiert Bouncer – besser das Feld wechseln.</p>';
 let ui = null;
 // Einsatz (Version 107): 1 ❤ gelb, 2 ❤ orange (Standard), 3 ❤ rot – mehr Einsatz = mehr Spielszenen, aber mehr Energieverbrauch
@@ -229,7 +229,7 @@ function closeOverlay() {
   ui.aimEl.classList.add('hidden'); ui.aimEl.classList.remove('opp'); ui.aimEl.innerHTML = ''; ui.aim = null; ui.show = null;
   if (wasAim) normalBar();
 }
-const zoomLabel = () => { const b = $('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 ${on ? 'an' : 'aus'}`; b.title = 'Zoom-Hilfe'; b.classList.toggle('on', on); } };
+const zoomLabel = () => { const b = $('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `Zoom ${on ? 'an' : 'aus'}`; b.title = 'Zoom-Hilfe'; b.classList.toggle('on', on); } };
 // Zoom-Hilfe (Knopf am Board, wird gemerkt): nur das Viertel der Scheibe um das Ziel zeigen, sonst die ganze Scheibe
 function zoomTo(label) {
   const svg = $('#bsvg');
@@ -245,7 +245,7 @@ function startShow(kind, pre = []) {
   const m = ui.live.m, side = m.turn;
   ui.show = { kind, side, start: m.visit?.start ?? m.rem[side], sum: 0 };
   ui.aimEl.classList.remove('hidden'); ui.aimEl.classList.add('opp');
-  ui.aimEl.innerHTML = boardHtml(`🔴 GEGNER WIRFT · ${kind === 'nine' ? '✨ 9-DARTER-VERSUCH' : 'MATCHDARTS'} · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>`, TV_HTML);
+  ui.aimEl.innerHTML = boardHtml(`GEGNER WIRFT · ${kind === 'nine' ? '9-DARTER-VERSUCH' : 'MATCHDARTS'} · ${esc(nm(side))} steht auf <b>${ui.show.start}</b>`, TV_HTML);
   drawTv();
   for (const d of pre) { ui.show.sum += d.hit.score; mark(d.x, d.y, false); }
   ui.timer = setTimeout(showDart, wait(pre.length ? 1100 : 800));
@@ -272,7 +272,7 @@ function startAim(kind) {
   const m = ui.live.m;
   ui.aim = { kind, phase: 'pick', target: null, prm: null, fx: 0, fy: 0, t0: 0, ph: 0, rng: new RNG(ui.s.rng), nine: nineAlive(ui.s) };
   ui.aimEl.classList.remove('hidden');
-  ui.aimEl.innerHTML = boardHtml(`🟢 DU WIRFST · ${KIND[kind]} · Rest <b id="rem">${m.rem[ui.me]}</b>`,
+  ui.aimEl.innerHTML = boardHtml(`DU WIRFST · ${KIND[kind]} · Rest <b id="rem">${m.rem[ui.me]}</b>`,
     `${TV_HTML}<div class="nsd-aim-info" id="info"></div><div class="nsd-chips" id="chips"></div>`, true);
   throwBar();
   $('#stage').addEventListener('pointerdown', onStage);
@@ -312,15 +312,15 @@ function setTarget(label) {
   const route = ui.ce < 0.12 ? checkoutRoute(m.rem[ui.me], dartsLeft(m)) : null;   // Weg nur bei ordentlichem Rechnen
   const blk = a.prm.block ?? 0;
   const mm = momentMult(ui.s), hints = [
-    needsIn(m, ui.me) ? '<span class="neg">Double-in: erst ein Doppel treffen</span>' : '', route ? `Weg ${route.map(fieldName).join(' – ')}` : '', a.prm.pressure ? '<span class="neg">Druck!</span>' : '', a.prm.shaky ? '<span class="neg">😰 Hand zittert</span>' : '',
-    nervesNow(ui.s).pts ? '<span class="neg">😰 Nervös</span>' : '',
-    a.prm.injured ? `<span class="neg">${injuryOf(ui.s.player).icon} Verletzt</span>` : '',
-    mm !== 1 ? `<span class="${mm < 1 ? 'pos' : 'neg'}">🎲 Moment: Streuung ${mm < 1 ? '−' : '+'}${Math.round(Math.abs(1 - mm) * 100)} %</span>` : '',
-    blk >= 0.1 ? `<span class="neg">⚠ Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
+    needsIn(m, ui.me) ? '<span class="neg">Double-in: erst ein Doppel treffen</span>' : '', route ? `Weg ${route.map(fieldName).join(' – ')}` : '', a.prm.pressure ? '<span class="neg">Druck!</span>' : '', a.prm.shaky ? '<span class="neg">Hand zittert</span>' : '',
+    nervesNow(ui.s).pts ? '<span class="neg">Nervös</span>' : '',
+    a.prm.injured ? '<span class="neg">Verletzt</span>' : '',
+    mm !== 1 ? `<span class="${mm < 1 ? 'pos' : 'neg'}">Moment: Streuung ${mm < 1 ? '−' : '+'}${Math.round(Math.abs(1 - mm) * 100)} %</span>` : '',
+    blk >= 0.1 ? `<span class="neg">Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
   $('#info').innerHTML = hints.join(' · ');                           // das Ziel zeigen Scheibe und Chips; Spielstand: TV-Anzeige
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
   const chips = needsIn(m, ui.me) ? ['D20', 'D16', 'D10', 'D18', 'BULL'] : [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m)), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
-  $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '⚠ ' : ''}${fieldName(t)}</button>`).join('');
+  $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '! ' : ''}${fieldName(t)}</button>`).join('');
 }
 function onKey(e) {
   if (!ui?.aim || (e.code !== 'Space' && e.code !== 'Enter') || e.target.closest?.('.modal')) return;

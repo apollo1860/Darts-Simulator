@@ -139,7 +139,7 @@ function newVisit() {
   g.el('#marks').innerHTML = '';
   tries(); nextAimDart();
 }
-const zoomLabel = () => { const b = g.el('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `🔍 ${on ? 'an' : 'aus'}`; b.title = 'Zoom-Hilfe'; b.classList.toggle('on', on); } };
+const zoomLabel = () => { const b = g.el('#ztog'); if (b) { const on = getSettings().zoom; b.textContent = `Zoom ${on ? 'an' : 'aus'}`; b.title = 'Zoom-Hilfe'; b.classList.toggle('on', on); } };
 function zoomTo(label) {
   const svg = g.el('#bsvg');
   if (!svg) return;
