@@ -65,8 +65,25 @@ for (let k = 2; k <= 3; k++) {
   }
 }
 
-// Checkout-Weg mit höchstens `darts` Darts (wenigste Darts zuerst), sonst null
+// Version 177 (Nutzervorgabe): PDC-Checkout-Tabelle (3-Dart-Finishes 99–170) als Vorbild für Checkvorschläge mit 3 Darts in der Hand
+const PDC_TABLE = {
+  99: 'T19 S10 D16', 101: 'T20 S9 D16', 102: 'T16 S14 D20', 103: 'T19 S6 D20', 104: 'T16 S16 D20', 105: 'T20 S13 D16',
+  106: 'T20 S6 D20', 107: 'T19 S10 D20', 108: 'T20 S16 D16', 109: 'T20 S17 D16', 110: 'T20 S10 D20', 111: 'T19 S14 D20',
+  112: 'T20 S20 D16', 113: 'T19 S16 D20', 114: 'T20 S14 D20', 115: 'T20 S15 D20', 116: 'T20 S16 D20', 117: 'T20 S17 D20',
+  118: 'T20 S18 D20', 119: 'T19 S12 BULL', 120: 'T20 S20 D20', 121: 'T20 S11 BULL', 122: 'T18 S18 BULL', 123: 'T19 S16 BULL',
+  124: 'T20 S14 BULL', 125: '25 T20 D20', 126: 'T19 S19 BULL', 127: 'T20 S17 BULL', 128: 'S18 T20 BULL', 129: 'S19 T20 BULL',
+  130: 'T20 S20 BULL', 131: 'T20 T13 D16', 132: '25 T19 BULL', 133: 'T20 T19 D8', 134: 'T20 T14 D16', 135: '25 T20 BULL',
+  136: 'T20 T20 D8', 137: 'T20 T19 D10', 138: 'T20 T18 D12', 139: 'T19 T14 D20', 140: 'T20 T20 D10', 141: 'T20 T19 D12',
+  142: 'T20 T14 D20', 143: 'T20 T17 D16', 144: 'T20 T20 D12', 145: 'T20 T15 D20', 146: 'T20 T18 D16', 147: 'T20 T17 D18',
+  148: 'T20 T20 D14', 149: 'T20 T19 D16', 150: 'T20 T18 D18', 151: 'T20 T17 D20', 152: 'T20 T20 D16', 153: 'T20 T19 D18',
+  154: 'T20 T18 D20', 155: 'T20 T19 D19', 156: 'T20 T20 D18', 157: 'T20 T19 D20', 158: 'T20 T20 D19', 160: 'T20 T20 D20',
+  161: 'T20 T17 BULL', 164: 'T20 T18 BULL', 167: 'T20 T19 BULL', 170: 'T20 T20 BULL',
+};
+const PDC3 = Object.fromEntries(Object.entries(PDC_TABLE).map(([r, w]) => [r, w.split(' ')]));
+
+// Checkout-Weg mit höchstens `darts` Darts (wenigste Darts zuerst), sonst null; mit 3 Darts gilt die PDC-Tabelle
 export function checkoutRoute(rem, darts = 3) {
+  if (darts >= 3 && PDC3[rem]) return PDC3[rem];
   for (let k = 1; k <= darts; k++) if (best[k][rem]) return best[k][rem].route;
   return null;
 }

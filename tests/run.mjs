@@ -123,6 +123,9 @@ test('Checkout-Wege gültig', () => {
     assert.ok(last === 'BULL' || last[0] === 'D');
   }
   assert.deepEqual(checkoutRoute(170), ['T20', 'T20', 'BULL']);
+  // Version 177: PDC-Checkout-Tabelle mit 3 Darts, mit 2 Darts weiterhin kürzester Weg
+  assert.deepEqual(checkoutRoute(110, 3), ['T20', 'S10', 'D20']); assert.deepEqual(checkoutRoute(110, 2), ['T20', 'BULL']); assert.deepEqual(checkoutRoute(128, 3), ['S18', 'T20', 'BULL']);
+  for (let r = 99; r <= 170; r++) { const w = checkoutRoute(r, 3); if (w) assert.ok(w.reduce((a, l) => a + labelValue(l), 0) === r && /^(D|BULL)/.test(w.at(-1)), String(r)); }
 });
 
 test('Regeln: Bust, Double-Out, Legwechsel', () => {
