@@ -65,7 +65,7 @@ Object.assign(NAME_POOLS, {
     last: ['Srisuk', 'Wongsa', 'Chaiyaporn', 'Rattanakul', 'Ismail', 'Rahman', 'Abdullah', 'Hamid', 'Tan', 'Lim'] },
   ME: { nations: ['BH'], first: ['Ahmed', 'Ali', 'Hassan', 'Yousef', 'Khalid', 'Omar', 'Faisal', 'Hamad'],
     last: ['Al-Khalifa', 'Al-Sayed', 'Al-Ansari', 'Al-Mahmood', 'Haddad', 'Nasser', 'Saleh', 'Karim'] },
-  BALK: { nations: ['HR', 'SI', 'RS', 'RO', 'BG'], first: ['Ivan', 'Matej', 'Luka', 'Marko', 'Nikola', 'Stefan', 'Andrei', 'Bogdan', 'Dimitar', 'Petar'],
+  BALK: { nations: ['HR', 'SI', 'RS', 'RO', 'BG', 'BA'], first: ['Ivan', 'Matej', 'Luka', 'Marko', 'Nikola', 'Stefan', 'Andrei', 'Bogdan', 'Dimitar', 'Petar'],
     last: ['Kovačević', 'Novak', 'Horvat', 'Petrović', 'Jovanović', 'Popescu', 'Ionescu', 'Dimitrov', 'Georgiev', 'Babić'] },
 });
 const NATION_POOL = {};

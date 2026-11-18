@@ -240,6 +240,10 @@ export function developWorld(state, rng, year, protect = new Set()) {
 // kommt der Nachwuchs um den Start-Schnitt der Tour (`world.secBase`, beim ersten Lauf festgehalten), nie über ihren Start-Besten.
 // Jede Nebentour hat danach mindestens so viele aktive Spieler wie zu Beginn.
 export const SEC_RETIRE_FROM = 40, SEC_RETIRE_STEP = 0.05, SEC_RETIRE_MAX = 0.6;
+// Jährliche Entwicklung der Nebentour-Spieler nach Alter; SEC_GROWTH_LEFT = erwarteter Zuwachs bis zum Leistungshoch (für Nachwuchs)
+const secGrowth = a => (a <= 20 ? 1.8 : a <= 23 ? 1.1 : a <= 28 ? 0.4 : a <= 36 ? 0 : a <= 45 ? -0.3 : -0.6);
+const SEC_YOUTH_F = 0.5;   // Version 182: halber erwarteter Zuwachs (kalibriert über 12 Seeds × 20 Jahre: Drift ≈ 0)
+const secGrowthLeft = a => { let g = 0; for (let x = a; x <= 28; x++) g += secGrowth(x); return g; };
 export function developSecondary(state, rng, year, report = { retired: [] }) {
   const players = state.world.players, act = c => Object.values(players).filter(p => p.tier === 'secondary' && p.circuit === c);
   const so = (state.world.secOrders ??= {});           // Reihenfolge des endenden Jahres festhalten (nur die letzten 2 Jahre)
@@ -252,7 +256,7 @@ export function developSecondary(state, rng, year, report = { retired: [] }) {
   }
   for (const p of Object.values(players)) {
     if (p.tier !== 'secondary') continue;
-    const a = p.age, mean = a <= 20 ? 1.8 : a <= 23 ? 1.1 : a <= 28 ? 0.4 : a <= 36 ? 0 : a <= 45 ? -0.3 : -0.6;
+    const a = p.age, mean = secGrowth(a);
     changeStrength(p, rng.normal(mean, 1));
     if (base[p.circuit] && p.avg > base[p.circuit].top + 2) changeStrength(p, base[p.circuit].top + 2 - p.avg);   // Nebentour: nicht weit über ihren Start-Besten
     if (rng.chance(clamp((a - SEC_RETIRE_FROM + 1) * SEC_RETIRE_STEP, 0, SEC_RETIRE_MAX))) { report.retired.push(p.name); p.tier = 'retired'; }
@@ -263,7 +267,7 @@ export function developSecondary(state, rng, year, report = { retired: [] }) {
     const now = act(circuit), all = Object.values(players).filter(p => p.circuit === circuit), b = base[circuit] ?? { mean: (c.avgTop ?? 85) - 4, top: c.avgTop ?? 85, sd: 3 };
     for (let k = now.length; k < c.players.length; k++) {
       const nation = rng.pick(all.length ? all : [{ nation: c.players[0][1] }]).nation, age = rng.int(18, 30);
-      const avg = Math.round(clamp(rng.normal(b.mean, b.sd), 40, b.top) * 10) / 10, id = `S${++sNo}`;
+      const avg = Math.round(clamp(rng.normal(b.mean - SEC_YOUTH_F * secGrowthLeft(age), b.sd), 40, b.top) * 10) / 10, id = `S${++sNo}`;   // Version 182: Nachwuchs startet um den erwarteten Zuwachs tiefer (Niveau bleibt stabil)
       players[id] = { id, name: randomName(rng, nation, used, !!c.woman), nation, age, avg, tier: 'secondary', circuit, cardUntil: null, generated: year,
         attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}) };
       (report.secTalents ??= []).push(players[id].name);

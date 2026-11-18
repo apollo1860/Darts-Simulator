@@ -40,6 +40,7 @@ export const NATIONS = {
   SA: { name: 'Saudi-Arabien', flag: '🇸🇦' },
   SK: { name: 'Slowakei', flag: '🇸🇰' },
   RS: { name: 'Serbien', flag: '🇷🇸' },
+  BA: { name: 'Bosnien und Herzegowina', flag: '🇧🇦' },
   RO: { name: 'Rumänien', flag: '🇷🇴' },
   BG: { name: 'Bulgarien', flag: '🇧🇬' },
   CN: { name: 'China', flag: '🇨🇳' },
