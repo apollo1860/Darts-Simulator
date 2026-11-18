@@ -127,7 +127,13 @@ test('Checkout-Wege gültig', () => {
   { const B = { suggestTarget };
     assert.equal(B.suggestTarget(265, 3), 'T19'); assert.equal(B.suggestTarget(208, 2, null, 265), 'T19'); assert.equal(B.suggestTarget(302, 3), 'T18');
     assert.equal(B.suggestTarget(175, 2, null, 232), 'BULL'); assert.equal(B.suggestTarget(213, 2, null, 232), 'BULL'); assert.equal(B.suggestTarget(196, 1, null, 272), 'BULL');
-    assert.equal(B.suggestTarget(151, 1, null, 265), B.suggestTarget(151, 1)); }
+    assert.equal(B.suggestTarget(151, 1, null, 265), B.suggestTarget(151, 1));
+    assert.equal(B.suggestTarget(265, 3, 0.9, null, false), 'T20'); }   // Version 179: Pläne nur mit hohem Rechnen-Wert
+  test('Version 179: Verrechnen um 10/20 Punkte', async () => {
+    const T = await import('../js/throwModel.js'), { RNG } = await import('../js/rng.js'), r = new RNG({ s: 4 }), seen = new Set();
+    for (let i = 0; i < 200; i++) seen.add(T.miscalcTarget('D16', 32, 1, r, 3));
+    assert.ok(seen.has('D11') && seen.has('D6'));   // wie für 22 bzw. 12
+  });
   // Version 177: PDC-Checkout-Tabelle mit 3 Darts, mit 2 Darts weiterhin kürzester Weg
   assert.deepEqual(checkoutRoute(110, 3), ['T20', 'S10', 'D20']); assert.deepEqual(checkoutRoute(110, 2), ['T20', 'BULL']); assert.deepEqual(checkoutRoute(128, 3), ['S18', 'T20', 'BULL']);
   for (let r = 99; r <= 170; r++) { const w = checkoutRoute(r, 3); if (w) assert.ok(w.reduce((a, l) => a + labelValue(l), 0) === r && /^(D|BULL)/.test(w.at(-1)), String(r)); }

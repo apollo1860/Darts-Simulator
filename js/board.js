@@ -108,10 +108,12 @@ export const SCORE_PLAN = {
   233: ['T19', 'T19', 'T19'], 232: ['T19', 'BULL', 'BULL'], 262: ['T18', 'T18', 'T18'], 263: ['T19', 'T19', 'T19'], 265: ['T19', 'T19', 'T19'],
   266: ['T19', 'T19', 'T19'], 271: ['T19', 'T19', 'T19'], 272: ['T19', 'T19', 'BULL'], 302: ['T18', 'T18', 'T18'], 306: ['T19', 'T19', 'T19'],
 };
-export function suggestTarget(rem, dartsLeft = 3, mix = null, visitStart = null) {
+// plans: Scoring-Pläne nur mit hohem Rechnen-Wert (Aufrufer prüft `PLAN_CE`)
+export const PLAN_CE = 0.05;   // Rechenfehler-Quote ≤ 5 % ⇔ eigener Spieler Rechnen ≥ 40
+export function suggestTarget(rem, dartsLeft = 3, mix = null, visitStart = null, plans = true) {
   const route = rem <= 170 ? checkoutRoute(rem, dartsLeft) : null;
   if (route) return route[0];
-  const plan = SCORE_PLAN[visitStart ?? (dartsLeft === 3 ? rem : -1)];
+  const plan = plans && SCORE_PLAN[visitStart ?? (dartsLeft === 3 ? rem : -1)];
   if (plan && rem > 170) return plan[3 - dartsLeft];
   if (rem > 230) return mix == null || mix >= VARIETY_T19 + VARIETY_T18 ? 'T20' : mix < VARIETY_T19 ? 'T19' : 'T18';
   // Stelldart: bestes Rest-Ergebnis, bei Gleichstand mehr Punkte

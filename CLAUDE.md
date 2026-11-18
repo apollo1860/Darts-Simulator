@@ -82,7 +82,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 
 ## Match & Liveticker (`live.js`, tournaments.js)
 - DartConnect-Ansicht; **Spielszenen** wirfst du selbst: Matchdarts, Entscheidungsleg, Break, Checks ab 61, mind. eine Szene je Leg, 9-Darter-/170-Szenen extra, Double-in-Einstieg (75 %). Lange Formate gedrosselt (`paced`).
-- Checkvorschläge: mit 3 Darts PDC-Checkout-Tabelle 99–170 (`PDC_TABLE`, board.js), sonst kürzester Weg; Scoring-Pläne für bestimmte Reste > 170 (`SCORE_PLAN`, z. B. 265 T19, 302 T18, 232 T19 → Bull); schwaches Rechnen → Vorschlag manchmal falsch (`miscalcTarget`).
+- Checkvorschläge: mit 3 Darts PDC-Checkout-Tabelle 99–170 (`PDC_TABLE`, board.js), sonst kürzester Weg; Scoring-Pläne für bestimmte Reste > 170 (`SCORE_PLAN`, z. B. 265 T19, 302 T18, 232 T19 → Bull); Pläne erst ab Rechnen 40 (`PLAN_CE`); schwaches Rechnen → Vorschlag manchmal falsch, typisch um 10/20 Punkte verrechnet (`miscalcTarget`, 32 → D11).
 - Zielen: zwei Linien + Kreis (`circleRadius`, Tempo steigt bei jedem Richtungswechsel), Zoom-Schalter, TV-Spielstandsanzeige.
 - Kein Ticker-Logbuch (Leg/Break/180-Kommentare) – Hinweise nur als Toast.
 - Effekte: Druck, Nervosität, Verletzung, Spielmomente (2 Optionen, 50/50), verbaute Felder/Einsteckwinkel, Bouncer (je Dart-Modell), Robin Hood (je Flight).

@@ -1,5 +1,5 @@
 // Wurfmodell (DOM-frei): KI-Würfe (Gauß-Streuung um das Ziel) und Parameter fürs manuelle Zielen
-import { targetPoint, scoreAt, suggestTarget, isDoubleLabel, labelValue, BOGEY } from './board.js';
+import { targetPoint, scoreAt, suggestTarget, isDoubleLabel, labelValue, BOGEY, PLAN_CE } from './board.js';
 import { targetAverage, checkoutBase, calcError } from './player.js';
 import { wouldWinMatch, isDecider, dartsLeft, onDouble, needsIn } from './matchState.js';
 import { clamp } from './util.js';
@@ -49,15 +49,17 @@ export function pressureFactor(m, i, target, men, exp = 0) {
 export const fatigueFactor = (m, foc) => 1 + Math.max(0, m.legIdx - 8) * 0.012 * (1 - foc / 100);
 
 // Rechnen: mit Wahrscheinlichkeit ce wird falsch gestellt (naives T20/Single) oder das falsche Doppel angespielt
-function maybeMiscalc(target, rem, ce, rng) {
+// Version 179 (Nutzerwunsch): schwaches Rechnen verrechnet sich typischerweise um 10 oder 20 Punkte – der Vorschlag passt dann zu
+// einem Rest ± 10/20 (z. B. 32 → D11 wie für 22, 36 → D13 wie für 26); sonst (kein anderes Ziel) bleibt der alte Fehler
+function maybeMiscalc(target, rem, ce, rng, dartsLeft = 3) {
   if (rem > 230 || !rng.chance(rem <= 40 ? ce * 0.5 : ce)) return target;
-  if (isDoubleLabel(target) && target !== 'BULL') {             // falsches Doppel: oft untypische (D13, D11, D5, D17, D19)
-    if (rng.chance(0.5)) return rng.pick(['D13', 'D11', 'D5', 'D17', 'D19']);
-    const n = +target.slice(1), w = Math.min(20, Math.max(1, n + rng.pick([-3, -2, -1, 1, 2, 3])));
-    return 'D' + w;
+  for (const off of rng.shuffle([-10, -20, 10, 20])) {
+    const w = rem + off;
+    if (w < 2 || w > 230 || w === rem) continue;
+    const t = suggestTarget(w, dartsLeft, null, null, false);
+    if (t !== target) return t;
   }
-  // Stell-Zone: stellt sich auf eine Bogey-Zahl (z. B. 229 → T20 → 169)
-  if (rem > 170) return ['T20', 'T19', 'T18', 'T17', 'T16'].find(t => BOGEY.has(rem - labelValue(t))) ?? 'T20';
+  if (isDoubleLabel(target) && target !== 'BULL') return 'D' + Math.min(20, Math.max(1, +target.slice(1) + rng.pick([-5, 5])));
   return rem > 60 ? rng.pick(['T20', 'T19', 'T18']) : 'S' + rng.int(1, 20);
 }
 
@@ -67,7 +69,7 @@ export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced 
   // forced = vom Spieler gewählter Weg (keine Rechenfehler); attrs.ce = eigene Fehlerquote (Tour-Modus, aus Rechnen 0–60)
   // Version 144/147: Double-in – erst ein Doppel: Lieblingsdoppel (`attrs.dinPref`: Tops, manche D16); ist es verbaut, das andere
   const din = needsIn(m, i), dinA = attrs.dinPref === 16 ? 'D16' : 'D20', dinB = dinA === 'D16' ? 'D20' : 'D16';
-  let target = forced ?? (din ? dinA : maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next(), m.visit.start), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng));
+  let target = forced ?? (din ? dinA : maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next(), m.visit.start, (attrs.ce ?? calcError(attrs.cal)) <= PLAN_CE), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng, dartsLeft(m)));
   // Einsteckwinkel: Steckende Darts dieser Aufnahme verbauen das Feld (obstruction.js). Im reinen Scoring wechselt die KI auf T19/T18/T17.
   const ang = attrs.angle, tips = m.visit.tips;
   let block = ang != null && tips?.length ? blockage(targetPoint(target), tips, ang) : 0;
@@ -162,4 +164,4 @@ export function landInCircle(x, y, r, rng) {
 }
 
 // Zielvorschlag mit möglichem Rechenfehler (für den eigenen Wurf im Liveticker)
-export const miscalcTarget = (target, rem, ce, rng) => maybeMiscalc(target, rem, ce, rng);
+export const miscalcTarget = (target, rem, ce, rng, dartsLeft = 3) => maybeMiscalc(target, rem, ce, rng, dartsLeft);

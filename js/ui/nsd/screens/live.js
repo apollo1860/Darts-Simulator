@@ -10,7 +10,7 @@ import { legAverage, liveAverage, dartsLeft, isSuddenDeath, inExtension, needsIn
 import { formatLabel, formatLines } from '../../../matchEngine.js';
 import { playerMatch, nervesNow, momentMult, startManualMatch, finishManualMatch, simulateLiveRest, nextRound, liveDartStep, boardCall,
   keyMoment, aimParams, liveHumanDart, liveThrower, effortOf, setEffort, liveEnergy, nineAlive, nineStill } from '../../../tournaments.js';
-import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName } from '../../../board.js';
+import { scoreAt, targetPoint, suggestTarget, checkoutRoute, fieldName, PLAN_CE } from '../../../board.js';
 import { wave, landInCircle, miscalcTarget, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { RNG } from '../../../rng.js';
 import { angleOf, shadowRect, severity, blockage, BLOCK_SIGMA, BOUNCE_P, bounceChance } from '../../../obstruction.js';
@@ -281,8 +281,8 @@ function nextDart() {
   drawShadows();
   $('#rem').textContent = m.rem[ui.me];
   ['#vline', '#hline', '#circ'].forEach(id => { $(id).style.display = 'none'; $(id).classList.remove('fixed'); });
-  const sug = needsIn(m, ui.me) ? 'D20' : suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next(), m.visit.start);   // Version 144: Double-in → erst ein Doppel
-  setTarget(needsIn(m, ui.me) ? sug : miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng));         // schwaches Rechnen: Vorschlag manchmal falsch
+  const sug = needsIn(m, ui.me) ? 'D20' : suggestTarget(m.rem[ui.me], dartsLeft(m), a.rng.next(), m.visit.start, ui.ce <= PLAN_CE);   // Version 144: Double-in → erst ein Doppel
+  setTarget(needsIn(m, ui.me) ? sug : miscalcTarget(sug, m.rem[ui.me], ui.ce, a.rng, dartsLeft(m)));         // schwaches Rechnen: Vorschlag manchmal falsch
   $t().querySelector('.lb').textContent = `Werfen (Dart ${m.visit.darts.length + 1})`;
   $t().disabled = false;
 }
@@ -302,7 +302,7 @@ function setTarget(label) {
     blk >= 0.1 ? `<span class="neg">Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
   $('#info').innerHTML = hints.join(' · ');                           // das Ziel zeigen Scheibe und Chips; Spielstand: TV-Anzeige
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
-  const chips = needsIn(m, ui.me) ? ['D20', 'D16', 'D10', 'D18', 'BULL'] : [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m), null, m.visit.start), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
+  const chips = needsIn(m, ui.me) ? ['D20', 'D16', 'D10', 'D18', 'BULL'] : [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m), null, m.visit.start, ui.ce <= PLAN_CE), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
   $('#chips').innerHTML = chips.map(t => `<button class="nsd-chip ${t === label ? 'on' : ''}" data-t="${t}">${blockage(targetPoint(t), tips, ang) >= 0.3 ? '! ' : ''}${fieldName(t)}</button>`).join('');
 }
 function onKey(e) {
