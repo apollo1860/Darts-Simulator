@@ -22,7 +22,7 @@ import { eventStatus, enterEvent, playRound, nextRound, simulateRest, closeEvent
 import { eventCost } from '../js/finance.js';
 import { RNG } from '../js/rng.js';
 import { simulateMatch } from '../js/matchEngine.js';
-import { scoreAt, targetPoint, checkoutRoute, labelValue } from '../js/board.js';
+import { scoreAt, targetPoint, checkoutRoute, labelValue, suggestTarget } from '../js/board.js';
 import { createMatch, throwDart } from '../js/matchState.js';
 import { startManualMatch, liveAiDart, simulateLiveRest, liveAiVisit } from '../js/tournaments.js';
 import { legAverage } from '../js/matchState.js';
@@ -123,6 +123,11 @@ test('Checkout-Wege gültig', () => {
     assert.ok(last === 'BULL' || last[0] === 'D');
   }
   assert.deepEqual(checkoutRoute(170), ['T20', 'T20', 'BULL']);
+  // Version 178: Scoring-Pläne (Rest zu Beginn der Aufnahme)
+  { const B = { suggestTarget };
+    assert.equal(B.suggestTarget(265, 3), 'T19'); assert.equal(B.suggestTarget(208, 2, null, 265), 'T19'); assert.equal(B.suggestTarget(302, 3), 'T18');
+    assert.equal(B.suggestTarget(175, 2, null, 232), 'BULL'); assert.equal(B.suggestTarget(213, 2, null, 232), 'BULL'); assert.equal(B.suggestTarget(196, 1, null, 272), 'BULL');
+    assert.equal(B.suggestTarget(151, 1, null, 265), B.suggestTarget(151, 1)); }
   // Version 177: PDC-Checkout-Tabelle mit 3 Darts, mit 2 Darts weiterhin kürzester Weg
   assert.deepEqual(checkoutRoute(110, 3), ['T20', 'S10', 'D20']); assert.deepEqual(checkoutRoute(110, 2), ['T20', 'BULL']); assert.deepEqual(checkoutRoute(128, 3), ['S18', 'T20', 'BULL']);
   for (let r = 99; r <= 170; r++) { const w = checkoutRoute(r, 3); if (w) assert.ok(w.reduce((a, l) => a + labelValue(l), 0) === r && /^(D|BULL)/.test(w.at(-1)), String(r)); }

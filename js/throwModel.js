@@ -67,7 +67,7 @@ export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced 
   // forced = vom Spieler gewählter Weg (keine Rechenfehler); attrs.ce = eigene Fehlerquote (Tour-Modus, aus Rechnen 0–60)
   // Version 144/147: Double-in – erst ein Doppel: Lieblingsdoppel (`attrs.dinPref`: Tops, manche D16); ist es verbaut, das andere
   const din = needsIn(m, i), dinA = attrs.dinPref === 16 ? 'D16' : 'D20', dinB = dinA === 'D16' ? 'D20' : 'D16';
-  let target = forced ?? (din ? dinA : maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next()), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng));
+  let target = forced ?? (din ? dinA : maybeMiscalc(suggestTarget(m.rem[i], dartsLeft(m), rng.next(), m.visit.start), m.rem[i], attrs.ce ?? calcError(attrs.cal), rng));
   // Einsteckwinkel: Steckende Darts dieser Aufnahme verbauen das Feld (obstruction.js). Im reinen Scoring wechselt die KI auf T19/T18/T17.
   const ang = attrs.angle, tips = m.visit.tips;
   let block = ang != null && tips?.length ? blockage(targetPoint(target), tips, ang) : 0;

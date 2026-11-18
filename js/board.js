@@ -102,9 +102,17 @@ function leaveScore(l) {
 // mix (0…1, Zufallszahl des Aufrufers, optional): in der reinen Scoring-Phase (> 230) gelegentlich T19/T18 statt T20 – sonst bleibt der
 // Rest immer ein Vielfaches von 20 unter 501 und fast jedes Leg endet in der Check-Phase auf 161/141/121/101 …
 export const VARIETY_T19 = 0.12, VARIETY_T18 = 0.03;
-export function suggestTarget(rem, dartsLeft = 3, mix = null) {
+// Version 178 (Nutzervorgabe): Scoring-Pläne für bestimmte Reste zu Beginn der Aufnahme – Ziel je Dart (1./2./3.), solange der Rest
+// noch über 170 liegt; darunter gilt wieder der Checkout-Weg. Z. B. 232: T19, dann Bull (175 → 125 bzw. 213 → 163).
+export const SCORE_PLAN = {
+  233: ['T19', 'T19', 'T19'], 232: ['T19', 'BULL', 'BULL'], 262: ['T18', 'T18', 'T18'], 263: ['T19', 'T19', 'T19'], 265: ['T19', 'T19', 'T19'],
+  266: ['T19', 'T19', 'T19'], 271: ['T19', 'T19', 'T19'], 272: ['T19', 'T19', 'BULL'], 302: ['T18', 'T18', 'T18'], 306: ['T19', 'T19', 'T19'],
+};
+export function suggestTarget(rem, dartsLeft = 3, mix = null, visitStart = null) {
   const route = rem <= 170 ? checkoutRoute(rem, dartsLeft) : null;
   if (route) return route[0];
+  const plan = SCORE_PLAN[visitStart ?? (dartsLeft === 3 ? rem : -1)];
+  if (plan && rem > 170) return plan[3 - dartsLeft];
   if (rem > 230) return mix == null || mix >= VARIETY_T19 + VARIETY_T18 ? 'T20' : mix < VARIETY_T19 ? 'T19' : 'T18';
   // Stelldart: bestes Rest-Ergebnis, bei Gleichstand mehr Punkte
   let bestL = 'T20', bestS = -Infinity;
