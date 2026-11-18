@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 190;
+export const APP_VERSION = 191;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -25,6 +25,9 @@ export const TRAINABLE = [
 export const SKILLS = [...TRAINABLE, { key: 'men', label: 'Mental', icon: '💪', star: true }];
 // Fähigkeit 0 ≈ knapp unter dem schwächsten Tourcard-Holder (Attribut 86,5, Holder ab ~87), 60 = Weltspitze (100)
 export const ATTR_BASE = 87.5, ATTR_PER_POINT = 12.5 / 60;
+// Version 191 (Nutzerwunsch): Scoring eigene Skala – 0 Punkte = Attribut 83 (Start-Average ≈ 82), 60 Punkte = 100 wie bisher
+export const SCO_BASE = 83, SCO_PER_POINT = 17 / 60;
+const attrBase = key => (key === 'sco' ? [SCO_BASE, SCO_PER_POINT] : [ATTR_BASE, ATTR_PER_POINT]);
 export const STAR_MAX = 100;
 // Status-Faktor: Preisgelder UND Preise × (1 + 5 % je Stufe über 1)
 export const starFactor = (level = 1) => 1 + 0.05 * (Math.max(1, level) - 1);
@@ -69,7 +72,7 @@ export const skillEffective = (p, key) => Math.min(SKILL_MAX, skillValue(p, key)
 // Fähigkeiten (inkl. Bonus) → Attribute der Match-Engine
 export function syncAttrs(p) {
   if (!p.skills) return p.attrs;
-  for (const s of SKILLS) p.attrs[s.key] = Math.round((ATTR_BASE + ATTR_PER_POINT * skillEffective(p, s.key)) * 10) / 10;
+  for (const s of SKILLS) { const [b, k] = attrBase(s.key); p.attrs[s.key] = Math.round((b + k * skillEffective(p, s.key)) * 10) / 10; }
   return p.attrs;
 }
 
@@ -136,12 +139,12 @@ export function realPlayers() {
 }
 // Start-Fähigkeiten eines echten Spielers aus seinem Average (Mittelwerte von attrsForAverage, Attribut → Fähigkeit 0–60);
 // Mental = Star-Status. Unter Ø ~86 liegt alles bei 0 (wie ein neuer Holder).
-const toSkill = attr => Math.max(0, Math.min(SKILL_MAX, Math.round((attr - ATTR_BASE) / ATTR_PER_POINT)));
+const toSkill = (attr, key) => { const [b, k] = attrBase(key); return Math.max(0, Math.min(SKILL_MAX, Math.round((attr - b) / k))); };
 // Version 126 (Nutzerwunsch): Spieler ohne Tourcard starten immer bei 0 (Status 1) – nur Tourcard-Holder bekommen Werte aus ihrem Average
 export function realStartSkills(avg, card = true) {
   if (!card) return { sco: 0, fin: 0, foc: 0, cal: 0, men: 1 };
   const sco = ratingForAvgExact(avg);
-  return { sco: toSkill(sco), fin: toSkill(sco - 1), foc: toSkill(sco - 1), cal: toSkill(sco), men: Math.max(1, toSkill(sco - 2)) };
+  return { sco: toSkill(sco, 'sco'), fin: toSkill(sco - 1), foc: toSkill(sco - 1), cal: toSkill(sco), men: Math.max(1, toSkill(sco - 2)) };
 }
 // Version 127 (Nutzerwunsch): erstes Tourcard-Jahr (Neu 2026) → alles 0; zweites Jahr (Karte 2025/2026) → 0–3 nach Stärke innerhalb der Gruppe
 const EXP_AVG = TOUR_EXPIRING.map(x => x[3]), EXP_LO = Math.min(...EXP_AVG), EXP_HI = Math.max(...EXP_AVG);

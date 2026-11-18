@@ -54,11 +54,11 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 
 ## Woche & Energie
 - „Weiter“ → `nextWeek`: Hintergrundturniere, Wochen-Update (Energie, Sponsoren, News), Ereignisse.
-- Energie: Woche +40 + Immobilie + Fitnesstrainer + Zufriedenheits-Anteil (`weeklyEnergy`). Match −(3 + 1 × Legs) %, max. 30 %, Floor-Turniere × 0,75; Einsatz 1–3 Herzen im Liveticker. Unter 20 %: kein Selbstwerfen, wachsender Malus. Training kostet 55 %. Getränke füllen auf 100 %.
+- Energie: Woche +40 + Immobilie + Fitnesstrainer + Zufriedenheits-Anteil (`weeklyEnergy`). Match −(3 + 1 × Legs) %, max. 30 %, Floor-Turniere × 0,75; Einsatz 1–3 Herzen im Liveticker (1 ❤: Energie × 0,3, kaum Szenen, simulierte Aufnahmen −5…−10 Ø). Unter 20 %: kein Selbstwerfen, wachsender Malus. Training kostet 55 %. Getränke füllen auf 100 %.
 - **Verletzungen** (`js/injury.js`): ~5 %/Woche (+3 % bei Energie < 30 %, + ab 35 Jahren, × 0,7 mit Fitnesstrainer, 4 Wochen Abklingzeit); sofort −50 % Energie, 1–2 Wochen, Erholung × 0,4, Attribut-Abzug (Ø ≈ −3…−5), größerer Zielkreis/schnelleres Zielkreuz. **Schwere Rückenschmerzen** (18 % der Rückenverletzungen): `state.week.blocked` – keine Turniere der Woche; Premier League kampflos (Freilos für den Gegner), World Cup mit Nachrücker.
 
 ## Fähigkeiten & Training
-- Scoring, Finishing, Fokus, Rechnen 0–60 (je 20 Level × 3 Sterne, `player.skills`); Mental = Star-Status (max. 60). Attribut = 87,5 + 12,5/60 × Fähigkeit.
+- Scoring, Finishing, Fokus, Rechnen 0–60 (je 20 Level × 3 Sterne, `player.skills`); Mental = Star-Status (max. 60). Attribut = 87,5 + 12,5/60 × Fähigkeit; Scoring 83 + 17/60 × Fähigkeit (0 Punkte = Start-Ø ≈ 82).
 - Minispiele je Level (Kreis/Linien exakt wie im Match), Einstufung nach Profilerstellung, freies Training im Titelmenü. Fokus-Memory: verdeckt, „Los“ = 3 s aufdecken, dann L1 3 … L20 24 schnelle Tausche, 8 Darts-Symbole (Icons), ein Paar finden. Rechnen: immer 20 s, Bereiche je Level nach Nutzertabelle (`CALC_LEVELS`), bei L7/8/9/10/11/14/17 steckt der erste Dart schon (auf der Scheibe sichtbar), Rückgängig-Knopf.
 - Boni: Darts (dauerhaft), Zubehör-Boosts (n Matches), Rausch (Schnaps/Wodka bis Wochenende), freie Punkte (+1 je Star-Stufe).
 - **Formverlust**: ohne Training einer Fähigkeit ab 9 Wochen Punktverlust; ab 30 sinkt die Frist bis 45 auf 3 Wochen, Chance 35 → 70 %.

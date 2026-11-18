@@ -25,7 +25,7 @@ import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from '.
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch, titleFans } from './nsd.js';
-import { overall, attrsForAverage } from './player.js';
+import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
 import { useBoosts, flightPrice } from './skilltrain.js';
@@ -419,6 +419,15 @@ const liveAttrs = (state, side) => {
   const inst = state.activeEvent, pm = playerMatch(inst), a = attrsOf(state, side === 0 ? pm.a : pm.b);
   return Array.isArray(a) ? a[memberIdx(inst.live.m, side, a.length)] : a;
 };
+// Version 191 (Nutzerwunsch): 1 ❤ Einsatz – deine simulierten Aufnahmen (nicht die Spielszenen) im Schnitt 5–10 Punkte schwächer
+// (einmal je Match gewürfelt, `live.lowMalus`); gilt nur, solange 1 ❤ eingestellt ist
+export const LOW_EFFORT_MALUS = [5, 10];
+const simAttrs = (state, side) => {
+  const live = state.activeEvent.live, a = liveAttrs(state, side);
+  if (side !== live.me || effortOf(live) !== 1 || state.activeEvent.teams) return a;
+  live.lowMalus ??= Math.round(new RNG(state.rng).float(...LOW_EFFORT_MALUS) * 10) / 10;
+  return { ...a, sco: ratingForAvgExact(Math.max(30, targetAverage(a) - live.lowMalus)) };
+};
 
 // Eigenes Match simulieren (Ergebnis wird gespeichert und zurückgegeben)
 export function simulatePlayerMatch(state) {
@@ -449,13 +458,13 @@ export function startManualMatch(state) {
 
 // Ein KI-Dart im Live-Match (für den Gegner oder beim Simulieren)
 export function liveAiDart(state, side) {
-  return aiDart(state.activeEvent.live.m, side, liveAttrs(state, side), new RNG(state.rng));
+  return aiDart(state.activeEvent.live.m, side, simAttrs(state, side), new RNG(state.rng));
 }
 
 // Eine komplette Aufnahme per KI (Schnellsimulation zum Zuschauen). Rückgabe: letztes Ereignis
 export function liveAiVisit(state) {
   const inst = state.activeEvent, lm = inst.live.m;
-  const rng = new RNG(state.rng), side = lm.turn, a = liveAttrs(state, side);
+  const rng = new RNG(state.rng), side = lm.turn, a = simAttrs(state, side);
   const sig = aiSigma(a), mult = modMult(inst.live, side);
   let ev = null;
   const live = inst.live, mine = side === live.me;
@@ -476,7 +485,7 @@ const xpFactor = inst => inst.xpBoost ?? XP_FACTOR[inst.cat] ?? 1;
 // Ein einzelner Dart im Live-Match (für die Scheiben-Anzeige bei Gegner-Matchdarts)
 export function liveDartStep(state) {
   const inst = state.activeEvent, live = inst.live, lm = live.m;
-  const side = lm.turn, a = liveAttrs(state, side), mine = side === live.me;
+  const side = lm.turn, a = simAttrs(state, side), mine = side === live.me;
   const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
   const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
   const dart = aiDart(lm, side, a, new RNG(state.rng), aiSigma(a), modMult(live, side), forced);
@@ -518,7 +527,7 @@ export function keyMoment(state) {
   if (dinScene(state)) return 'din';                              // Version 144: Double-in – erste Aufnahme des Legs zu 75 % selbst (extra)
   if (nineAlive(state)) return wouldWinMatch(lm, live.me) && lm.rem[live.me] <= 170 ? 'match' : 'nine';   // 9-Darter: extra, zählt nicht mit
   if (bigFish(state)) return wouldWinMatch(lm, live.me) ? 'match' : 'fish';   // Version 129: Rest 170 – immer selbst, extra
-  let kind = pickMoment(state, live, lm) ?? forcedMoment(live, lm);
+  let kind = pickMoment(state, live, lm) ?? (effortOf(live) === 1 ? null : forcedMoment(live, lm));   // 1 ❤: keine erzwungene Szene je Leg
   if (kind === 'scoring' && needsIn(lm, live.me)) kind = 'din';   // noch nicht „drin“: die Szene heißt Double-in
   if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
   return kind;
@@ -578,8 +587,8 @@ function forcedMoment(live, lm, me = live.me) {
 // ---- Einsatz (Version 107, Nutzerwunsch wie im Vorbild): 1 ❤ gelb / 2 ❤ orange (Standard, bisheriges Verhalten) / 3 ❤ rot ----
 // Mehr Einsatz = mehr eigene Spielszenen, kostet aber mehr Energie (abgerechnet je Leg mit dem Einsatz, der in diesem Leg galt).
 export const EFFORT_DEFAULT = 2;
-export const EFFORT_ENERGY = { 1: 0.7, 2: 1, 3: 1.35 };     // Energie-Faktor
-export const EFFORT_SCENES = { 1: 0.5, 2: 1, 3: 1.6 };      // Faktor für Check-/Break-/Scoring-Szenen (Matchdarts, Entscheidungsleg, Mindest-Szene je Leg bleiben)
+export const EFFORT_ENERGY = { 1: 0.3, 2: 1, 3: 1.35 };     // Energie-Faktor (Version 191: 1 ❤ sehr wenig)
+export const EFFORT_SCENES = { 1: 0.15, 2: 1, 3: 1.6 };     // Faktor für Check-/Break-/Scoring-Szenen (Matchdarts, Entscheidungsleg bleiben; Version 191: 1 ❤ kaum Szenen, keine Mindest-Szene je Leg)
 export const effortOf = live => live?.effort ?? EFFORT_DEFAULT;
 export function setEffort(state, e) {
   const live = state.activeEvent?.live; if (!live || ![1, 2, 3].includes(e)) return;
@@ -710,7 +719,7 @@ function tickMods(live, side) {
 export function simulateLiveRest(state) {
   const lm = state.activeEvent.live.m;
   const rng = new RNG(state.rng);
-  while (!lm.done) { const a = liveAttrs(state, lm.turn), d = aiDart(lm, lm.turn, a, rng, aiSigma(a)); throwDart(lm, d.hit, d); }
+  while (!lm.done) { const a = simAttrs(state, lm.turn), d = aiDart(lm, lm.turn, a, rng, aiSigma(a)); throwDart(lm, d.hit, d); }
   return finishManualMatch(state);
 }
 

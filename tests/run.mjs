@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 // Tour-Modus: Fähigkeit → Attribut (wie syncAttrs)
 const A = v => Math.round((87.5 + 12.5 / 60 * v) * 10) / 10;
+const AS = v => Math.round((83 + 17 / 60 * v) * 10) / 10;   // Version 191: Scoring-Skala (0 = 83 ≈ Ø 82)
 import { newCareer } from '../js/state.js';
 import { overall } from '../js/player.js';
 import { eventsInWeek } from '../js/calendar.js';
@@ -690,9 +691,9 @@ test('New Star Darts: Karrierestart mit Tourcard, Fähigkeiten 0–60, Tour-Modu
   assert.equal(s.mode, 'nsd'); assert.equal(p.name, 'Benny Buchse'); assert.equal(p.tour, 'tour'); assert.equal(p.cardUntil, 2027);
   assert.equal(s.stars, N.START_STARS); assert.equal(p.energy, 100); assert.equal(p.star.level, 1);
   assert.equal(N.skillValue(p, 'sco'), 0); assert.equal(N.skillValue(p, 'men'), 1);           // Mental = Star-Status
-  assert.equal(p.attrs.sco, A(0)); assert.equal(p.attrs.men, A(1));
+  assert.equal(p.attrs.sco, AS(0)); assert.equal(p.attrs.men, A(1));
   N.setStartSkills(p, { sco: 3, fin: 2, foc: 0, cal: 1 });
-  assert.equal(N.skillValue(p, 'sco'), 3); assert.equal(p.attrs.sco, A(3)); assert.equal(N.skillLevel(p, 'fin'), 1);
+  assert.equal(N.skillValue(p, 'sco'), 3); assert.equal(p.attrs.sco, AS(3)); assert.equal(N.skillLevel(p, 'fin'), 1);
   p.skills.sco = Array(20).fill(3); N.syncAttrs(p); assert.equal(p.attrs.sco, 100);           // 60 = Weltspitze
   p.star.level = 80; assert.equal(N.mentalOf(p), 60);                                         // Mental max. 60
   assert.equal(N.starFactor(1), 1); assert.equal(N.starFactor(21), 2); assert.equal(N.starPrice(20, 21), 150);   // Einnahmen +5 %, Preise +25 % je Stufe (Version 106: × 1,25)
@@ -703,7 +704,7 @@ test('New Star Darts: Karrierestart mit Tourcard, Fähigkeiten 0–60, Tour-Modu
   s.date.week = 6;
   assert.ok(eventStatus(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc')).playable);
   assert.ok(orderOfMerit(s, 'pdc').some(x => x.p.id === 'P'));
-  p.skills.sco = Array(20).fill(1); nextWeek(s); assert.equal(p.attrs.sco, A(20));   // Woche synchronisiert Attribute
+  p.skills.sco = Array(20).fill(1); nextWeek(s); assert.equal(p.attrs.sco, AS(20));   // Woche synchronisiert Attribute
 });
 
 test('New Star Darts: ★-Preisgeld, Energie, Star-Status, Note, Schlüsselmomente', async () => {
@@ -786,7 +787,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   T.finishTraining(s, 'sco', 1, 2, { placement: true });
   T.finishTraining(s, 'fin', 1, 0, { placement: true });
   assert.equal(N.skillValue(p, 'sco'), 2); assert.equal(N.skillValue(p, 'fin'), 0); assert.equal(p.energy, 100);
-  assert.equal(p.attrs.sco, A(2));
+  assert.equal(p.attrs.sco, AS(2));
   // Training kostet 55 %, Level 2 offen erst mit Stern in Level 1
   assert.equal(T.canTrain(s, 'fin', 2).ok, false); assert.equal(T.nextLevel(p, 'fin'), 1);
   T.startTraining(s, 'sco', 1); assert.equal(p.energy, 45);
@@ -799,7 +800,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   T.buyDrink(s, 'beer', 2); assert.equal(s.stars, 98);
   T.drink(s, 'beer', rng); assert.equal(p.energy, 100);                          // Getränke füllen auf 100 %
   T.buyDrink(s, 'wodka'); const fans = p.rel.fans; const r = T.drink(s, 'wodka', rng);
-  assert.equal(p.buzz, 3); assert.equal(p.attrs.sco, A(6)); assert.equal(p.attrs.men, A(1));   // kein Mental-Bonus
+  assert.equal(p.buzz, 3); assert.equal(p.attrs.sco, AS(6)); assert.equal(p.attrs.men, A(1));   // kein Mental-Bonus
   assert.equal(r.rel, 'fans'); assert.equal(p.rel.fans, fans + 1);
   assert.throws(() => T.drink(s, 'schnaps', rng));
   // Version 78: Getränke-Schlüssel – Bier Status 1 = 1 ★, Status 40 = 120 ★ (Schnaps ×3, Wodka ×5), danach +5 %/Stufe
@@ -816,7 +817,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 350);   // Version 106: Bier bei Status 40 = 150 ★ p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
   // Darts: Bonus solange ausgerüstet
   s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 3 + 3 + 2);
-  T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, A(5));
+  T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, AS(5));
   // Formverlust: Warnung ab 7 Wochen, ab 9 Wochen Verlust (letzter Stern des höchsten Levels), ab 13 zwei
   assert.equal(T.decayPoints(8), 0); assert.equal(T.decayPoints(9), 1); assert.equal(T.decayPoints(13), 2);
   p.skills.cal = Array(20).fill(0); p.skills.cal[0] = 3; p.skills.cal[1] = 2;
@@ -1047,8 +1048,9 @@ test('New Star Darts v10: UK Open (gestaffelter Einstieg, offene Auslosung), Gra
   assert.ok(s.champions[2026].find(c => c.eventId === 'uk-open').runnerUp);
   while (s.date.week < 47) assert.ok(nextWeek(s));
   const q = M.qualOf(s), d = q.gsDirect;
-  assert.ok(d && d.pdc.length === 35 && d.sec.length === 5);
-  assert.ok(d.sec.includes(q.wmYouth) && d.sec.filter(id => s.world.players[id]?.circuit === 'women').length === 2);
+  const youthIn = d.pdc.includes(q.wmYouth);   // Jugend-Weltmeister (z. B. Beau Greaves) evtl. schon über PDC-Platz dabei – kein Nachrücker
+  assert.ok(d && d.pdc.length === 35 && d.sec.length === 5 - (youthIn ? 1 : 0));
+  assert.ok((youthIn || d.sec.includes(q.wmYouth)) && d.sec.filter(id => s.world.players[id]?.circuit === 'women').length === 2);
   assert.equal(q.gsqSurvivors.length, 48 - 35 - 5);
   assert.equal(q.gsod.length, 48); assert.equal(new Set(q.gsod).size, 48);
   assert.ok([...d.pdc, ...d.sec, ...q.gsqSurvivors].every(id => q.gsod.includes(id)));
