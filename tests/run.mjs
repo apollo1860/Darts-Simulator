@@ -355,7 +355,7 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   const q = s.qual[2027];
   assert.equal(q.masters.length, 24); assert.equal(q.matchplay.length, 32); assert.equal(q.pcf.length, 64);
   assert.equal(q.wm.length, 128); assert.equal(new Set(q.wm).size, 128);
-  assert.ok(s.news.some(n => n.title.includes('WM-Teilnehmer fix')) && (q.wmNews?.length ?? 0) >= 100);   // Version 195: WM-Qualifikationen als News
+  assert.ok(!s.news.some(n => n.title.includes('Top 40')) && s.news.some(n => n.title.includes('WM-Ticket')));   // Version 195/196: WM-Qualifikanten als News (ohne OOM-Plätze)
   assert.ok(q.wmqSurvivors.length >= 2 && q.wmqSurvivors.every(id => q.wm.includes(id)));      // TCHQ: Restplätze, mind. 2
   assert.equal(Object.keys(q.wmReg).length, 21); assert.equal(Object.values(q.wmReg).flat().length, 22); assert.ok(q.wmYouth);   // 21 Qualifier, Asian Championship 2
   for (const [c, n] of Object.entries({ asia: 5, cdc: 2, nb: 2, dpa: 1, dpnz: 1 })) assert.ok(q.wm.filter(id => getPlayer(s, id)?.circuit === c).length >= n);

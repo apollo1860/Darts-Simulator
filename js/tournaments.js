@@ -535,7 +535,7 @@ function wmAnnounce(state, ids, title, text, skipP = false) {
 // Nach den PC Finals: direkte Plätze (Top 40 PDC + 40 Pro Tour) und Plätze über Challenge/Dev Tour, Women's Series und Nebentouren
 function wmDirectNews(state) {
   const q = qualOf(state), direct = wmDirect(state), auto = new Set(q.wmAuto ?? []), reg = new Set([q.wmYouth, ...Object.values(q.wmReg ?? {}).flat()]);
-  wmAnnounce(state, direct.filter(id => auto.has(id)), 'WM-Teilnehmer fix: Top 40 PDC & Top 40 Pro Tour', 'Über die Order of Merit direkt für die WM qualifiziert');
+  // Top 40 PDC / Top 40 Pro Tour: keine Meldung (Version 196, Nutzerwunsch – nur internationale Qualifikanten)
   wmAnnounce(state, direct.filter(id => !auto.has(id) && !reg.has(id)), "WM-Tickets über Challenge/Dev Tour, Women's Series & Nebentouren", 'Über ihre Tour-Ranglisten für die WM qualifiziert');
 }
 
