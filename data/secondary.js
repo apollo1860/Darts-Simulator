@@ -5,9 +5,10 @@ export const SECONDARY_SPREAD = 0.15;
 // Version 188: Nebentour-Spieler, die zusätzlich die Challenge Tour spielen (Nutzerwunsch)
 // (Version 190: bis 23 Jahre zusätzlich Development Tour) – Polen: alle mit Ø über 79
 export const SEC_ALSO_CT = ['Nitin Kumar', 'Bhav Patel', 'Devon Petersen', 'Cameron Carolissen', 'Johan Geldenhuys',
-  'Mirosław Grudziecki', 'Dawid Robak', 'Krzysztof Kciuk', 'Maciej Łuczak', 'Wojciech Bruliński', 'Jesús Salate', 'Rashad Sweeting', 'David Munyua', 'Peter Wachiuri'];
+  'Mirosław Grudziecki', 'Dawid Robak', 'Krzysztof Kciuk', 'Maciej Łuczak', 'Wojciech Bruliński', 'Jesús Salate', 'Rashad Sweeting', 'David Munyua', 'Peter Wachiuri',
+  'Macy Gibbons', 'Paige Pauling', 'Rebecca Allen', 'Ruby Grey'];   // Version 203: JDC-Spielerinnen (bis 23 auch Dev Tour)
 // Version 192: Nebentour-Spieler, die jedes Jahr die Q-School (EU) spielen (Nutzerwunsch)
-export const SEC_QSCHOOL = ['Jesús Salate', 'Rashad Sweeting', 'David Munyua', 'Peter Wachiuri'];   // Version 194: + Munyua, Wachiuri
+export const SEC_QSCHOOL = ['Jesús Salate', 'Rashad Sweeting', 'David Munyua', 'Peter Wachiuri', 'Macy Gibbons', 'Paige Pauling', 'Rebecca Allen', 'Ruby Grey'];   // Version 203: Q-School der eigenen Region (UK/EU)   // Version 194: + Munyua, Wachiuri
 export const SECONDARY = {
   // Version 101: Spielerinnen laut Nutzer-Rangliste mit ihrem Average (exakt, ohne Streuung); Alter nur wo bekannt (sonst zufällig 25–45).
   // Herkunft „UK“ in der Vorlage → ENG (Annahme). Noa-Lynn van Leuven spielt bei den Männern (Challenge Tour), Beau Greaves ist Tourcard-Holderin (data/players.js).
@@ -15,21 +16,21 @@ export const SECONDARY = {
   women: { label: "PDC Women's Series", avgTop: 84, woman: true, exact: true, players: [
     ['Fallon Sherrock', 'ENG', 31, 79.54], ['Lisa Ashton', 'ENG', 55, 79.36], ['Gemma Hayter', 'ENG', 32, 77.66], ["Rhian O'Sullivan", 'WAL', null, 76.23],
     ['Deta Hedman', 'ENG', null, 76.1], ['Kirsi Viinikainen', 'FI', null, 75.53], ['Aileen de Graaf', 'NL', 35, 74.42],
-    ['Karolina Ratajska', 'PL', null, 73.61], ['Vicky Pruim', 'SE', 51, 72.09], ['Mikuru Suzuki', 'JP', 43, 72.0], ['Rebecca Allen', 'IRL', null, 70.45],
+    ['Karolina Ratajska', 'PL', null, 73.61], ['Vicky Pruim', 'SE', 51, 72.09], ['Mikuru Suzuki', 'JP', 43, 72.0], ['Rebecca Allen', 'IRL', 16, 70.45],
     ['Angela Kirkwood', 'ENG', null, 70.29], ['Lorraine Winstanley', 'ENG', 50, 70.2], ['Robyn Byrne', 'IRL', 28, 70.17],
     ['Jade Gofford', 'ENG', null, 69.71], ['Aurora Fochesato', 'IT', null, 69.67], ['Kim Holden', 'ENG', null, 69.57], ['Jo Locke', 'ENG', null, 69.53],
     ['Steph Clarke', 'ENG', null, 69.25], ['Aoife McCormack', 'IRL', null, 69.24], ['Natalie Gilbert', 'ENG', null, 69.23],
     ['Leanne Topper', 'WAL', null, 69.23], ['Lorraine Hyde', 'SCO', null, 69.19], ['Eleanor Cairns', 'ENG', null, 68.37],
     ['Trina Gulliver', 'ENG', null, 67.82], ['Denise Cassidy', 'IRL', null, 67.37], ['Claire Brookin', 'ENG', null, 67.06],
-    ['Joanne Oldershaw', 'ENG', null, 66.99], ['Macy Gibbons', 'ENG', null, 66.9], ['Lauren Hall', 'ENG', null, 66.78],
+    ['Joanne Oldershaw', 'ENG', null, 66.99], ['Macy Gibbons', 'ENG', 16, 66.9], ['Lauren Hall', 'ENG', null, 66.78],
     ['Wendy Reinstadtler', 'ENG', null, 66.38], ['Katie Sheldon', 'IRL', null, 66.36], ['Lauren Bloomfield', 'ENG', null, 65.75],
     ['Stacey Ellis', 'ENG', null, 65.72], ['Louise Pearson', 'ENG', null, 65.63], ['Lauryn Salter', 'ENG', null, 65.16],
     ['Laura Turner', 'ENG', null, 65.14], ["Maria O'Brien", 'ENG', null, 64.94], ['Kirsty Hutchinson', 'ENG', null, 64.75],
     ['Anu Rasmus', 'FI', null, 64.5], ['Rachel Kingdon', 'WAL', null, 64.25], ['Sue Lowther', 'ENG', null, 64.05], ['Felicia Blay', 'ENG', null, 63.81],
     ['Lindsey Ashton', 'ENG', null, 63.7], ['Kyana Frauenfelder', 'NL', null, 63.56], ['Janine Gough', 'WAL', null, 63.4],
-    ['Ruby Grey', 'ENG', null, 63.27], ['Carly Chenery', 'ENG', null, 63.23], ['Emma Martin', 'ENG', null, 62.57],
+    ['Ruby Grey', 'ENG', 17, 63.27], ['Carly Chenery', 'ENG', null, 63.23], ['Emma Martin', 'ENG', null, 62.57],
     ['Vicky Cauteruccio', 'ENG', null, 62.4], ['Grace Ferridge', 'ENG', null, 62.29], ['Tracey Dean', 'ENG', null, 61.63],
-    ['Paige Pauling', 'ENG', null, 61.47], ['Holly Glet', 'ENG', null, 60.84], ['Greta Tekauer', 'HU', null, 60.78],
+    ['Paige Pauling', 'ENG', 17, 61.47], ['Holly Glet', 'ENG', null, 60.84], ['Greta Tekauer', 'HU', null, 60.78],
     ['Bianca Michalczyk', 'DE', null, 52.36], ['Jan Robbins', 'WAL', null, 52.27], ['Nancy-Vanessa Braun', 'DE', null, 52.19],
     ["Kacie O'Connor", 'ENG', null, 52.12], ['Vivian Cullimore', 'ENG', null, 52.09], ['Claire New', 'ENG', null, 52.03], ['Silvia Lindner', 'DE', null, 63.5, [52, 75]],
     ['Hannah Meek', 'ENG', null, 51.9], ['Emma Barlow', 'WAL', null, 51.42], ['Elaine Blackett', 'ENG', null, 51.09],

@@ -72,7 +72,9 @@ export const NAME_FIXES = { 'Lenny Schlueter': 'Lenny Schlüter', 'James Walklin
 // Start-Ø = von + 25 % der Spanne, Potenzial = bis (Entwicklung bis 24 zusätzlich Richtung Potenzial, nie darüber – world.js developWorld).
 export const JDC_TALENTS = [['Mitchell Lawrie', 'SCO', 15, 82, 106], ['Jack Johnson', 'ENG', 13, 76, 92], ['Jayden Walker', 'ENG', 13, 77, 94],
   ['Owen Bryceland', 'SCO', 11, 75, 90], ['Lewis Cook', 'ENG', 16, 74, 92], ['Benjamin Dopfer', 'DE', 15, 70, 90], ['Nicardo Pieper', 'DE', 14, 70, 85],
-  ['Tergel Khurelkhuu', 'MN', 15, 80, 96, 8]];   // Version 184: Mongole, Start-Ø 84 (80 + ¼ × 16), je Match ± 8 (6. Wert = Schwankung)
+  ['Tergel Khurelkhuu', 'MN', 15, 80, 96, 8],
+  // Version 203: JDC-Spielerinnen (Start-Ø = Nutzerwert, Potenzial +12) – Women's Series, Q-School, Challenge & Dev Tour
+  ['Zehra Gemi', 'TR', 16, 64, 80], ['Merve Hummel', 'DE', 15, 62, 78], ['Celina Glaser', 'AT', 14, 61, 77]];   // Version 184: Mongole, Start-Ø 84 (80 + ¼ × 16), je Match ± 8 (6. Wert = Schwankung)
 export const jdcStartAvg = (lo, hi) => Math.round((lo + 0.25 * (hi - lo)) * 10) / 10;
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
@@ -134,7 +136,7 @@ export const CT_FORMER = [
   ['Dragutin Horvat', 'DE', 50, 84.0], ['Darren Webster', 'ENG', 58, 84.0],
   ['Noa-Lynn van Leuven', 'NL', 30, 85.0]];   // Version 101: spielt bei den Männern (Nutzerhinweis), Average geschätzt
 // Spielerinnen mit Tourcard bzw. in den Männer-Listen (spielen zusätzlich die Women's Series)
-export const WOMEN_ON_TOUR = ['Beau Greaves'];
+export const WOMEN_ON_TOUR = ['Beau Greaves', 'Zehra Gemi', 'Merve Hummel', 'Celina Glaser'];
 // Version 180: Average-Spanne je Match für Tour-Spielerinnen (Nutzervorgabe: Beau Greaves Ø 95 ± 10)
 export const TOUR_AVG_RANGE = { 'Beau Greaves': [95, [85, 105]] };
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)

@@ -275,7 +275,7 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   }
   if (ev.cat === 'qschool') {
     const uk = ev.id === 'qs-uk';
-    ids = [...nonCardPros(state), ...(uk ? [] : playersOfTier(state, 'secondary').filter(p => SEC_QSCHOOL.includes(p.name)))]   // Version 192: Salate/Sweeting spielen Q-School EU
+    ids = [...nonCardPros(state), ...playersOfTier(state, 'secondary').filter(p => SEC_QSCHOOL.includes(p.name))]   // Version 192/203: einzelne Nebentour-Spieler(innen) spielen die Q-School ihrer Region
       .filter(p => uk ? QSCHOOL_UK_NATIONS.includes(p.nation) : !QSCHOOL_UK_NATIONS.includes(p.nation)).map(p => p.id);
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);     // Q-School ohne Setzliste
   }

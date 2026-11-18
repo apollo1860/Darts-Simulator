@@ -187,7 +187,7 @@ export function addJdc(players, rng, year, ageOffset = 0) {
     const id = `J${i + 1}`, age = age26 + (year - 2026);
     if (players[id] || age < 16) return;
     const avg = jdcStartAvg(lo, hi);
-    players[id] = { id, name, nation, age: age + ageOffset, avg, potential: hi, jdc: true, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 16, rng), ...(spread ? { avgSpread: spread } : {}) };
+    players[id] = { id, name, nation, age: age + ageOffset, avg, potential: hi, jdc: true, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 16, rng), ...(spread ? { avgSpread: spread } : {}), ...(WOMEN_ON_TOUR.includes(name) ? { woman: true } : {}) };
     added.push(name);
   });
   return added;

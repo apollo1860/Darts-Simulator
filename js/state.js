@@ -171,6 +171,10 @@ export function migrate(s) {
     for (const x of Object.values(s.world.players)) { const r = x.circuit === 'asia' && x.tier === 'secondary' && al.get(x.name); if (r) { x.nation = r[1]; x.avg = r[3]; x.attrs = attrsForAverage(r[3], new RNG(s.rng)); } }
     s.asiaV = 183;
   }
+  if (!s.flags?.v203ages) {   // Version 203: bekanntes Alter der JDC-Spielerinnen im Women's-Series-Pool
+    for (const [n, a] of [['Macy Gibbons', 16], ['Paige Pauling', 17], ['Rebecca Allen', 16], ['Ruby Grey', 17]]) for (const x of Object.values(s.world.players)) if (x.name === n && x.circuit === 'women') x.age = a + (s.date.year - 2026);
+    (s.flags ??= {}).v203ages = true;
+  }
   addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
   addSuperLeague(s.world.players, new RNG(s.rng), s.date.year);   // Version 185
   markWomen(s.world.players);
