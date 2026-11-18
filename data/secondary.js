@@ -3,7 +3,9 @@
 // Format je Spieler: [Name, Nation, Alter Anfang 2026]; Average wird aus dem Platz geschätzt (avgTop … avgTop − 7).
 export const SECONDARY_SPREAD = 0.15;
 // Version 188: Nebentour-Spieler, die zusätzlich die Challenge Tour spielen (Nutzerwunsch)
-export const SEC_ALSO_CT = ['Nitin Kumar', 'Bhav Patel', 'Devon Petersen', 'Cameron Carolissen', 'Johan Geldenhuys'];
+// (Version 190: bis 23 Jahre zusätzlich Development Tour) – Polen: alle mit Ø über 79
+export const SEC_ALSO_CT = ['Nitin Kumar', 'Bhav Patel', 'Devon Petersen', 'Cameron Carolissen', 'Johan Geldenhuys',
+  'Mirosław Grudziecki', 'Dawid Robak', 'Krzysztof Kciuk', 'Maciej Łuczak', 'Wojciech Bruliński'];
 export const SECONDARY = {
   // Version 101: Spielerinnen laut Nutzer-Rangliste mit ihrem Average (exakt, ohne Streuung); Alter nur wo bekannt (sonst zufällig 25–45).
   // Herkunft „UK“ in der Vorlage → ENG (Annahme). Noa-Lynn van Leuven spielt bei den Männern (Challenge Tour), Beau Greaves ist Tourcard-Holderin (data/players.js).
@@ -87,6 +89,16 @@ export const SECONDARY = {
     ['Romero Cartwright', 'BS', 48, 75], ['Joshua Balfour', 'TT', 42, 72], ['Sudesh Fitzgerald', 'GY', 39, 70]] },
   // Version 187: Indien nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Nitin Kumar steht im Asien-Pool und behält seinen Ø
   // Version 189: China nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Zong, Zhan, Wen, Li stehen im Asien-Pool und behalten ihren Ø
+  // Version 190: Polen nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Kciuk und Kozłowski stehen im Osteuropa-Pool und behalten ihren Ø
+  poland: { label: 'PDO Polen', avgTop: 85, exact: true, players: [
+    ['Mirosław Grudziecki', 'PL', 41, 85], ['Dawid Robak', 'PL', 44, 85], ['Maciej Łuczak', 'PL', null, 81], ['Wojciech Bruliński', 'PL', 33, 80],
+    ['Sebastian Biela', 'PL', null, 79], ['Jakub Janaszkiewicz', 'PL', 25, 79], ['Łukasz Wacławski', 'PL', 45, 78], ['Paweł Styczyński', 'PL', null, 77],
+    ['Damian Pałaszewski', 'PL', null, 77], ['Sebastian Steyer', 'PL', 45, 76], ['Witold Lewandowski', 'PL', null, 76], ['Mariusz Krasnowski', 'PL', 44, 75],
+    ['Piotr Maciejczak', 'PL', 27, 75], ['Krzysztof Lis', 'PL', 35, 75], ['Jakub Pietrzyk', 'PL', null, 74], ['Jerzy Kobylarz', 'PL', null, 74],
+    ['Oskar Kurysia', 'PL', null, 74], ['Kamil Nowak', 'PL', null, 73], ['Dariusz Furman', 'PL', null, 73], ['Mikołaj Kaczmarczyk', 'PL', null, 73],
+    ['Mateusz Sawczyn', 'PL', null, 73], ['Jacek Krupka', 'PL', null, 73], ['Marcin Słomski', 'PL', null, 72], ['August Żeromiński', 'PL', null, 72],
+    ['Sławomir Dziewulski', 'PL', null, 72], ['Patryk Redlin', 'PL', null, 71], ['Krzysztof Gierach', 'PL', null, 71], ['Dawid Lasek', 'PL', null, 71],
+    ['Sebastian Molencki', 'PL', null, 70], ['Dariusz Korzeniewski', 'PL', null, 70]] },
   china: { label: 'PDC China', avgTop: 76, exact: true, players: [
     ['Bin Zheng', 'CN', null, 76], ['Yuanjun Liu', 'CN', null, 73], ['Xicheng Han', 'CN', null, 72], ['Zhuolun Luo', 'CN', null, 72],
     ['Tong Xu', 'CN', null, 69], ['Tianxiao Cao', 'CN', null, 68], ['Zhiwei Lin', 'CN', null, 68], ['Junlong Melvin Zheng', 'CN', null, 68],

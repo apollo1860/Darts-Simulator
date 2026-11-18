@@ -61,8 +61,9 @@ function members(state, type, year) {
     return list;
   }
   if (type === 'wos') return [...womenOf(state), ...(p.woman ? [p] : [])];   // Version 101: Women's Series – alle Spielerinnen
-  const list = type === 'dev' ? [...playersOfTier(state, 'dev'), ...devHolders(state, year)]
-    : [...nonCardPros(state), ...playersOfTier(state, 'secondary').filter(x => SEC_ALSO_CT.includes(x.name))];   // Version 188: einzelne Nebentour-Spieler auch Challenge Tour
+  const alsoCt = () => playersOfTier(state, 'secondary').filter(x => SEC_ALSO_CT.includes(x.name));
+  const list = type === 'dev' ? [...playersOfTier(state, 'dev'), ...devHolders(state, year), ...alsoCt().filter(x => x.age <= DEV_MAX_AGE)]
+    : [...nonCardPros(state), ...alsoCt()];   // Version 188: einzelne Nebentour-Spieler auch Challenge Tour
   const eligible = p.tour !== 'tour' && (type === 'dev' ? p.age <= DEV_MAX_AGE : p.qschoolYear === year);   // Dev ohne Q-School
   if (eligible) list.push(p);
   return list;
