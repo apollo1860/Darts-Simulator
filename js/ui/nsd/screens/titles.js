@@ -1,11 +1,16 @@
 // Titelträger der Saison (Tour-Turniere seit Karrierestart), eigene Titel grün
 import { esc } from '../../../util.js';
-import { flag } from '../../../../data/nations.js';
+import { flag, nationName } from '../../../../data/nations.js';
 import { frame, header, bar, bindHead } from '../frame.js';
 import { NSD_BLOCKED } from '../../../../data/tournaments.js';
 import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
+// Version 193: World Cup (Doppel) – Sieger ist das Land, nicht ein Spieler (auch für alte Einträge)
+const winner = (s, c) => {
+  const nat = c.id === 'P' ? s.player.nation : c.nation;
+  return `${flag(nat)} ${esc(c.team || c.eventId === 'wcod' ? nationName(nat) : c.id === 'P' ? s.player.name : c.who)}`;
+};
 let year = null;
 export function render(app) {
   const s = app.state, years = Object.keys(s.champions ?? {}).map(Number).sort();
@@ -17,7 +22,7 @@ export function render(app) {
       <div class="nsd-scroll"><table class="nsd-table">
         <tr><th>KW</th><th style="text-align:left">Turnier</th><th class="alt" style="text-align:left">Sieger</th></tr>
         ${list.map(c => `<tr class="${c.id === 'P' ? 'me' : ''}"><td class="c">${c.week}</td><td class="nm">${esc(c.name)}</td>
-          <td class="nm">${flag(c.id === 'P' ? s.player.nation : c.nation)} ${esc(c.id === 'P' ? s.player.name : c.who)}</td></tr>`).join('')
+          <td class="nm">${winner(s, c)}</td></tr>`).join('')
           || '<tr><td colspan="3" class="c">Noch keine Turniere entschieden.</td></tr>'}
       </table></div>`,
     bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'calendar', icon: nicon('calendar'), label: 'Spielplan' }, { go: 'league', icon: nicon('ranks'), label: 'Ranglisten', wide: true }]),

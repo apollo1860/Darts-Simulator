@@ -3,6 +3,7 @@ import { rankOf } from './rankings.js';
 import { seasonStats } from './state.js';
 import { overall } from './player.js';
 import { getPlayer } from './world.js';
+import { nationName } from '../data/nations.js';
 
 export const PLACE_ORDER = ['W', 'CARD', 'F', 'SF', 'QF', 'L16', 'G2', 'G3', 'G4', 'L32', 'L64', 'L96', 'L128', 'L160', 'L256', 'QUAL', 'NQ'];
 const better = (a, b) => (b === undefined || PLACE_ORDER.indexOf(a) < PLACE_ORDER.indexOf(b));
@@ -11,8 +12,9 @@ const arch = state => (state.archive ??= { seasons: {}, titles: [], bests: {}, p
 
 // Turniersieger aller Turniere (außer lokal/Quali/PL-Spieltage): state.champions[year] = [{week, eventId, name, cat, id, who, nation}]
 export function recordChampion(state, inst, id, runnerUp = null) {
-  const w = getPlayer(state, id);
-  ((state.champions ??= {})[state.date.year] ??= []).push({ week: state.date.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, id, who: w?.name ?? '?', nation: w?.nation ?? null, ...(runnerUp ? { runnerUp } : {}) });
+  const w = getPlayer(state, id), t = inst.teams?.[id];   // Version 193: World Cup – Sieger ist das Land
+  ((state.champions ??= {})[state.date.year] ??= []).push({ week: state.date.week, eventId: inst.eventId, name: inst.name, cat: inst.cat, id,
+    who: t ? nationName(t.nation) : w?.name ?? '?', nation: t?.nation ?? w?.nation ?? null, ...(t ? { team: true } : {}), ...(runnerUp ? { runnerUp } : {}) });
 }
 
 // Nach jedem eigenen Turnier
