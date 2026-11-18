@@ -46,7 +46,7 @@ export const TOUR_EXPIRING = [
 
 // c) Neu 2026 (Q-School 2026: 13 UK + 16 EU, Challenge-/Dev-Tour 2025: Bellmont, Labanauskas, Greaves, Bates) → Karte 2026/2027
 export const TOUR_NEW_2026 = [
-  ['Stefan Bellmont', 'CH', 37, 89], ['Darius Labanauskas', 'LT', 50, 88], ['Beau Greaves', 'ENG', 22, 92],
+  ['Stefan Bellmont', 'CH', 37, 89], ['Darius Labanauskas', 'LT', 50, 88], ['Beau Greaves', 'ENG', 22, 95],
   ['Owen Bates', 'ENG', 24, 89], ['Arno Merk', 'DE', 34, 87], ['Filip Bereza', 'PL', 28, 88],
   ['Rhys Griffin', 'WAL', 29, 89], ['Adam Leek', 'AU', 27, 88], ['Jeffrey Sparidaans', 'NL', 33, 88],
   ['Cristo Reyes', 'ES', 39, 88], ['Carl Sneyd', 'ENG', 39, 88], ['Niall Culleton', 'IRL', 39, 88],
@@ -121,6 +121,8 @@ export const CT_FORMER = [
   ['Noa-Lynn van Leuven', 'NL', 30, 85.0]];   // Version 101: spielt bei den Männern (Nutzerhinweis), Average geschätzt
 // Spielerinnen mit Tourcard bzw. in den Männer-Listen (spielen zusätzlich die Women's Series)
 export const WOMEN_ON_TOUR = ['Beau Greaves'];
+// Version 180: Average-Spanne je Match für Tour-Spielerinnen (Nutzervorgabe: Beau Greaves Ø 95 ± 10)
+export const TOUR_AVG_RANGE = { 'Beau Greaves': [95, [85, 105]] };
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
 export const CHALLENGE_PLAYERS = [
   ['Joe Hunt', 'ENG', 34, 91.0], ['Derek Coulson', 'WAL', 58, 90.9], ['Tommy Morris', 'ENG', 34, 90.7],

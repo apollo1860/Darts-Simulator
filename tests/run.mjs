@@ -358,7 +358,8 @@ test('Majors: Felder, Gruppenphase, World Cup, Premier League, WM', () => {
   assert.equal(Object.keys(q.wmReg).length, 21); assert.equal(Object.values(q.wmReg).flat().length, 22); assert.ok(q.wmYouth);   // 21 Qualifier, Asian Championship 2
   for (const [c, n] of Object.entries({ asia: 5, cdc: 2, nb: 2, dpa: 1, dpnz: 1 })) assert.ok(q.wm.filter(id => getPlayer(s, id)?.circuit === c).length >= n);
   assert.equal(q.wm.filter(id => getPlayer(s, id)?.circuit === 'women').length, 4);   // Women's Series Platz 2–5 (Beau Greaves kommt über Tour/Dev Tour)
-  assert.ok(!q.wm.includes((s.world.secOrders?.['women|2027'] ?? secondaryOrder(s, 'women', 2027))[0]));   // v138: eingefrorene Reihenfolge (Nr. 1 kann danach zurücktreten)
+  { const w1 = secondaryOrder(s, 'women', 2027)[0];   // v138: eingefrorene Reihenfolge (Nr. 1 kann danach zurücktreten)
+    assert.ok(getPlayer(s, w1)?.tier !== 'secondary' || !q.wm.includes(w1)); }   // v180: Beau Greaves (Dev/Tour) kann über ihre Tour bei der WM sein
   assert.ok(q.wmReg.uki.every(id => ['ENG', 'SCO', 'WAL', 'NIR', 'IRL'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wmReg.esl.every(id => ['DE', 'AT', 'CH'].includes(getPlayer(s, id).nation)));
   assert.ok(q.wm.slice(0, 32).every((id, i) => id === q.wmAuto[i]));                       // Top 32 PDC gesetzt
@@ -2304,7 +2305,8 @@ test("New Star Darts v101: Women's Series für Spielerinnen (Wochenenden, Rangli
   T.closeEvent(s);
   const oom = orderOfMerit(s, 'wos');
   assert.ok(oom.some(x => x.p.id === 'P' && x.money > 0) && oom.filter(x => x.money > 0).length >= 30);
-  assert.deepEqual(W.secondaryOrder(s, 'women').slice(0, 3), oom.filter(x => x.p.tier !== 'tour').slice(0, 3).map(x => x.p.id));   // Rangliste vergibt die Plätze
+  assert.deepEqual(W.secondaryOrder(s, 'women').slice(0, 3), oom.filter(x => x.p.tier !== 'tour').slice(0, 3).map(x => x.p.id));   // Rangliste vergibt die Plätze (ohne Karte)
+  assert.deepEqual(W.secondaryOrder(s, 'women', undefined, { tour: true }).slice(0, 3), oom.slice(0, 3).map(x => x.p.id));   // v180: mit Tour-Spielerinnen (Matchplay)
   // Matchplay: nur Top 8, gesetzt nach Rangliste
   s.date.week = 29; s.week = { played: false, eventId: null };
   const wwm = C.eventsInWeek(s, 2026, 29).find(e => e.id === 'wwm');

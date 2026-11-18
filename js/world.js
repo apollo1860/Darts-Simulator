@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR, TOUR_AVG_RANGE } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -148,7 +148,13 @@ export function changeStrength(p, delta) {
 }
 
 // Spielerinnen (Version 101): Women's Series = alle Spielerinnen der Welt (Nebentour + Holderinnen wie Beau Greaves)
-export function markWomen(players) { for (const p of Object.values(players)) if (WOMEN_ON_TOUR.includes(p.name)) p.woman = true; }
+export function markWomen(players) {
+  for (const p of Object.values(players)) {
+    if (WOMEN_ON_TOUR.includes(p.name)) p.woman = true;
+    const r = TOUR_AVG_RANGE[p.name];   // Version 180: Ø + Spanne je Match (Beau Greaves 95, 85–105)
+    if (r && p.tier !== 'retired' && !p.avgRange) { p.avg = r[0]; p.avgRange = r[1]; p.attrs = attrsForAverage(r[0], new RNG({ s: hashSeed(`rng|${p.id}`) })); }
+  }
+}
 export const womenOf = state => Object.values(state.world.players).filter(p => p.woman && p.tier !== 'retired');
 
 // Ehemalige Tourcard-Holder (Version 96): fehlende als Challenge-Spieler aufnehmen (IDs K1 …), auch in alten Spielständen
@@ -237,7 +243,7 @@ export const SEC_RETIRE_FROM = 40, SEC_RETIRE_STEP = 0.05, SEC_RETIRE_MAX = 0.6;
 export function developSecondary(state, rng, year, report = { retired: [] }) {
   const players = state.world.players, act = c => Object.values(players).filter(p => p.tier === 'secondary' && p.circuit === c);
   const so = (state.world.secOrders ??= {});           // Reihenfolge des endenden Jahres festhalten (nur die letzten 2 Jahre)
-  for (const c of Object.keys(SECONDARY)) so[`${c}|${year}`] ??= secondaryOrder(state, c, year);
+  for (const c of Object.keys(SECONDARY)) so[`${c}|${year}`] ??= secondaryOrder(state, c, year, { tour: true });
   for (const k of Object.keys(so)) if (+k.split('|')[1] < year - 1) delete so[k];
   const base = (state.world.secBase ??= {});
   for (const c of Object.keys(SECONDARY)) if (!base[c]) {
@@ -281,17 +287,23 @@ export function addSecondary(players, rng, startYear) {
 }
 
 // Jahres-Rangliste einer Nebentour (fest je Jahr/Karriere): Stärkere meist vorn, etwas Zufall
-export function secondaryOrder(state, circuit, year = state.date.year) {
+// tour: auch Tourcard-Spielerinnen (Beau Greaves) – für Women's-Series-Rangliste/Matchplay; Plätze „ohne Karte“ (WM, Grand Slam …) ohne
+export function secondaryOrder(state, circuit, year = state.date.year, { tour = false } = {}) {
+  const ord = secondaryOrderAll(state, circuit, year);
+  return tour ? ord : ord.filter(id => id === 'P' || state.world.players[id]?.tier !== 'tour');
+}
+function secondaryOrderAll(state, circuit, year) {
   // Version 138: abgeschlossene Jahre sind eingefroren (developSecondary hält die Reihenfolge vor Entwicklung/Ruhestand fest)
   const snap = state.world.secOrders?.[`${circuit}|${year}`];
-  if (snap) return snap.filter(id => state.world.players[id]?.tier === 'secondary' || (id === 'P' && state.player.woman));
+  const inWos = p => p && (p.tier === 'secondary' ? p.circuit === circuit : circuit === 'women' && p.woman && p.tier !== 'retired');   // Version 180: Tour-Spielerinnen (Beau Greaves) zählen mit
+  if (snap) return snap.filter(id => inWos(state.world.players[id]) || (id === 'P' && state.player.woman));
   const wos = circuit === 'women' && state.rankings?.years?.[year]?.wos;   // Version 101: echte Women's-Series-Rangliste (inkl. Spielerin P)
   if (wos && Object.keys(wos).length) {
-    const cands = [...Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === 'women' && !(p.generated >= year)), ...(state.player.woman ? [state.player] : [])];
+    const cands = [...Object.values(state.world.players).filter(p => inWos(p) && !(p.generated >= year)), ...(state.player.woman ? [state.player] : [])];
     return cands.sort((a, b) => (wos[b.id] ?? 0) - (wos[a.id] ?? 0) || b.avg - a.avg).map(p => p.id);
   }
   const rng = new RNG({ s: hashSeed(`sec|${circuit}|${year}|${state.seed}`) });
-  return Object.values(state.world.players).filter(p => p.tier === 'secondary' && p.circuit === circuit && !(p.generated >= year))   // Version 138: Nachwuchs erst ab dem Folgejahr
+  return Object.values(state.world.players).filter(p => inWos(p) && !(p.generated >= year))   // Version 138: Nachwuchs erst ab dem Folgejahr
     .map(p => ({ p, v: p.avg + rng.normal(0, 2.5) })).sort((a, b) => b.v - a.v).map(x => x.p.id);
 }
 
