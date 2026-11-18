@@ -1,6 +1,7 @@
 // Order of Merits (DOM-frei). Preisgeld wird je Jahr/Typ/Spieler aggregiert:
 // state.rankings.years[year][type][id] = Betrag
 import { playersOfTier, nonCardPros, DEV_MAX_AGE, womenOf } from './world.js';
+import { SEC_ALSO_CT } from '../data/secondary.js';
 import { overall } from './player.js';
 import { START_OOM_2026 } from '../data/players.js';
 
@@ -60,7 +61,8 @@ function members(state, type, year) {
     return list;
   }
   if (type === 'wos') return [...womenOf(state), ...(p.woman ? [p] : [])];   // Version 101: Women's Series – alle Spielerinnen
-  const list = type === 'dev' ? [...playersOfTier(state, 'dev'), ...devHolders(state, year)] : nonCardPros(state);
+  const list = type === 'dev' ? [...playersOfTier(state, 'dev'), ...devHolders(state, year)]
+    : [...nonCardPros(state), ...playersOfTier(state, 'secondary').filter(x => SEC_ALSO_CT.includes(x.name))];   // Version 188: einzelne Nebentour-Spieler auch Challenge Tour
   const eligible = p.tour !== 'tour' && (type === 'dev' ? p.age <= DEV_MAX_AGE : p.qschoolYear === year);   // Dev ohne Q-School
   if (eligible) list.push(p);
   return list;

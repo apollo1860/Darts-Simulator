@@ -2,6 +2,8 @@
 // Zusammengestellt aus Claudes Wissen (Stand ~2025); Nation und Alter seit Version 95 aus der geprüften Nutzerliste (Stichtag 01.01.2026). Tourcard-Holder 2026 sind ausgenommen.
 // Format je Spieler: [Name, Nation, Alter Anfang 2026]; Average wird aus dem Platz geschätzt (avgTop … avgTop − 7).
 export const SECONDARY_SPREAD = 0.15;
+// Version 188: Nebentour-Spieler, die zusätzlich die Challenge Tour spielen (Nutzerwunsch)
+export const SEC_ALSO_CT = ['Nitin Kumar', 'Bhav Patel', 'Devon Petersen', 'Cameron Carolissen', 'Johan Geldenhuys'];
 export const SECONDARY = {
   // Version 101: Spielerinnen laut Nutzer-Rangliste mit ihrem Average (exakt, ohne Streuung); Alter nur wo bekannt (sonst zufällig 25–45).
   // Herkunft „UK“ in der Vorlage → ENG (Annahme). Noa-Lynn van Leuven spielt bei den Männern (Challenge Tour), Beau Greaves ist Tourcard-Holderin (data/players.js).
@@ -89,6 +91,12 @@ export const SECONDARY = {
     ['Shailender Dixit', 'IN', null, 70], ['Mohan Kumar Goel', 'IN', null, 69], ['Nikhil Roy', 'IN', null, 69], ['Amit Gilitwala', 'IN', null, 69],
     ['Aayush Kothari', 'IN', null, 68], ['Aryaveer Chokhani', 'IN', null, 68], ['Viral Mehta', 'IN', null, 67], ['Suketu Ahir', 'IN', null, 67],
     ['Piyush Chauhan', 'IN', null, 66], ['Chirag Daga', 'IN', null, 65], ['Ashfaque Sayed', 'IN', 60, 63]] },
+  // Version 188: Südliches Afrika nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45)
+  safrica: { label: 'African Darts Group (Südliches Afrika)', avgTop: 86, exact: true, players: [
+    ['Cameron Carolissen', 'ZA', 29, 86], ['Devon Petersen', 'ZA', 39, 81], ['Markus Rusch', 'ZA', null, 81], ['Johan Geldenhuys', 'ZA', null, 80],
+    ['Rudie van Staden', 'ZA', null, 77], ['Phillip Fourie', 'ZA', null, 77], ['Rustim Adams', 'ZA', null, 75], ['Johan Wiese', 'ZA', null, 75],
+    ['Ado Jenneker', 'NA', null, 72], ['Wame Gomang', 'BW', null, 71], ['Modokai Dheka', 'ZW', null, 70], ['Kekhumo Karonda', 'BW', null, 70],
+    ['Kudzanai Nyemba', 'ZW', null, 69], ['Stanice Daniels', 'NA', null, 69], ['Tshireletso Mokalaka', 'BW', null, 68], ['Tumelo Poloka', 'BW', null, 67]] },
   africa: { label: 'African Darts Group', players: [
     ['David Munyua', 'KE', 30, 85], ['Peter Wachiuri', 'KE', 39, 84], ['Patrick Ocheng', 'UG', 45, 81], ['Pascal Wanjala', 'KE', 30, 77],
     ['Evans Njuguna', 'KE', 49, 76], ['Charles Kausi', 'KE', 36, 75], ['Okalany Clegg', 'UG', 34, 75]] },
