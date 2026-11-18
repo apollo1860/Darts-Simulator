@@ -274,11 +274,19 @@ export function developSecondary(state, rng, year, report = { retired: [] }) {
 
 // Nebentouren (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic, Osteuropa): tier 'secondary', IDs S…
 // Ø = Basis der Tour − Platz in der Vorjahres-OOM; Entwicklung/Ruhestand/Nachwuchs seit Version 138 (developSecondary)
+// Namensvergleich ohne Akzente/Satzzeichen (Szagański = Szaganski)
+export const normName = n => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').toLowerCase().replace(/[^a-z]/g, '');
+// Version 181: doppelte Nebentour-Spieler (gleicher Name wie ein Tour/CT/Dev-Spieler) in alten Spielständen stilllegen
+export function retireSecondaryDupes(players) {
+  const main = new Set(Object.values(players).filter(p => p.tier !== 'secondary' && !p.circuit && p.tier !== 'retired').map(p => normName(p.name)));
+  for (const p of Object.values(players)) if (p.tier === 'secondary' && main.has(normName(p.name))) { p.tier = 'retired'; p.dupe = true; }
+}
 export function addSecondary(players, rng, startYear) {
   const have = new Set(Object.values(players).filter(p => p.tier === 'secondary' || p.circuit).map(p => p.name));   // Version 161: auch Zurückgetretene (behalten circuit) nicht neu anlegen
+  const main = new Set(Object.values(players).filter(p => p.tier !== 'secondary' && !p.circuit).map(p => normName(p.name)));   // Version 181: wer schon Tour/CT/Dev-Spieler ist, nicht noch einmal als Nebentour-Spieler
   let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
   for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base, range], i) => {
-    if (have.has(name)) return;
+    if (have.has(name) || main.has(normName(name))) return;
     const age = age0 ?? rng.int(25, 45) + (2026 - startYear);
     const avg = Math.round((base ? (c.exact ? base : base * rng.float(1 - SECONDARY_SPREAD, 1 + SECONDARY_SPREAD)) : c.avgTop - i) * 10) / 10, id = `S${++sNo}`;   // exact: Average aus der Vorlage
     players[id] = { id, name, nation, age: age - (2026 - startYear), avg, tier: 'secondary', circuit, cardUntil: null,

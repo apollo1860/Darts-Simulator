@@ -1,7 +1,7 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer, markWomen } from './world.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer, markWomen, retireSecondaryDupes } from './world.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL, CT_FORMER } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { scaleSponsorPay, dropSponsor180 } from '../data/sponsorsreal.js';
@@ -168,6 +168,7 @@ export function migrate(s) {
     if (x.name === n && x.circuit === 'women' && !x.avgRange) { x.avgRange = range; x.avg = base; x.attrs = attrsForAverage(base, new RNG(s.rng)); }
   addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
   markWomen(s.world.players);
+  retireSecondaryDupes(s.world.players);   // Version 181
   for (const x of Object.values(s.world.players)) { if (NAME_FIXES[x.name]) x.name = NAME_FIXES[x.name]; if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name]; }
   // Version 95: geprüfter Spielerpool (Nutzerliste, Stichtag 01.01.2026) – Nation und Alter echter Spieler auch in bestehenden Spielständen
   if ((s.poolV ?? 0) < 97) {   // Version 97: + ehemalige Holder (Alterskorrekturen)

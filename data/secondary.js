@@ -53,7 +53,7 @@ export const SECONDARY = {
     ['Daniel Larsson', 'SE', 44], ['Dennis Nilsson', 'SE', 49], ['Andreas Harrysson', 'SE', 50], ['Johan Engström', 'SE', 49], ['Niels Heinsøe', 'DK', 56],
     ['Benjamin Reus', 'DK', 27], ['Vladimir Andersen', 'DK', 36], ['Marko Kantele', 'FI', 57], ['Teemu Harju', 'FI', 33]] },
   ee: { label: 'Osteuropa (ET-/WM-Qualifier)', avgTop: 87, players: [
-    ['Krzysztof Kciuk', 'PL', 45], ['Radek Szagański', 'PL', 46], ['Patrik Kovács', 'HU', 29], ['Nándor Major', 'HU', 35],
+    ['Krzysztof Kciuk', 'PL', 45], ['Patrik Kovács', 'HU', 29], ['Nándor Major', 'HU', 35],
     ['Boris Krčmar', 'HR', 46], ['Jiří Brejcha', 'CZ', 40], ['Petr Křivka', 'CZ', 35], ['Michal Ondo', 'SK', 40]] },
   // Ab hier mit festem Ø (4. Wert, Nutzerangabe): je Karriere zufällig ±15 % Spielraum (SECONDARY_SPREAD); Alter unbekannt (null) → 25–45
   cdlc: { label: 'CDLC Tour (Karibik & Lateinamerika)', players: [

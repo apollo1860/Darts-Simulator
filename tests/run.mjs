@@ -48,7 +48,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 168 + 3 + 19);   // Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 167 + 3 + 19);   // Version 181: Radek Szagański nur noch Challenge Tour · Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -1002,9 +1002,11 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   const { majorField, mastersPrelimField } = await import('../js/majors.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 16 });
   const sec = playersOfTier(s, 'secondary');
-  assert.equal(sec.length, 168);   // Version 161: + Silvia Lindner · Version 96: + Zong, Lim, Baggish, Whitlock; Version 101: 91 Spielerinnen
+  assert.equal(sec.length, 167);   // Version 181: − Szagański (Doppelung) · Version 161: + Silvia Lindner · Version 96: + Zong, Lim, Baggish, Whitlock; Version 101: 91 Spielerinnen
+  { const W = await import('../js/world.js'), pl = { C1: { id: 'C1', name: 'Radek Szaganski', tier: 'challenge' }, S1: { id: 'S1', name: 'Radek Szagański', tier: 'secondary', circuit: 'ee' } };
+    W.retireSecondaryDupes(pl); assert.equal(pl.S1.tier, 'retired'); assert.equal(pl.C1.tier, 'challenge'); }   // Version 181: Doppelungen stilllegen
   for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb', 'ee']) {
-    const o = secondaryOrder(s, c, 2025); assert.ok(o.length >= 8);
+    const o = secondaryOrder(s, c, 2025); assert.ok(o.length >= (c === 'ee' ? 7 : 8));   // Version 181: Osteuropa 7 (Szagański nur Challenge Tour)
     assert.deepEqual(o, secondaryOrder(s, c, 2025));                   // fest je Jahr
   }
   assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= (p.circuit === 'women' ? 35 : 55) && p.avg <= 100));
