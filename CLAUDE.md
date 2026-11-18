@@ -86,7 +86,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Checkvorschläge: mit 3 Darts PDC-Checkout-Tabelle 99–170 (`PDC_TABLE`, board.js), sonst kürzester Weg; Scoring-Pläne für bestimmte Reste > 170 (`SCORE_PLAN`, z. B. 265 T19, 302 T18, 232 T19 → Bull); Pläne erst ab Rechnen 40 (`PLAN_CE`); schwaches Rechnen → Vorschlag manchmal falsch, typisch um 10/20 Punkte verrechnet (`miscalcTarget`, 32 → D11).
 - Zielen: zwei Linien + Kreis (`circleRadius`, Tempo steigt bei jedem Richtungswechsel), Zoom-Schalter, TV-Spielstandsanzeige.
 - Kein Ticker-Logbuch (Leg/Break/180-Kommentare) – Hinweise nur als Toast.
-- Effekte: Druck, Nervosität, Verletzung, Spielmomente (2 Optionen, 50/50), Einsteckwinkel mit Abprallern (Dart im Schatten eines steckenden Darts rutscht knapp hinter dessen Spitze – steiler Dart über T20 = Vorteil, darunter = Nachteil; `deflect`), Bouncer (je Dart-Modell), Robin Hood (je Flight).
+- Effekte: Druck, Nervosität, Verletzung, Spielmomente (2 Optionen, 50/50), Einsteckwinkel −60…60° mit Abprallern (Dart im Schatten eines steckenden Darts rutscht knapp hinter dessen Spitze; symmetrisch: Flight oben = „anwerfen“ über T20, Flight unten = „drauflegen“ unter T20, je gleich stark; `deflect`), Bouncer (je Dart-Modell), Robin Hood (je Flight).
 - Turnier-Lobby: Turnierbaum aller Runden (K.-o. mit festem Baum) zum Durchblättern; ausgeschieden → „Nächste Runde“ Klick für Klick oder „Turnier beenden“ (Sieger dann als News).
 - Spielbericht: Statistik-Seite + Bewertungs-Seite (Note, Beziehungen, Star-Status, Energie mit Veränderung).
 

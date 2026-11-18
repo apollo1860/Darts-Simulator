@@ -1470,13 +1470,13 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
   const { attrsForAverage } = await import('../js/player.js'), { RNG } = await import('../js/rng.js'), N = await import('../js/nsd.js');
   // Geometrie: nach oben steckend = langer Schatten über der Spitze, nach unten = kurz und unter der Spitze
   const up = O.shadowRect({ x: 0, y: 0 }, 40), flat = O.shadowRect({ x: 0, y: 0 }, 0), down = O.shadowRect({ x: 0, y: 0 }, -30);
-  assert.ok(up.y1 - up.y0 > 60 && up.y0 < -55); assert.ok(flat.y1 - flat.y0 <= 20); assert.ok(down.y0 >= -6 && down.y1 - down.y0 < 30);
+  assert.ok(up.y1 - up.y0 > 60 && up.y0 < -55); assert.ok(flat.y1 - flat.y0 <= 20); assert.ok(down.y0 >= -6 && down.y1 - down.y0 > 50);   // Version 208: nach unten gleich lang wie nach oben
   const tip = [{ x: 0, y: -100 }], T20 = B.targetPoint('T20');
   const sAt = a => O.blockage(T20, tip, a);
-  assert.ok(sAt(60) > sAt(30) && sAt(30) > sAt(10) && sAt(10) > sAt(-15) && sAt(-30) === 0, `Verbauung ${[-30, -15, 10, 30, 60].map(sAt)}`);
+  assert.ok(sAt(60) > sAt(30) && sAt(30) > sAt(10), `Verbauung ${[10, 30, 60].map(sAt)}`); assert.equal(O.severity(-30), O.severity(30));   // Version 208: symmetrisch
   assert.equal(O.blockage(B.targetPoint('T19'), tip, 60), 0);                         // Nachbarfeld frei
   assert.equal(O.blockage(T20, [], 60), 0);
-  assert.ok(O.stability(-30) > O.stability(10) && O.stability(30) === O.stability(10) && O.stability(0, true) > O.stability(0) * 1.05);
+  assert.ok(O.stability(60) > O.stability(30) && O.stability(-60) === O.stability(60) && O.stability(-30) === O.stability(10) && O.stability(0, true) > O.stability(0) * 1.05);
   // Spitzen werden je Aufnahme gemerkt und danach verworfen
   const m = MS.createMatch({ legs: 3 }, 0);
   MS.throwDart(m, B.scoreAt(0, -103), { x: 0, y: -103 }); assert.equal(m.visit.tips.length, 1);
@@ -1496,7 +1496,9 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
   // Version 205: Abpraller – steiler Dart knapp ÜBER dem Triple lenkt zu hohe Darts ins T20 (Vorteil), knapp DARUNTER verdeckt er das Triple
   { const r2 = new RNG({ s: 9 }), t20 = (tipY, ang) => { let h = 0; for (let i = 0; i < 4000; i++) { const mm = MS.createMatch({ legs: 3 }, 0); if (tipY != null) mm.visit.tips = [{ x: 0, y: tipY }]; if (TM.aiDart(mm, 0, { ...at, angle: ang }, r2, undefined, 1, 'T20').hit.label === 'T20') h++; } return h / 4000; };
     const free = t20(null, 60), above = t20(-110, 60), below = t20(-96, 60);
-    assert.ok(above > free + 0.03 && below < free - 0.05, `T20-Quote frei ${free.toFixed(3)}, Dart darüber ${above.toFixed(3)}, darunter ${below.toFixed(3)}`); }   // Version 128: BLOCK_SIGMA 0,25
+    assert.ok(above > free + 0.03 && below < free - 0.05, `T20-Quote frei ${free.toFixed(3)}, Dart darüber ${above.toFixed(3)}, darunter ${below.toFixed(3)}`);
+    const dBelow = t20(-96, -60), dAbove = t20(-110, -60);   // Version 208: Flight unten – drauflegen (Dart unter T20) gleich stark wie anwerfen
+    assert.ok(Math.abs(dBelow - above) < 0.03 && dAbove < free - 0.05, `unten: darunter ${dBelow.toFixed(3)}, darüber ${dAbove.toFixed(3)}`); }   // Version 128: BLOCK_SIGMA 0,25
   // Kreis für den eigenen Wurf: verbaut = größer; ohne Winkel unverändert
   const mm = MS.createMatch({ legs: 3 }, 0), a0 = { sco: 95, fin: 95, foc: 90, men: 90, cal: 90, exp: 0 }, p1 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20');
   mm.visit.tips = [{ x: T20.x, y: T20.y }];
@@ -1506,11 +1508,11 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
   const s = N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4, angle: 45 }); assert.equal(s.player.angle, 45);
   assert.equal(N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4 }).player.angle, O.ANGLE_DEFAULT);
   assert.equal(N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4, angle: 200 }).player.angle, O.ANGLE_MAX);
-  N.applyEdits(s, { angle: -50 }); assert.equal(s.player.angle, O.ANGLE_MIN);
+  N.applyEdits(s, { angle: -80 }); assert.equal(s.player.angle, O.ANGLE_MIN);   // Version 208: Minimum −60
   const ids = Array.from({ length: 300 }, (_, i) => `T${i}`), ang = ids.map(O.aiAngle);
   assert.equal(O.aiAngle('T7'), O.aiAngle('T7')); assert.ok(ang.every(x => x >= O.ANGLE_MIN && x <= O.ANGLE_MAX));
   const mean = ang.reduce((a, b) => a + b) / ang.length; assert.ok(Math.abs(mean - O.ANGLE_AI_MEAN) < 3, `KI-Mittel ${mean}`);
-  assert.ok(O.angleEfficiency(60) < O.angleEfficiency(18) && O.angleEfficiency(18) === 1 && O.angleEfficiency(-30) < 1);
+  assert.ok(O.angleEfficiency(60) < O.angleEfficiency(18) && O.angleEfficiency(18) === 1 && O.angleEfficiency(-60) < 1 && Math.abs(O.angleEfficiency(-60) - O.angleEfficiency(60)) < 0.01);
 });
 
 test('New Star Darts v60: Ranglisten-Preisgeld bleibt realistisch (Basis-★ = Tsd. £, ohne Status-Faktor)', async () => {

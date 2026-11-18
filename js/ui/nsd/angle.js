@@ -2,7 +2,7 @@
 import { severity, stability } from '../../obstruction.js';
 
 // Seitenansicht: Board links, Dart steckt im roten Feld; positiver Winkel = hinteres Ende (Flight) oben
-export const dartSvg = a => `<svg class="nsd-angle-svg" viewBox="0 -70 260 245" aria-hidden="true">
+export const dartSvg = a => `<svg class="nsd-angle-svg" viewBox="0 -70 260 302" aria-hidden="true">
   <rect x="38" y="8" width="12" height="134" rx="3" fill="#aab5c6"/><rect x="38" y="68" width="12" height="26" fill="#c9444f"/>
   <line x1="56" y1="81" x2="236" y2="81" stroke="#8d9bb3" stroke-width="1.5" stroke-dasharray="6 6"/>
   <g transform="translate(50 81) rotate(${-a})"><line x1="0" y1="0" x2="118" y2="0" stroke="#dfe6ef" stroke-width="4" stroke-linecap="round"/>
@@ -13,4 +13,4 @@ export const effectText = a => {
   return `Abpraller-Zone hinter steckenden Darts: <b>${shadow}</b> · ${flight}`;
 };
 // Erklärung der Abpraller-Mechanik (Version 205)
-export const ANGLE_INFO = 'Steckende Darts verdecken mit Barrel und Flight das Feld dahinter – je steiler, desto länger. Darts, die dort landen, prallen ab und rutschen knapp hinter die Spitze: Steckt ein steiler Dart knapp <b>über</b> T20, landen zu hohe Darts im Triple; steckt er knapp <b>darunter</b>, rutschen Treffer ins Single. Sehr flache und nach unten steckende Darts fliegen etwas unruhiger.';
+export const ANGLE_INFO = 'Steckende Darts verdecken mit Barrel und Flight das Feld hinter ihrer Spitze – je steiler (nach oben oder unten), desto länger. Darts, die dort landen, prallen ab und rutschen knapp hinter die Spitze. <b>Flight oben</b> („anwerfen“): steckt der Dart knapp über T20, rutschen zu hohe Darts ins Triple – steckt er darunter, verdeckt er das Triple. <b>Flight unten</b> („drauflegen“): steckt der Dart knapp unter T20, rutschen zu tiefe Darts ins Triple – steckt er darüber, verdeckt er es. Beide Stile sind gleich stark; ganz extreme Winkel (über 45°) fliegen etwas unruhiger.';
