@@ -756,7 +756,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   assert.equal(T.scoringMin(1), 40); assert.equal(T.scoringMin(20), 140);
   assert.equal(new Set(T.FIN_TARGETS).size, 20); assert.equal(T.finishTarget(20), 'BULL');
   assert.equal(T.calcTime(5), null); assert.equal(T.calcTime(6), 20); assert.equal(T.calcTime(20), 8);
-  assert.equal(T.memoryPreview(1), 2); assert.ok(T.memorySwaps(20) > T.memorySwaps(1) && T.memorySwapMs(20) < T.memorySwapMs(1));
+  assert.equal(T.memoryPreview(1), 3); assert.ok(T.memorySwaps(20) > T.memorySwaps(1) && T.memorySwapMs(20) < T.memorySwapMs(1));
   assert.ok(T.validFinish(['T20', 'D6'], 72)); assert.ok(!T.validFinish(['T20', 'S12'], 72)); assert.ok(!T.validFinish(['T20', 'T4'], 72));
   assert.ok(T.validFinish(['BULL'], 50)); assert.ok(T.validFinish(['S19', 'D1'], 21)); assert.ok(!T.validFinish(['S20', 'D1'], 21));
   const rng = new RNG({ s: 3 });

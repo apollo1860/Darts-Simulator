@@ -19,10 +19,12 @@ export const scoringMin = L => Math.round(40 + (lvl(L) - 1) * 100 / 19);
 // Finishing: je Level ein anderes Doppel (L20 = Bull)
 export const FIN_TARGETS = ['D20', 'D16', 'D10', 'D8', 'D18', 'D12', 'D4', 'D6', 'D14', 'D2', 'D19', 'D17', 'D3', 'D9', 'D11', 'D13', 'D7', 'D15', 'D5', 'BULL'];
 export const finishTarget = L => FIN_TARGETS[lvl(L) - 1];
-// Fokus (Memory 4×4): Karten 2 s offen, dann umgedreht und vermischt – Anzahl und Tempo der Tausche steigen mit dem Level
-export const memoryPreview = () => 2;
-export const memorySwaps = L => Math.round(1 + (lvl(L) - 1) * 0.8);          // L1 1 … L20 16 Tausche
-export const memorySwapMs = L => Math.round(1100 - (lvl(L) - 1) * 40);        // L1 1,1 s … L20 0,34 s je Tausch
+// Fokus (Memory 4×4, Version 172 schwerer): verdeckt starten, „Los“ → 3 s offen, umdrehen, dann kurz nacheinander tauschen –
+// Anzahl und Tempo der Tausche steigen mit dem Level
+export const memoryPreview = () => 3;
+export const memorySwaps = L => Math.round(3 + (lvl(L) - 1) * 1.1);           // L1 3 … L20 24 Tausche
+export const memorySwapMs = L => Math.round(650 - (lvl(L) - 1) * 21);         // L1 0,65 s … L20 0,25 s je Tausch
+export const MEMORY_GAP = 40;                                                 // Pause zwischen zwei Tauschen (ms)
 // Rechnen: Zeitlimit (L1–5 ohne, L6 20 s … L20 8 s) und Zahlenbereich
 export const calcTime = L => (lvl(L) <= 5 ? null : Math.round(20 - 12 * (lvl(L) - 6) / 14));
 export function calcRange(L) {

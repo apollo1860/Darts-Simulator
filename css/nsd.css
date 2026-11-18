@@ -722,3 +722,6 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 .nsd-dark .nsd-emo .nsd-ico { width: 1.1em; height: 1.1em; }
 span.nsd-emo { display: inline-block !important; position: static !important; text-align: inherit; }   /* fremde „span“-Regeln (z. B. .dc-energy span) nicht übernehmen */
 .dc-energy .nsd-emo .nsd-ico { width: .95em; height: .95em; }
+/* Version 172: Memory-Karten – Symbol mittig */
+.nsd-memo-card { display: flex; align-items: center; justify-content: center; padding: 0; line-height: 0; }
+.nsd-memo-card .nsd-ico, .nsd-memo-card .nsd-ico.wide { width: 74%; height: 74%; margin: 0; vertical-align: middle; }

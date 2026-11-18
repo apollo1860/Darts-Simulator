@@ -187,10 +187,11 @@ Object.assign(ICONS, {
       <path d="M24 44 C18 44 15 39 16.5 34 C18 29 22 28 22 22 C27 26 29 30 28 34 C30 33 31 31 31 29 C34 33 33 39 30 42 C28.5 43.5 26.5 44 24 44 Z" fill="${u('i')}"/>` })),
   bolt: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('b', YEL),
     body: `<path d="M28 2 L9 27 H22 L18 46 L39 19 H26 Z" fill="${u('b')}" stroke="#b07400" stroke-width="1.4" stroke-linejoin="round"/>${hl('M27 6 L13 25 H20 Z', 0.45)}` })),
-  mic: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#e9edf1'], [0.5, '#9aa3ad'], [1, '#4b535c']], 1, 0) + L('b', [[0, '#3a3f46'], [1, '#14171b']], 1, 0),
-    body: `<path d="M23 30 L15 45" stroke="#14171b" stroke-width="5" stroke-linecap="round"/><path d="M23 30 L15 45" stroke="#4b535c" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="29" cy="17" r="12" fill="${u('h')}" stroke="#3b4148" stroke-width="1"/>${[0, 1, 2, 3].map(i => `<path d="M${19 + i * 5} ${8 + (i % 3)} L${21 + i * 5} ${27 - (i % 2)}" stroke="#3b4148" stroke-width=".8" opacity=".5"/>`).join('')}
-      <path d="M19 24 L26 31 L23 33 L17 27 Z" fill="${u('b')}"/>${hl('M21 10 C23 7 27 6 30 6 C26 8 24 10 23 13 Z', 0.6)}` })),
+  mic: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#f4f6f8'], [0.5, '#a4adb6'], [1, '#4b535c']], 1, 0) + L('b', [[0, '#4a525c'], [0.5, '#1d2228'], [1, '#0b0d10']], 1, 0),
+    body: `<rect x="17" y="2" width="14" height="20" rx="7" fill="${u('h')}" stroke="#3b4148" stroke-width="1"/>
+      ${[6, 10, 14, 18].map(y => `<path d="M18 ${y} H30" stroke="#3b4148" stroke-width=".8" opacity=".55"/>`).join('')}<path d="M20.5 3.5 V20.5 M24 2 V22 M27.5 3.5 V20.5" stroke="#3b4148" stroke-width=".6" opacity=".4"/>
+      <rect x="16.5" y="21" width="15" height="4" rx="1.5" fill="#c98a00" stroke="#6b3f1f" stroke-width=".7"/>
+      <path d="M19 25 H29 L27 45 H21 Z" fill="${u('b')}" stroke="#0b0d10" stroke-width=".9"/>${hl('M19 6 C19 4 20.5 3 22 3 V20 C20 19 19 18 19 16 Z', 0.55)}` })),
   diamond: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('d', [[0, '#e6fbff'], [0.5, '#7ad7ff'], [1, '#2a8fd6']]),
     body: `<path d="M12 8 H36 L45 19 L24 44 L3 19 Z" fill="${u('d')}" stroke="#1d6fa8" stroke-width="1.2" stroke-linejoin="round"/><path d="M3 19 H45 M12 8 L18 19 L24 44 L30 19 L36 8 M18 19 L24 8 L30 19" fill="none" stroke="#1d6fa8" stroke-width=".9" opacity=".7"/>${hl('M12 9 L17.5 18.5 H5 Z', 0.55)}` })),
   medal: medal('#fff2a8', '#d9940a', '#8a5a00'),
@@ -322,6 +323,22 @@ Object.assign(ICONS, {
       <path d="M12 19 V29 M7 24 H17" stroke="#d6dde5" stroke-width="3" stroke-linecap="round"/><circle cx="40" cy="20" r="2.6" fill="#e2382b"/><circle cx="46" cy="25" r="2.6" fill="#2e9c3a"/><circle cx="34" cy="25" r="2.6" fill="#2a74c9"/><circle cx="40" cy="30" r="2.6" fill="#ffc928"/>` })),
   laptop: mk('0 0 56 48', true, ({ L, u }) => ({ defs: L('s', [[0, '#4a90ff'], [1, '#1a3f8a']]) + L('b', STEEL),
     body: `<rect x="10" y="6" width="36" height="25" rx="2.5" fill="#2a3038" stroke="#0b0d10" stroke-width="1"/><rect x="13" y="9" width="30" height="19" fill="${u('s')}"/><path d="M4 34 H52 L48 41 H8 Z" fill="${u('b')}" stroke="#4b535c" stroke-width="1"/>${hl('M14 10 H26 L14 22 Z', 0.3)}` })),
+});
+
+// ---- Version 172: Memory-Symbole (klar unterscheidbar: Form + Farbe) ----
+Object.assign(ICONS, {
+  board: mk('0 0 48 48', false, () => ({ defs: '', body: board(24, 24, 19) })),
+  flight: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('f', [[0, '#8fd8ff'], [0.5, '#2a86e8'], [1, '#14469c']]),
+    body: `<path d="M24 45 L5 17 L11 3 L24 11 L37 3 L43 17 Z" fill="${u('f')}" stroke="#0d2f6e" stroke-width="1.3" stroke-linejoin="round"/>
+      <path d="M24 11 V45" stroke="#0d2f6e" stroke-width="1.8"/><path d="M11 3 L24 45 M37 3 L24 45" stroke="#0d2f6e" stroke-width=".8" opacity=".5"/>
+      <rect x="22.2" y="38" width="3.6" height="8" rx="1" fill="#5e666f"/><path d="M14 12 L21 24" stroke="#fff" stroke-width="2" opacity=".55"/>` })),
+  one80: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('r', [[0, '#ff6b5e'], [0.5, '#e2231a'], [1, '#9c0e08']]),
+    body: `<rect x="2" y="9" width="44" height="30" rx="8" fill="${u('r')}" stroke="#5a0805" stroke-width="1.4"/>
+      <text x="24" y="32.5" text-anchor="middle" font-family="Arial Black, Arial" font-weight="900" font-size="19" fill="#fff" stroke="#5a0805" stroke-width=".8" paint-order="stroke">180</text>${hl('M6 12 H42 C43 12 43 13 43 14 V18 H5 V14 C5 13 5 12 6 12 Z', 0.3)}` })),
+  chalk: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('w', [[0, '#d39a62'], [1, '#7f4c22']]) + L('s', [[0, '#3a4a42'], [1, '#1d2824']]),
+    body: `<rect x="2" y="5" width="44" height="38" rx="3" fill="${u('w')}" stroke="#5a3415" stroke-width="1"/><rect x="6" y="9" width="36" height="30" rx="1.5" fill="${u('s')}"/>
+      <text x="24" y="31" text-anchor="middle" font-family="Comic Sans MS, Segoe Print, cursive" font-weight="700" font-size="16" fill="#f4f4f0" opacity=".95">501</text>
+      <path d="M11 14 H20" stroke="#f4f4f0" stroke-width="1.2" opacity=".5"/><rect x="31" y="40" width="9" height="3" rx="1" fill="#f4f4f0"/>` })),
 });
 export const icon = name => (ICONS[name] ?? ICONS.home)();
 export const ICON_NAMES = Object.keys(ICONS);

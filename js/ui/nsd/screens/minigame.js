@@ -5,10 +5,11 @@ import { RNG } from '../../../rng.js';
 import { ORDER, scoreAt, targetPoint, fieldName, labelValue } from '../../../board.js';
 import { wave, landInCircle, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { TRAINABLE, skillEffective } from '../../../nsd.js';
-import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
+import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, MEMORY_GAP, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { frame, titleBand, darkBar, bar, heartIcon, starIcon, arrowIcon } from '../frame.js';
 import { getSettings, setSetting } from '../settings.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 let g = null;   // Laufzeit-Zustand
@@ -16,7 +17,7 @@ let g = null;   // Laufzeit-Zustand
 const TASK = {
   sco: L => `Wirf mit einer Aufnahme mindestens <b>${scoringMin(L)}</b> Punkte.`,
   fin: L => `Triff <b>${fieldName(finishTarget(L))}</b> – 3 Darts pro Versuch.`,
-  foc: L => `Merken (2 s), dem Mischen (${memorySwaps(L)}×) folgen, <b>ein</b> Paar finden.`,
+  foc: L => `„Los“ deckt alle Karten 3 s auf. Merken, dem Mischen (${memorySwaps(L)}×) folgen, <b>ein</b> Paar finden.`,
   cal: L => `Tippe ein gültiges Finish für die Zahl an${calcTime(L) ? ` – ${calcTime(L)} Sekunden Zeit` : ''}.`,
 };
 
@@ -217,16 +218,18 @@ function stopLine() {
 }
 
 // ================= Fokus: Memory 4×4 =================
-// 2 s offen zeigen, umdrehen, dann sichtbar vermischen (Tausche je Level). Ein gefundenes Paar = geschafft:
+// Version 172: verdeckt starten, „Los“ → 3 s offen, umdrehen, dann kurz nacheinander vermischen (Tausche je Level). Ein gefundenes Paar = geschafft:
 // ohne Fehler 3 Sterne, 1 Fehler 2, 2 Fehler 1, 3 Fehler (Herzen weg) = gescheitert.
-const ICONS = ['🎯', '🏆', '🍺', '🎤', '⭐', '🥇', '🎟️', '👕'];
+// Acht klar unterscheidbare Darts-Symbole (Form + Farbe): Scheibe, Dart, Flight, Pokal, Bier, „180“, Mikrofon, Kreidetafel „501“
+const ICONS = ['board', 'darts', 'flight', 'ranks', 'pint', 'one80', 'mic', 'chalk'];
 const BACKS = ['red', 'blue', 'green', 'yellow'];
 function memoryGame() {
   g.hearts = ATTEMPTS; g.open = [];
-  g.cards = g.rng.shuffle([...ICONS, ...ICONS]).map((icon, i) => ({ icon, back: g.rng.pick(BACKS), up: true, done: false, pos: i }));
+  g.cards = g.rng.shuffle([...ICONS, ...ICONS]).map((icon, i) => ({ icon, back: g.rng.pick(BACKS), up: false, done: false, pos: i }));
   drawMemory(); tries(true);
   setAction('Los', () => {
     setAction('Merken …', null, true);
+    g.cards.forEach(c => { c.up = true; }); drawMemory();          // erst jetzt aufdecken
     let left = memoryPreview(g.level);
     const show = () => { g.el('#tries').innerHTML = `Merken: <b>${left.toFixed(1).replace('.', ',')} s</b>`; };
     show();
@@ -267,7 +270,7 @@ function shuffleStep(n) {
   const a = g.cards.find(c => c.pos === i), b = g.cards.find(c => c.pos === j);
   a.pos = j; b.pos = i;
   placeCards(memorySwapMs(g.level));
-  later(() => shuffleStep(n - 1), memorySwapMs(g.level) + 120);
+  later(() => shuffleStep(n - 1), memorySwapMs(g.level) + MEMORY_GAP);
 }
 function drawMemory() {
   const el = g.el('#mg');
@@ -277,7 +280,7 @@ function drawMemory() {
   el.querySelectorAll('[data-c]').forEach(b => {
     const c = g.cards[+b.dataset.c];
     b.className = `nsd-memo-card ${c.up || c.done ? 'up' : `back ${c.back}`} ${c.done ? 'done' : ''}`;
-    b.textContent = c.up || c.done ? c.icon : '';
+    b.innerHTML = c.up || c.done ? nicon(c.icon) : '';
   });
   placeCards(0);
 }
