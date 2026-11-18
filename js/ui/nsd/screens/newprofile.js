@@ -2,7 +2,8 @@
 import { NATIONS, flag } from '../../../../data/nations.js';
 import { START_AGES } from '../../../player.js';
 import { newNsdCareer, newRealCareer, realPlayers, realStartFor } from '../../../nsd.js';
-import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, severity, stability } from '../../../obstruction.js';
+import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT } from '../../../obstruction.js';
+import { dartSvg, effectText, ANGLE_INFO } from '../angle.js';
 import { saveGame, listSlots } from '../../../state.js';
 import { randomSeed } from '../../../rng.js';
 import { esc } from '../../../util.js';
@@ -26,18 +27,6 @@ function realInfo() {
   return `<div class="nsd-result">${row('Nation', `${flag(r.nation)} ${esc(NATIONS[r.nation]?.name ?? r.nation)}`)}${r.age ? row('Alter', `${r.age} Jahre`) : `<div class="nsd-result-row"><span>Alter (frei wählbar)</span><select class="nsd-select" id="p-rage" style="width:auto;height:40px;font-size:1.15rem;padding:0 14px">${ageList().map(a => `<option value="${a}" ${a === form.realAge ? 'selected' : ''}>${a} Jahre</option>`).join('')}</select></div>`}${row('Bisher', r.card ? 'Tourcard-Holder' : esc(r.group))}${row('Start', r.card ? 'mit seiner Tourcard' : 'neue Tourcard 2026/27')}
     ${row('Scoring · Finishing', `${sk.sco} · ${sk.fin}`)}${row('Fokus · Rechnen', `${sk.foc} · ${sk.cal}`)}${row('Star-Status (Mental)', sk.men)}</div>`;
 }
-
-// Seitenansicht: Board links, Dart steckt im roten Feld; positiver Winkel = hinteres Ende (Flight) oben
-const dartSvg = a => `<svg class="nsd-angle-svg" viewBox="0 0 260 150" aria-hidden="true">
-  <rect x="38" y="8" width="12" height="134" rx="3" fill="#aab5c6"/><rect x="38" y="68" width="12" height="26" fill="#c9444f"/>
-  <line x1="56" y1="81" x2="236" y2="81" stroke="#8d9bb3" stroke-width="1.5" stroke-dasharray="6 6"/>
-  <g transform="translate(50 81) rotate(${-a})"><line x1="0" y1="0" x2="118" y2="0" stroke="#dfe6ef" stroke-width="4" stroke-linecap="round"/>
-    <rect x="28" y="-6" width="52" height="12" rx="6" fill="#b99f5e"/><polygon points="116,0 142,-18 164,-16 168,4 146,18" fill="#6fb59a" stroke="#fff" stroke-width="1.5"/></g></svg>`;
-const effectText = a => {
-  const sev = severity(a), shadow = sev < 0.2 ? 'kaum' : sev < 0.5 ? 'wenig' : sev < 0.8 ? 'deutlich' : 'stark';
-  const flight = stability(a) > 1.0001 * stability(10) ? 'unruhigerer Flug' : 'ruhiger Flug';
-  return `Abpraller-Zone hinter steckenden Darts: <b>${shadow}</b> · ${flight}`;
-};
 
 export function render() {
   const ages = Array.from({ length: START_AGES[1] - START_AGES[0] + 1 }, (_, i) => START_AGES[0] + i);
@@ -71,7 +60,7 @@ export function render() {
         <div class="nsd-angle-note">0°: waagerecht. Negative Werte senken das hintere Ende, positive heben es.</div>
         <div id="p-angle-svg">${dartSvg(form.angle)}</div>
         <div class="nsd-angle-note" id="p-angle-fx">${effectText(form.angle)}</div>
-        <div class="nsd-angle-note">Steckende Darts verdecken mit Barrel und Flight das Feld dahinter – je steiler, desto länger. Darts, die dort landen, prallen ab und rutschen knapp hinter die Spitze: Steckt ein steiler Dart knapp <b>über</b> T20, landen zu hohe Darts im Triple; steckt er knapp <b>darunter</b>, rutschen Treffer ins Single. Sehr flache und nach unten steckende Darts fliegen etwas unruhiger.</div>
+        <div class="nsd-angle-note">${ANGLE_INFO}</div>
       </div>
     </div>`,
     bottom: bar([{ go: 'slots', icon: arrowIcon(true), label: 'Zurück' }, null, { id: 'p-ok', icon: checkIcon(), wide: true }]),

@@ -4,7 +4,8 @@ import { decayRisk } from '../../../skilltrain.js';
 import { esc } from '../../../util.js';
 import { frame, header, meter, heartIcon, bar, bindHead } from '../frame.js';
 import { toast, modal } from '../../components.js';
-import { placeLabel } from '../../../tournaments.js';
+import { ANGLE_DEFAULT } from '../../../obstruction.js';
+import { dartSvg, effectText, ANGLE_INFO } from '../angle.js';
 import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
@@ -36,7 +37,7 @@ export function render(app) {
     bottom: bar([
       { go: 'hub', icon: nicon('home'), label: 'Start' },
       { id: 'k-train', icon: '👟', label: 'Trainiere' },
-      { id: 'k-form', icon: nicon('stats'), label: 'Form' },
+      { id: 'k-angle', icon: nicon('darts'), label: 'Winkel' },   // Version 206: statt „Form“
       { id: 'k-drink', icon: nicon('beer'), label: 'Trinken' },
     ]),
   });
@@ -55,9 +56,9 @@ export function mount(root, app) {
     try { spendSkillPoint(app.state.player, b.dataset.pt); app.save(); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   });
   root.querySelector('#k-drink').onclick = () => app.go('drinks');
-  root.querySelector('#k-form').onclick = () => {
-    const rs = app.state.results.slice(0, 8);
-    modal({ title: 'Form', body: rs.length ? `<table class="nsd-table">${rs.map(r =>
-      `<tr><td class="nm">${esc(r.name)}</td><td class="c">${esc(placeLabel(r.place, r.cat, r.eventId))}</td></tr>`).join('')}</table>` : '<p>Noch keine Turniere gespielt.</p>' });
+  root.querySelector('#k-angle').onclick = () => {           // Version 206: aktueller Einsteckwinkel mit Wirkung
+    const a = app.state.player.angle ?? ANGLE_DEFAULT;
+    modal({ title: `Einsteckwinkel ${a}°`, body: `<div class="nsd-angle-box">${dartSvg(a)}<p>${effectText(a)}</p><p class="sub">${ANGLE_INFO}</p>
+      <p class="sub">0° = waagerecht, positiv = Flight oben, negativ = Flight unten. Der Winkel wird beim Erstellen des Profils festgelegt.</p></div>` });
   };
 }

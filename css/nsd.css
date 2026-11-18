@@ -730,3 +730,5 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 .nsd-table .nsd-tc-col { width: 14px; padding: 0 2px; text-align: center; }   /* eigene schmale Spalte vor dem Preisgeld (Kopf wie Preisgeld) */
 .nsd-draw .dl i { font-style: normal; opacity: .55; }   /* Turnierbaum: mögliche Gegner */
 .nsd-draw .dl .sd { opacity: .6; font-size: .72rem; }
+.nsd-angle-box svg { width: 100%; max-height: 170px; background: #2a3550; border-radius: 6px; }
+.nsd-angle-box .sub { font-size: .85rem; opacity: .85; }
