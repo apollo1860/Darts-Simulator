@@ -10,7 +10,7 @@ import { createRival } from './rival.js';
 import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
-import { seedRankings, pruneSave } from './rankings.js';
+import { seedRankings, pruneSave, orderOfMerit } from './rankings.js';
 
 export const VERSION = 12;   // v12: New Star Darts (neuer Speicher-Schlüssel, alte Darts-Career-Stände bleiben unberührt)
 export const SLOTS = [1, 2, 3];
@@ -200,7 +200,24 @@ export function migrate(s) {
   dropSponsor180(s);                                                 // Version 143: keine 180er-Prämie mehr
   s.version = VERSION;
   if (s.mode === 'nsd') pruneSave(s);   // Version 163: alte Jahre aus großen Spielständen entfernen
+  if (s.mode === 'nsd') lateTop64Cards(s);   // Version 200
   return s;
+}
+// Version 200: Jahreswechsel lief noch nach alter Regel (vor Version 199) → Spieler ohne Karte, die zum Saisonende in den Top 64 der
+// PDC-OOM standen (z. B. nach einer starken WM als Qualifikant), bekommen ihre Tourcard nachträglich (gültig bis Ende Folgejahr)
+function lateTop64Cards(s) {
+  const f = (s.flags ??= {}), y = s.date.year;
+  if (f.v200cards || y <= 2026) { f.v200cards = true; return; }
+  f.v200cards = true;
+  for (const x of orderOfMerit(s, 'pdc', y - 1).slice(0, 64)) {
+    const pl = x.p, holder = pl.id === 'P' ? s.player.tour === 'tour' : pl.tier === 'tour';
+    if (holder || x.money <= 0 || pl.tier === 'retired') continue;
+    const via = `Top 64 PDC ${y - 1} (Platz ${x.rank})`;
+    if (pl.id === 'P') Object.assign(s.player, { tour: 'tour', cardUntil: y + 1, everTourcard: true, cardVia: via });
+    else Object.assign(pl, { tier: 'tour', cardUntil: y + 1, cardVia: via });
+    (s.news ??= []).unshift({ year: y, week: s.date.week, type: pl.id === 'P' ? 'result' : 'info', title: `🎫 Tourcard nachgereicht: ${pl.id === 'P' ? s.player.name : pl.name}`,
+      text: `Platz ${x.rank} der PDC Order of Merit zum Saisonende ${y - 1} – Spieler ohne Karte in den Top 64 bekommen eine Tourcard (gültig bis Ende ${y + 1}).`, read: false });
+  }
 }
 
 export function exportGame(state) {

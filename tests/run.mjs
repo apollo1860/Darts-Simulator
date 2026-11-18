@@ -3084,5 +3084,15 @@ test('New Star Darts v199: Spieler ohne Karte zählen in der PDC-OOM mit, Top 64
   S.yearEnd(s);
   assert.equal(ct.tier, 'tour'); assert.equal(ct.cardUntil, y + 2); assert.ok(ct.cardVia.startsWith('Top 64 PDC'));
 });
+test('New Star Darts v200: alter Spielstand – Top 64 ohne Karte zum Saisonende bekommt die Karte nachträglich', async () => {
+  const N = await import('../js/nsd.js'), St = await import('../js/state.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 9 });
+  const ct = Object.values(s.world.players).find(p => p.tier === 'challenge');
+  ((s.rankings.years[2026] ??= {}).pdc ??= {})[ct.id] = 400;   // starke WM 2026 als Qualifikant, Jahreswechsel nach alter Regel
+  s.date.year = 2027; s.date.week = 5; delete s.flags?.v200cards;
+  St.migrate(s);
+  assert.equal(ct.tier, 'tour'); assert.equal(ct.cardUntil, 2028); assert.ok(s.news.some(n => n.title.includes('Tourcard nachgereicht')));
+  ct.tier = 'challenge'; St.migrate(s); assert.equal(ct.tier, 'challenge');   // nur einmal
+});
 
 console.log(`\n${n} Tests ok`);
