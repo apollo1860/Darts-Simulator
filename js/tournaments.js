@@ -248,7 +248,8 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }
   if (ev.cat === 'hnq') {                    // Gastgebernation: Spieler ohne Karte, DDV/lokal – keine Setzliste
-    const pool = rng.shuffle(hnqPool(state, ev));
+    const all = hnqPool(state, ev), pros = new Set(nonCardPros(state).map(p => p.id));   // Version 186: CT-/Dev-Spieler der Nation immer dabei, Rest (DDV/lokal) zufällig
+    const pool = [...rng.shuffle(all.filter(id => pros.has(id))), ...rng.shuffle(all.filter(id => !pros.has(id)))];
     ids = pool.slice(0, FORMATS.hnq.field - (withPlayer ? 1 : 0));
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);
   }

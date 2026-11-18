@@ -68,7 +68,7 @@ export const WM_QUALIFIERS = [
   { key: 'pl', name: 'PDO Polnischer Qualifier', nations: ['PL'], slots: 1, city: 'Warschau', country: 'PL' },
   { key: 'esl', name: 'PDCE DACH Super League', nations: ['DE', 'AT', 'CH'], slots: 1, city: 'Hildesheim', country: 'DE' },
   { key: 'hu', name: 'Hungarian Super League', nations: ['HU'], slots: 1, city: 'Budapest', country: 'HU' },
-  { key: 'uki', name: 'PDC UK & IRE Tour Card Holder & Associate Member Qualifier', nations: UKI, slots: 1, city: 'Milton Keynes', country: 'ENG', holders: true },
+  { key: 'uki', name: 'PDC UK & IRE Associate Member Qualifier', nations: UKI, slots: 1, city: 'Milton Keynes', country: 'ENG' },   // Version 186: nur ohne Tourcard (Nutzerangabe)
   { key: 'nbch', name: 'PDC Nordic & Baltic Championship', nations: ['DK', 'SE', 'NO', 'FI', 'EE', 'LV', 'LT'], slots: 1, city: 'Kopenhagen', country: 'DK' },
   { key: 'jp', name: 'Steel Darts Japan Tour', nations: ['JP'], slots: 1, city: 'Tokio', country: 'JP', overseas: true },
   { key: 'cn', name: 'PDC China Championship', nations: ['CN'], slots: 1, city: 'Shanghai', country: 'CN', overseas: true },
