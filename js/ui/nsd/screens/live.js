@@ -17,7 +17,7 @@ import { angleOf, shadowRect, severity, blockage, BLOCK_SIGMA, BOUNCE_P, bounceC
 import { dartBounce } from '../../../../data/gear.js';
 import { canSelfPlay, skillEffective } from '../../../nsd.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
-import { confirmDialog, modal } from '../../components.js';
+import { confirmDialog, modal, toast } from '../../components.js';
 import { momentDue, describeMoment, resolveMoment } from '../../../moments.js';
 import { frame, bar, bindHead, checkIcon } from '../frame.js';
 
@@ -41,7 +41,6 @@ export function render(app) {
         <button class="nsd-sq green" data-nsd="help" aria-label="Hilfe">?</button></div>
       <div class="nsd-live">
         <div class="dc" id="dc"></div>
-        <div class="nsd-ticker" id="ticker"></div>
         <div class="nsd-aim hidden" id="aim"></div>
       </div>`,
     bottom: bar([{ id: 'l-pause', icon: '⏸', label: 'Pause' }, { id: 'l-fast', icon: '⏩', label: 'Tempo' },
@@ -56,8 +55,8 @@ export function mount(root, app) {
   if (!live) return;
   app.save();
   const pm = playerMatch(s.activeEvent);
-  ui = { app, s, live, me: live.me, ids: [pm.a, pm.b], timer: 0, raf: 0, paused: false, fast: false, lines: [],
-    el: root.querySelector('#dc'), ticker: root.querySelector('#ticker'), aimEl: root.querySelector('#aim'), aim: null, show: null };
+  ui = { app, s, live, me: live.me, ids: [pm.a, pm.b], timer: 0, raf: 0, paused: false, fast: false,
+    el: root.querySelector('#dc'), aimEl: root.querySelector('#aim'), aim: null, show: null };
   ui.barEl = root.querySelector('.nsd-bar');
   ui.barHtml = ui.barEl.innerHTML;
   ui.ce = Math.max(0, 0.15 - 0.0025 * skillEffective(s.player, 'cal'));   // Rechenfehler beim Zielvorschlag
@@ -115,7 +114,6 @@ function step() {
   if (!ui || ui.paused || ui.aim || ui.show || ui.moment) return;
   const m = ui.live.m;
   if (m.done) return finish();
-  ui.starter = m.legStarter; ui.visitStart = m.visit.start;   // für Break-/Finish-Kommentar
   ui.thrower = liveThrower(ui.s, m.turn);                      // Doppel: wer wirft diese Aufnahme
   const mo = momentDue(ui.s);                                  // Spielmoment (Zwischenfall mit zwei Optionen)
   if (mo) return showMoment(mo);
@@ -144,7 +142,6 @@ function chooseMoment(i) {
   let r;
   try { r = resolveMoment(ui.s, i); } catch { ui.moment = false; return schedule(300); }
   ui.app.save();
-  say(`🎲 ${r.ok ? 'Glück gehabt' : 'Pech gehabt'}: ${r.label}`, r.ok ? 'good' : 'bad');
   modal({
     title: '', dismissable: false,
     body: `<div class="mm-tag ${r.ok ? '' : 'bad'}">${r.ok ? 'GUT GELAUFEN' : 'SCHLECHT GELAUFEN'}</div><div class="mm-text">${esc(r.text)}</div>
@@ -155,7 +152,6 @@ function chooseMoment(i) {
 
 function afterVisit(ev, side) {
   ui.app.save();
-  comment(ev, side);
   draw(ev);
   if (ui.live.m.done) { ui.timer = setTimeout(() => ui && finish(), wait(VISIT_MS * 1.5)); return; }
   if (ev?.legEnd) { clearTimeout(ui.timer); ui.timer = setTimeout(step, Math.max(CHECK_SHOW + 150, wait(VISIT_MS * 1.6))); return; }   // Check mind. 1 s sichtbar
@@ -163,21 +159,8 @@ function afterVisit(ev, side) {
 }
 
 // Kommentarzeile
-function comment(ev, side) {
-  if (!ev) return;
-  const mine = side === ui.me, who = mine && ui.thrower === 'P' ? 'Du' : surname(getPlayer(ui.s, ui.thrower)?.name ?? nm(side));
-  if (ev.legEnd) {
-    const brk = ui.starter !== side, big = ev.checkout && ui.visitStart >= 100 ? ` mit ${ui.visitStart}er-Finish` : '';
-    say(`${ev.matchEnd ? '🏁 Match' : ev.setEnd ? '🏅 Satz' : '✅ Leg'} an ${who}${big}${brk ? ' – BREAK!' : ''}`, mine ? 'good' : 'bad');
-  } else if (ev.visitScore === 180) say(`🔥 ${who}: ONE HUNDRED AND EIGHTY!`, mine ? 'good' : 'bad');
-  else if (ev.bust) say(`💥 ${who}: überworfen`, mine ? 'bad' : 'good');
-  else if (ev.visitScore >= 140) say(`${who}: ${ev.visitScore}`, '');
-}
-function say(text, tone) {
-  ui.lines.unshift({ text, tone });
-  ui.lines.length = Math.min(ui.lines.length, 3);
-  ui.ticker.innerHTML = ui.lines.map((l, i) => `<div class="${l.tone} ${i ? 'old' : ''}">${esc(l.text)}</div>`).join('');
-}
+// Version 175 (Nutzerwunsch): kein Ticker-Logbuch mehr (Leg/Break/180-Kommentare entfernt); Hinweise als kurze Meldung
+function say(text, tone) { toast(text, tone === 'bad' ? 'error' : ''); }
 
 function finish() {
   const { s, app } = ui;

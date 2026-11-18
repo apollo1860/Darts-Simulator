@@ -83,6 +83,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 ## Match & Liveticker (`live.js`, tournaments.js)
 - DartConnect-Ansicht; **Spielszenen** wirfst du selbst: Matchdarts, Entscheidungsleg, Break, Checks ab 61, mind. eine Szene je Leg, 9-Darter-/170-Szenen extra, Double-in-Einstieg (75 %). Lange Formate gedrosselt (`paced`).
 - Zielen: zwei Linien + Kreis (`circleRadius`, Tempo steigt bei jedem Richtungswechsel), Zoom-Schalter, TV-Spielstandsanzeige.
+- Kein Ticker-Logbuch (Leg/Break/180-Kommentare) – Hinweise nur als Toast.
 - Effekte: Druck, Nervosität, Verletzung, Spielmomente (2 Optionen, 50/50), verbaute Felder/Einsteckwinkel, Bouncer (je Dart-Modell), Robin Hood (je Flight).
 - Spielbericht: Statistik-Seite + Bewertungs-Seite (Note, Beziehungen, Star-Status, Energie mit Veränderung).
 
