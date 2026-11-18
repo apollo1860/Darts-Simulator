@@ -5,6 +5,7 @@ import { esc } from '../../../util.js';
 import { frame, header, meter, heartIcon, bar, bindHead } from '../frame.js';
 import { toast, modal } from '../../components.js';
 import { placeLabel } from '../../../tournaments.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const HELP = `<p>Jede Fähigkeit hat 20 Trainingslevel mit je bis zu 3 Punkten (max. 60). Ein Training kostet etwas mehr als 50 % Energie.</p>
@@ -33,10 +34,10 @@ export function render(app) {
     }).join('')}</div>
     ${decayRisk(p).length ? `<div class="nsd-warn">⚠️ Lange nicht trainiert: ${decayRisk(p).map(t => t.label).join(', ')}</div>` : ''}`,
     bottom: bar([
-      { go: 'hub', icon: '🏠', label: 'Start' },
+      { go: 'hub', icon: nicon('home'), label: 'Start' },
       { id: 'k-train', icon: '👟', label: 'Trainiere' },
-      { id: 'k-form', icon: '📋', label: 'Form' },
-      { id: 'k-drink', icon: '🍺', label: 'Trinken' },
+      { id: 'k-form', icon: nicon('stats'), label: 'Form' },
+      { id: 'k-drink', icon: nicon('beer'), label: 'Trinken' },
     ]),
   });
 }

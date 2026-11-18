@@ -2,6 +2,7 @@
 import { goalProgress, setGoals } from '../../../career.js';
 import { starPayout } from '../../../nsd.js';
 import { frame, header, titleBand, darkBar, coin, bar, bindHead, checkIcon } from '../frame.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 export function render(app) {
@@ -14,7 +15,7 @@ export function render(app) {
         <div class="nsd-ev-main"><div class="nsd-ev-name">${pr.ok ? '✅' : '🎯'} ${x.label}</div><div class="nsd-ev-sub">Stand: ${pr.now}</div>
           <div class="nsd-ev-sub">Belohnung ${coin(starPayout(x.reward, p.star.level))} + Star-Status</div></div></div>`; }).join('')}</div>
       <div class="nsd-ev-sub" style="padding:6px 14px">Abrechnung am Saisonende. ${g.by ? 'Verpasste Ziele ärgern deinen Manager.' : ''}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { id: 'g-ok', icon: checkIcon(), wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, null, { id: 'g-ok', icon: checkIcon(), wide: true }]),
   });
 }
 export function mount(root, app) {

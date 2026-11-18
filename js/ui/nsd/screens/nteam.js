@@ -2,6 +2,7 @@
 import { managersOf, managerOf, managerOk, hireManager, fireManager, trainerOf, trainerOffers, trainerWeeksLeft, weekIndex, hireTrainer, fireTrainer } from '../../../career.js';
 import { frame, header, titleBand, darkBar, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const HELP = '<p><b>Manager</b>: Ohne Manager gibt es keine Sponsoren. Er bekommt Provision auf dein Preisgeld und besorgt Sponsor-Angebote – ein Kumpel aus der Kneipe selten und kleine, ein Profi-Manager oft und große Deals. Gute Manager nehmen nur Spieler mit Star-Status oder Ranglistenplatz. Verpasste Saisonziele kosten Beziehung – bei 0 kündigt er.</p><p><b>Fitnesstrainer</b>: Festpreis für eine Anzahl Wochen, bringt in dieser Zeit zusätzliche Energie-Erholung. Alle 12 Wochen gibt es neue Angebote.</p>';
@@ -26,7 +27,7 @@ export function render(app) {
           <div class="nsd-ev-sub">Erholung +${x.regen} % pro Woche · ${x.weeks} Wochen</div><div class="nsd-ev-sub">Festpreis ${coin(x.price)}</div></div>
           <button class="nsd-btn" data-f="${x.id}" ${t ? 'disabled' : ''}><span class="lb">Buchen</span></button></div>`).join('')}</div>
       <div class="nsd-ev-sub" style="padding:4px 14px 10px">Neue Angebote in ${Math.max(1, (s.team.offersUntil ?? 0) - weekIndex(s))} Wochen.</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'life', icon: '👥', label: 'Leben' }, { go: 'sponsors', icon: '🤝', label: 'Sponsoren', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'life', icon: nicon('life'), label: 'Leben' }, { go: 'sponsors', icon: nicon('sponsors'), label: 'Sponsoren', wide: true }]),
   });
 }
 export function mount(root, app) {

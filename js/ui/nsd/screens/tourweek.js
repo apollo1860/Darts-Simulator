@@ -8,6 +8,7 @@ import { nextWeek } from '../../../season.js';
 import { STAR_PRIZE_WIN, starPayout } from '../../../nsd.js';
 import { frame, header, titleBand, darkBar, bar, coin, bindHead, arrowIcon } from '../frame.js';
 import { toast, confirmDialog, modal } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const HELP = '<p>Pro Woche spielst du ein Turnier (Premier-League-Spieltage und Qualifier kommen zusätzlich). Die Siegprämie steigt mit deinem Star-Status. Wer sein erstes Match verliert, geht leer aus.</p><p>Die <b>Development Tour</b> (bis 23 Jahre, nur außerhalb der PDC-Top-64) hat je Wochenende mehrere Turniere – du wählst, wie viele du spielst.</p><p>„Weiter“ beendet die Woche: +40 % Energie.</p>';
@@ -34,9 +35,9 @@ export function render(app) {
       ${darkBar(s.week.played ? 'Diese Woche bist du gemeldet' : 'Turniere dieser Woche', 'sm')}
       <div class="nsd-evs">${rows || '<div class="nsd-card" style="font-size:1.3rem">Diese Woche gibt es kein Turnier für dich.</div>'}</div>`,
     bottom: bar([
-      { go: 'hub', icon: '🏠', label: 'Start' },
-      { go: 'calendar', icon: '🗓️', label: 'Spielplan' },
-      { go: 'news', icon: '📰', label: 'News' },
+      { go: 'hub', icon: nicon('home'), label: 'Start' },
+      { go: 'calendar', icon: nicon('calendar'), label: 'Spielplan' },
+      { go: 'news', icon: nicon('news'), label: 'News' },
       { id: 'w-next', icon: arrowIcon(), label: 'Weiter' },
     ]),
   });

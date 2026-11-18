@@ -5,6 +5,7 @@ import { frame, header, titleBand, darkBar, coin, bar, bindHead, flightIcon, bar
 import { toast } from '../../components.js';
 import { STARTER_FLIGHT } from '../../../../data/gear.js';
 import { flightRobin } from '../../../obstruction.js';
+import { icon as nicon } from '../icons.js';
 // Version 136: Robin-Hood-Risiko eines Flights im Verhältnis zum Standard-Flight (100 %)
 const robinTxt = price => `Robin-Hood-Risiko ${Math.round(flightRobin(price) * 100)} %`;
 
@@ -28,7 +29,7 @@ export function render(app) {
       <div class="nsd-evs">${shopOffers(s).map(a => `<div class="nsd-ev"><div class="nsd-ev-main"><div class="nsd-ev-name">${gfx(a)}${a.name}</div>
         <div class="nsd-ev-sub">${a.type} · ${bonusTxt(a.bonus)} · ${a.weeks ? `${a.weeks} Wochen` : `${a.matches} Matches`}${/Flight/.test(a.type) ? ` · ${robinTxt(a.price)}` : ''}</div><div class="nsd-ev-sub">Preis ${coin(accessoryPrice(a, lvl))}</div></div>
         <button class="nsd-btn" data-buy="${a.id}"><span class="lb">Kaufen</span></button></div>`).join('')}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'darts', icon: '🎯', label: 'Darts' }, { go: 'drinks', icon: '🍺', label: 'Getränke', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'darts', icon: nicon('darts'), label: 'Darts' }, { go: 'drinks', icon: nicon('beer'), label: 'Getränke', wide: true }]),
   });
 }
 export function mount(root, app) {

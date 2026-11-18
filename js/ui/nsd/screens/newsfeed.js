@@ -3,6 +3,7 @@ import { esc } from '../../../util.js';
 import { markAllRead } from '../../../news.js';
 import { frame, header, titleBand, bar, bindHead, checkIcon } from '../frame.js';
 import { continueWeek } from './weekly.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const ICON = { result: '🏆', ranking: '📊', star: '⭐', info: '📰', draw: '🎟️', xp: '💬', article: '🗞️' };
@@ -26,7 +27,7 @@ export function render(app, params = {}) {
   return frame({
     cls: 'fixed',
     body: `${header(s.player.name)}${titleBand('Darts News')}<div class="nsd-scroll">${rows || '<div class="nsd-card">Noch keine Nachrichten.</div>'}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { go: 'life', icon: checkIcon(), wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, null, { go: 'life', icon: checkIcon(), wide: true }]),
   });
 }
 

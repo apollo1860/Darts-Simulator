@@ -2,6 +2,7 @@
 import { esc } from '../../../util.js';
 import { frame, titleBand, darkBar, coin, bar, checkIcon } from '../frame.js';
 import { injuryText } from '../../../injury.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 export function render(app, params = {}) {
@@ -16,7 +17,7 @@ export function render(app, params = {}) {
   return frame({
     cls: 'fixed',
     body: `${titleBand(`Woche ${s.date.week} · ${s.date.year}`)}<div class="nsd-scroll"><div class="nsd-result">${rows}</div>
-      ${news.length ? darkBar('Neuigkeiten', 'sm') : ''}${news.map(n => `<div class="nsd-news"><div class="ic">📰</div><div><div class="t">${esc(n.title)}</div>${n.text ? `<div class="x">${esc(n.text)}</div>` : ''}</div></div>`).join('')}</div>`,
+      ${news.length ? darkBar('Neuigkeiten', 'sm') : ''}${news.map(n => `<div class="nsd-news"><div class="ic">${nicon('news')}</div><div><div class="t">${esc(n.title)}</div>${n.text ? `<div class="x">${esc(n.text)}</div>` : ''}</div></div>`).join('')}</div>`,
     bottom: bar([null, null, { id: 'w-ok', icon: checkIcon(), wide: true }]),
   });
 }

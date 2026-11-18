@@ -2,6 +2,7 @@
 import { frame, starIcon } from '../frame.js';
 import { boardSvg } from '../../boardSvg.js';
 import { APP_VERSION } from '../../../nsd.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 export function render() {
@@ -16,8 +17,8 @@ export function render() {
       </div>
       <div class="nsd-menu">
         <button class="nsd-btn row" data-go="slots"><span class="ic">${starIcon()}</span><span class="lb">Spielen</span></button>
-        <button class="nsd-btn row" id="t-train"><span class="ic">🎯</span><span class="lb">Trainieren</span></button>
-        <button class="nsd-btn row" data-go="options"><span class="ic">🔧</span><span class="lb">Optionen</span></button>
+        <button class="nsd-btn row" id="t-train"><span class="ic">${nicon('skill')}</span><span class="lb">Trainieren</span></button>
+        <button class="nsd-btn row" data-go="options"><span class="ic">${nicon('gear')}</span><span class="lb">Optionen</span></button>
       </div>
       <svg class="nsd-board" viewBox="-200 -200 400 400">${boardSvg()}</svg>
       <div class="nsd-grass"></div>

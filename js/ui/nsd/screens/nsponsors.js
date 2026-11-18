@@ -5,6 +5,7 @@ import { RNG } from '../../../rng.js';
 import { esc } from '../../../util.js';
 import { frame, header, titleBand, darkBar, coin, bar, bindHead, checkIcon } from '../frame.js';
 import { toast, modal, confirmDialog } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 // Darts-Flight mit Zahl (1–10)
@@ -52,8 +53,8 @@ export function render(app, params = {}) {
         <div class="nsd-ev-sub">${brancheOf(c).label}${brand(c)}</div><div class="nsd-ev-sub">${terms({ perWeek: c.perWeek, win: c.win ?? 0, s180: c.s180, major: c.major })} · noch ${c.weeksLeft} Wochen</div></div>
         <button class="nsd-btn" data-cancel="${esc(c.name)}"><span class="lb">Kündigen</span></button></div>`).join('') || '<div class="nsd-ev-sub" style="padding:4px 6px">Noch keine Sponsoren.</div>'}</div>
       ${darkBar('Angebot', 'sm')}${sponsorBlockWeeks(s) > 0 ? `<div class="nsd-card nsd-ev-sub neg" style="margin:6px 10px">🚫 Sponsoren-Sperre nach dem Skandal: noch ${sponsorBlockWeeks(s)} Woche${sponsorBlockWeeks(s) > 1 ? 'n' : ''} keine neuen Angebote.</div>` : ''}${offer}`,
-    bottom: bar(o ? [{ id: 'o-no', icon: '✖', label: 'Ablehnen' }, { go: 'team', icon: '💼', label: 'Team' }, { id: 'o-yes', icon: checkIcon(), label: 'Unterschreiben', wide: true }]
-      : [{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'life', icon: '👥', label: 'Leben' }, { go: 'team', icon: '💼', label: 'Team', wide: true }]),
+    bottom: bar(o ? [{ id: 'o-no', icon: '✖', label: 'Ablehnen' }, { go: 'team', icon: nicon('team'), label: 'Team' }, { id: 'o-yes', icon: checkIcon(), label: 'Unterschreiben', wide: true }]
+      : [{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'life', icon: nicon('life'), label: 'Leben' }, { go: 'team', icon: nicon('team'), label: 'Team', wide: true }]),
   });
 }
 export function mount(root, app) {

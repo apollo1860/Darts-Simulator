@@ -4,6 +4,7 @@ import { msStarPoints } from '../../../life.js';
 import { esc } from '../../../util.js';
 import { partnerText } from '../../../nsd.js';
 import { frame, header, titleBand, bar, bindHead, checkIcon } from '../frame.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 export function render(app) {
@@ -18,7 +19,7 @@ export function render(app) {
   return frame({
     cls: 'fixed',
     body: `${header(s.player.name)}${titleBand(`Meilensteine ${n}/${ACHIEVEMENTS.length}`)}<div class="nsd-scroll">${groups}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'stats', icon: '📋', label: 'Statistik' }, { go: 'life', icon: checkIcon(), wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'stats', icon: nicon('stats'), label: 'Statistik' }, { go: 'life', icon: checkIcon(), wide: true }]),
   });
 }
 export function mount(root, app) {

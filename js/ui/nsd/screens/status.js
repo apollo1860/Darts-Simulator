@@ -3,6 +3,7 @@ import { esc } from '../../../util.js';
 import { injuryOf } from '../../../injury.js';
 import { skillsAvg, SKILL_MAX, starPct, starNeed } from '../../../nsd.js';
 import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead, arrowIcon } from '../frame.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const HELP = `<p><b>Ranglisten</b>: Order of Merits, Premier League, Spielplan. <b>Fähigkeit</b>: deine Werte und das Training. <b>Leben</b>: Beziehungen, Lifestyle, Erfolge. <b>Spielen</b>: die Turniere dieser Woche.</p>
@@ -30,29 +31,29 @@ export function render(app) {
         ${meter({ label: 'Lifestyle', pct: p.lifestyle ?? 0 })}
       </div>
       <div class="nsd-rowpair">
-        <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">🛡️ ${p.tour === 'tour' ? `Tourcard bis Ende ${p.cardUntil}` : 'Keine Tourcard'}</div>
+        <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">${nicon('card')} ${p.tour === 'tour' ? `Tourcard bis Ende ${p.cardUntil}` : 'Keine Tourcard'}</div>
         <div class="nsd-dark ${fit && !inj ? '' : 'red'}">${inj ? `${inj.icon} ${s.week?.blocked ? 'Ausfall' : 'Verletzt'}` : fit ? 'Match-fit' : 'Nicht fit'}</div>
       </div>
       <div class="nsd-rowpair x">
-        <button class="nsd-btn row" id="s-shop"><span class="ic">🛒</span><span class="lb">Shop</span></button>
+        <button class="nsd-btn row" id="s-shop"><span class="ic">${nicon('shop')}</span><span class="lb">Shop</span></button>
         <button class="nsd-dark" data-go="team" style="font-size:1.05rem;border:0;cursor:pointer;font-family:inherit;color:inherit">${p.fitness ? esc(p.fitness.name) : 'Fitnesstrainer'}</button>
         <div class="nsd-x" style="${p.fitness ? 'color:#2bd33a' : ''}">${p.fitness ? '✔' : '✖'}</div>
       </div>
       <div class="nsd-rowpair">
-        <button class="nsd-btn row" id="s-drinks"><span class="ic">🍺</span><span class="lb">Getränke</span></button>
-        <div class="nsd-dark" style="font-size:1.15rem;white-space:nowrap">🍺${d.beer ?? 0}&nbsp; 🥃${d.schnaps ?? 0}&nbsp; 🍸${d.wodka ?? 0}</div>
+        <button class="nsd-btn row" id="s-drinks"><span class="ic">${nicon('beer')}</span><span class="lb">Getränke</span></button>
+        <div class="nsd-dark" style="font-size:1.15rem;white-space:nowrap">${nicon('beer')}${d.beer ?? 0}&nbsp; ${nicon('shot')}${d.schnaps ?? 0}&nbsp; ${nicon('cocktail')}${d.wodka ?? 0}</div>
       </div>
       <div class="nsd-rowpair">
-        <button class="nsd-btn row" id="s-darts"><span class="ic">🎯</span><span class="lb">Darts</span></button>
+        <button class="nsd-btn row" id="s-darts"><span class="ic">${nicon('darts')}</span><span class="lb">Darts</span></button>
         <div class="nsd-dark">${esc(p.gear?.name ?? 'Brass Dart 9 g')}</div>
       </div>
     </div>
     <div class="nsd-pager"><button data-go="goals">◀ 🎯 Ziele</button><button data-go="stats">📋 Statistik</button><button data-go="editor">🛠️</button><button data-go="calendar">Spielplan 🗓️ ▶</button></div>
     <div class="nsd-strip"><span>Jahr ${yearNo}</span><span class="mid">${s.date.year}</span><span class="r">KW ${s.date.week}</span></div>`,
     bottom: bar([
-      { go: 'league', icon: '🏆', label: 'Ranglisten' },
-      { go: 'skills', icon: '🎯', label: 'Fähigkeit' },
-      { go: 'life', icon: '👥', label: 'Leben' },
+      { go: 'league', icon: nicon('ranks'), label: 'Ranglisten' },
+      { go: 'skills', icon: nicon('skill'), label: 'Fähigkeit' },
+      { go: 'life', icon: nicon('life'), label: 'Leben' },
       { id: 's-play', icon: arrowIcon(), label: 'Spielen' },
     ]),
   });

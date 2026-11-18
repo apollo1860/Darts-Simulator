@@ -3,6 +3,7 @@ import { TRAINABLE, SKILL_LEVELS, skillValue, skillBonus } from '../../../nsd.js
 import { TRAIN_ENERGY, levelPoints, levelOpen, canTrain, startTraining, nextLevel, decayWarn } from '../../../skilltrain.js';
 import { frame, header, titleBand, meter, heartIcon, starIcon, bar, bindHead, arrowIcon } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const HELP = `<p>Jedes Level hat 3 Sterne: Erfolg im 1. Versuch = 3, im 2. = 2, im 3. = 1. Du kannst ein Level beliebig oft spielen, bis es perfekt ist – zählt immer das beste Ergebnis.</p>
@@ -23,7 +24,7 @@ export function render(app, params = {}) {
       <div class="nsd-pager"><button data-k="${TRAINABLE[(idx + 3) % 4].key}">◀ ${TRAINABLE[(idx + 3) % 4].label}</button><button data-k="${TRAINABLE[(idx + 1) % 4].key}">${TRAINABLE[(idx + 1) % 4].label} ▶</button></div>
       <div class="nsd-lvls">${tiles}</div>
       ${(p.idle?.[key] ?? 0) >= decayWarn(p.age) ? `<div class="nsd-warn">⚠️ Seit ${p.idle[key]} Wochen nicht trainiert – Sterne in Gefahr!</div>` : ''}`,
-    bottom: bar([{ go: 'skills', icon: arrowIcon(true), label: 'Zurück' }, { go: 'drinks', icon: '🍺', label: 'Trinken' },
+    bottom: bar([{ go: 'skills', icon: arrowIcon(true), label: 'Zurück' }, { go: 'drinks', icon: nicon('beer'), label: 'Trinken' },
       { id: 't-next', icon: arrowIcon(), label: nl ? `Level ${nl}` : 'Alles perfekt', wide: true, disabled: !nl }]),
   });
 }

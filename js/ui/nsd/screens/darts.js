@@ -4,6 +4,7 @@ import { dartsPrice, buyDarts, equipDarts } from '../../../skilltrain.js';
 import { TRAINABLE } from '../../../nsd.js';
 import { frame, header, titleBand, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 // Version 135: Bouncer-Risiko je Dart (Grundchance je Dart; bei verbautem Feld × Faktor)
@@ -25,7 +26,7 @@ export function render(app) {
               : `<button class="nsd-btn" data-buy="${d.id}"><span class="lb">Kaufen</span></button>`}
         </div>`;
       }).join('')}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'skills', icon: '🎯', label: 'Fähigkeit' }, { go: 'drinks', icon: '🍺', label: 'Getränke', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'skills', icon: nicon('skill'), label: 'Fähigkeit' }, { go: 'drinks', icon: nicon('beer'), label: 'Getränke', wide: true }]),
   });
 }
 

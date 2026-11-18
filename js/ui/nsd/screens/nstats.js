@@ -1,6 +1,7 @@
 // Statistik: Karriere und jede Saison (Matches, Siege, Average, 180er, Checkout, High Finish, Titel)
 import { fmtNum } from '../../../util.js';
 import { frame, header, titleBand, bar, bindHead } from '../frame.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 export function render(app) {
@@ -19,7 +20,7 @@ export function render(app) {
       <tr><th></th>${cols.map(([l], i) => `<th class="${cls(i)}">${l}</th>`).join('')}</tr>
       ${rows.map(([l, f]) => `<tr><td class="nm">${l}</td>${cols.map(([, t], i) => `<td class="c ${cls(i)}">${f(t ?? {})}</td>`).join('')}</tr>`).join('')}
     </table></div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'achievements', icon: '⭐', label: 'Erfolge' }, { go: 'league', icon: '🏆', label: 'Ranglisten', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'achievements', icon: '⭐', label: 'Erfolge' }, { go: 'league', icon: nicon('ranks'), label: 'Ranglisten', wide: true }]),
   });
 }
 export function mount(root, app) { bindHead(root, app, '<p>Deine Zahlen über die ganze Karriere und je Saison.</p>'); }

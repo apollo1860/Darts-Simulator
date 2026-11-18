@@ -6,6 +6,7 @@ import { frame, bar, arrowIcon } from '../frame.js';
 import { starShow, PL_LEAGUE_PAY } from '../../../nsd.js';
 import { plTable } from '../../../majors.js';
 import { getPlayer } from '../../../world.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 // Zone = Qualifikationsplätze: PC Finals Top 64 der PC-OOM, European Championship Top 32 der ET-OOM, Challenge Tour: Top 2 bekommen eine Tourcard
@@ -41,8 +42,8 @@ export function render(app) {
           <td class="c">${x.rank}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td><td class="num">${pl ? x.money : ct || wos ? money1(x.money) : money(x.money)}</td>${pl ? `<td class="num">${plPrize(x.rank, s.player.star.level)}</td>` : ''}</tr>`).join('')}
       </table>${wos ? `<div class="nsd-ev-sub" style="padding:8px 14px">${list.length ? '' : '<b>Noch keine Turniere in dieser Saison</b> – das erste Wochenende ist in KW 6. '}Die Women's Series läuft im Hintergrund (6 Wochenenden × 4 Turniere). Die Top 8 spielen das Women's World Matchplay (KW 29); die Rangliste vergibt auch Plätze für Grand Slam und WM.</div>` : ''}${ct && !list.length ? `<div class="nsd-ev-sub" style="padding:14px"><b>Noch keine ${type === 'dev' ? 'Development-Tour' : 'Challenge-Tour'}-Turniere in dieser Saison</b> – das erste Wochenende ist in KW ${first}.</div>` : ''}${ct ? `<div class="nsd-ev-sub" style="padding:8px 14px">${type === 'dev' ? 'Die Development Tour (bis 23 Jahre; auch Tourcard-Holder außerhalb der PDC-Top-64)' : 'Die Challenge Tour'} läuft im Hintergrund (5 Wochenenden × 5 Turniere). Die besten zwei Spieler ohne Tourcard bekommen am Saisonende eine Tourcard.</div>` : ''}</div>`,
     bottom: bar([
-      { go: 'hub', icon: '🏠', label: 'Start' },
-      { go: 'calendar', icon: '🗓️', label: 'Spielplan' },
+      { go: 'hub', icon: nicon('home'), label: 'Start' },
+      { go: 'calendar', icon: nicon('calendar'), label: 'Spielplan' },
       { go: 'tour', icon: '🎫', label: 'Titel' },
       { go: 'week', icon: arrowIcon(), label: 'Weiter' },
     ]),

@@ -9,6 +9,7 @@ import { rankOf } from '../../../rankings.js';
 import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../../tournaments.js';
 import { starPct, starNeed, canSelfPlay, nervesOf, matchEnergy, isFloor } from '../../../nsd.js';
 import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead, arrowIcon, checkIcon } from '../frame.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const HELP = '<p><b>Spielen</b>: Das Match läuft im DartConnect-Liveticker. Matchdarts, Checks ab 61, Break-Chancen und Entscheidungslegs wirfst du selbst. <b>Simulieren</b>: Ergebnis sofort.</p><p>Unter 20 % Energie wirft die KI für dich – und es wird mit jedem Leg schlechter. Ein Match kostet Energie nach Länge; Floor-Turniere (Players Championships, Qualifier) schlauchen weniger als Bühne (European Tour, Majors, WM).</p><p><b>Nervosität</b> 😰 entsteht gegen Gegner aus den Top 8, auf der großen Bühne und in der Anfängerphase (Status 1–5). Sie mindert Scoring/Finishing/Mental, das Zielkreuz bewegt sich schneller und die Hand zittert manchmal (größerer Kreis); sie lässt mit steigendem Status (Mental) nach – ab Mental 50 ist sie weg.</p>';
@@ -118,7 +119,7 @@ export function render(app) {
           ${canSelfPlay(p) ? '' : '<div class="nsd-warn">Nicht match-fit: Die KI wirft für dich und baut Leg für Leg ab.</div>'}
           ${lm ? `<div class="nsd-warn ok">Laufendes Match: ${lm.format.sets ? `Sätze ${lm.sets[inst.live.me]}:${lm.sets[1 - inst.live.me]} · ` : ''}Legs ${lm.legs[inst.live.me]}:${lm.legs[1 - inst.live.me]}</div>` : ''}
         </div>${myPath(s, inst)}`,
-      bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { id: 'e-sim', icon: '⚡', label: 'Simulieren' },
+      bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { id: 'e-sim', icon: '⚡', label: 'Simulieren' },
         { go: 'live', icon: arrowIcon(), label: lm ? 'Weiterspielen' : 'Spielen', wide: true }]),
     });
   }
@@ -126,7 +127,7 @@ export function render(app) {
   return frame({
     body: `${head}${darkBar('Ausgeschieden', 'sm red')}
       <div class="nsd-card" style="font-size:1.3rem">${lm ? `${esc(lm.round)}: ${lm.score.join(':')} gegen ${esc(nameOf(s, lm.opp))}` : ''}</div>${myPath(s, inst)}`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, null, { id: 'e-rest', icon: '⏩', label: 'Turnier beenden', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, null, { id: 'e-rest', icon: '⏩', label: 'Turnier beenden', wide: true }]),
   });
 }
 

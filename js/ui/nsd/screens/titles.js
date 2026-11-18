@@ -3,6 +3,7 @@ import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { frame, header, bar, bindHead } from '../frame.js';
 import { NSD_BLOCKED } from '../../../../data/tournaments.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 let year = null;
@@ -19,7 +20,7 @@ export function render(app) {
           <td class="nm">${flag(c.id === 'P' ? s.player.nation : c.nation)} ${esc(c.id === 'P' ? s.player.name : c.who)}</td></tr>`).join('')
           || '<tr><td colspan="3" class="c">Noch keine Turniere entschieden.</td></tr>'}
       </table></div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'calendar', icon: '🗓️', label: 'Spielplan' }, { go: 'league', icon: '🏆', label: 'Ranglisten', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'calendar', icon: nicon('calendar'), label: 'Spielplan' }, { go: 'league', icon: nicon('ranks'), label: 'Ranglisten', wide: true }]),
   });
 }
 export function mount(root, app) {

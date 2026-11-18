@@ -5,6 +5,7 @@ import { relLabelOf } from '../../../nsd.js';
 import { RNG } from '../../../rng.js';
 import { frame, header, titleBand, meter, heartIcon, coin, bar, bindHead } from '../frame.js';
 import { toast } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const HELP = '<p><b>Bier</b> füllt die Energie auf 100 %. <b>Schnaps</b> gibt Energie und einen Rausch: Bonus auf Scoring, Finishing, Fokus und Rechnen bis zum Wochenende. <b>Wodka</b> wie Schnaps, stärker, und verbessert eine Beziehung um 1.</p><p>Mental bekommt nie einen Bonus. Preise steigen mit deinem Star-Status.</p>';
@@ -22,7 +23,7 @@ export function render(app) {
         <div class="nsd-ev-btns"><button class="nsd-btn" data-buy="${d.id}" ${(p.drinks[d.id] ?? 0) >= DRINK_MAX ? 'disabled' : ''}><span class="lb">${(p.drinks[d.id] ?? 0) >= DRINK_MAX ? 'Voll' : 'Kaufen'}</span></button>
           <button class="nsd-btn" data-drink="${d.id}" ${p.drinks[d.id] > 0 ? '' : 'disabled'}><span class="lb">Trinken</span></button></div>
       </div>`).join('')}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'skills', icon: '🎯', label: 'Fähigkeit' }, { go: 'darts', icon: '🛒', label: 'Darts-Shop', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'skills', icon: nicon('skill'), label: 'Fähigkeit' }, { go: 'darts', icon: nicon('shop'), label: 'Darts-Shop', wide: true }]),
   });
 }
 

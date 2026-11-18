@@ -5,6 +5,7 @@ import { lifeArt } from '../art/index.js';
 import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, brokenItems, brokenWord, fixWord } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 
@@ -37,7 +38,7 @@ export function render(app) {
             : '<div class="nsd-ev-why" style="color:#8dff6a">✔ Gehört dir</div>'}
         </div>`;
       }).join('')}</div>`,
-    bottom: bar([{ go: 'hub', icon: '🏠', label: 'Start' }, { go: 'life', icon: '👥', label: 'Leben' }, { go: 'drinks', icon: '🍺', label: 'Getränke', wide: true }]),
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, { go: 'life', icon: nicon('life'), label: 'Leben' }, { go: 'drinks', icon: nicon('beer'), label: 'Getränke', wide: true }]),
   });
 }
 

@@ -5,6 +5,7 @@ import { breakUp, satisfactionTarget, weeklyEnergy, canMarry, marry, WEDDING_COS
 import { esc } from '../../../util.js';
 import { frame, header, meter, heartIcon, bar, bindHead } from '../frame.js';
 import { toast, modal, confirmDialog } from '../../components.js';
+import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
 const ICONS = { manager: '💼', fans: '🧣', partner: '🌹', sponsors: '🤝' };
@@ -28,9 +29,9 @@ export function render(app) {
     </div>`).join('')}</div>
     <div class="nsd-strip"><span>Erholung</span><span class="mid">+${weeklyEnergy(p)} %/Woche</span><span class="r">Ziel ${Math.round(satisfactionTarget(p))}</span></div>`,
     bottom: bar([
-      { go: 'hub', icon: '🏠', label: 'Start' },
+      { go: 'hub', icon: nicon('home'), label: 'Start' },
       { go: 'lifestyle', icon: '💎', label: 'Lifestyle' },
-      { go: 'news', icon: '📰', label: 'News' },
+      { go: 'news', icon: nicon('news'), label: 'News' },
       { id: 'l-ach', icon: '⭐', label: 'Meilensteine' },
     ]),
   });
