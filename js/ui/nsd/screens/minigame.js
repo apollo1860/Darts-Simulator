@@ -5,7 +5,7 @@ import { RNG } from '../../../rng.js';
 import { ORDER, scoreAt, targetPoint, fieldName, labelValue } from '../../../board.js';
 import { wave, landInCircle, rampPhase, Y_SPEED } from '../../../throwModel.js';
 import { TRAINABLE, skillEffective } from '../../../nsd.js';
-import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, MEMORY_GAP, calcTime, calcTask, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
+import { ATTEMPTS, pointsFor, scoringMin, finishTarget, memoryPreview, memorySwaps, memorySwapMs, MEMORY_GAP, calcTime, calcTask, calcFirst, validFinish, trainAim, finishTraining } from '../../../skilltrain.js';
 import { boardSvg, regionPath } from '../../boardSvg.js';
 import { frame, titleBand, darkBar, bar, heartIcon, starIcon, arrowIcon } from '../frame.js';
 import { getSettings, setSetting } from '../settings.js';
@@ -18,7 +18,7 @@ const TASK = {
   sco: L => `Wirf mit einer Aufnahme mindestens <b>${scoringMin(L)}</b> Punkte.`,
   fin: L => `Triff <b>${fieldName(finishTarget(L))}</b> – 3 Darts pro Versuch.`,
   foc: L => `„Los“ deckt alle Karten 3 s auf. Merken, dem Mischen (${memorySwaps(L)}×) folgen, <b>ein</b> Paar finden.`,
-  cal: L => `Tippe ein gültiges Finish für die Zahl an${calcTime(L) ? ` – ${calcTime(L)} Sekunden Zeit` : ''}.`,
+  cal: L => `Tippe ein gültiges Finish für die Zahl an – ${calcTime(L)} Sekunden Zeit.${calcFirst(L) ? ' Der <b>erste Dart steckt</b> bereits.' : ''}`,
 };
 
 export function render(app, params = {}) {
@@ -318,6 +318,17 @@ function calcHit(x, y) {
   const deg = (Math.atan2(x, -y) * 180 / Math.PI + 369) % 360, n = ORDER[Math.floor(deg / 18) % 20];
   return (r <= RR[3] ? 'S' : r <= RR[4] ? 'T' : r <= RR[5] ? 'S' : 'D') + n;
 }
+// Mitte eines Feldes auf der Schema-Scheibe (für den bereits steckenden ersten Dart), leicht versetzt
+function calcPoint(l, rng) {
+  if (l === 'BULL') return { x: rng.float(-6, 6), y: rng.float(-6, 6) };
+  const n = l === '25' ? 0 : +l.slice(1), i = ORDER.indexOf(n), a = (i * 18 + rng.float(-5, 5)) * Math.PI / 180;
+  const r = l === '25' ? 33 : l[0] === 'T' ? (RR[3] + RR[4]) / 2 : l[0] === 'D' ? (RR[5] + RR[6]) / 2 : (RR[2] + RR[3]) / 2 + rng.float(-8, 8);
+  return { x: Math.sin(a) * r, y: -Math.cos(a) * r };
+}
+// Darts auf der Scheibe wie im Spiel (Markierungen)
+function drawMarks() {
+  g.el('#cmarks').innerHTML = g.pts.map(q => `<g class="dart-mark me" transform="translate(${q.x.toFixed(1)} ${q.y.toFixed(1)})"><circle r="9"/><circle r="3" class="core"/></g>`).join('');
+}
 function calcGame() {
   g.el('#mg').innerHTML = `<div class="nsd-calc-rem"><small>Rest</small><b id="crem"></b><div class="nsd-calc-time"><i id="ctime"></i></div></div>
     <div class="nsd-aim-stage" id="cstage"><svg id="csvg" viewBox="-200 -200 400 400">${calcBoardSvg()}</svg></div>
@@ -327,19 +338,21 @@ function calcGame() {
     const svg = g.el('#csvg'), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
     const q = pt.matrixTransform(svg.getScreenCTM().inverse()), l = calcHit(q.x, q.y);
     if (!l) return;
-    g.picked.push(l); drawPicked();
+    g.picked.push(l); g.pts.push({ x: q.x, y: q.y }); drawPicked(); drawMarks();
     const sum = g.picked.reduce((a, x) => a + labelValue(x), 0);
     if (sum >= g.rem || g.picked.length === 3) checkCalc();
   });
   newCalc();
 }
 function newCalc() {
-  g.rem = calcTask(g.rng, g.level); g.picked = []; g.play = true;
-  g.el('#crem').textContent = g.rem; drawPicked(); tries();
-  setAction('Zurück', () => { g.picked.pop(); drawPicked(); });
+  const task = calcTask(g.rng, g.level);
+  g.rem = task.rem; g.fixed = task.first ? 1 : 0; g.picked = task.first ? [task.first] : []; g.pts = task.first ? [calcPoint(task.first, g.rng)] : []; g.play = true;
+  g.el('#crem').textContent = g.rem; drawPicked(); drawMarks(); tries();
+  // Rückgängig: letzten eigenen Dart entfernen (der vorgegebene erste Dart bleibt stecken)
+  setAction('Rückgängig', () => { if (!g.play || g.picked.length <= g.fixed) return; g.picked.pop(); g.pts.pop(); drawPicked(); drawMarks(); });
+  const ic = g.el('#mg-act .ic'); if (ic) ic.innerHTML = arrowIcon(true);
   const t = calcTime(g.level), bar = g.el('#ctime');
   clearInterval(g.tick);
-  bar.parentElement.style.visibility = t ? 'visible' : 'hidden';
   if (t) {
     const t0 = performance.now();
     g.tick = setInterval(() => {
@@ -351,7 +364,7 @@ function newCalc() {
 }
 function drawPicked() {
   const sum = g.picked.reduce((a, x) => a + labelValue(x), 0);
-  g.el('#cdarts').innerHTML = [0, 1, 2].map(i => `<span class="${g.picked[i] ? 'on' : ''}">${g.picked[i] ? fieldName(g.picked[i]) : '–'}</span>`).join('')
+  g.el('#cdarts').innerHTML = [0, 1, 2].map(i => `<span class="${g.picked[i] ? 'on' : ''}${i < g.fixed ? ' fix' : ''}">${g.picked[i] ? fieldName(g.picked[i]) : '–'}</span>`).join('')
     + `<b>= ${sum}</b>`;
 }
 function checkCalc() {

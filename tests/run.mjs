@@ -755,12 +755,18 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   // Level-Parameter
   assert.equal(T.scoringMin(1), 40); assert.equal(T.scoringMin(20), 140);
   assert.equal(new Set(T.FIN_TARGETS).size, 20); assert.equal(T.finishTarget(20), 'BULL');
-  assert.equal(T.calcTime(5), null); assert.equal(T.calcTime(6), 20); assert.equal(T.calcTime(20), 8);
+  assert.equal(T.calcTime(1), 20); assert.equal(T.calcTime(20), 20);
   assert.equal(T.memoryPreview(1), 3); assert.ok(T.memorySwaps(20) > T.memorySwaps(1) && T.memorySwapMs(20) < T.memorySwapMs(1));
   assert.ok(T.validFinish(['T20', 'D6'], 72)); assert.ok(!T.validFinish(['T20', 'S12'], 72)); assert.ok(!T.validFinish(['T20', 'T4'], 72));
   assert.ok(T.validFinish(['BULL'], 50)); assert.ok(T.validFinish(['S19', 'D1'], 21)); assert.ok(!T.validFinish(['S20', 'D1'], 21));
   const rng = new RNG({ s: 3 });
-  for (let L = 1; L <= 20; L++) { const r = T.calcTask(rng, L), [lo, hi] = T.calcRange(L); assert.ok(r >= lo && r <= hi && T.validFinish(checkoutRoute(r, 3), r)); }
+  for (let L = 1; L <= 20; L++) for (let i = 0; i < 30; i++) {   // Version 174: Bereiche + steckender erster Dart, immer lösbar
+    const { rem, first } = T.calcTask(rng, L), [lo, hi] = T.calcRange(L), fs = T.calcFirst(L);
+    assert.ok(rem >= lo && rem <= hi && !!first === !!fs && (!fs || fs.includes(first)));
+    const route = first ? [first, ...checkoutRoute(rem - labelValue(first), 2)] : checkoutRoute(rem, 3);
+    assert.ok(T.validFinish(route, rem), `L${L} ${rem} ${first}`);
+  }
+  assert.deepEqual(T.calcRange(1), [2, 40]); assert.deepEqual(T.calcRange(20), [161, 170]); assert.equal(T.calcFirst(12), null); assert.deepEqual(T.calcFirst(7), ['25', 'BULL']);
   // Einstufung (ohne Energie), Punkte = 3/2/1 je Versuch, bestes Ergebnis zählt
   T.finishTraining(s, 'sco', 1, 2, { placement: true });
   T.finishTraining(s, 'fin', 1, 0, { placement: true });
@@ -2401,7 +2407,7 @@ test('New Star Darts v115: nach perfekter erster Aufnahme 9-Darter-Szenen extra'
 
 test('New Star Darts v118: Rechnen früher schwerer, Check speichert die Dart-Anzahl', async () => {
   const T = await import('../js/skilltrain.js'), MS = await import('../js/matchState.js'), B = await import('../js/board.js');
-  assert.ok(T.calcRange(8)[1] >= 131 && T.calcRange(1)[1] === 60 && T.calcRange(20)[1] === 170 && T.calcRange(12)[1] === 170);
+  assert.ok(T.calcRange(8)[0] === 101 && T.calcRange(20)[1] === 170 && T.calcRange(12)[1] === 135);
   const H = l => { const q = B.targetPoint(l); return B.scoreAt(q.x, q.y); };
   const m = MS.createMatch({ legs: 2 }, 0);
   m.rem[m.turn] = 40; m.visit.start = 40; const t = m.turn; MS.throwDart(m, H('S20')); MS.throwDart(m, H('D10'));

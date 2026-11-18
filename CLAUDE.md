@@ -59,7 +59,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 
 ## Fähigkeiten & Training
 - Scoring, Finishing, Fokus, Rechnen 0–60 (je 20 Level × 3 Sterne, `player.skills`); Mental = Star-Status (max. 60). Attribut = 87,5 + 12,5/60 × Fähigkeit.
-- Minispiele je Level (Kreis/Linien exakt wie im Match), Einstufung nach Profilerstellung, freies Training im Titelmenü. Fokus-Memory: verdeckt, „Los“ = 3 s aufdecken, dann L1 3 … L20 24 schnelle Tausche, 8 Darts-Symbole (Icons), ein Paar finden.
+- Minispiele je Level (Kreis/Linien exakt wie im Match), Einstufung nach Profilerstellung, freies Training im Titelmenü. Fokus-Memory: verdeckt, „Los“ = 3 s aufdecken, dann L1 3 … L20 24 schnelle Tausche, 8 Darts-Symbole (Icons), ein Paar finden. Rechnen: immer 20 s, Bereiche je Level nach Nutzertabelle (`CALC_LEVELS`), bei L7/8/9/10/11/14/17 steckt der erste Dart schon (auf der Scheibe sichtbar), Rückgängig-Knopf.
 - Boni: Darts (dauerhaft), Zubehör-Boosts (n Matches), Rausch (Schnaps/Wodka bis Wochenende), freie Punkte (+1 je Star-Stufe).
 - **Formverlust**: ohne Training einer Fähigkeit ab 9 Wochen Punktverlust; ab 30 sinkt die Frist bis 45 auf 3 Wochen, Chance 35 → 70 %.
 - **Altersabbau** (Jahreswechsel, `ageDeclineYear`): ab 33 je Fähigkeit −1 (33–35), −2 (36–39), −3 (40–44), −4 (ab 45), zurücktrainierbar.

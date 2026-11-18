@@ -725,3 +725,4 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 /* Version 172: Memory-Karten – Symbol mittig */
 .nsd-memo-card { display: flex; align-items: center; justify-content: center; padding: 0; line-height: 0; }
 .nsd-memo-card .nsd-ico, .nsd-memo-card .nsd-ico.wide { width: 74%; height: 74%; margin: 0; vertical-align: middle; }
+.nsd-calc-darts span.on.fix { outline: 2px solid #ffde3b; }   /* vorgegebener erster Dart (Version 174) */

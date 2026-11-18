@@ -25,15 +25,28 @@ export const memoryPreview = () => 3;
 export const memorySwaps = L => Math.round(3 + (lvl(L) - 1) * 1.1);           // L1 3 … L20 24 Tausche
 export const memorySwapMs = L => Math.round(650 - (lvl(L) - 1) * 21);         // L1 0,65 s … L20 0,25 s je Tausch
 export const MEMORY_GAP = 40;                                                 // Pause zwischen zwei Tauschen (ms)
-// Rechnen: Zeitlimit (L1–5 ohne, L6 20 s … L20 8 s) und Zahlenbereich
-export const calcTime = L => (lvl(L) <= 5 ? null : Math.round(20 - 12 * (lvl(L) - 6) / 14));
-export function calcRange(L) {
-  const t = (lvl(L) - 1) / 19;
-  return [Math.round(2 + t * 98), Math.min(170, Math.round(60 + t * 200))];   // Version 118: L1 2–60, L5 bis 102, L8 bis 134 (z. B. 131), ab L12 bis 170 … L20 100–170
-}
+// Rechnen (Version 174, Nutzervorgabe): immer 20 s; je Level Zahlenbereich und ggf. ein bereits steckender erster Dart
+export const CALC_TIME = 20;
+export const calcTime = () => CALC_TIME;
+const CALC_LEVELS = [
+  [2, 40], [41, 60], [61, 70], [71, 80], [81, 90], [91, 100], [91, 100, ['25', 'BULL']],
+  [101, 106, ['S20', 'T20', 'D20', 'T5', 'S5']], [107, 110, ['S19', 'T7', 'T3']], [111, 119, ['S19', 'T19']], [120, 130, ['T20', 'T19']],
+  [131, 135], [136, 140], [136, 140, ['T20', 'T18']], [141, 145], [146, 150], [146, 150, ['T19', 'T18', 'T20']],
+  [151, 155], [156, 160], [161, 170],   // L20: nur 161, 164, 167, 170 (der Rest sind Bogey-Zahlen)
+];
+export const calcRange = L => CALC_LEVELS[lvl(L) - 1].slice(0, 2);
+export const calcFirst = L => CALC_LEVELS[lvl(L) - 1][2] ?? null;   // mögliche erste Darts (steckt schon) oder null
+// Aufgabe: { rem: Rest vor der Aufnahme, first: bereits steckender erster Dart oder null } – immer lösbar
 export function calcTask(rng, L) {
-  const [lo, hi] = calcRange(L);
-  for (;;) { const r = rng.int(lo, hi); if (!BOGEY.has(r) && checkoutRoute(r, 3)) return r; }
+  const [lo, hi] = calcRange(L), firsts = calcFirst(L), opts = [];
+  for (let r = lo; r <= hi; r++) {
+    if (BOGEY.has(r)) continue;
+    if (!firsts) { if (checkoutRoute(r, 3)) opts.push({ rem: r, fs: [null] }); continue; }
+    const fs = firsts.filter(f => { const x = r - labelValue(f); return x > 1 && checkoutRoute(x, 2); });
+    if (fs.length) opts.push({ rem: r, fs });
+  }
+  const o = rng.pick(opts);
+  return { rem: o.rem, first: rng.pick(o.fs) };
 }
 // Gültiges Finish: ≤ 3 Darts, Summe = Rest, letzter Dart Doppel/Bull, kein Zwischenstand 1 oder < 0
 export function validFinish(labels, rem) {
