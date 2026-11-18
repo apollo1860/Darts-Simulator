@@ -3105,4 +3105,12 @@ test('New Star Darts v200: alter Spielstand – Top 64 ohne Karte zum Saisonende
   ct.tier = 'challenge'; St.migrate(s); assert.equal(ct.tier, 'challenge');   // nur einmal
 });
 
+test('New Star Darts v207: Einsteckwinkel umstellen kostet 100 % Energie', async () => {
+  const N = await import('../js/nsd.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 4, angle: 15 });
+  s.player.energy = 80; assert.throws(() => N.changeAngle(s, 40), /100 % Energie/);
+  s.player.energy = 100; assert.equal(N.changeAngle(s, 40), 40); assert.equal(s.player.angle, 40); assert.equal(s.player.energy, 0);
+  s.player.energy = 100; assert.equal(N.changeAngle(s, 99), 60); assert.throws(() => N.changeAngle(s, 60), /schon/);
+});
+
 console.log(`\n${n} Tests ok`);

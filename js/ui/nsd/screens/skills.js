@@ -4,7 +4,8 @@ import { decayRisk } from '../../../skilltrain.js';
 import { esc } from '../../../util.js';
 import { frame, header, meter, heartIcon, bar, bindHead } from '../frame.js';
 import { toast, modal } from '../../components.js';
-import { ANGLE_DEFAULT } from '../../../obstruction.js';
+import { ANGLE_DEFAULT, ANGLE_MIN, ANGLE_MAX } from '../../../obstruction.js';
+import { changeAngle, ANGLE_CHANGE_ENERGY } from '../../../nsd.js';
 import { dartSvg, effectText, ANGLE_INFO } from '../angle.js';
 import { icon as nicon } from '../icons.js';
 
@@ -56,9 +57,17 @@ export function mount(root, app) {
     try { spendSkillPoint(app.state.player, b.dataset.pt); app.save(); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   });
   root.querySelector('#k-drink').onclick = () => app.go('drinks');
-  root.querySelector('#k-angle').onclick = () => {           // Version 206: aktueller Einsteckwinkel mit Wirkung
-    const a = app.state.player.angle ?? ANGLE_DEFAULT;
-    modal({ title: `Einsteckwinkel ${a}°`, body: `<div class="nsd-angle-box">${dartSvg(a)}<p>${effectText(a)}</p><p class="sub">${ANGLE_INFO}</p>
-      <p class="sub">0° = waagerecht, positiv = Flight oben, negativ = Flight unten. Der Winkel wird beim Erstellen des Profils festgelegt.</p></div>` });
+  root.querySelector('#k-angle').onclick = () => {           // Version 206/207: Einsteckwinkel ansehen und umstellen (100 % Energie)
+    const p = app.state.player, cur = p.angle ?? ANGLE_DEFAULT, full = (p.energy ?? 0) >= ANGLE_CHANGE_ENERGY;
+    let a = cur;
+    const view = () => `${dartSvg(a)}<p><b>${a}°</b>${a === cur ? ' (aktuell)' : ` (aktuell ${cur}°)`} · ${effectText(a)}</p>`;
+    modal({ title: 'Einsteckwinkel', body: `<div class="nsd-angle-box"><div id="ang-view">${view()}</div>
+      <input type="range" class="nsd-range" id="ang-r" min="${ANGLE_MIN}" max="${ANGLE_MAX}" step="1" value="${cur}">
+      <p class="sub">${ANGLE_INFO}</p>
+      <p class="sub">0° = waagerecht, positiv = Flight oben, negativ = Flight unten. Umstellen kostet einmalig ${ANGLE_CHANGE_ENERGY} % Energie${full ? '' : ' – du brauchst volle Energie'}.</p></div>`,
+      actions: [{ label: 'Schließen' }, { label: 'Umstellen', cls: 'btn-primary', disabled: !full, onClick: () => {
+        try { changeAngle(app.state, a); app.save(); toast(`Neuer Einsteckwinkel: ${a}°`); app.refresh(); } catch (e) { toast(e.message, 'error'); return false; }
+      } }],
+      onMount: bd => { bd.querySelector('#ang-r').oninput = e => { a = +e.target.value; bd.querySelector('#ang-view').innerHTML = view(); }; } });
   };
 }

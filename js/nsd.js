@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 206;
+export const APP_VERSION = 207;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -76,6 +76,15 @@ export function syncAttrs(p) {
   return p.attrs;
 }
 
+// Version 207 (Nutzerwunsch): Einsteckwinkel umstellen (Training → Winkel) – nur mit voller Energie, kostet 100 %
+export const ANGLE_CHANGE_ENERGY = 100;
+export function changeAngle(state, angle) {
+  const p = state.player, a = Math.round(clampAngle(angle));
+  if (a === (p.angle ?? ANGLE_DEFAULT)) throw new Error('Das ist schon dein Winkel.');
+  if ((p.energy ?? 0) < ANGLE_CHANGE_ENERGY) throw new Error(`Für die Umstellung brauchst du ${ANGLE_CHANGE_ENERGY} % Energie.`);
+  p.angle = a; p.energy = Math.max(0, (p.energy ?? 0) - ANGLE_CHANGE_ENERGY);
+  return a;
+}
 // Fähigkeitspunkte direkt setzen (Einstufung): Punkte auf Level 1
 export function setStartSkills(p, points) {
   for (const s of TRAINABLE) {
