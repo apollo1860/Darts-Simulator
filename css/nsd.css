@@ -726,4 +726,5 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 .nsd-calc-darts span.on.fix { outline: 2px solid #ffde3b; }   /* vorgegebener erster Dart (Version 174) */
 
 /* Version 197: Tourcard-Holder in der PDC Order of Merit – dezenter grüner Punkt */
-.nsd-tc { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #3cc85a; box-shadow: 0 0 0 1px rgba(0,0,0,.25); margin: 0 1px 0 5px; vertical-align: middle; opacity: .85; }
+.nsd-tc { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #3cc85a; box-shadow: 0 0 0 1px rgba(0,0,0,.25); vertical-align: middle; opacity: .85; }
+.nsd-table .nsd-tc-col { width: 14px; padding: 0 2px; text-align: center; }   /* eigene schmale Spalte vor dem Preisgeld (Kopf wie Preisgeld) */
