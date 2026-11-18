@@ -23,7 +23,7 @@ Object.assign(NAME_POOLS, {
     last: ['Sharma', 'Patel', 'Singh', 'Kumar', 'Gupta', 'Reddy', 'Nair', 'Mehta', 'Iyer', 'Desai'] },
   PH: { nations: ['PH'], first: ['Jose', 'Mark', 'John', 'Paolo', 'Rico', 'Noel', 'Ramon', 'Jerome', 'Carlo', 'Ariel'],
     last: ['Santos', 'Reyes', 'Cruz', 'Bautista', 'Garcia', 'Mendoza', 'Torres', 'Villanueva', 'Ramos', 'Aquino'] },
-  LA: { nations: ['BR', 'MX', 'AR'], first: ['Carlos', 'Diego', 'Mateo', 'Luis', 'Juan', 'Andrés', 'Rafael', 'Pedro', 'Javier', 'Miguel'],
+  LA: { nations: ['BR', 'MX', 'AR', 'CR'], first: ['Carlos', 'Diego', 'Mateo', 'Luis', 'Juan', 'Andrés', 'Rafael', 'Pedro', 'Javier', 'Miguel'],
     last: ['González', 'Rodríguez', 'Hernández', 'López', 'Martínez', 'Pérez', 'Silva', 'Souza', 'Ramírez', 'Oliveira'] },
   AF: { nations: ['ZA', 'KE', 'NG'], first: ['Thabo', 'Sipho', 'Kagiso', 'Lwazi', 'Johan', 'Pieter', 'Kwame', 'Chidi', 'Tunde', 'Musa'],
     last: ['Nkosi', 'Dlamini', 'van der Merwe', 'Botha', 'Mokoena', 'Okafor', 'Mensah', 'Mwangi', 'Otieno', 'Naidoo'] },

@@ -71,6 +71,7 @@ export const NATIONS = {
   JM: { name: 'Jamaika', flag: '🇯🇲' },
   CL: { name: 'Chile', flag: '🇨🇱' },
   CO: { name: 'Kolumbien', flag: '🇨🇴' },
+  CR: { name: 'Costa Rica', flag: '🇨🇷' },
   MY: { name: 'Malaysia', flag: '🇲🇾' },
   TH: { name: 'Thailand', flag: '🇹🇭' },
   MT: { name: 'Malta', flag: '🇲🇹' },

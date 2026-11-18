@@ -67,7 +67,7 @@ export const NATION_FIXES = { 'Levy Frauenfelder': 'NL', 'Derek Coulson': 'WAL',
   // Version 94
   'Yorick Hofkens': 'DE' };
 // Namens-Korrekturen (Nutzerhinweise, gelten auch für bestehende Spielstände): alt → neu
-export const NAME_FIXES = { 'Lenny Schlueter': 'Lenny Schlüter' };
+export const NAME_FIXES = { 'Lenny Schlueter': 'Lenny Schlüter', 'James Walklin': 'James Walkin', 'Jesus Salate': 'Jesús Salate' };   // Version 192: Walkin (Nutzerschreibweise)
 // JDC-Talente (Nutzerliste, Version 94): [Name, Nation, Alter 2026, Ø-Spanne von, bis]. Sie kommen mit 16 in die Welt (Dev Tour):
 // Start-Ø = von + 25 % der Spanne, Potenzial = bis (Entwicklung bis 24 zusätzlich Richtung Potenzial, nie darüber – world.js developWorld).
 export const JDC_TALENTS = [['Mitchell Lawrie', 'SCO', 15, 82, 106], ['Jack Johnson', 'ENG', 13, 76, 92], ['Jayden Walker', 'ENG', 13, 77, 94],

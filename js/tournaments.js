@@ -11,6 +11,7 @@ import { dartBounce } from '../data/gear.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
 import { getPlayer, playersOfTier, nonCardPros, addAmateurs, DEV_MAX_AGE, secondaryOrder, womenOf } from './world.js';
+import { SEC_QSCHOOL } from '../data/secondary.js';
 import { addXp, addClutch, expLabel, perf, XP_FACTOR, XP_BASE, pointsGained } from './player.js';
 import { addNews } from './news.js';
 import { seasonStats } from './state.js';
@@ -274,7 +275,8 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   }
   if (ev.cat === 'qschool') {
     const uk = ev.id === 'qs-uk';
-    ids = nonCardPros(state).filter(p => QSCHOOL_UK_NATIONS.includes(p.nation) === uk).map(p => p.id);
+    ids = [...nonCardPros(state), ...(uk ? [] : playersOfTier(state, 'secondary').filter(p => SEC_QSCHOOL.includes(p.name)))]   // Version 192: Salate/Sweeting spielen Q-School EU
+      .filter(p => uk ? QSCHOOL_UK_NATIONS.includes(p.nation) : !QSCHOOL_UK_NATIONS.includes(p.nation)).map(p => p.id);
     return rng.shuffle(withPlayer ? ['P', ...ids] : ids);     // Q-School ohne Setzliste
   }
   const type = ev.cat === 'dev' ? 'dev' : 'challenge';

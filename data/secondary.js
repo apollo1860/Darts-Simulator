@@ -5,7 +5,9 @@ export const SECONDARY_SPREAD = 0.15;
 // Version 188: Nebentour-Spieler, die zusätzlich die Challenge Tour spielen (Nutzerwunsch)
 // (Version 190: bis 23 Jahre zusätzlich Development Tour) – Polen: alle mit Ø über 79
 export const SEC_ALSO_CT = ['Nitin Kumar', 'Bhav Patel', 'Devon Petersen', 'Cameron Carolissen', 'Johan Geldenhuys',
-  'Mirosław Grudziecki', 'Dawid Robak', 'Krzysztof Kciuk', 'Maciej Łuczak', 'Wojciech Bruliński'];
+  'Mirosław Grudziecki', 'Dawid Robak', 'Krzysztof Kciuk', 'Maciej Łuczak', 'Wojciech Bruliński', 'Jesús Salate', 'Rashad Sweeting'];
+// Version 192: Nebentour-Spieler, die jedes Jahr die Q-School (EU) spielen (Nutzerwunsch)
+export const SEC_QSCHOOL = ['Jesús Salate', 'Rashad Sweeting'];
 export const SECONDARY = {
   // Version 101: Spielerinnen laut Nutzer-Rangliste mit ihrem Average (exakt, ohne Streuung); Alter nur wo bekannt (sonst zufällig 25–45).
   // Herkunft „UK“ in der Vorlage → ENG (Annahme). Noa-Lynn van Leuven spielt bei den Männern (Challenge Tour), Beau Greaves ist Tourcard-Holderin (data/players.js).
@@ -84,9 +86,13 @@ export const SECONDARY = {
     ['Patrik Pondela', 'SK', null, 78, [70, 86]], ['Gergely Lakatos', 'HU', null, 77, [69, 85]], ['Luka Marinić', 'HR', null, 77, [69, 85]], ['Tomasz Kozłowski', 'PL', null, 77, [69, 85]],
     ['Uroš Janković', 'RS', null, 77, [69, 85]], ['Michal Ondo', 'SK', 40, 81]] },
   // Ab hier mit festem Ø (4. Wert, Nutzerangabe): je Karriere zufällig ±15 % Spielraum (SECONDARY_SPREAD); Alter unbekannt (null) → 25–45
-  cdlc: { label: 'CDLC Tour (Karibik & Lateinamerika)', players: [
-    ['Jesus Salate', 'AR', 43, 88], ['Rashad Sweeting', 'BS', 35, 85], ['Norman Madhoo', 'GY', 61, 80], ['James Walklin', 'TT', 48, 79],
-    ['Romero Cartwright', 'BS', 48, 75], ['Joshua Balfour', 'TT', 42, 72], ['Sudesh Fitzgerald', 'GY', 39, 70]] },
+  // Version 192: CDLC nach Nutzerliste ergänzt (fester Ø für alle, `exact`); Bestehende behalten ihren Ø (Walklin → Walkin, Nutzerschreibweise)
+  cdlc: { label: 'CDLC Tour (Karibik & Lateinamerika)', exact: true, players: [
+    ['Jesús Salate', 'AR', 43, 88], ['Rashad Sweeting', 'BS', 35, 85], ['Norman Madhoo', 'GY', 61, 80], ['James Walkin', 'TT', 48, 79],
+    ['Romero Cartwright', 'BS', 48, 75], ['Joshua Balfour', 'TT', 42, 72], ['Sudesh Fitzgerald', 'GY', 39, 70],
+    ['Guillermo Soto', 'CR', null, 76], ['Victor Guillín', 'AR', 44, 76], ['Dean Persad', 'TT', null, 72], ['Robin Albury', 'BS', null, 72],
+    ['Jafet Vanegas', 'CR', null, 72], ['Nelson Rahming', 'BS', null, 68], ['Artur Vaille', 'BR', null, 68], ['Navarro Bastian', 'BS', null, 65],
+    ['Jonathan Heron', 'JM', null, 64], ['Roberto Wentz', 'BR', 63, 58]] },
   // Version 187: Indien nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Nitin Kumar steht im Asien-Pool und behält seinen Ø
   // Version 189: China nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Zong, Zhan, Wen, Li stehen im Asien-Pool und behalten ihren Ø
   // Version 190: Polen nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Kciuk und Kozłowski stehen im Osteuropa-Pool und behalten ihren Ø

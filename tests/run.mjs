@@ -49,7 +49,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 317 + 4 + 19 + 25);   // Version 190: + 30 Polen · Version 189: + 12 China · Version 188: + 16 südliches Afrika · Version 187: + 15 Inder · Version 185: + 25 Super-League-Spieler · Version 184: + Tergel Khurelkhuu (JDC, 16 in 2027) · Version 183: Asien 53 · Version 182: Osteuropa 46 · Version 181: Radek Szagański nur noch Challenge Tour · Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 327 + 4 + 19 + 25);   // Version 192: + 10 CDLC · Version 190: + 30 Polen · Version 189: + 12 China · Version 188: + 16 südliches Afrika · Version 187: + 15 Inder · Version 185: + 25 Super-League-Spieler · Version 184: + Tergel Khurelkhuu (JDC, 16 in 2027) · Version 183: Asien 53 · Version 182: Osteuropa 46 · Version 181: Radek Szagański nur noch Challenge Tour · Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -1003,7 +1003,7 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   const { majorField, mastersPrelimField } = await import('../js/majors.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 16 });
   const sec = playersOfTier(s, 'secondary');
-  assert.equal(sec.length, 317);   // Version 190: Polen 30 · Version 189: China 12 · Version 188: südliches Afrika 16 · Version 187: Indien 15 · Version 183: Asien 53 (+38) · Version 182: Osteuropa 46 (+39) · Version 181: − Szagański (Doppelung) · Version 161: + Silvia Lindner · Version 96: + Zong, Lim, Baggish, Whitlock; Version 101: 91 Spielerinnen
+  assert.equal(sec.length, 327);   // Version 192: CDLC +10 · Version 190: Polen 30 · Version 189: China 12 · Version 188: südliches Afrika 16 · Version 187: Indien 15 · Version 183: Asien 53 (+38) · Version 182: Osteuropa 46 (+39) · Version 181: − Szagański (Doppelung) · Version 161: + Silvia Lindner · Version 96: + Zong, Lim, Baggish, Whitlock; Version 101: 91 Spielerinnen
   { const W = await import('../js/world.js'), pl = { C1: { id: 'C1', name: 'Radek Szaganski', tier: 'challenge' }, S1: { id: 'S1', name: 'Radek Szagański', tier: 'secondary', circuit: 'ee' } };
     W.retireSecondaryDupes(pl); assert.equal(pl.S1.tier, 'retired'); assert.equal(pl.C1.tier, 'challenge'); }   // Version 181: Doppelungen stilllegen
   for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb', 'ee']) {
@@ -2217,7 +2217,7 @@ test('New Star Darts v95: geprüfter Spielerpool (Nation + Alter) – neue Karri
   const by = n => Object.values(s.world.players).find(p => p.name === n);
   assert.deepEqual([by('Luke Littler').nation, by('Luke Littler').age], ['ENG', 18]);
   assert.deepEqual([by('Matej Cverha').nation, by('Kam Weng Chen').nation, by('Vicky Pruim').nation, by('Brendan Dolan').nation], ['SK', 'MO', 'SE', 'NIR']);
-  assert.equal(by('Jesus Salate').age, 43); assert.ok(NA.NATIONS.MO);
+  assert.equal(by('Jesús Salate').age, 43); assert.ok(NA.NATIONS.MO);
   // alter Spielstand (Version < 95), zwei Jahre später: Nation/Alter werden korrigiert, Alter läuft mit
   s.date.year = 2028; delete s.poolV; by('Luke Littler').age = 30; by('Brendan Dolan').nation = 'IRL';
   ST.migrate(s);
