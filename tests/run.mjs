@@ -3116,4 +3116,12 @@ test('New Star Darts v207: Einsteckwinkel umstellen kostet 100 % Energie', async
   s.player.energy = 100; assert.equal(N.changeAngle(s, 99), 60); assert.throws(() => N.changeAngle(s, 60), /schon/);
 });
 
+test('New Star Darts v210: nach der Q-School nie mehr als 128 Holder', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/tournaments.js'), W = await import('../js/world.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 3 }), cnt = () => W.playersOfTier(s, 'tour').length + 1;
+  for (const p of W.playersOfTier(s, 'challenge').slice(0, 5)) { p.tier = 'tour'; p.cardUntil = 2027; }
+  assert.equal(cnt(), 133); assert.equal(T.trimTo128(s).length, 5); assert.equal(cnt(), 128); assert.equal(s.player.tour, 'tour');
+  assert.equal(T.trimTo128(s).length, 0);
+});
+
 console.log(`\n${n} Tests ok`);

@@ -988,8 +988,10 @@ function settle(state, inst) {
     for (const id of ids) qs[id] = (qs[id] ?? 0) + inst.rounds.reduce((n, r) => n + r.matches.filter(m => m.winner === id && !m.bye && m.a && m.b).length, 0);
   }
   if (inst.cards) {                                          // Q-School: Tourcards
-    for (const id of survivors) awardCard(state, id, year + 1, `${inst.baseName} ${year}`);
-    addNews(state, 'draw', `${inst.name}: Tourcards vergeben`, survivors.map(id => getPlayer(state, id).name).join(', '));
+    // Version 210: nie mehr als 128 Holder – Tageskarten nur, solange Plätze frei sind (Sieger zuerst)
+    const free = () => TOUR_CARDS - playersOfTier(state, 'tour').length - (state.player.tour === 'tour' ? 1 : 0);
+    const got = survivors.filter(id => free() > 0 && (awardCard(state, id, year + 1, `${inst.baseName} ${year}`), true));
+    if (got.length) addNews(state, 'draw', `${inst.name}: Tourcards vergeben`, got.map(id => getPlayer(state, id).name).join(', '));
   }
 }
 
@@ -1021,7 +1023,18 @@ export function qschoolRankingCards(state) {
     out.push(...list);
   }
   if (out.length) addNews(state, 'draw', `Q-School: ${out.length} Tourcards über die Rangliste`, out.map(id => getPlayer(state, id).name).join(', '));
+  trimTo128(state);
   return out;
+}
+// Version 210 (Nutzerwunsch): nach der Q-School immer genau 128 Holder – Überschuss (z. B. viele neue Karten zum Jahreswechsel):
+// die in der PDC-Rangliste am schlechtesten platzierten KI-Holder verlieren ihre Karte (dein Spieler nie)
+export function trimTo128(state) {
+  const extra = () => playersOfTier(state, 'tour').length + (state.player.tour === 'tour' ? 1 : 0) - TOUR_CARDS;
+  if (extra() <= 0) return [];
+  const order = orderOfMerit(state, 'pdc').map(x => x.p).filter(p => p.id !== 'P' && p.tier === 'tour').reverse(), cut = [];
+  for (const p of order) { if (extra() <= 0) break; p.tier = p.age <= DEV_MAX_AGE ? 'dev' : 'challenge'; p.cardUntil = null; cut.push(p.name); }
+  if (cut.length) addNews(state, 'draw', 'Tourcard-Limit (128): Karten verfallen', cut.join(', '));
+  return cut;
 }
 export function awardCard(state, id, until, via) {
   if (id === 'P') {

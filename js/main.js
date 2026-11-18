@@ -71,14 +71,15 @@ const app = {
     flushMilestones(app);
     window.scrollTo({ top: 0 });
   },
-  refresh() { // gleichen Screen neu zeichnen, Scrollposition behalten
-    const y = window.scrollY;
+  refresh() { // gleichen Screen neu zeichnen, Scrollposition behalten (Fenster und innere Scrollbereiche, Version 210)
+    const y = window.scrollY, inner = [...root.querySelectorAll('.nsd-main, .nsd-scroll')].map(e => e.scrollTop);
     SCREENS[app.screen]?.unmount?.();
     root.innerHTML = wrap(SCREENS[app.screen], SCREENS[app.screen].render(app, app.params), 'style="animation:none"');
     SCREENS[app.screen].mount?.(root, app, app.params);
     animateMeters(root);
     flushMilestones(app);
     window.scrollTo({ top: y });
+    root.querySelectorAll('.nsd-main, .nsd-scroll').forEach((e, i) => { if (inner[i]) e.scrollTop = inner[i]; });
   },
   save(silent = true) {
     if (!app.state) return;

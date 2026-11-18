@@ -61,7 +61,7 @@ export function mount(root, app) {
   const s = app.state;
   bindHead(root, app, HELP);
   root.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
-    try { const r = negotiate(s, b.dataset.g, new RNG(s.rng)); app.save(); app.go('sponsors', { last: r }); } catch (e) { toast(e.message, 'error'); }
+    try { const r = negotiate(s, b.dataset.g, new RNG(s.rng)); app.save(); app.params = { ...(app.params ?? {}), last: r }; app.refresh(); } catch (e) { toast(e.message, 'error'); }   // Version 210: Position bleibt
   });
   const sign = cancel => { try { acceptOffer(s, cancel); app.save(); toast('Vertrag unterschrieben!'); app.go('sponsors'); } catch (e) { toast(e.message, 'error'); } };
   root.querySelector('#o-yes')?.addEventListener('click', async () => {
