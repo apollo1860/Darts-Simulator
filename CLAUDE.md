@@ -93,6 +93,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Manager (3 Stufen, Provision, Sponsor-Angebote), Fitnesstrainer (Pakete), Sponsoren (echte Marken nach Branchen, max. 5, Verhandlung Höher/Niedriger, umstrittene Sponsoren), Saisonziele, Saisonbericht + Auszeichnungen.
 - Interviews nur nach Bühnen-Turnieren (Sieg/Finale/Halbfinale; nie nach PC/Floor) und vor jeder WM mit Elmar Paulke; je Antwort Wirkung auf eine Partei.
 - Zeitungsartikel (Titel, Finale, WM-Ticket, Rangliste, 9-Darter, Premier-League-Aufstellung u. a.).
+- News: jede fixe WM-Qualifikation (Qualifier, Youth-WM, nach den PC Finals Ranglisten-/Tour-Plätze, TCHQ; `wmAnnounce`).
 
 ## Altmodus
 `newCareer` (state.js) erzeugt Welt und Grundspieler; New Star Darts setzt darauf (`state.mode = 'nsd'`). Die alten Darts-Career-Nebensysteme (XP/Level-Wochenplan, Wohnen, Formtiefs, alte Sponsoren/Team/Interviews, Zufallsereignisse, Störmomente) wurden in Version 164 entfernt; nur noch Reste in finance.js/player.js für Tests der Tour-Simulation.

@@ -17,7 +17,7 @@ import { addNews } from './news.js';
 import { seasonStats } from './state.js';
 import { findEvent, eventsInWeek, nsdBlocked } from './calendar.js';
 import { buildRounds, pairWinners, placeOf, buildGroupRounds, groupKoMatches, groupPlace, buildPrelimRounds, prelimKoMatches, buildUkOpenRounds, ukOpenMatches } from './bracket.js';
-import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, wcWithdraw, scorePlNight, plTable, plState, qualOf, teamPrizeShare, wmTchqSlots, gsQualSlots } from './majors.js';
+import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlayer, wcTeams, wcWithdraw, scorePlNight, plTable, plState, qualOf, teamPrizeShare, wmTchqSlots, wmDirect, gsQualSlots } from './majors.js';
 import { addMoney, settleOom, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { routeTarget, scriptedHit } from './decisions.js';
@@ -519,6 +519,26 @@ export function boardCall(state) {
 }
 export const isBigTreble = hit => hit?.mult === 3 && hit.score >= 54;   // T18/T19/T20
 
+// ---- Version 195 (Nutzerwunsch): Jede fixe WM-Qualifikation als News (jeder Spieler nur einmal je Jahr, `qual.wmNews`) ----
+// title null → Titel aus den Namen; skipP: eigener Spieler hat bei diesem Event schon eine eigene Meldung
+function wmAnnounce(state, ids, title, text, skipP = false) {
+  const q = qualOf(state), done = new Set(q.wmNews ?? []);
+  const fresh = [...new Set(ids)].filter(id => id && !done.has(id));
+  if (!fresh.length) return;
+  q.wmNews = [...done, ...fresh];
+  const list = skipP ? fresh.filter(id => id !== 'P') : fresh;
+  if (!list.length) return;
+  const nm = id => (id === 'P' ? state.player.name : getPlayer(state, id)?.name ?? '?'), names = list.map(nm), me = list.includes('P');
+  const head = title ?? (list.length === 1 ? (me ? 'Du spielst die Weltmeisterschaft!' : `${names[0]} löst das WM-Ticket`) : `${names.length} Spieler lösen das WM-Ticket`);
+  addNews(state, me ? 'result' : 'info', `🎟️ ${head}`, `${text}${list.length > 1 || title ? `: ${names.join(', ')}` : ''}.`);
+}
+// Nach den PC Finals: direkte Plätze (Top 40 PDC + 40 Pro Tour) und Plätze über Challenge/Dev Tour, Women's Series und Nebentouren
+function wmDirectNews(state) {
+  const q = qualOf(state), direct = wmDirect(state), auto = new Set(q.wmAuto ?? []), reg = new Set([q.wmYouth, ...Object.values(q.wmReg ?? {}).flat()]);
+  wmAnnounce(state, direct.filter(id => auto.has(id)), 'WM-Teilnehmer fix: Top 40 PDC & Top 40 Pro Tour', 'Über die Order of Merit direkt für die WM qualifiziert');
+  wmAnnounce(state, direct.filter(id => !auto.has(id) && !reg.has(id)), "WM-Tickets über Challenge/Dev Tour, Women's Series & Nebentouren", 'Über ihre Tour-Ranglisten für die WM qualifiziert');
+}
+
 // ---- New Star Darts: Schlüsselmomente selbst werfen ----
 // Zu Beginn einer eigenen Aufnahme: Matchdarts, Entscheidungsleg, Break-Chance (Gegner hat Anwurf), Checks ab 61.
 // Unter 20 % Energie wirft die KI für dich (schlechter werdend).
@@ -937,10 +957,11 @@ function settle(state, inst) {
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
   if (inst.oom?.length) settleOom(state, `${inst.eventId}#${inst.sub ?? 0}`, inst.oom, oomMap, year);   // 2-Jahres-OOM: gleiches Turnier von vor 2 Jahren fällt heraus
-  if (inst.eventId === 'wm-quali') qualOf(state).wmqSurvivors = survivors;
+  if (inst.eventId === 'wm-quali') { qualOf(state).wmqSurvivors = survivors; wmAnnounce(state, survivors, 'WM-Tickets beim Tour Card Holder Qualifier', 'Über den Tour Card Holder Qualifier für die WM qualifiziert', true); }
   if (inst.eventId === 'gs-quali') qualOf(state).gsqSurvivors = survivors;
-  if (inst.cat === 'wmreg') (qualOf(state).wmReg ??= {})[inst.eventId.slice(4)] = survivors;
-  if (inst.eventId === 'youth-wm') qualOf(state).wmYouth = survivors[0];
+  if (inst.cat === 'wmreg') { (qualOf(state).wmReg ??= {})[inst.eventId.slice(4)] = survivors; wmAnnounce(state, survivors, null, `Über den ${inst.name} für die WM qualifiziert`, true); }
+  if (inst.eventId === 'youth-wm') { qualOf(state).wmYouth = survivors[0]; wmAnnounce(state, survivors.slice(0, 1), null, 'Als Jugend-Weltmeister für die WM qualifiziert'); }
+  if (inst.eventId === 'pcf') wmDirectNews(state);              // Version 195: nach den PC Finals stehen die Ranglisten-Plätze fest
   if (inst.cat === 'etq') etStore(state, inst.eventId.replace('etq', 'et')).tchq = survivors;
   if (inst.cat === 'mastersq') qualOf(state).mastersQ = survivors;
   if (inst.cat === 'hnq') {                                    // HNQ: je Turnier ein Platz (max. 4)
@@ -950,9 +971,7 @@ function settle(state, inst) {
   }
   if (inst.cat === 'wmqs') {                                   // Q-School-WM-Qualifier: Sieger spielt die WM
     qualOf(state).wmQsWinner = survivors[0];
-    const w = getPlayer(state, survivors[0]);
-    addNews(state, survivors[0] === 'P' ? 'result' : 'info', survivors[0] === 'P' ? '🎟️ Du spielst die Weltmeisterschaft!' : `WM-Qualifier: ${w?.name ?? '?'} löst das WM-Ticket`,
-      'Sieger des WM-Qualifiers der Q-School-Teilnehmer – Startplatz bei der WM im Dezember.');
+    wmAnnounce(state, survivors.slice(0, 1), null, 'Sieger des WM-Qualifiers der Q-School-Teilnehmer – Startplatz bei der WM im Dezember');
   }
   if (survivors.length === 1 && !inst.isQualifier && !inst.cards && inst.cat !== 'local' && inst.fmt !== 'pln') {
     const fin = last.matches[0], runnerUp = fin && fin.b ? (fin.a === survivors[0] ? fin.b : fin.a) : null;
