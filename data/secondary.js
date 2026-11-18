@@ -5,9 +5,9 @@ export const SECONDARY_SPREAD = 0.15;
 // Version 188: Nebentour-Spieler, die zusätzlich die Challenge Tour spielen (Nutzerwunsch)
 // (Version 190: bis 23 Jahre zusätzlich Development Tour) – Polen: alle mit Ø über 79
 export const SEC_ALSO_CT = ['Nitin Kumar', 'Bhav Patel', 'Devon Petersen', 'Cameron Carolissen', 'Johan Geldenhuys',
-  'Mirosław Grudziecki', 'Dawid Robak', 'Krzysztof Kciuk', 'Maciej Łuczak', 'Wojciech Bruliński', 'Jesús Salate', 'Rashad Sweeting'];
+  'Mirosław Grudziecki', 'Dawid Robak', 'Krzysztof Kciuk', 'Maciej Łuczak', 'Wojciech Bruliński', 'Jesús Salate', 'Rashad Sweeting', 'David Munyua', 'Peter Wachiuri'];
 // Version 192: Nebentour-Spieler, die jedes Jahr die Q-School (EU) spielen (Nutzerwunsch)
-export const SEC_QSCHOOL = ['Jesús Salate', 'Rashad Sweeting'];
+export const SEC_QSCHOOL = ['Jesús Salate', 'Rashad Sweeting', 'David Munyua', 'Peter Wachiuri'];   // Version 194: + Munyua, Wachiuri
 export const SECONDARY = {
   // Version 101: Spielerinnen laut Nutzer-Rangliste mit ihrem Average (exakt, ohne Streuung); Alter nur wo bekannt (sonst zufällig 25–45).
   // Herkunft „UK“ in der Vorlage → ENG (Annahme). Noa-Lynn van Leuven spielt bei den Männern (Challenge Tour), Beau Greaves ist Tourcard-Holderin (data/players.js).
@@ -120,7 +120,11 @@ export const SECONDARY = {
     ['Rudie van Staden', 'ZA', null, 77], ['Phillip Fourie', 'ZA', null, 77], ['Rustim Adams', 'ZA', null, 75], ['Johan Wiese', 'ZA', null, 75],
     ['Ado Jenneker', 'NA', null, 72], ['Wame Gomang', 'BW', null, 71], ['Modokai Dheka', 'ZW', null, 70], ['Kekhumo Karonda', 'BW', null, 70],
     ['Kudzanai Nyemba', 'ZW', null, 69], ['Stanice Daniels', 'NA', null, 69], ['Tshireletso Mokalaka', 'BW', null, 68], ['Tumelo Poloka', 'BW', null, 67]] },
-  africa: { label: 'African Darts Group', players: [
+  // Version 194: Nordafrika (Kenia/Uganda) nach Nutzerliste ergänzt (fester Ø für alle, `exact`); Bestehende behalten ihren Ø
+  africa: { label: 'African Darts Group', exact: true, players: [
     ['David Munyua', 'KE', 30, 85], ['Peter Wachiuri', 'KE', 39, 84], ['Patrick Ocheng', 'UG', 45, 81], ['Pascal Wanjala', 'KE', 30, 77],
-    ['Evans Njuguna', 'KE', 49, 76], ['Charles Kausi', 'KE', 36, 75], ['Okalany Clegg', 'UG', 34, 75]] },
+    ['Evans Njuguna', 'KE', 49, 76], ['Charles Kausi', 'KE', 36, 75], ['Okalany Clegg', 'UG', 34, 75],
+    ['Peter Wanjie', 'KE', null, 78.28], ['Festus Chepkwony', 'KE', null, 74.55], ['Darius Nyenyo', 'KE', null, 72.89], ['Dominic Munyao', 'KE', null, 72],
+    ['Charles Njuguna', 'KE', null, 66.94], ['Dominic Ojiambo', 'KE', null, 66.5], ['Benson Ngari', 'KE', null, 65.89], ['Acidri Isaac Passi', 'UG', null, 65.78],
+    ['Setu Dadhaniya', 'KE', null, 64.93], ['John Kipchumba', 'KE', null, 62.54], ['Wilson Kaimenyi', 'KE', null, 61.06]] },
 };
