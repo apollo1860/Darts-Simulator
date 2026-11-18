@@ -710,5 +710,8 @@ body.nsd-on, .nsd-root { touch-action: pan-y; }
 @keyframes nsd-grade-pop { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.18); } 100% { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .nsd-rate-grade b.pop { animation: none; opacity: 1; transform: none; } }
 /* Version 168: eigene Icons statt Emojis (icons.js) – Größe folgt der Schriftgröße */
-.nsd-ico { width: 1.18em; height: 1.18em; display: inline-block; vertical-align: middle; filter: drop-shadow(0 2px 1px rgba(0,0,0,.35)); overflow: visible; }
-.nsd-ico.sm { width: 1em; height: 1em; }
+.nsd-ico { width: 1.45em; height: 1.45em; display: inline-block; vertical-align: middle; filter: drop-shadow(0 2px 1.5px rgba(0,0,0,.35)); overflow: visible; }
+.nsd-ico.wide { width: 2.1em; }
+.nsd-dark .nsd-ico { width: 1em; height: 1em; }   /* kleine Vorrats-Icons in dunklen Feldern */
+.nsd-bar .nsd-btn .nsd-ico { width: 1.6em; height: 1.6em; } .nsd-bar .nsd-btn .nsd-ico.wide { width: 2.5em; }
+.nsd-rowpair .nsd-btn.row .nsd-ico { width: 1.55em; height: 1.55em; } .nsd-rowpair .nsd-btn.row .nsd-ico.wide { width: 2.2em; }

@@ -41,7 +41,7 @@ export function render(app) {
       </div>
       <div class="nsd-rowpair">
         <button class="nsd-btn row" id="s-drinks"><span class="ic">${nicon('beer')}</span><span class="lb">Getränke</span></button>
-        <div class="nsd-dark" style="font-size:1.15rem;white-space:nowrap">${nicon('beer')}${d.beer ?? 0}&nbsp; ${nicon('shot')}${d.schnaps ?? 0}&nbsp; ${nicon('cocktail')}${d.wodka ?? 0}</div>
+        <div class="nsd-dark" style="font-size:1.15rem;white-space:nowrap">${nicon('pint')}${d.beer ?? 0}&nbsp; ${nicon('shot')}${d.schnaps ?? 0}&nbsp; ${nicon('cocktail')}${d.wodka ?? 0}</div>
       </div>
       <div class="nsd-rowpair">
         <button class="nsd-btn row" id="s-darts"><span class="ic">${nicon('darts')}</span><span class="lb">Darts</span></button>
@@ -54,7 +54,7 @@ export function render(app) {
       { go: 'league', icon: nicon('ranks'), label: 'Ranglisten' },
       { go: 'skills', icon: nicon('skill'), label: 'Fähigkeit' },
       { go: 'life', icon: nicon('life'), label: 'Leben' },
-      { id: 's-play', icon: arrowIcon(), label: 'Spielen' },
+      { id: 's-play', icon: nicon('play'), label: 'Spielen' },
     ]),
   });
 }
