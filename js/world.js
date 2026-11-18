@@ -148,6 +148,8 @@ export function changeStrength(p, delta) {
   p.attrs.sco = clamp(Math.round((before + d) * 10) / 10, 1, 100);
 }
 
+// Version 204: JDC-Talente bis 23 – Durchbruchjahr verschiebt das Potenzial mit 40 % Chance um den Sprung, insgesamt max. +10
+export const JDC_POT_BONUS = 10, JDC_POT_CHANCE = 0.4;
 // Spielerinnen (Version 101): Women's Series = alle Spielerinnen der Welt (Nebentour + Holderinnen wie Beau Greaves)
 export function markWomen(players) {
   for (const p of Object.values(players)) {
@@ -225,8 +227,12 @@ export function developWorld(state, rng, year, protect = new Set()) {
     else if (rng.chance(a >= 33 ? SLUMP_P * 2 : SLUMP_P)) jump = -rng.float(3, 6.5);
     changeStrength(p, rng.normal(mean, 1.4) + jump);
     if (p.potential) {                                   // JDC-Talente: bis 24 zusätzlich Richtung Potenzial, nie darüber
+      // Version 204 (Nutzerwunsch): Durchbruchjahr im Dev-Tour-Alter (≤ 23) darf das Potenzial sprengen – Bonus wächst um den Sprung,
+      // insgesamt höchstens +10 (`potBonus`); die normale Entwicklung zielt weiter nur aufs Potenzial
+      if (jump > 0 && a <= DEV_MAX_AGE && rng.chance(JDC_POT_CHANCE)) p.potBonus = Math.min(JDC_POT_BONUS, (p.potBonus ?? 0) + jump);
       if (a < 24 && p.avg < p.potential) changeStrength(p, 0.25 * (p.potential - p.avg));
-      if (p.avg > p.potential) changeStrength(p, p.potential - p.avg);
+      const cap = p.potential + (p.potBonus ?? 0);
+      if (p.avg > cap) changeStrength(p, cap - p.avg);
     }
     if (jump) (jump > 0 ? report.breakouts : report.slumps).push({ id: p.id, name: p.name, jump, tier: p.tier });
     // Ruhestand: ab 45 steigend, ohne Tourcard eher
