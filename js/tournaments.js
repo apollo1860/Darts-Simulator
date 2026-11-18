@@ -385,11 +385,11 @@ const withAngle = (state, id, a) => {
 // Version 162: launische Spielerinnen (avgRange, z. B. Silvia Lindner 52–75) – je Match ein eigener Average aus der Spanne,
 // fest je Turnier/Runde/Gegner (gleicher Wert bei jedem Aufruf im Live-Match)
 export const rangeAttrs = (state, pl, inst, opp) => {
-  const [lo, hi] = pl.avgRange, r = new RNG({ s: hashSeed(`rng|${pl.id}|${state.seed ?? 0}|${inst?.eventId}|${inst?.year}|${inst?.sub ?? 0}|${inst?.current ?? 0}|${opp}`) });
+  const [lo, hi] = pl.avgRange ?? [pl.avg - pl.avgSpread, pl.avg + pl.avgSpread], r = new RNG({ s: hashSeed(`rng|${pl.id}|${state.seed ?? 0}|${inst?.eventId}|${inst?.year}|${inst?.sub ?? 0}|${inst?.current ?? 0}|${opp}`) });
   return { ...pl, attrs: attrsForAverage(Math.round(r.float(lo, hi) * 10) / 10, r) };
 };
 const soloAttrs0 = (state, id, inst, sf, opp) => {
-  const pl0 = getPlayer(state, id), pl = pl0?.avgRange && id !== 'P' ? rangeAttrs(state, pl0, inst, opp) : pl0;
+  const pl0 = getPlayer(state, id), pl = (pl0?.avgRange || pl0?.avgSpread) && id !== 'P' ? rangeAttrs(state, pl0, inst, opp) : pl0;   // avgSpread: Version 184 (± um den aktuellen Ø)
   let staged = applyStage(perf(pl), sf);
   if (id !== 'P') return staged;
   if (state.mode === 'nsd') {                         // Energie unter 20 %: Leistung bricht ein (je Leg mehr)

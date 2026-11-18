@@ -73,7 +73,7 @@ export const WM_QUALIFIERS = [
   { key: 'jp', name: 'Steel Darts Japan Tour', nations: ['JP'], slots: 1, city: 'Tokio', country: 'JP', overseas: true },
   { key: 'cn', name: 'PDC China Championship', nations: ['CN'], slots: 1, city: 'Shanghai', country: 'CN', overseas: true },
   { key: 'in', name: 'IDC Indian Qualifier', nations: ['IN'], slots: 1, city: 'Mumbai', country: 'IN', overseas: true },
-  { key: 'asiach', name: 'PDC Asian Championship', nations: ['JP', 'PH', 'CN', 'IN', 'HK', 'SG', 'MY', 'TH'], slots: 2, city: 'Manila', country: 'PH', overseas: true },
+  { key: 'asiach', name: 'PDC Asian Championship', nations: ['JP', 'PH', 'CN', 'IN', 'HK', 'SG', 'MY', 'TH', 'TW', 'MN', 'BN', 'LB', 'MO'], slots: 2, city: 'Manila', country: 'PH', overseas: true },
   { key: 'anzpl', name: 'ANZ Premier League', nations: ['AU', 'NZ'], slots: 1, city: 'Sydney', country: 'AU', overseas: true },
   { key: 'tasman', name: 'Trans-Tasman Championship', nations: ['AU', 'NZ'], slots: 1, city: 'Auckland', country: 'NZ', overseas: true },
   { key: 'cdccup', name: 'CDC Continental Cup', nations: ['US', 'CA'], slots: 1, city: 'Las Vegas', country: 'US', overseas: true },

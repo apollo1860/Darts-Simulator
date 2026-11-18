@@ -71,7 +71,8 @@ export const NAME_FIXES = { 'Lenny Schlueter': 'Lenny Schlüter' };
 // JDC-Talente (Nutzerliste, Version 94): [Name, Nation, Alter 2026, Ø-Spanne von, bis]. Sie kommen mit 16 in die Welt (Dev Tour):
 // Start-Ø = von + 25 % der Spanne, Potenzial = bis (Entwicklung bis 24 zusätzlich Richtung Potenzial, nie darüber – world.js developWorld).
 export const JDC_TALENTS = [['Mitchell Lawrie', 'SCO', 15, 82, 106], ['Jack Johnson', 'ENG', 13, 76, 92], ['Jayden Walker', 'ENG', 13, 77, 94],
-  ['Owen Bryceland', 'SCO', 11, 75, 90], ['Lewis Cook', 'ENG', 16, 74, 92], ['Benjamin Dopfer', 'DE', 15, 70, 90], ['Nicardo Pieper', 'DE', 14, 70, 85]];
+  ['Owen Bryceland', 'SCO', 11, 75, 90], ['Lewis Cook', 'ENG', 16, 74, 92], ['Benjamin Dopfer', 'DE', 15, 70, 90], ['Nicardo Pieper', 'DE', 14, 70, 85],
+  ['Tergel Khurelkhuu', 'MN', 15, 80, 96, 8]];   // Version 184: Mongole, Start-Ø 84 (80 + ¼ × 16), je Match ± 8 (6. Wert = Schwankung)
 export const jdcStartAvg = (lo, hi) => Math.round((lo + 0.25 * (hi - lo)) * 10) / 10;
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)

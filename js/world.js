@@ -172,11 +172,11 @@ export function addFormer(players, rng, year) {
 // ageOffset: −1, wenn die Aufnahme am Jahresende vor dem Altern passiert (dann sind sie nach dem Jahreswechsel 16).
 export function addJdc(players, rng, year, ageOffset = 0) {
   const added = [];
-  JDC_TALENTS.forEach(([name, nation, age26, lo, hi], i) => {
+  JDC_TALENTS.forEach(([name, nation, age26, lo, hi, spread], i) => {
     const id = `J${i + 1}`, age = age26 + (year - 2026);
     if (players[id] || age < 16) return;
     const avg = jdcStartAvg(lo, hi);
-    players[id] = { id, name, nation, age: age + ageOffset, avg, potential: hi, jdc: true, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 16, rng) };
+    players[id] = { id, name, nation, age: age + ageOffset, avg, potential: hi, jdc: true, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 16, rng), ...(spread ? { avgSpread: spread } : {}) };
     added.push(name);
   });
   return added;
