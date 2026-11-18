@@ -205,7 +205,7 @@ function tvBoard(thrower) {
   const row = i => {
     const t = inst.teams?.[ui.ids[i]], p = getPlayer(ui.s, ui.ids[i]);
     const nine = (i === ui.me ? ui.aim?.nine : oppNine(i)) ? `<span class="tvsb-nine" data-side="${i}">9</span>` : '';   // 9-Darter im Gange (auch beim Gegner, Version 151): ragt links heraus
-    return `<div class="tvsb-row">${nine}<span class="tvsb-ind">${thrower === i ? '▶' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
+    return `<div class="tvsb-row">${nine}<span class="tvsb-ind">${thrower === i ? '<svg viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><path d="M1.5 1 L9 5 L1.5 9 Z" fill="currentColor"/></svg>' : ''}</span><span class="tvsb-name">${esc(t ? t.name.replace(/^Team /, '') : surname(p?.name ?? '?'))}</span>
       <span class="tvsb-flag">${flag(t?.nation ?? p?.nation)}</span>${sets ? `<span class="tvsb-box">${m.sets[i]}</span>` : ''}<span class="tvsb-box">${m.legs[i]}</span><span class="tvsb-rem">${m.rem[i]}</span></div>`;
   };
   return `<div class="tvsb-head"><span class="tvsb-title">${esc(round.name)} – ${isSuddenDeath(m.format, m.legs) ? 'Sudden Death' : inExtension(m.format, m.legs) ? '2 Legs Vorsprung' : `First to ${sets ? `${m.format.sets} Sets` : m.format.legs}`}</span>${sets ? '<span class="tvsb-col">Sets</span>' : ''}<span class="tvsb-col">Legs</span><span class="tvsb-col w"></span></div>
