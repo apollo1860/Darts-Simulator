@@ -6,7 +6,7 @@ import { flag } from '../../../../data/nations.js';
 import { getPlayer } from '../../../world.js';
 import { formatLabel } from '../../../matchEngine.js';
 import { rankOf } from '../../../rankings.js';
-import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub } from '../../../tournaments.js';
+import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub, simulateRoundAI } from '../../../tournaments.js';
 import { starPct, starNeed, canSelfPlay, nervesOf, matchEnergy, isFloor } from '../../../nsd.js';
 import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead, arrowIcon, checkIcon } from '../frame.js';
 import { icon as nicon } from '../icons.js';
@@ -138,7 +138,7 @@ export function render(app) {
           <div class="nsd-result-row"><span>Star-Status</span><b>${(inst.star ?? 0) >= 0 ? '+' : ''}${fmtNum(inst.star ?? 0, 1)}</b></div>
           ${starMeter(app.state, { starIcon, starPct, starNeed })}
           ${energy}
-        </div>${myPath(s, inst)}`,
+        </div>${win ? '' : drawView(s, inst)}${myPath(s, inst)}`,
       bottom: bar([null, null, inst.hasNext ? { id: 'e-nextsub', icon: arrowIcon(), label: 'Nächstes Turnier', wide: true }
         : { id: 'e-close', icon: checkIcon(), wide: true }]),
     });
@@ -156,11 +156,12 @@ export function render(app) {
         { go: 'live', icon: arrowIcon(), label: lm ? 'Weiterspielen' : 'Spielen', wide: true }]),
     });
   }
-  const lm = inst.lastMatch;
+  const lm = inst.lastMatch, tree = fixedTree(inst);
+  // Version 202: ausgeschieden – Folgerunden Runde für Runde verfolgen (Turnierbaum) oder direkt beenden (Sieger kommt als News)
   return frame({
     body: `${head}${darkBar('Ausgeschieden', 'sm red')}
-      <div class="nsd-card" style="font-size:1.3rem">${lm ? `${esc(lm.round)}: ${lm.score.join(':')} gegen ${esc(nameOf(s, lm.opp))}` : ''}</div>${myPath(s, inst)}`,
-    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, null, { id: 'e-rest', icon: '⏩', label: 'Turnier beenden', wide: true }]),
+      <div class="nsd-card" style="font-size:1.3rem">${lm ? `${esc(lm.round)}: ${lm.score.join(':')} gegen ${esc(nameOf(s, lm.opp))}` : ''}</div>${drawView(s, inst)}${myPath(s, inst)}`,
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, tree ? { id: 'e-round', icon: '▶', label: 'Nächste Runde' } : null, { id: 'e-rest', icon: '⏩', label: 'Turnier beenden', wide: true }]),
   });
 }
 
@@ -171,6 +172,12 @@ export function mount(root, app) {
   bindDraw(root, s);
   on('#e-sim', () => { s.activeEvent.live = null; playRound(s); nextRound(s); app.save(); app.go('matchstats'); });
   on('#e-rest', () => { simulateRest(s); app.save(); app.refresh(); });
+  on('#e-round', () => {                                    // eine Runde weiter, Ergebnisse dieser Runde im Turnierbaum zeigen
+    const inst = s.activeEvent, ri = inst.current;
+    simulateRoundAI(s); nextRound(s); app.save();
+    Object.assign(draw, { open: true, ri, cur: inst.current });
+    app.refresh();
+  });
   on('#e-nextsub', () => { nextSub(s); app.save(); app.refresh(); });
   on('#e-close', () => {
     closeEvent(s); app.save();

@@ -25,7 +25,7 @@ import { trackTitle, recordChampion } from './history.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
-  matchRating, addRel, addFans, fansAfterMatch, titleFans } from './nsd.js';
+  matchRating, addRel, addFans, fansAfterMatch, titleFans, isFloor } from './nsd.js';
 import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
@@ -1134,6 +1134,12 @@ function nsdEventEnd(state, inst) {
 export function closeEvent(state) {
   const inst = state.activeEvent;
   if (!inst?.done) return;
+  // Version 202: eigenes Bühnen-Turnier, das du nicht gewonnen hast – Sieger (und Finale) als News
+  if (inst.stopAt === 1 && inst.survivors?.[0] && inst.survivors[0] !== 'P' && !isFloor(inst) && !inst.plNight && !inst.groups?.length) {
+    const fin = inst.rounds[inst.rounds.length - 1]?.matches?.[0], w = inst.survivors[0], ru = fin && (fin.a === w ? fin.b : fin.a);
+    const nm = id => (id === 'P' ? state.player.name : getPlayer(state, id)?.name ?? '?'), sc = fin?.score ? (fin.a === w ? fin.score : [...fin.score].reverse()).join(':') : '';
+    addNews(state, 'result', `🏆 ${inst.name}: ${nm(w)} gewinnt`, ru ? `Finale: ${nm(w)} – ${nm(ru)}${sc ? ` ${sc}` : ''}.` : '');
+  }
   const ev = findEvent(state, inst.eventId, inst.year, inst.week);
   let prev = inst;
   if (ev) for (let s = inst.sub + 1; s < inst.count && aiRunnable(state, ev); s++) prev = runAITournament(state, ev, s, { qualifiers: prev.survivors });

@@ -86,7 +86,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Zielen: zwei Linien + Kreis (`circleRadius`, Tempo steigt bei jedem Richtungswechsel), Zoom-Schalter, TV-Spielstandsanzeige.
 - Kein Ticker-Logbuch (Leg/Break/180-Kommentare) – Hinweise nur als Toast.
 - Effekte: Druck, Nervosität, Verletzung, Spielmomente (2 Optionen, 50/50), verbaute Felder/Einsteckwinkel, Bouncer (je Dart-Modell), Robin Hood (je Flight).
-- Turnier-Lobby: Turnierbaum aller Runden (K.-o. mit festem Baum) zum Durchblättern.
+- Turnier-Lobby: Turnierbaum aller Runden (K.-o. mit festem Baum) zum Durchblättern; ausgeschieden → „Nächste Runde“ Klick für Klick oder „Turnier beenden“ (Sieger dann als News).
 - Spielbericht: Statistik-Seite + Bewertungs-Seite (Note, Beziehungen, Star-Status, Energie mit Veränderung).
 
 ## Leben & Karriere-Rahmen
