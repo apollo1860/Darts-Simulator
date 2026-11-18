@@ -1019,9 +1019,12 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
     assert.deepEqual(o, secondaryOrder(s, c, 2025));                   // fest je Jahr
   }
   assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= (p.circuit === 'women' ? 35 : 55) && p.avg <= 100));
-  // Masters-Vorrunde: je Nebentour der Beste
-  const pf = mastersPrelimField(s, false);
-  assert.equal(pf.pool.filter(id => s.world.players[id]?.tier === 'secondary').length, 6);
+  // Masters-Vorrunde (Version 212): je Top 8 des Vorjahres von 8 Nebentouren (ADG = Südliches Afrika + Afrika), Holder ab Platz 57, CT/Dev Top 8, 4 JDC
+  const pf = mastersPrelimField(s, false), secIn = pf.pool.filter(id => s.world.players[id]?.tier === 'secondary');
+  assert.ok(secIn.length >= 60 && secIn.length <= 64, `Nebentour-Plätze ${secIn.length}`);   // Beau Greaves (Holderin) zählt einmal
+  for (const c of ['nb', 'asia', 'cdc', 'dpa', 'dpnz', 'cdlc']) assert.equal(secIn.filter(id => s.world.players[id].circuit === c).length, 8, c);
+  assert.equal(secIn.filter(id => ['safrica', 'africa'].includes(s.world.players[id].circuit)).length, 8);
+  assert.equal(pf.seeds.length, 32); assert.ok(pf.pool.length >= 140 && pf.pool.length <= 160, `Vorrunde ${pf.pool.length}`);
   assert.ok(pf.pool.includes(secondaryOrder(s, 'women', 2025)[0]));
   // Grand Slam: 2 Spielerinnen der Women's Series
   s.date.week = 46;

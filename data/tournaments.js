@@ -129,7 +129,7 @@ export const CALENDAR = [
     note: id === 'ws-final' ? 'Top 24 der World-Series-Wertung' : 'Einladung: 8 PDC-Stars (meist Premier League) + 8 regionale Spieler' })),
   // Winmau World Masters: Vorrunde (Gruppenphase + K.-o., 8 Qualifikanten) in der Woche vorher, Hauptfeld 32 = Top 24 + 8
   { id: 'masters-q', cat: 'mastersq', fmt: 'mastersq', name: 'Winmau World Masters · Vorrunde', week: 4, city: 'Milton Keynes', country: 'ENG',
-    extra: true, qualifier: true, prelim: true, noOom: true, note: 'Holder ab Platz 25 + Nebentouren + JDC · 32 Gruppen, K.-o. gegen Platz 25–56 · 8 Plätze · Best of 5 Sets' },
+    extra: true, qualifier: true, prelim: true, noOom: true, note: 'Holder ab Platz 25 + Top 8 (Vorjahr) von CT, Dev, Women’s Series, Nordic & Baltic, Asien, CDC, DPA, DPNZ, ADG, CDLC + 4 JDC · 32 Gruppen, K.-o. gegen Platz 25–56 · 8 Plätze · Best of 5 Sets' },
   { id: 'masters', cat: 'major', fmt: 'masters', name: 'Winmau World Masters', week: 5, city: 'Milton Keynes', country: 'ENG', note: 'Top 24 PDC + 8 Qualifikanten aus der Vorrunde' },
   ...Array.from({ length: 16 }, (_, i) => ({
     id: `pl-${i + 1}`, cat: 'pl', fmt: 'pln', name: `Premier League · Spieltag ${i + 1}`, week: 6 + i,

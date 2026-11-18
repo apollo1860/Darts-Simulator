@@ -185,20 +185,22 @@ export function scorePlNight(state, inst) {
 // ---- Winmau World Masters: Vorrunde ----
 // Holder nach PDC-Rangliste (inkl. Spieler mit Karte)
 const holdersByRank = state => idsOf(orderOfMerit(state, 'pdc')).filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
-// Gesetzt (K.-o.): Platz 25–56. Gruppenphase: Holder ab Platz 57 + Beste der Nebentouren (CT, Dev, Nordic & Baltic, Asien,
-// Nordamerika, Australien, Neuseeland, Frauen) + 4 JDC-Talente (jüngste starke Dev-Spieler)
+// Gesetzt (K.-o.): Platz 25–56. Gruppenphase: Holder ab Platz 57 + je Top 8 des Vorjahres von Challenge Tour, Development Tour,
+// Women's Series, Nordic & Baltic, Asian Tour, CDC, DPA, DPNZ, African Darts Group, CDLC + 4 JDC-Talente (Version 212).
+// Doppelt Qualifizierte zählen einmal, ohne Nachrücker („theoretisch 188 Startberechtigte“).
+const PRELIM_SEC = ['women', 'nb', 'asia', 'cdc', 'dpa', 'dpnz', 'adg', 'cdlc'];
 export function mastersPrelimField(state, withPlayer) {
   const h = holdersByRank(state).filter(id => withPlayer || id !== 'P');
   const seeds = h.slice(24, 56), used = new Set(h);
-  const pool = h.slice(56);
-  const free = id => id && !used.has(id) && (used.add(id), true);
-  for (const type of ['challenge', 'dev']) idsOf(orderOfMerit(state, type)).filter(id => id !== 'P' && getPlayer(state, id)?.tier !== 'tour').slice(0, 2).forEach(id => free(id) && pool.push(id));
-  // Nebentouren: jeweils der Beste der Vorjahres-OOM (Women's Series, Asian Tour, CDC, DPA, DPNZ, Nordic & Baltic)
-  for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb']) {
-    const id = secondaryOrder(state, c, state.date.year - 1).find(x => !used.has(x));
-    if (id) { free(id); pool.push(id); }
-  }
-  playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => free(p.id) && pool.push(p.id));
+  const pool = h.slice(56), y = state.date.year - 1;
+  const ok = id => id && (withPlayer || id !== 'P');
+  const add = ids => ids.filter(ok).slice(0, 8).forEach(id => { if (!used.has(id)) { used.add(id); pool.push(id); } });
+  for (const type of ['challenge', 'dev']) add(idsOf(orderOfMerit(state, type, y)));
+  const avgOf = id => (id === 'P' ? 0 : getPlayer(state, id)?.avg ?? 0);
+  for (const c of PRELIM_SEC) add(c === 'adg'   // African Darts Group = Südliches Afrika + übriges Afrika: die besten 8 aus beiden Top 8
+    ? [...secondaryOrder(state, 'safrica', y, { tour: true }).slice(0, 8), ...secondaryOrder(state, 'africa', y, { tour: true }).slice(0, 8)].sort((a, b) => avgOf(b) - avgOf(a))
+    : secondaryOrder(state, c, y, { tour: true }));
+  playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => { used.add(p.id); pool.push(p.id); });
   return { seeds, pool };
 }
 

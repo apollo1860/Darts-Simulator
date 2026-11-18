@@ -71,10 +71,11 @@ export function eligibility(state, ev) {
     }
     case 'pc': return card ? { ok: true } : { ok: false, reason: 'Tourcard nötig' };
     case 'et': return etQualified(state, ev) ? { ok: true } : { ok: false, reason: card ? 'Nicht qualifiziert (TCHQ verpasst?)' : 'Tourcard oder Host-Nation-Qualifier nötig' };
-    case 'mastersq': {                                   // Winmau World Masters – Vorrunde: Holder außerhalb der Top 24
-      if (!card) return { ok: false, reason: 'Tourcard nötig' };
+    case 'mastersq': {                                   // Winmau World Masters – Vorrunde: Holder außerhalb der Top 24 + Top 8 der Touren (Vorjahr)
       const r = rankOf(state, 'pdc', 'P');
-      return r && r <= 24 ? { ok: false, reason: 'Direkt im Hauptfeld (Top 24)' } : { ok: true };
+      if (card && r && r <= 24) return { ok: false, reason: 'Direkt im Hauptfeld (Top 24)' };
+      const f = mastersPrelimField(state, true);
+      return f.seeds.includes('P') || f.pool.includes('P') ? { ok: true } : { ok: false, reason: card ? 'Nicht startberechtigt' : 'Tourcard oder Top 8 einer Tour (Vorjahr) nötig' };
     }
     case 'etq':
       if (!card) return { ok: false, reason: 'Tourcard nötig' };
