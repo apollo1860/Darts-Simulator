@@ -3073,4 +3073,16 @@ test('New Star Darts v165: Meilensteine Triple Crown, Clean Sweep, 50 Wochen auf
   L.lifeWeek(s, new RNG(1)); assert.equal(s.mstats.weeksNo1, 50); assert.ok(has('no1w50'), '50 Wochen auf Platz 1');
 });
 
+test('New Star Darts v199: Spieler ohne Karte zählen in der PDC-OOM mit, Top 64 → Tourcard', async () => {
+  const N = await import('../js/nsd.js'), S = await import('../js/season.js'), R = await import('../js/rankings.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', age: 25, slot: 1, seed: 8 }), y = s.date.year;
+  const ct = Object.values(s.world.players).find(p => p.tier === 'challenge');
+  ((s.rankings.years[y] ??= {}).pdc ??= {})[ct.id] = 500;   // z. B. eine sehr gute WM
+  const o = R.orderOfMerit(s, 'pdc', y), me = o.find(x => x.p.id === ct.id);
+  assert.ok(me && me.rank <= 64, 'ohne Karte mit Platz in der Rangliste');
+  assert.ok(R.devHolders(s, y).every(p => p.tier === 'tour' || p.id === 'P'));
+  S.yearEnd(s);
+  assert.equal(ct.tier, 'tour'); assert.equal(ct.cardUntil, y + 2); assert.ok(ct.cardVia.startsWith('Top 64 PDC'));
+});
+
 console.log(`\n${n} Tests ok`);

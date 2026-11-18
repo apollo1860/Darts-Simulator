@@ -221,7 +221,7 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   const y = state.date.year;
   if (MAJOR_CATS.includes(ev.cat)) return majorField(state, ev, withPlayer || !!ctx.auto);
   if (ev.cat === 'pc') {
-    let ids = orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => withPlayer || id !== 'P').slice(0, FORMATS.pc.field);
+    let ids = orderOfMerit(state, 'pdc').map(x => x.p.id).filter(id => (withPlayer || id !== 'P') && isHolder(state, id)).slice(0, FORMATS.pc.field);   // nur Holder (Version 199)
     if (withPlayer && !ids.includes('P')) ids[ids.length - 1] = 'P';
     return rng.shuffle(ids);                                  // PC: freie Auslosung
   }

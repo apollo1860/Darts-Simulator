@@ -134,7 +134,10 @@ export function yearEnd(state) {
   const lost = [];
   for (const x of orderOfMerit(state, 'pdc', y)) {
     const pl = x.p;
-    if (!pl.cardUntil) continue;
+    if (!pl.cardUntil || (pl.id === 'P' ? p.tour !== 'tour' : pl.tier !== 'tour')) {   // Version 199: ohne Karte in den Top 64 → neue Tourcard (2 Jahre)
+      if (x.rank <= 64 && x.money > 0) { awardCard(state, pl.id, y + 2, `Top 64 PDC ${y} (Platz ${x.rank})`); lines.push(`${pl.name} (PDC-OOM ${x.rank}.)`); }
+      continue;
+    }
     if (x.rank <= 64) {
       if (pl.cardUntil <= y) pl.cardVia = `Top 64 PDC ${y}`;
       pl.cardUntil = Math.max(pl.cardUntil, y + 1);

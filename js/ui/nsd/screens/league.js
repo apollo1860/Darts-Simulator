@@ -1,5 +1,5 @@
 // Ranglisten: Ranglisten im NSS-Tabellenlook (PDC-, Pro-Tour-, Players-Championship-, European-Tour-, Challenge-/Development-Tour-Rangliste in ★, Premier-League-Tabelle), eigene Zeile grün, Zone blau
-import { orderOfMerit, moneyOf } from '../../../rankings.js';
+import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { frame, bar, arrowIcon } from '../frame.js';
@@ -20,14 +20,9 @@ const fmtStars = v => v.toLocaleString('de-DE');
 // Premier League: Platz 5–8 fest (PL_LEAGUE_PAY), Platz 1–4 spielen die Play-offs um 350/170/110
 const plPrize = (rank, lvl) => (PL_LEAGUE_PAY[rank] ? fmtStars(starShow(PL_LEAGUE_PAY[rank], lvl)) : 'Play-offs');
 
-// Version 197 (Nutzerwunsch): PDC Order of Merit – alle Tourcard-Holder (auch mit 0 Preisgeld, grüner Punkt) mit ihrem offiziellen Platz,
-// dazu Spieler ohne Karte mit Preisgeld (ohne Platz „–“, sie zählen für Karten/Qualifikationen nicht mit), nach Preisgeld einsortiert
-const pdcList = s => {
-  const off = orderOfMerit(s, 'pdc').map(x => ({ ...x, tc: true })), ids = new Set(off.map(x => x.p.id));
-  const extra = [...Object.values(s.world.players).filter(p => p.tier !== 'tour' && !ids.has(p.id)), ...(s.player.tour !== 'tour' ? [s.player] : [])]
-    .map(p => ({ p, money: moneyOf(s, 'pdc', p.id), rank: null })).filter(x => x.money > 0);
-  return [...off, ...extra].sort((a, b) => b.money - a.money || (a.rank ?? 1e9) - (b.rank ?? 1e9));
-};
+// Version 197/199: PDC Order of Merit – alle Tourcard-Holder (auch mit 0 Preisgeld) und Spieler ohne Karte mit Preisgeld, alle mit Platz
+// (wie die echte PDC); Holder mit grünem Punkt in eigener Spalte
+const pdcList = s => orderOfMerit(s, 'pdc').map(x => ({ ...x, tc: x.p.id === 'P' ? s.player.tour === 'tour' : x.p.tier === 'tour' }));
 // Top 128 – eigene Zeile immer dabei (auch wenn weiter hinten)
 const ownRow = all => { const top = all.slice(0, 128), me = all.find(x => x.p.id === 'P'); return me && !top.includes(me) ? [...top, me] : top; };
 

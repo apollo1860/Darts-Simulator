@@ -58,6 +58,16 @@ function members(state, type, year) {
   if (type === 'pdc' || type === 'protour' || type === 'pco' || type === 'eto' || type === 'ws') {
     const list = playersOfTier(state, 'tour');
     if (p.tour === 'tour') list.push(p);
+    // Version 199 (wie die echte PDC): in der PDC Order of Merit zählen auch Spieler ohne Karte mit Preisgeld (2-Jahres-Wertung) mit
+    if (type === 'pdc') {
+      const ids = new Set(), yrs = state.rankings?.years ?? {};
+      for (const yy of [year, year - 1, year - 2]) for (const id of Object.keys(yrs[yy]?.pdc ?? {})) ids.add(id);
+      for (const id of ids) {
+        const x = id === 'P' ? p : state.world.players[id];
+        if (!x || (id === 'P' ? p.tour === 'tour' : x.tier === 'tour' || x.tier === 'retired')) continue;   // Holder sind schon drin
+        if (moneyOf(state, 'pdc', id, year) > 0) list.push(x);
+      }
+    }
     return list;
   }
   if (type === 'wos') return [...womenOf(state), ...(p.woman ? [p] : [])];   // Version 101: Women's Series – alle Spielerinnen
@@ -71,7 +81,7 @@ function members(state, type, year) {
 
 // Tourcard-Holder bis 23 außerhalb der PDC-Top-64 dürfen zusätzlich Dev Tour spielen (inkl. Spieler)
 export function devHolders(state, year = state.date.year) {
-  return orderOfMerit(state, 'pdc', year).filter(x => x.rank > 64 && x.p.age <= DEV_MAX_AGE).map(x => x.p);
+  return orderOfMerit(state, 'pdc', year).filter(x => x.rank > 64 && x.p.age <= DEV_MAX_AGE && (x.p.id === 'P' ? x.p.tour === 'tour' : x.p.tier === 'tour')).map(x => x.p);   // nur Holder (Version 199)
 }
 
 // 2-Jahres-Wertungen (PDC wie echt): Vorjahr voll, das Jahr davor läuft im Verlauf der Saison aus
