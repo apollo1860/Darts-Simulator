@@ -16,7 +16,7 @@ export const EMOJI = {
   '😊': 'faceHappy', '🙂': 'faceHappy', '😄': 'faceHappy', '😌': 'faceHappy', '😏': 'faceHappy', '👋': 'faceHappy', '😐': 'faceNeutral', '😠': 'faceAngry', '😤': 'faceAngry',
   '🗓️': 'calendar', '🧣': 'fans', '🎉': 'party', '🥳': 'party', '🎆': 'party', '🎈': 'party', '🪩': 'party', '🎂': 'party',
   '🏅': 'medal', '🥇': 'medal', '🥈': 'medalS', '🥉': 'medalB', '👑': 'crown',
-  '❤️': 'heart', '❤': 'heart', '🧡': 'heart', '💛': 'heart', '💞': 'heart', '💘': 'heart', '💋': 'heart', '🌹': 'heart', '💔': 'heartBroken',
+  '❤️': 'heart', '❤': 'heart', '🧡': 'heartO', '💛': 'heartY', '💞': 'heart', '💘': 'heart', '💋': 'heart', '🌹': 'heart', '💔': 'heartBroken',
   '🍺': 'pint', '🍻': 'pint', '🥤': 'pint', '🥃': 'shot', '🍸': 'cocktail', '🥂': 'cocktail',
   '📺': 'tv', '📻': 'tv', '🎬': 'tv', '🖥️': 'laptop', '💻': 'laptop', '🚗': 'car', '🏎️': 'car', '🚘': 'car', '🏠': 'home', '🏡': 'home',
   '🔍': 'magnifier', '💥': 'burst', '💣': 'burst', '🛌': 'bed', '🛏️': 'bed', '📱': 'phone', '📸': 'phone', '📷': 'phone', '🌐': 'globe', '🌍': 'globe',

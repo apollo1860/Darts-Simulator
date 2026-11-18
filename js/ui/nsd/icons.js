@@ -432,3 +432,11 @@ Object.assign(ICONS, {
       <circle cx="21" cy="18" r="4" fill="#e2382b" stroke="#7a0e06" stroke-width=".7"/><circle cx="36" cy="20" r="3.4" fill="#e2382b" stroke="#7a0e06" stroke-width=".7"/><ellipse cx="29" cy="22" rx="4" ry="2.4" fill="#f4f4f0" stroke="#2e9c3a" stroke-width="1"/>
       <path d="M3 24 H53 C53 35 43 42 28 42 C13 42 3 35 3 24 Z" fill="${u('b')}" stroke="#5e3a10" stroke-width="1.2"/>${hl('M8 27 C11 33 17 37 24 38 C16 38 10 34 8 27 Z', 0.35)}` })),
 });
+
+// ---- Version 176: Einsatz-Herzen in Gelb (1) und Orange (2), Rot (3) = heart ----
+Object.assign(ICONS, {
+  heartY: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#fff27a'], [1, '#e8b400']]),
+    body: `<path d="${heartPath}" fill="${u('h')}" stroke="#9c7400" stroke-width="1.2"/><ellipse cx="15" cy="13" rx="6" ry="3.6" fill="#fff" opacity=".5"/>` })),
+  heartO: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#ffc07a'], [1, '#e86a00']]),
+    body: `<path d="${heartPath}" fill="${u('h')}" stroke="#9c4200" stroke-width="1.2"/><ellipse cx="15" cy="13" rx="6" ry="3.6" fill="#fff" opacity=".5"/>` })),
+});
