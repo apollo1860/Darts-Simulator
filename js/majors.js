@@ -10,7 +10,7 @@ import { clamp } from './util.js';
 
 export const MAJOR_CATS = ['major', 'ws', 'pl'];
 // Anzahl gesetzter Spieler (Rest wird zugelost)
-const SEEDS = { masters: 8, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 999, plf: 4, wmq: 0, gsq: 0, pln: 0, gsod: 32 };
+const SEEDS = { masters: 16, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 999, plf: 4, wmq: 0, gsq: 0, pln: 0, gsod: 32 };
 
 export const RULE_TEXT = {
   masters: 'Top 24 der PDC Order of Merit (Tour-Modus: alle Tourcard-Holder, Vorrunden)', ukopen: 'Tourcard, Top 8 Challenge-/Dev-Tour-OOM oder Riley’s-Amateur-Qualifier',

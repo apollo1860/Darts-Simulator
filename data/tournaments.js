@@ -222,7 +222,7 @@ export const FORMATS = {
   wwm: { default: { legs: 4 }, byRemaining: { 4: { legs: 5 }, 2: { legs: 6 } } },   // Women's World Matchplay: VF Bo7, HF Bo9, F Bo11
   youth: { default: { legs: 5 }, byRemaining: { 8: { legs: 6 }, 4: { legs: 6 }, 2: { legs: 7 } } },
   // Majors & Events (Phase 5)
-  masters: { default: { legs: 6 }, byRemaining: { 16: { legs: 10 }, 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
+  masters: { default: { sets: 3, legs: 2 }, byRemaining: { 16: { sets: 4, legs: 2 }, 8: { sets: 4, legs: 2 }, 4: { sets: 5, legs: 2 }, 2: { sets: 6, legs: 2 } } },   // Version 211: Sätze à Best of 3 Legs; R1 Bo5, AF/VF Bo7, HF Bo9, Finale Bo11
   ukopen: { default: { legs: 6 }, byRemaining: { 8: { legs: 10 }, 4: { legs: 11 }, 2: { legs: 11 } } },
   matchplay: { default: { legs: 10, clear: 2, extra: 6 }, byRemaining: { 16: { legs: 11, clear: 2, extra: 6 }, 8: { legs: 16, clear: 2, extra: 6 }, 4: { legs: 17, clear: 2, extra: 6 }, 2: { legs: 18, clear: 2, extra: 6 } } },   // Version 132: zwei Legs Vorsprung, max. 6 Zusatzlegs, dann Sudden Death   // R1 Bo19, AF Bo21, VF Bo31, HF Bo33, F Bo35
   wgp: { default: { sets: 2, legs: 3, din: true }, byRemaining: { 16: { sets: 3, legs: 3, din: true }, 8: { sets: 3, legs: 3, din: true }, 4: { sets: 5, legs: 3, din: true }, 2: { sets: 6, legs: 3, din: true } } },   // Version 144: Double-in · Version 145: HF Bo9, F Bo11 Sets
