@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 208;
+export const APP_VERSION = 209;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -96,7 +96,7 @@ export function setStartSkills(p, points) {
 }
 
 // Neue Karriere im Tour-Modus: Profil (Vorname, Nachname, Nation, Alter, Wurfhand), Start mit Tourcard
-export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot = 1, seed, angle = ANGLE_DEFAULT }) {
+export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot = 1, seed, angle = ANGLE_DEFAULT, base = false }) {
   const name = `${first} ${last}`.trim();
   const s = newCareer({ name, nation, hand, age, slot, seed, ...NSD_START });
   s.mode = 'nsd';
@@ -123,7 +123,19 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
   nameTeam(s);
   addNews(s, 'info', `Willkommen auf der Tour, ${first}!`,
     `Über die Q-School ${y} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
+  if (!base) keep128(s);   // realer Spieler: erst nach der Übernahme prüfen
   return s;
+}
+// Version 209 (Nutzerwunsch): immer genau 128 Tourcard-Holder – startest du ohne vorhandene KI-Karte (eigener Spieler, realer Spieler
+// ohne Tourcard), verliert Stephen Rosney seine Karte (→ Challenge Tour); reicht das nicht, die schwächsten Neu-Holder 2026
+export const TOUR_FIELD = 128, DROP_FOR_PLAYER = 'Stephen Rosney';
+export function keep128(s) {
+  const holders = () => Object.values(s.world.players).filter(x => x.tier === 'tour');
+  const extra = () => holders().length + (s.player.tour === 'tour' ? 1 : 0) - TOUR_FIELD;
+  const drop = x => { x.tier = x.age <= 23 ? 'dev' : 'challenge'; x.cardUntil = null; x.cardVia = null; };
+  const r = holders().find(x => x.name === DROP_FOR_PLAYER);
+  if (extra() > 0 && r) drop(r);
+  while (extra() > 0) drop(holders().filter(x => x.id.startsWith('N')).sort((a, b) => a.avg - b.avg)[0] ?? holders().sort((a, b) => a.avg - b.avg)[0]);
 }
 
 // ---- Reale Spieler (Version 98): Karriere als echter Profi starten ----
@@ -178,7 +190,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   if (!r) throw new Error('Unbekannter Spieler');
   const [first, ...rest] = name.split(' ');
   const own = r.age == null && age != null ? Math.max(START_AGES[0], Math.min(START_AGES[1], Math.round(age))) : null;   // Version 161: Alter selbst gewählt
-  const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: own ?? r.age ?? 30, hand, slot, seed, angle });
+  const s = newNsdCareer({ first, last: rest.join(' '), nation: r.nation, age: own ?? r.age ?? 30, hand, slot, seed, angle, base: true });
   const p = s.player, y = s.date.year, ai = Object.values(s.world.players).find(x => x.name === name && !x.rival);
   if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = own ?? ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
   // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
@@ -194,6 +206,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   s.news = [];
   addNews(s, 'info', `Willkommen, ${name}!`, `Du startest als ${name} in die Saison ${y} – Tourcard bis Ende ${p.cardUntil}.`);
   setGoals(s);
+  keep128(s);
   return s;
 }
 

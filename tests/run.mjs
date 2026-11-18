@@ -960,8 +960,9 @@ test('New Star Darts v7: Start 2026, Holder-Liste, Status-Regeln, Meilensteine, 
   // Start nach der Q-School 2026, 5 ★, 128 Holder laut Liste
   assert.deepEqual(s.date, { year: 2026, week: 3 }); assert.equal(s.stars, N.START_STARS); assert.equal(p.age, 45); assert.equal(p.cardUntil, 2027);
   const holders = w.filter(x => x.tier === 'tour');
-  assert.equal(holders.length, 128);
-  assert.equal(holders.filter(x => x.cardUntil === 2026).length, 99); assert.equal(holders.filter(x => x.cardUntil === 2027).length, 29);
+  assert.equal(holders.length + 1, 128);   // Version 209: immer 128 inkl. dir – Stephen Rosney ohne Karte
+  assert.equal(w.find(x => x.name === 'Stephen Rosney').tier, 'challenge');
+  assert.equal(holders.filter(x => x.cardUntil === 2026).length, 99); assert.equal(holders.filter(x => x.cardUntil === 2027).length, 28);
   const ok = w.find(x => x.name === 'Dennie Olde Kalter'); assert.equal(ok.tier, 'tour'); assert.equal(surname(ok.name), 'Olde Kalter');
   assert.equal(surname('Michael van Gerwen'), 'van Gerwen'); assert.equal(surname('Luke Littler'), 'Littler');
   assert.equal(w.find(x => x.name === 'Cor Dekker').nation, 'NO');
@@ -1175,7 +1176,7 @@ test('New Star Darts v34: echte PDC-Startliste 2026 (★), 2-Jahres-Wertung läu
     assert.ok(x, name); assert.ok(Math.abs(x.money - val) < 0.06, `${name}: ${x.money} ≠ ${val}`);
     assert.ok(Math.abs(list[i].money - val) < 0.06, `Platz ${i + 1}`);
   });
-  assert.ok(list.slice(95, 128).every(x => x.money === 0)); assert.equal(R.rankOf(s, 'pdc', 'P'), 129);
+  assert.ok(list.slice(95, 127).every(x => x.money === 0)); assert.equal(R.rankOf(s, 'pdc', 'P'), 128);   // Version 209: 128 Holder inkl. dir (Rosney ohne Karte)
   const lit = list[0].p.id, full = R.moneyOf(s, 'pdc', lit);
   s.date.week = 28; const mid = R.moneyOf(s, 'pdc', lit); s.date.week = 52; const end = R.moneyOf(s, 'pdc', lit);
   assert.ok(mid < full && mid > end); assert.ok(Math.abs(end / full - 0.6) < 0.01);       // am Saisonende nur noch 2025 (60 %)

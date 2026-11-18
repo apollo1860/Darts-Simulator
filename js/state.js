@@ -11,6 +11,7 @@ import { DEFAULT_REGION } from '../data/regions.js';
 import { START_BUDGET, seasonFinance } from './finance.js';
 import { addNews } from './news.js';
 import { seedRankings, pruneSave, orderOfMerit } from './rankings.js';
+import { keep128 } from './nsd.js';
 
 export const VERSION = 12;   // v12: New Star Darts (neuer Speicher-Schlüssel, alte Darts-Career-Stände bleiben unberührt)
 export const SLOTS = [1, 2, 3];
@@ -205,6 +206,7 @@ export function migrate(s) {
   s.version = VERSION;
   if (s.mode === 'nsd') pruneSave(s);   // Version 163: alte Jahre aus großen Spielständen entfernen
   if (s.mode === 'nsd') lateTop64Cards(s);   // Version 200
+  if (s.mode === 'nsd' && !s.flags?.v209cards) { if (s.date.year === 2026) keep128(s); (s.flags ??= {}).v209cards = true; }   // Version 209: 129 → 128 Holder (Rosney ohne Karte)
   return s;
 }
 // Version 200: Jahreswechsel lief noch nach alter Regel (vor Version 199) → Spieler ohne Karte, die zum Saisonende in den Top 64 der
