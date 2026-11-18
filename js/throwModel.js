@@ -3,7 +3,7 @@ import { targetPoint, scoreAt, suggestTarget, isDoubleLabel, labelValue, BOGEY, 
 import { targetAverage, checkoutBase, calcError } from './player.js';
 import { wouldWinMatch, isDecider, dartsLeft, onDouble, needsIn } from './matchState.js';
 import { clamp } from './util.js';
-import { blockage, stability, SWITCH_AT, BLOCK_SIGMA, BOUNCE_P, BOUNCER, bounceChance, robinChance, ROBIN } from './obstruction.js';
+import { blockage, stability, SWITCH_AT, BLOCK_SIGMA, BOUNCE_P, BOUNCER, bounceChance, robinChance, ROBIN, deflect } from './obstruction.js';
 
 // Kalibrierung Average → Streuung (mm, je Achse) für Scoring-Darts (ermittelt mit tests/fitSigma.mjs)
 const SIGMA_TABLE = [[40, 24.5], [50, 18.2], [60, 14.5], [70, 12.2], [80, 10.1], [90, 8.4], [100, 7.1], [110, 5.8]];
@@ -92,6 +92,8 @@ export function aiDart(m, i, attrs, rng, sig = aiSigma(attrs), mult = 1, forced 
     const r = Math.hypot(p.x, p.y), ux = p.x / r, uy = p.y / r, a = rng.normal(0, s), b = rng.normal(0, s * DIN_LATERAL);
     x = p.x + ux * a - uy * b; y = p.y + uy * a + ux * b;
   } else { x = p.x + rng.normal(0, s); y = p.y + rng.normal(0, s); }
+  const dfl = deflect({ x, y }, tips, ang, rng);        // Version 205: Abpraller am steckenden Dart
+  if (dfl) ({ x, y } = dfl);
   const bp = bounceChance(block, attrs.bounce);         // Version 135: eigene Darts (attrs.bounce) – KI ohne Angabe wie bisher
   const rp = robinChance({ x, y }, tips, attrs.robin);   // Version 136: Robin Hood (Dart im Flight des vorherigen)
   const hit = bp > 0 && rng.chance(bp) ? BOUNCER : rp > 0 && rng.chance(rp) ? ROBIN : scoreAt(x, y);

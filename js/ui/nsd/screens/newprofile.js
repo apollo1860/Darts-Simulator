@@ -36,7 +36,7 @@ const dartSvg = a => `<svg class="nsd-angle-svg" viewBox="0 0 260 150" aria-hidd
 const effectText = a => {
   const sev = severity(a), shadow = sev < 0.2 ? 'kaum' : sev < 0.5 ? 'wenig' : sev < 0.8 ? 'deutlich' : 'stark';
   const flight = stability(a) > 1.0001 * stability(10) ? 'unruhigerer Flug' : 'ruhiger Flug';
-  return `Verbaute Felder: <b>${shadow}</b> · ${flight}`;
+  return `Abpraller-Zone hinter steckenden Darts: <b>${shadow}</b> · ${flight}`;
 };
 
 export function render() {
@@ -71,7 +71,7 @@ export function render() {
         <div class="nsd-angle-note">0°: waagerecht. Negative Werte senken das hintere Ende, positive heben es.</div>
         <div id="p-angle-svg">${dartSvg(form.angle)}</div>
         <div class="nsd-angle-note" id="p-angle-fx">${effectText(form.angle)}</div>
-        <div class="nsd-angle-note">Steckende Darts verbauen mit dem Flight das Feld darüber – je steiler, desto stärker. Wer ein verbautes Feld stur weiter anspielt, streut mehr und riskiert Bouncer. Nach unten steckende Darts lassen sich leichter „drauflegen“, fliegen aber unruhiger.</div>
+        <div class="nsd-angle-note">Steckende Darts verdecken mit Barrel und Flight das Feld dahinter – je steiler, desto länger. Darts, die dort landen, prallen ab und rutschen knapp hinter die Spitze: Steckt ein steiler Dart knapp <b>über</b> T20, landen zu hohe Darts im Triple; steckt er knapp <b>darunter</b>, rutschen Treffer ins Single. Sehr flache und nach unten steckende Darts fliegen etwas unruhiger.</div>
       </div>
     </div>`,
     bottom: bar([{ go: 'slots', icon: arrowIcon(true), label: 'Zurück' }, null, { id: 'p-ok', icon: checkIcon(), wide: true }]),

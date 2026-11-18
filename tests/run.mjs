@@ -1492,12 +1492,16 @@ test('New Star Darts v59: Einsteckwinkel – verbaute Felder, Feldwechsel, Streu
     const d = TM.aiDart(mm, 0, at, rng, undefined, 1, 'T20'); if (d.hit.label === 'BOUNCER') bounce++; spreadBlocked += Math.hypot(d.x - T20.x, d.y - T20.y);
     const f = MS.createMatch({ legs: 3 }, 0), e = TM.aiDart(f, 0, at, rng, undefined, 1, 'T20'); spreadFree += Math.hypot(e.x - T20.x, e.y - T20.y);
   }
-  assert.ok(sw / n > 0.9, `Feldwechsel ${sw / n}`); assert.ok(Math.abs(bounce / n - 0.025) < 0.01, `Bouncer ${bounce / n}`);   /* Version 139: BOUNCE_P halbiert */ assert.ok(spreadBlocked / spreadFree > 1.15, `Streuung ×${spreadBlocked / spreadFree}`);   // Version 128: BLOCK_SIGMA 0,25
+  assert.ok(sw / n > 0.9, `Feldwechsel ${sw / n}`); assert.ok(Math.abs(bounce / n - 0.025) < 0.01, `Bouncer ${bounce / n}`);   /* Version 139: BOUNCE_P halbiert */ void spreadBlocked; void spreadFree;
+  // Version 205: Abpraller – steiler Dart knapp ÜBER dem Triple lenkt zu hohe Darts ins T20 (Vorteil), knapp DARUNTER verdeckt er das Triple
+  { const r2 = new RNG({ s: 9 }), t20 = (tipY, ang) => { let h = 0; for (let i = 0; i < 4000; i++) { const mm = MS.createMatch({ legs: 3 }, 0); if (tipY != null) mm.visit.tips = [{ x: 0, y: tipY }]; if (TM.aiDart(mm, 0, { ...at, angle: ang }, r2, undefined, 1, 'T20').hit.label === 'T20') h++; } return h / 4000; };
+    const free = t20(null, 60), above = t20(-110, 60), below = t20(-96, 60);
+    assert.ok(above > free + 0.03 && below < free - 0.05, `T20-Quote frei ${free.toFixed(3)}, Dart darüber ${above.toFixed(3)}, darunter ${below.toFixed(3)}`); }   // Version 128: BLOCK_SIGMA 0,25
   // Kreis für den eigenen Wurf: verbaut = größer; ohne Winkel unverändert
   const mm = MS.createMatch({ legs: 3 }, 0), a0 = { sco: 95, fin: 95, foc: 90, men: 90, cal: 90, exp: 0 }, p1 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20');
   mm.visit.tips = [{ x: T20.x, y: T20.y }];
   const p2 = TM.circleParams({ ...a0, angle: 40 }, mm, 0, 'T20'), p3 = TM.circleParams(a0, mm, 0, 'T20');
-  assert.ok(p2.radius > p1.radius * 1.15 && p2.block > 0.7 && p3.block === 0 && p3.radius === TM.circleParams(a0, MS.createMatch({ legs: 3 }, 0), 0, 'T20').radius);
+  assert.ok(p2.radius === p1.radius && p2.block > 0.7 && p3.block === 0 && p3.radius === TM.circleParams(a0, MS.createMatch({ legs: 3 }, 0), 0, 'T20').radius);   // Version 205: kein größerer Kreis mehr (Abpraller statt Streuung)
   // Winkel im Profil, Editor, KI-Winkel
   const s = N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4, angle: 45 }); assert.equal(s.player.angle, 45);
   assert.equal(N.newNsdCareer({ first: 'W', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4 }).player.angle, O.ANGLE_DEFAULT);

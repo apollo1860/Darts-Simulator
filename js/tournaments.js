@@ -6,7 +6,7 @@ import { RNG, hashSeed } from './rng.js';
 import { simulateMatch } from './matchEngine.js';
 import { createMatch, throwDart, matchResult, wouldWinMatch, isDecider, inExtension, needsIn } from './matchState.js';
 import { BOGEY, scoreAt, targetPoint, checkoutRoute } from './board.js';
-import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER, bounceChance, robinChance, ROBIN, flightRobin } from './obstruction.js';
+import { angleOf, angleEfficiency, blockage, BOUNCE_P, BOUNCER, bounceChance, robinChance, ROBIN, flightRobin, deflect } from './obstruction.js';
 import { dartBounce } from '../data/gear.js';
 import { aiDart, aiSigma, circleParams } from './throwModel.js';
 import { eventCost, canAfford, book, ENTRY_FEE, levelPrice, ETQ_NIGHT } from './finance.js';
@@ -703,6 +703,8 @@ export function liveHumanDart(state, x, y, target) {
   const live = state.activeEvent.live, lm = live.m, side = lm.turn, start = lm.visit.start;
   // Einsteckwinkel: verbautes Feld → Dart kann abprallen (Bouncer, zählt nicht)
   const block = blockage(targetPoint(target), lm.visit.tips, liveAttrs(state, side).angle ?? null), rng = new RNG(state.rng);
+  const dfl = deflect({ x, y }, lm.visit.tips, liveAttrs(state, side).angle ?? null, rng);   // Version 205: Abpraller am steckenden Dart
+  if (dfl) { x = dfl.x; y = dfl.y; }
   const la = liveAttrs(state, side), bp = bounceChance(block, la.bounce);   // Version 135: Bouncer-Risiko je Dart-Modell
   const rp = robinChance({ x, y }, lm.visit.tips, la.robin);           // Version 136: Robin Hood je Flight
   const hit = bp > 0 && rng.chance(bp) ? BOUNCER : rp > 0 && rng.chance(rp) ? ROBIN : scoreAt(x, y), ev = throwDart(lm, hit, { x, y });
@@ -724,7 +726,7 @@ export function liveHumanDart(state, x, y, target) {
     live.selfEvent = { score: ev?.visitScore ?? 0, checkout: !!ev?.checkout, start };
     checkAchievements(state);
   }
-  return { ev, dart: { target, x, y, hit }, side, visitOver };
+  return { ev, dart: { target, x, y, hit, deflected: !!dfl }, side, visitOver };
 }
 
 // Temporäre Leistungs-Modifikatoren (Ablenkungen): Multiplikator auf die Streuung, gilt für n Aufnahmen

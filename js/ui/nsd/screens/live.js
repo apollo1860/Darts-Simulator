@@ -299,7 +299,7 @@ function setTarget(label) {
     nervesNow(ui.s).pts ? '<span class="neg">Nervös</span>' : '',
     a.prm.injured ? '<span class="neg">Verletzt</span>' : '',
     mm !== 1 ? `<span class="${mm < 1 ? 'pos' : 'neg'}">Moment: Streuung ${mm < 1 ? '−' : '+'}${Math.round(Math.abs(1 - mm) * 100)} %</span>` : '',
-    blk >= 0.1 ? `<span class="neg">Feld verbaut: Streuung +${Math.round(BLOCK_SIGMA * blk * 100)} %, Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
+    blk >= 0.1 ? `<span class="neg">Feld verbaut: Darts prallen am steckenden Dart ab (${(angleOf(ui.s, 'P') >= 0 ? 'nach unten' : 'nach oben')}), Bouncer ${(bounceChance(blk, dartBounce(ui.s.player.gear?.id)) * 100).toFixed(1).replace('.', ',')} %</span>` : ''].filter(Boolean);
   $('#info').innerHTML = hints.join(' · ');                           // das Ziel zeigen Scheibe und Chips; Spielstand: TV-Anzeige
   const ang = angleOf(ui.s, 'P'), tips = m.visit.tips;
   const chips = needsIn(m, ui.me) ? ['D20', 'D16', 'D10', 'D18', 'BULL'] : [...new Set([suggestTarget(m.rem[ui.me], dartsLeft(m), null, m.visit.start, ui.ce <= PLAN_CE), ...(route ?? []), 'T20', 'T19', 'BULL'])].slice(0, 5);
@@ -357,7 +357,7 @@ function stopLine() {
   a.phase = 'busy'; $t().disabled = true;
   const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
-  if (r.dart.hit.label !== 'BOUNCER') mark(pt.x, pt.y, true);
+  if (r.dart.hit.label !== 'BOUNCER') mark(r.dart.x, r.dart.y, true);   // Version 205: nach einem Abpraller an der abgelenkten Stelle
   if (a.nine && !r.ev?.legEnd && !nineStill(ui.live.m, ui.me)) {   // Version 130: 9-Darter nicht mehr möglich → „9“ verschwindet sofort
     a.nine = false; const tv = $('#tvsb'); tv?.querySelector(`.tvsb-nine[data-side="${ui.me}"]`)?.remove(); if (!tv?.querySelector('.tvsb-nine')) tv?.classList.remove('nine');
   }
@@ -365,7 +365,7 @@ function stopLine() {
   if (r.visitOver) ui.app.flushMilestones?.();
   const h = r.dart.hit, txt = r.ev?.checkout ? (r.ev.matchEnd ? 'MATCH!' : 'CHECK!') : r.ev?.bust ? 'Überworfen!' : `${fieldName(h.label)}${h.mult > 1 ? ` (${h.score})` : ''}`;
   const noIn = needsIn(ui.live.m, ui.me) && !['BOUNCER', 'ROBIN'].includes(h.label);   // Version 147: Double-in noch offen → der Dart zählt nicht
-  banner(h.label === 'BOUNCER' ? '❌ BOUNCER!' : h.label === 'ROBIN' ? '🏹 ROBIN HOOD!' : noIn ? `${fieldName(h.label)} – zählt nicht` : txt, !r.ev?.bust && h.label !== 'BOUNCER' && h.label !== 'ROBIN' && !noIn);
+  banner(h.label === 'BOUNCER' ? '❌ BOUNCER!' : h.label === 'ROBIN' ? '🏹 ROBIN HOOD!' : noIn ? `${fieldName(h.label)} – zählt nicht` : r.dart.deflected ? `Abgelenkt: ${txt}` : txt, !r.ev?.bust && h.label !== 'BOUNCER' && h.label !== 'ROBIN' && !noIn);
   if (!r.visitOver) { ui.timer = setTimeout(() => { if (ui?.aim) { $('#banner').className = 'board-banner'; nextDart(); } }, 700); return; }
   ui.timer = setTimeout(() => { if (!ui) return; closeOverlay(); afterVisit(r.ev, ui.me); }, r.ev?.checkout ? 1600 : 1200);
 }

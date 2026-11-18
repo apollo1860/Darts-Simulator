@@ -12,13 +12,31 @@ const FLIGHT_W = 20;      // mm: Breite des verdeckten Streifens
 const BODY = 12;          // mm: Mindestlänge (Barrel selbst), auch bei 0°
 const DOWN = 0.35;        // negative Winkel: Schatten nur 35 % so lang
 const SOFT = 7;           // mm: weiche Kante des Schattens
-export const BLOCK_SIGMA = 0.25;   // Streuung × (1 + BLOCK_SIGMA · verbaut)
+export const BLOCK_SIGMA = 0;      // Version 205: keine pauschale Mehr-Streuung mehr (vorher 0,25) – stattdessen Abpraller (deflect)
 export const BOUNCE_P = 0.025;   // Version 139: halbiert (vorher 0,05)     // Bouncer-Chance bei vollständig verbautem Feld (× verbaut)
 export const SWITCH_AT = 0.7;     // ab hier wechselt die KI das Feld
+// Version 205 (Nutzerwunsch): Abpraller statt bloßer Mehr-Streuung – landet ein Dart im Schatten eines steckenden Darts (Bereich hinter
+// dessen Spitze, Richtung Flight), rutscht er mit Chance DEFLECT_P × Stärke am Barrel/Flight ab und landet knapp hinter der Spitze:
+// Flight oben → knapp UNTER der Spitze, Flight unten → knapp darüber. Steckt ein steiler Dart knapp über T20, werden zu hohe Darts ins
+// Triple gelenkt (Vorteil); steckt er knapp darunter, verdeckt sein Schatten das Triple und Treffer rutschen nach unten weg (Nachteil).
+export const DEFLECT_P = 0.85, DEFLECT_GAP = [2, 6];
+export function deflect(pt, tips, angle, rng) {
+  if (angle == null || !tips?.length) return null;
+  const up = angle >= 0, sev = severity(angle);
+  for (const t of tips) {
+    const r = shadowRect(t, angle);
+    const behind = up ? pt.y < t.y - 1 : pt.y > t.y + 1;          // nur hinter der Spitze (dort liegen Barrel und Flight)
+    if (!behind || pt.x < r.x0 || pt.x > r.x1 || pt.y < r.y0 || pt.y > r.y1) continue;
+    if (!rng.chance(DEFLECT_P * sev)) return null;
+    const gap = rng.float(...DEFLECT_GAP);
+    return { x: t.x + (pt.x - t.x) * 0.5, y: t.y + (up ? gap : -gap), deflected: true };
+  }
+  return null;
+}
 
 export const clampAngle = a => Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, a));
 // Flug-Stabilität: sehr flache bzw. nach unten steckende Darts (< 10°) fliegen unruhiger (Streuung +0,2 % je Grad darunter)
-export const SIGMA_COMP = 0.925;  // Ausgleich (nur Scoring-Darts), damit KI-Spieler mit dem mittleren Winkel ihren kalibrierten Average behalten
+export const SIGMA_COMP = 0.94;   // Version 205: 0,925 → 0,94 (Abpraller ins Triple heben den Average sonst um ≈ 0,5)  // Ausgleich (nur Scoring-Darts), damit KI-Spieler mit dem mittleren Winkel ihren kalibrierten Average behalten
 export const stability = (angle, dbl = false) => (dbl ? 1 : SIGMA_COMP) * (1 + 0.002 * Math.max(0, 10 - angle));
 // Wie stark wirkt ein Schatten? 0° = 25 %, 45°+ = 100 %; nach unten (− bis −30°) bis auf 0 %
 export const severity = angle => (angle >= 0 ? 0.25 + 0.75 * Math.min(1, angle / 45) : Math.max(0, 0.25 * (1 + angle / 30)));
@@ -42,7 +60,7 @@ export function blockage(point, tips, angle) {
 
 // Erwarteter Average-Faktor eines Winkels gegenüber dem KI-Mittel (Messung mit KI-Spielern, die verbaute Felder meiden) – für die
 // Schnellsimulation ohne Darts: ≈ 0° bis 18° neutral, nach oben stärker verbaut (bis −3 %), nach unten unruhigerer Flug (−0,5 %)
-const EFF = [[-30, 0.995], [-15, 0.998], [0, 1], [10, 1.002], [18, 1], [30, 0.987], [45, 0.974], [60, 0.974]];
+const EFF = [[-30, 0.982], [-15, 0.993], [0, 1.004], [10, 1.007], [18, 1], [30, 0.999], [45, 0.989], [60, 0.985]];   // Version 205: neu gemessen mit Abprallern
 export function angleEfficiency(angle) {
   if (angle <= EFF[0][0]) return EFF[0][1];
   for (let i = 1; i < EFF.length; i++) if (angle <= EFF[i][0]) { const [x0, y0] = EFF[i - 1], [x1, y1] = EFF[i]; return y0 + (y1 - y0) * (angle - x0) / (x1 - x0); }
