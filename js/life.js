@@ -1,10 +1,11 @@
 // New Star Darts (DOM-frei): Leben – Lifestyle-Shop, Zufriedenheit, Beziehungen (Freundin), Lebens-Ereignisse (Karten), Erfolge
 import { LIFESTYLE } from '../data/lifestyle.js';
-import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M, lendableCars, borrowers } from '../data/lifeevents.js';
+import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M, lendableCars, borrowers, ACCIDENTS_HOME, ACCIDENTS_VEHICLE, VEHICLE_KIND, ownedVehicles, accidentSkills } from '../data/lifeevents.js';
+import { removePoint } from './skilltrain.js';
 import { MANAGERS } from '../data/team.js';
 import { INJ_REGEN } from './injury.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
-import { starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE, partnerText, PRICE_MULT } from './nsd.js';
+import { syncAttrs, starPrice, starPayout, priceFactor, addEnergy, addRel, addFans, skillsAvg, skillValue, addStarProgress, ENERGY_WEEK, TRAINABLE, partnerText, PRICE_MULT } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { RNG } from './rng.js';
@@ -115,6 +116,11 @@ export function rollLifeEvent(state, rng) {
   const ev = rng.pick(pool);
   const names = p.woman ? PARTNER_NAMES_M : PARTNER_NAMES;
   state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(names) : null, lover: ev.id === 'affair' ? rng.pick(names.filter(n => n !== p.partnerName)) : null };
+  if (ev.id === 'accident') {                        // Version 216: Unfall – Art, Fähigkeit und Rückgang (1–2) stehen beim Auslösen fest
+    const cars = ownedVehicles(p), car = cars.length ? rng.pick(cars) : null;
+    const texts = car ? ACCIDENTS_VEHICLE[VEHICLE_KIND[car.id] ?? 'other'] : ACCIDENTS_HOME;
+    Object.assign(state.lifeEvent, { acc: texts.indexOf(rng.pick(texts)), car: car?.id ?? null, skill: rng.pick(accidentSkills(p)), n: rng.int(1, 2) });
+  }
   if (ev.id === 'borrow') { state.lifeEvent.who = rng.pick(borrowers(p, state)); state.lifeEvent.car = rng.pick(lendableCars(p)).id; }
   return state.lifeEvent;
 }
@@ -132,8 +138,13 @@ export function lifeEventView(state) {
   if (!ev) return null;
   const p = { ...state.player, partnerName: le.name ?? state.player.partnerName, lover: le.lover, ...borrowCtx(state, le) };
   const paid = ev.opts.find(o => o.stars < 0), price = paid ? starPrice(-paid.stars, state.player.star.level) : 0;   // Preis im Text = Preis im Knopf
-  return { icon: ev.icon, text: fill(ev.text, p).replaceAll('{preis}', price), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
+  return { icon: ev.icon, text: fill(ev.text.replace('{accident}', accidentText(le)), p).replaceAll('{preis}', price), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
     energy: o.energy < 0 ? -o.energy : 0, tired: o.energy < 0 && (state.player.energy ?? 0) < -o.energy })) };
+}
+function accidentText(le) {
+  if (le?.id !== 'accident') return '';
+  const car = LIFESTYLE.find(x => x.id === le.car), list = car ? ACCIDENTS_VEHICLE[VEHICLE_KIND[car.id] ?? 'other'] : ACCIDENTS_HOME;
+  return (list[le.acc] ?? list[0]).replaceAll('{car}', car?.name ?? 'Fahrzeug');
 }
 // Effekte anwenden; Rückgabe: Liste lesbarer Änderungen
 export function applyEffects(state, e) {
@@ -163,6 +174,11 @@ export function applyEffects(state, e) {
     }
   }
   if (e.shopNo && p.rel.partner > 0) { addRel(p, 'partner', SHOP_NO); if (p.rel.partner <= 0) breakUp(state); }   // still, ohne Anzeige
+  if (e.accident) {                                    // Version 216: Fähigkeitsrückfall durch Unfall
+    const le = state.lifeEvent, t = TRAINABLE.find(x => x.key === le?.skill);
+    let k = 0; if (t) for (let i = 0; i < (le.n ?? 1); i++) if (removePoint(p, t.key)) k++;
+    if (k) { syncAttrs(p); out.push(`${t.label} −${k} (jetzt ${skillValue(p, t.key)})`); }
+  }
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
   if (e.single) breakUp(state, false);
   return out;

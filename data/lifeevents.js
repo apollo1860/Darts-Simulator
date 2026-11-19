@@ -12,6 +12,29 @@ export const lendableCars = p => LIFESTYLE.filter(x => x.cat === 'vehicle' && !x
 export const borrowers = (p, s) => [hasPartner(p) ? 'partner' : null, s?.team?.manager && (p.rel?.manager ?? 0) > 0 ? 'manager' : null].filter(Boolean);
 export const BORROW_CRASH = 0.2;   // Risiko: Fahrzeug kommt kaputt zurück
 
+// Version 216: Unfälle → Fähigkeitsrückfall (Scoring oder Finishing −1…2, nur mit mind. 1 Punkt). Ohne Fahrzeug Haushaltsunfälle,
+// mit Fahrzeug Unfälle mit einem eigenen Fahrzeug ({car}). Gewählt wird beim Auslösen (life.js: rollLifeEvent), abgezogen beim Bestätigen.
+export const ACCIDENTS_HOME = [
+  'Autsch! Du hast dir den Wurffinger in der Tür eingequetscht.',
+  'Beim Gemüseschneiden rutscht das Messer ab – eine tiefe Schnittwunde am Finger.',
+  'Beim Heimwerken triffst du mit dem Hammer voll deinen Daumen.',
+  'Du rutschst in der Dusche aus und fängst dich mit der Wurfhand ab.',
+];
+export const ACCIDENTS_VEHICLE = {
+  car: ['Autounfall mit deinem {car}! Zum Glück nur Blechschaden – aber deine Hand hat beim Aufprall etwas abbekommen.'],
+  scooter: ['E-Scooter-Unfall! Du bist mit dem {car} an einer Bordsteinkante hängen geblieben und auf die Hand gestürzt.'],
+  bike: ['Sturz mit dem {car}! Du landest auf der Wurfhand.'],
+  water: ['Unfall mit deinem {car}: Eine Welle reißt dich von den Füßen, du prallst mit der Hand gegen die Reling.'],
+  air: ['Harte Landung mit deinem {car}! Beim Aufprall verstauchst du dir die Wurfhand.'],
+  other: ['Unfall mit deinem {car}! Beim Aussteigen klemmst du dir die Wurfhand ein.'],
+};
+export const VEHICLE_KIND = { kleinwagen: 'car', van: 'car', sportwagen: 'car', sattelzug: 'car', limousine: 'car', rennwagen: 'car', panzer: 'other',
+  limeprimeabo: 'scooter', tretroller: 'scooter', roller: 'scooter', fahrrad: 'bike', motorrad: 'bike',
+  jetski: 'water', segelboot: 'water', fischerboot: 'water', luftkissenboot: 'water', yacht: 'water',
+  haengegleiter: 'air', heissluftballon: 'air', hubschrauber: 'air', privatjet: 'air', duesenjaeger: 'air' };
+export const ownedVehicles = p => LIFESTYLE.filter(x => x.cat === 'vehicle' && p.owned?.includes(x.id));
+export const accidentSkills = p => ['sco', 'fin'].filter(k => (p.skills?.[k] ?? []).some(v => v > 0));
+
 export const LIFE_EVENTS = [
   { id: 'party', icon: '🎉', text: 'Deine Kumpels schmeißen eine Party und wollen dich unbedingt dabeihaben.',
     opts: [{ label: 'Hingehen', energy: -60, sat: 8, fans: 1, out: 'Lange Nacht, gute Laune.' },
@@ -24,6 +47,8 @@ export const LIFE_EVENTS = [
   { id: 'shopping', icon: '🛍️', if: hasPartner, text: '{partner} hat Lust auf eine Shoppingtour und möchte, dass du mitkommst.',
     opts: [{ label: 'Klar, gehen wir!', shop: true },
       { label: 'Keine Lust', shopNo: true, out: '{partner} zieht alleine los.' }] },
+  { id: 'accident', icon: '🩹', if: p => accidentSkills(p).length > 0, text: '{accident}',
+    opts: [{ label: 'Autsch …', accident: true, out: 'Das wird dich etwas zurückwerfen.' }] },
   { id: 'dinner', icon: '🍝', if: hasPartner, text: '{partner} möchte mit dir schick essen gehen.',
     opts: [{ label: 'Edles Restaurant', stars: -5, partner: 6, sat: 4, out: '{partner} strahlt den ganzen Abend.' },
       { label: 'Gemütlich zu Hause', partner: 2, energy: 5, out: 'Pizza und Couch – auch schön.' },

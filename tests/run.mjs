@@ -3158,4 +3158,21 @@ test('New Star Darts v215: Statistik-Ansicht Titel & Ehrungen (Auszeichnungen im
   const m = S.migrate(o); assert.ok(m.archive.awards.some(w => w.label === 'Fan-Liebling'));
 });
 
+test('New Star Darts v216: Unfälle → Scoring/Finishing −1…2 (nur mit Punkten), Haushalt ohne / Fahrzeug mit Fahrzeug', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), D = await import('../data/lifeevents.js');
+  const s = N.newNsdCareer({ first: 'Uwe', last: 'Unfall', nation: 'DE', age: 25, slot: 1, seed: 9 }), p = s.player, rng = new RNG({ s: 11 });
+  const ev = D.LIFE_EVENTS.find(e => e.id === 'accident');
+  for (const k of ['sco', 'fin']) N.setSkill(p, k, 0); assert.ok(!ev.if(p, s));   // ohne Punkte kein Unfall
+  N.setSkill(p, 'fin', 1); assert.ok(ev.if(p, s));
+  const roll = () => { s.lifeEvent = null; s.lastLifeEvent = null; let le; do { s.lifeEvent = null; le = L.rollLifeEvent(s, rng); } while (le?.id !== 'accident'); return le; };
+  p.owned = []; let le = roll();
+  assert.equal(le.skill, 'fin'); assert.ok(le.n === 1 || le.n === 2); assert.equal(le.car, null);
+  assert.ok(D.ACCIDENTS_HOME.some(t => L.lifeEventView(s).text === t));
+  let r = L.resolveLifeEvent(s, 0, rng); assert.equal(N.skillValue(p, 'fin'), 0); assert.ok(r.changes.some(c => c.startsWith('Finishing −1')));   // nie unter 0
+  N.setSkill(p, 'sco', 30); N.setSkill(p, 'fin', 30); p.owned = ['tretroller']; le = roll();
+  assert.equal(le.car, 'tretroller'); assert.ok(L.lifeEventView(s).text.includes('E-Scooter') && L.lifeEventView(s).text.includes('Tretroller'));
+  const k = le.skill, n = le.n; L.resolveLifeEvent(s, 0, rng); assert.equal(N.skillValue(p, k), 30 - n);
+  for (const id of Object.keys(D.VEHICLE_KIND)) assert.ok((await import('../data/lifestyle.js')).LIFESTYLE.some(x => x.id === id && x.cat === 'vehicle'), id);
+});
+
 console.log(`\n${n} Tests ok`);
