@@ -25,7 +25,7 @@ import { trackTitle, recordChampion, recordPlaces } from './history.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
-  matchRating, addRel, addFans, fansAfterMatch, titleFans, isFloor, starPrice } from './nsd.js';
+  matchRating, addRel, addFans, fansAfterMatch, addMatchFans, relAfterMatch, titleFans, isFloor, starPrice } from './nsd.js';
 import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
 import { checkAchievements, VAC_REGEN, VAC_REGEN_WEEKS } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
@@ -881,7 +881,10 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   const star = starMatchDelta(p.star.level, { won, my, opp, to, avg: s.avg, oppStrength, cat: inst.cat, fmt: inst.fmt, rating, oppRank: rankOf(state, 'pdc', oppId) });
   const ups = addStarProgress(state, star);
   const fans = fansAfterMatch(won, rating);
-  addFans(p, fans);                                   // je mehr Fans, desto langsamer
+  addMatchFans(p, fans, isFloor(inst));               // je mehr Fans, desto langsamer (Version 249: Bühne × 1,5, Floor × 0,75)
+  const rr = relAfterMatch(won, rating);              // Version 249: Manager/Sponsoren nach Leistung
+  if (rr && managerOf(state)) addRel(p, 'manager', rr);
+  if (rr && (p.rel.sponsors ?? 0) > 0) addRel(p, 'sponsors', rr);
   // Zähler für Meilensteine
   const ms = (state.mstats ??= {}), oppRank = rankOf(state, 'pdc', oppId), dec = res.score[0] >= to - 1 && res.score[1] >= to - 1;
   ms.bestAvg = Math.max(ms.bestAvg ?? 0, s.avg); ms.bestRating = Math.max(ms.bestRating ?? 0, rating);

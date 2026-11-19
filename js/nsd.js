@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 248;
+export const APP_VERSION = 249;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -406,7 +406,12 @@ export function titleFans(p, inst) {
     : isFloor(inst) ? TITLE_FANS.floor : TITLE_FANS[inst.cat] ?? TITLE_FANS.floor;
   return addRel(p, 'fans', Math.round(n * Math.max(0.15, 1 - f / 100) * 10) / 10) - f;
 }
-export const fansAfterMatch = (won, rating) => (rating > 7 ? 1 + (rating >= 8.5 ? 1 : 0) : rating > 6 || won ? 0 : -1);
+export const fansAfterMatch = (won, rating) => (rating >= 9.5 ? 4 : rating >= 9 ? 3 : rating >= 8 ? 2 : rating > 7 ? 1 : rating > 6 || won ? 0 : -1);   // Version 249: gestaffelt bis +4
+// Version 249: Match-Fans gebremst wie addFans ((1 − Fans/100)²), Zuwachs auf der Bühne × 1,5, auf dem Floor × 0,75
+export const MATCH_FANS_STAGE = 1.5, MATCH_FANS_FLOOR = 0.75;
+export const addMatchFans = (p, n, floor = false) => addFans(p, n > 0 ? n * (floor ? MATCH_FANS_FLOOR : MATCH_FANS_STAGE) : n);
+// Version 249: Manager und Sponsoren reagieren auf sehr gute (ab 8,5 +1, ab 9,5 +2) und sehr schwache Niederlagen (bis 4,0 −1)
+export const relAfterMatch = (won, rating) => (rating >= 9.5 ? 2 : rating >= 8.5 ? 1 : !won && rating <= 4 ? -1 : 0);
 
 // ---- Editor (Spielstand künstlich anpassen) ----
 // Fähigkeit auf Wert v setzen: Level der Reihe nach mit 3 Sternen füllen
