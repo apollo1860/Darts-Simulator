@@ -87,7 +87,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Zielen: zwei Linien + Kreis (`circleRadius`, Tempo steigt bei jedem Richtungswechsel), Zoom-Schalter, TV-Spielstandsanzeige.
 - Kein Ticker-Logbuch (Leg/Break/180-Kommentare) – Hinweise nur als Toast.
 - Effekte: Druck, Nervosität, Verletzung, Spielmomente (2 Optionen, 50/50), Einsteckwinkel −60…60° mit Abprallern (Dart im Schatten eines steckenden Darts rutscht knapp hinter dessen Spitze; symmetrisch: Flight oben = „anwerfen“ über T20, Flight unten = „drauflegen“ unter T20, je gleich stark; `deflect`), Bouncer (je Dart-Modell), Robin Hood (je Flight).
-- Lobby: Bilanz gegen den Gegner (`state.h2h`, auch im Ranglisten-Pop-up), Formkurve letzte 5 (`state.form`, auch im Status), Spitzname (`player.nick`, Profilerstellung; Lobby, Artikel).
+- Lobby: Bilanz gegen den Gegner (`state.h2h`, auch im Ranglisten-Pop-up), Formkurve letzte 5 (`state.form` neueste zuerst gespeichert, angezeigt neuestes rechts; auch im Status), Spitzname (`player.nick`, Profilerstellung; Lobby, Artikel).
 - Turnier-Lobby: Turnierbaum aller Runden (K.-o. mit festem Baum) zum Durchblättern; ausgeschieden → „Nächste Runde“ Klick für Klick oder „Turnier beenden“ (Sieger dann als News).
 - Spielbericht: Statistik-Seite + Bewertungs-Seite (Note, Beziehungen, Star-Status, Energie mit Veränderung).
 
