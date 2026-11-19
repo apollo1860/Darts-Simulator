@@ -1,32 +1,12 @@
 // Version 244: Walk-on-Song wählen (Liste data/walkons.txt wird erst hier geladen, nichts wird abgespielt)
 import { esc } from '../../../util.js';
-import { parseWalkon, setWalkon, walkonWait, WALKON_WEEKS } from '../../../life.js';
+import { setWalkon, walkonWait, WALKON_WEEKS } from '../../../life.js';
 import { frame, header, titleBand, bar, bindHead, checkIcon } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
 import { icon as nicon } from '../icons.js';
+import { loadSongs, songHits } from '../walkonList.js';
 
 export const nsd = true;
-const MAX_HITS = 60;
-let SONGS = null, loading = null;
-const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’‘`´]/g, "'");
-function loadSongs() {
-  loading ??= fetch('data/walkons.txt').then(r => r.text()).then(txt => {
-    SONGS = txt.split('\n').map(l => l.trim()).filter(Boolean).map(l => { const s = parseWalkon(l); return { ...s, k: norm(`${s.t} ${s.a}`) }; });
-    return SONGS;
-  }).catch(e => { loading = null; throw e; });
-  return loading;
-}
-function hits(q, seed) {
-  if (!SONGS) return [];
-  const words = norm(q).split(/\s+/).filter(Boolean);
-  if (!words.length) {   // ohne Suche: wechselnde Vorschläge (fest je Woche)
-    const n = SONGS.length, step = 389, start = (seed * 977) % n;
-    return Array.from({ length: Math.min(MAX_HITS, n) }, (_, i) => SONGS[(start + i * step) % n]);
-  }
-  const out = [];
-  for (const s of SONGS) { if (words.every(w => s.k.includes(w))) { out.push(s); if (out.length >= MAX_HITS) break; } }
-  return out;
-}
 const row = (s, i) => `<button class="nsd-walk-hit" data-i="${i}"><b>${esc(s.t)}</b><small>${esc(s.a)}</small></button>`;
 
 export function render(app) {
@@ -48,7 +28,7 @@ export function mount(root, app) {
   const list = root.querySelector('#w-list'), q = root.querySelector('#w-q');
   let shown = [];
   const draw = () => {
-    shown = hits(q.value, s.date.year * 52 + s.date.week);
+    shown = songHits(q.value, s.date.year * 52 + s.date.week);
     list.innerHTML = shown.length ? shown.map(row).join('') : '<div class="nsd-walk-info">Kein Titel gefunden.</div>';
     list.scrollTop = 0;
   };

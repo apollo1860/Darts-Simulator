@@ -779,6 +779,7 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 .nsd-vac .lb { display: flex; flex-direction: column; font-size: 1.25rem; }
 .nsd-vac .lb small { font-size: .72rem; font-weight: 600; opacity: .85; }
 .nsd-vac .lb .t { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.nsd-walk-sel { font-size: 1.05rem; padding: 0 34px 0 10px; text-overflow: ellipsis; }   /* Version 245 */
 .nsd-vs-walk { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* Version 244: Walk-on (nur Bühne) */
 .nsd-lrow { display: flex; gap: 8px; margin: 8px 10px; }   /* Version 244: Urlaub + Walk-on */
 .nsd-lrow .nsd-vac { flex: 1 1 0; min-width: 0; margin: 0; }

@@ -9,15 +9,23 @@ import { randomSeed } from '../../../rng.js';
 import { esc } from '../../../util.js';
 import { frame, titleBand, darkBar, bar, arrowIcon, checkIcon } from '../frame.js';
 import { toast, confirmDialog } from '../../components.js';
+import { loadSongs, songHits, songsLoaded } from '../walkonList.js';
 
 export const nsd = true;
-const form = { mode: 'own', first: '', last: '', nick: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT, search: '', real: '', realAge: 25 };
+const form = { mode: 'own', first: '', last: '', nick: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT, search: '', real: '', realAge: 25, wq: '', walk: '' };
 let REAL = null;
 const reals = () => (REAL ??= realPlayers());
 const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const matches = () => { const q = norm(form.search.trim()); return q ? reals().filter(r => norm(r.name).includes(q)) : reals(); };
 const realOptions = list => list.length ? list.map(r => `<option value="${esc(r.name)}" ${r.name === form.real ? 'selected' : ''}>${esc(r.name)} (${r.nation}${r.age ? `, ${r.age}` : ''})</option>`).join('')
   : '<option value="">Kein Spieler gefunden</option>';
+// Version 245: Walk-on-Song schon bei der Profilerstellung (optional, ohne Fan-Wirkung)
+const walkOptions = () => {
+  if (!songsLoaded()) return '<option value="">Lade Liste …</option>';
+  const list = songHits(form.wq), cur = form.walk !== '' ? songsLoaded()[+form.walk] : null;
+  if (cur && !list.includes(cur)) list.unshift(cur);
+  return `<option value="">– kein Song –</option>${list.map(x => `<option value="${x.i}" ${String(x.i) === form.walk ? 'selected' : ''}>${esc(x.t)} – ${esc(x.a)}</option>`).join('')}`;
+};
 const ageList = () => Array.from({ length: START_AGES[1] - START_AGES[0] + 1 }, (_, i) => START_AGES[0] + i);
 // Infokarte zum gewählten realen Spieler: Nation, Alter, Tour, geschätzte Start-Fähigkeiten
 function realInfo() {
@@ -55,6 +63,8 @@ export function render() {
           <div class="nsd-seg" id="p-hand">${[['R', 'Rechts'], ['L', 'Links']].map(([h, l]) =>
             `<button class="nsd-btn ${form.hand === h ? 'blue' : ''}" data-h="${h}"><span class="lb">${l}</span></button>`).join('')}</div></div>
       </div>`}
+      ${darkBar('Walk-on-Song (optional)')}<input class="nsd-input" id="p-wq" maxlength="40" placeholder="Titel oder Interpret …" value="${esc(form.wq)}" autocomplete="off">
+      <div class="nsd-field arrow"><select class="nsd-select nsd-walk-sel" id="p-walk">${walkOptions()}</select></div>
       ${darkBar('Einschlagwinkel der Darts')}
       <div class="nsd-angle">
         <div class="nsd-angle-row"><input type="range" class="nsd-range" id="p-angle" min="${ANGLE_MIN}" max="${ANGLE_MAX}" step="1" value="${form.angle}"><b id="p-angle-v">${form.angle}°</b></div>
@@ -90,6 +100,11 @@ export function mount(root, app, params) {
       sel.innerHTML = realOptions(list); info.innerHTML = realInfo();
     };
   }
+  const wsel = root.querySelector('#p-walk');
+  const wdraw = () => { wsel.innerHTML = walkOptions(); };
+  if (!songsLoaded()) loadSongs().then(wdraw).catch(() => { wsel.innerHTML = '<option value="">Liste nicht verfügbar</option>'; });
+  wsel.onchange = () => { form.walk = wsel.value; };
+  root.querySelector('#p-wq').oninput = e => { form.wq = e.target.value; wdraw(); };
   root.querySelector('#p-angle').oninput = e => {
     form.angle = +e.target.value;
     root.querySelector('#p-angle-v').textContent = `${form.angle}°`;
@@ -107,8 +122,10 @@ export function mount(root, app, params) {
       : newNsdCareer({ first, last, nation: form.nation, age: form.age, hand: form.hand, angle: form.angle, slot, seed: randomSeed() });
     const nick = form.nick.trim().replace(/^["„“']+|["„“']+$/g, '');
     if (nick && !real) app.state.player.nick = nick;   // Version 241: Spitzname
+    const song = form.walk !== '' ? songsLoaded()?.[+form.walk] : null;
+    if (song) app.state.player.walkon = { t: song.t, a: song.a, since: null };   // Version 245: Start-Walk-on, keine Fan-Wirkung, keine Sperre
     saveGame(app.state);
-    form.first = ''; form.last = ''; form.nick = '';
+    form.first = ''; form.last = ''; form.nick = ''; form.wq = ''; form.walk = '';
     app.go('intro');
   };
 }
