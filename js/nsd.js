@@ -9,12 +9,12 @@ import { DARTS, STARTER_DART } from '../data/gear.js';
 import { setGoals, nameTeam } from './career.js';
 import { ANGLE_MIN, ANGLE_MAX, ANGLE_DEFAULT, clampAngle } from './obstruction.js';
 import { ratingForAvgExact, START_AGES } from './player.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES, WOMEN_ON_TOUR, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, CT_FICTIONAL, DEV_PLAYERS, CT_FORMER, JDC_TALENTS, jdcStartAvg, NATION_FIXES, NAME_FIXES, WOMEN_ON_TOUR, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT, tourSinceStart } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 226;
+export const APP_VERSION = 227;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -126,7 +126,7 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
   addNews(s, 'info', `Willkommen auf der Tour, ${first}!`,
     `Über die Q-School ${y} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
   if (!base) keep128(s);   // realer Spieler: erst nach der Übernahme prüfen
-  for (const x of Object.values(s.world.players)) if (x.tier === 'tour') x.tourSince = 0;   // Version 221: Holder „seit vor Spielbeginn“
+  for (const x of Object.values(s.world.players)) if (x.tier === 'tour') x.tourSince = tourSinceStart(x.name, x.id);   // Version 227: echte Jahre, sonst 0 = „seit spätestens 2025“
   p.tourSince = y; (s.flags ??= {}).v221tour = true;
   return s;
 }
@@ -198,7 +198,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   const p = s.player, y = s.date.year, ai = Object.values(s.world.players).find(x => x.name === name && !x.rival);
   if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = own ?? ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
   // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
-  if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}`, tourSince: 0 });
+  if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}`, tourSince: ai.tourSince ?? tourSinceStart(ai.name, ai.id) });
   if (r.woman) p.woman = true;
   const sk = realStartFor({ ...r, card: ai?.tier === 'tour' || r.card });
   for (const t of TRAINABLE) p.skills[t.key] = fillSkill(sk[t.key]);

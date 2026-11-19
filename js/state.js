@@ -2,6 +2,7 @@
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
 import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer, addSuperLeague, markWomen, retireSecondaryDupes } from './world.js';
+import { tourSinceStart } from '../data/players.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL, CT_FORMER } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
 import { scaleSponsorPay, dropSponsor180 } from '../data/sponsorsreal.js';
@@ -210,6 +211,10 @@ export function migrate(s) {
     for (const x of Object.values(s.world?.players ?? {})) if (x.tier === 'tour') x.tourSince ??= 0;
     if (s.player?.tour === 'tour') s.player.tourSince ??= Math.max(s.startYear ?? s.date.year, s.date.year - (s.player.yearsOnTour ?? 0));
     (s.flags ??= {}).v221tour = true;
+  }
+  if (s.mode === 'nsd' && !s.flags?.v227tour) {   // Version 227: bekannte Tourcard-Jahre für Holder, die seit Spielbeginn durchgehend dabei sind
+    for (const x of Object.values(s.world?.players ?? {})) if (x.tier === 'tour' && x.tourSince === 0) x.tourSince = tourSinceStart(x.name, x.id);
+    (s.flags ??= {}).v227tour = true;
   }
   if (s.mode === 'nsd' && !s.flags?.v215awards) {   // Version 215: bisherige eigene Auszeichnungen aus den News ins Archiv (Statistik „Titel & Ehrungen“)
     const a = (s.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });

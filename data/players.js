@@ -29,6 +29,17 @@ export const TOUR_TOP64 = [
   ['Lukas Wenig', 'DE', 32, 89], ['Robert Owen', 'WAL', 42, 89], ['Mario Vandenbogaerde', 'BE', 53, 89],
 ];
 
+// Version 227: Tourcard ohne Unterbrechung seit (Stand 2026, Quellen: dartsnews.com / pdc.tv – 16 Jahre = seit Einführung 2011).
+// Nicht aufgeführte Top-64-Spieler: unbekannt → Anzeige „seit spätestens 2025“; Karte 2025/2026 (TOUR_EXPIRING) = 2025; Neu 2026 = 2026.
+export const TOUR_SINCE = {
+  'Michael van Gerwen': 2011, 'James Wade': 2011, 'Gary Anderson': 2011, 'Dave Chisnall': 2011, 'Joe Cullen': 2011, 'Michael Smith': 2011,
+  'Peter Wright': 2011, "William O'Connor": 2011, 'Mickey Mansell': 2011, 'Brendan Dolan': 2011, 'Mensur Suljović': 2011, 'Ian White': 2011,
+  'Kim Huybrechts': 2012, 'Ross Smith': 2013, 'Daryl Gurney': 2013, 'Ricky Evans': 2013, 'Gerwyn Price': 2014, 'Stephen Bunting': 2014,
+  'Jonny Clayton': 2015, 'Chris Dobey': 2015, 'Jermaine Wattimena': 2015, 'Dimitri van den Bergh': 2015, 'Luke Humphries': 2018,
+  'Raymond van Barneveld': 2023, 'Luke Littler': 2024,
+};
+export const tourSinceStart = (name, id) => TOUR_SINCE[name] ?? (id?.[0] === 'X' ? 2025 : id?.[0] === 'N' ? 2026 : 0);
+
 // b) Zweites Kartenjahr 2026 (Karte 2025/2026), nicht in den Top 64 → Karte läuft aus → starten in der Q-School
 export const TOUR_EXPIRING = [
   ['Karel Sedláček', 'CZ', 47, 90], ['Bradley Brooks', 'ENG', 26, 89], ['Cam Crabtree', 'ENG', 23, 88],

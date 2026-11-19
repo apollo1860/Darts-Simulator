@@ -3200,7 +3200,9 @@ test('New Star Darts v219: zu viel auf einmal getrunken (Grenze 4â€“10 je KW) â†
 test('New Star Darts v221: Platzierungen aller Spieler im laufenden Jahr, Tourcard in Folge, WM-Qualifier ohne direkt Qualifizierte', async () => {
   const N = await import('../js/nsd.js'), S = await import('../js/season.js'), H = await import('../js/history.js'), R = await import('../js/rankings.js'), M = await import('../js/majors.js');
   const s = N.newNsdCareer({ first: 'Pia', last: 'Popup', nation: 'DE', age: 25, slot: 1, seed: 21 });
-  assert.equal(s.player.tourSince, 2026); assert.ok(Object.values(s.world.players).filter(x => x.tier === 'tour').every(x => x.tourSince === 0));
+  assert.equal(s.player.tourSince, 2026); const hold = Object.values(s.world.players).filter(x => x.tier === 'tour'), by = n => hold.find(x => x.name === n)?.tourSince;   // Version 227: echte Jahre
+  assert.equal(by('Michael van Gerwen'), 2011); assert.equal(by('Luke Humphries'), 2018); assert.equal(by('Luke Littler'), 2024); assert.equal(by('Beau Greaves'), 2026);
+  assert.ok(hold.filter(x => x.id[0] === 'X').every(x => x.tourSince === 2025) && hold.every(x => x.tourSince != null));
   while (s.date.week < 50) S.nextWeek(s);
   const top = R.orderOfMerit(s, 'pdc')[0].p.id, pl = H.placementsOf(s, top);
   assert.ok(pl.length >= 25 && pl.every(r => r.place && r.place !== 'undefined' && r.week >= 1)); assert.ok(pl[0].week >= pl[pl.length - 1].week);   // neueste zuerst
