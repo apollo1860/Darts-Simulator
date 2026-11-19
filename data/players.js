@@ -30,7 +30,7 @@ export const TOUR_TOP64 = [
 ];
 
 // Version 227: Tourcard ohne Unterbrechung seit (Stand 2026, Quellen: dartsnews.com / pdc.tv – 16 Jahre = seit Einführung 2011).
-// Nicht aufgeführte Top-64-Spieler: unbekannt → Anzeige „seit spätestens 2025“; Karte 2025/2026 (TOUR_EXPIRING) = 2025; Neu 2026 = 2026.
+// Nicht aufgeführte Top-64-Spieler: unbekannt → Anzeige „seit vor 2026“; Karte 2025/2026 (TOUR_EXPIRING) = 2025; Neu 2026 = 2026.
 export const TOUR_SINCE = {
   'Michael van Gerwen': 2011, 'James Wade': 2011, 'Gary Anderson': 2011, 'Dave Chisnall': 2011, 'Joe Cullen': 2011, 'Michael Smith': 2011,
   'Peter Wright': 2011, "William O'Connor": 2011, 'Mickey Mansell': 2011, 'Brendan Dolan': 2011, 'Mensur Suljović': 2011, 'Ian White': 2011,

@@ -3237,4 +3237,20 @@ test('New Star Darts v224: Premier League – Rundenturnier 1–7/9–15, Spielt
   assert.equal(s.world.players.G2?.name, g2); assert.ok(Object.values(s.world.players).filter(p => p.generated && !p.circuit).every(p => p.id[0] === 'Y'));
 });
 
+test('New Star Darts v228: „Tourcard seit“ in alten Spielständen aus der Kartenherkunft rekonstruiert', async () => {
+  const N = await import('../js/nsd.js'), S = await import('../js/season.js'), St = await import('../js/state.js');
+  const s = N.newNsdCareer({ first: 'Alt', last: 'Stand', nation: 'DE', age: 25, slot: 1, seed: 17 });
+  while (!(s.date.year === 2029 && s.date.week === 10)) S.nextWeek(s);
+  const truth = Object.fromEntries(Object.values(s.world.players).filter(p => p.tier === 'tour').map(p => [p.id, p.tourSince]));
+  const o = JSON.parse(JSON.stringify(s)); for (const p of Object.values(o.world.players)) if (p.tier === 'tour') p.tourSince = 0;   // wie nach der alten Migration
+  for (const f of ['v221tour', 'v227tour', 'v228tour']) delete o.flags[f];
+  const m = St.migrate(o), hold = Object.values(m.world.players).filter(p => p.tier === 'tour');
+  const fresh = hold.filter(p => !/^[TXN]\d/.test(p.id));
+  assert.ok(fresh.length > 10 && fresh.every(p => p.tourSince >= 2027), 'Neue Holder nie „vor 2026“');
+  const exact = fresh.filter(p => Math.abs(p.tourSince - truth[p.id]) <= 1).length;
+  assert.ok(exact / fresh.length >= 0.9, `rekonstruiert ${exact}/${fresh.length}`);
+  const startWrong = hold.filter(p => /^[TXN]\d/.test(p.id) && truth[p.id] > 2026 && !(p.tourSince > 2026)).length;   // Karte verloren + zurückgewonnen
+  assert.ok(startWrong <= 6, `Start-Holder falsch: ${startWrong}`);
+});
+
 console.log(`\n${n} Tests ok`);

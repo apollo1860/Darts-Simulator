@@ -58,7 +58,7 @@ export function render(app) {
 function tourText(s, p, tour) {
   if (!tour) return 'Keine Tourcard';
   const y = s.date.year, y0 = s.startYear ?? 2026, n = k => `${k} ${k === 1 ? 'Jahr' : 'Jahre'}`;
-  if (!p.tourSince) return `Tourcard seit spätestens ${y0 - 1} – mind. ${n(y - y0 + 2)} in Folge`;   // Version 227: genaues Jahr unbekannt (Top 64 Ende 2025)
+  if (!p.tourSince) return `Tourcard seit vor ${y0} – mind. ${n(y - y0 + 2)} in Folge`;   // Start-Holder ohne bekanntes Jahr
   return `Tourcard seit ${p.tourSince} – ${y - p.tourSince + 1}. Jahr in Folge`;
 }
 function playerPopup(app, id, year = app.state.date.year, bd = null) {

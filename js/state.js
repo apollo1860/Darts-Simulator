@@ -216,6 +216,23 @@ export function migrate(s) {
     for (const x of Object.values(s.world?.players ?? {})) if (x.tier === 'tour' && x.tourSince === 0) x.tourSince = tourSinceStart(x.name, x.id);
     (s.flags ??= {}).v227tour = true;
   }
+  if (s.mode === 'nsd' && !s.flags?.v228tour) {   // Version 228: Spielstände, die Version 221 erst nach 2026 bekamen, hatten ALLE Holder auf „vor Spielbeginn“ –
+    // jetzt aus der Kartenherkunft (`cardVia`) rekonstruieren. Start-Holder (IDs T/X/N) bleiben „vor 2026“, außer sie haben die Karte später neu gewonnen.
+    const y0 = s.startYear ?? 2026, start = id => /^[TXN]\d/.test(id);
+    for (const x of Object.values(s.world?.players ?? {})) {
+      if (x.tier !== 'tour' || !(x.tourSince <= y0)) continue;   // 0 = „vor Spielbeginn“ bzw. Startjahr-Werte (Version 227) – später gewonnene Karten korrigieren
+      const via = x.cardVia ?? '', yy = +(/(\d{4})/.exec(via)?.[1] ?? 0), renewal = /^Top 64 PDC \d{4}$/.test(via);
+      let since = !yy ? null : via.includes('(Platz') ? yy + 1 : renewal ? yy - 1 : yy;   // Jahresend-Vergabe → Folgejahr; Verlängerung → mind. seit Vorjahr
+      // Belege für ein Jahr ohne Karte: Challenge-Tour-Preisgeld im Jahr Y (nur ohne Karte) → frühestens Y+1; Q-School-Teilnahme im Jahr Y → frühestens Y
+      let ev = 0;
+      for (const [k, r] of Object.entries(s.rankings?.years ?? {})) if (+k >= y0 && (r.challenge?.[x.id] ?? 0) > 0) ev = Math.max(ev, +k + 1);
+      for (const [k, q] of Object.entries(s.qual ?? {})) if (+k > y0 && (q.qs?.uk?.[x.id] != null || q.qs?.eu?.[x.id] != null)) ev = Math.max(ev, +k);
+      if (start(x.id)) { const v = Math.max(since && !renewal ? since : 0, ev); if (v > y0) x.tourSince = v; continue; }
+      if (ev > (since ?? 0)) since = ev;
+      x.tourSince = Math.max(y0 + 1, since ?? y0 + 1);   // ohne Startkarte: frühestens 2027
+    }
+    (s.flags ??= {}).v228tour = true;
+  }
   if (s.mode === 'nsd' && !s.flags?.v215awards) {   // Version 215: bisherige eigene Auszeichnungen aus den News ins Archiv (Statistik „Titel & Ehrungen“)
     const a = (s.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });
     if (!a.awards) a.awards = (s.news ?? []).filter(n => n.title?.startsWith('🏅 Auszeichnung: ')).map(n => ({ year: n.year, label: n.title.slice('🏅 Auszeichnung: '.length) }));
