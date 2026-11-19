@@ -161,9 +161,10 @@ export function buildPrelimRounds(groups, fmt, koSize = 64, label = 'Vorrunde ·
 // K.-o.-Runde: Gesetzte (Platz 25–56) gegen zugeloste Gruppensieger; fehlende Gegner = Freilos
 export function prelimKoMatches(rounds, groups, seeds, rng) {
   const winners = rng.shuffle(groups.map((g, gi) => groupTable(rounds, g, gi)[0]?.id).filter(Boolean));
-  const n = Math.max(seeds.length, winners.length), out = [];
-  for (let i = 0; i < n; i++) {
-    const a = seeds[i] ?? winners.pop(), b = seeds[i] ? winners.pop() : winners.pop();
+  // Version 237: Gesetzte nach Setzliste im Baum verteilen (Platz 1 und 2 der Setzliste treffen sich erst spät) statt der Reihe nach
+  const M = nextPow2(Math.max(2, Math.ceil((seeds.length + winners.length) / 2))), so = seedOrder(M), out = [];
+  for (let j = 0; j < M; j++) {
+    const sd = so[j] <= seeds.length ? seeds[so[j] - 1] : null, a = sd ?? winners.pop(), b = winners.pop();
     if (a && b) out.push({ a, b, winner: null, score: null });
     else if (a || b) out.push({ a: a ?? b, b: null, winner: a ?? b, bye: true });
   }

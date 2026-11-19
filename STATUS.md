@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 237** – Masters-Vorrunde: die gesetzten Holder Platz 25–56 (Holder-Rangfolge nach PDC-OOM ohne die Top 24) stehen jetzt **nach Setzliste im K.-o.-Baum** (vorher der Reihe nach – Platz 25 und 26 konnten sich schon in der 2. K.-o.-Runde treffen). Die Top 8 der Gesetzten sind auf die 8 Achtel verteilt (je Achtel ein Qualifikant). Gilt auch für den World Cup (Top 4 in verschiedenen Vierteln).
 - [x] **Version 236** – Gruppennamen nach Z weiter mit AA, AB … (vorher Zahlen ab Gruppe 27; betrifft die 32 Gruppen der Masters-Vorrunde).
 - [x] **Version 235** – **Taylor McGuckian** (ENG, 17, Ø 73; JDC-Talent, Annahme Potenzial 89) als 4. JDC-Vertreter der Masters-Vorrunde 2026: JDC-Liste mit 4 Plätzen, bereits Qualifizierte (Ryan Branley über die Dev-Tour-Top-8) werden übersprungen.
 - [x] **Version 234** – JDC-Vertreter ergänzt: **Lex Paeshuyse** (BE, 14, Ø 75) und **Jack Nankervis** (ENG, 15, Ø 79) als JDC-Talente (Start-Ø exakt; Annahme Potenzial +16 → 91 bzw. 95). Beide sind 2026 noch unter 16 → wie Khurelkhuu früh in der Welt (nur Masters-Vorrunde), ab 16 Development Tour.

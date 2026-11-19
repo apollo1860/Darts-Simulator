@@ -3286,4 +3286,16 @@ test('New Star Darts v231: Luxus-Manager erst ab Star-Status 40 (Angebot per New
   p.star.level = 10; assert.ok(C.managersOf(s).some(m => m.id === 'm4'), 'eigener Manager bleibt sichtbar');
 });
 
+test('New Star Darts v237: Masters-Vorrunde – Platz 25–56 gesetzt und im Baum nach Setzliste verteilt', async () => {
+  const B = await import('../js/bracket.js'), { RNG } = await import('../js/rng.js');
+  const seeds = Array.from({ length: 32 }, (_, i) => `S${i + 1}`), groups = Array.from({ length: 32 }, (_, i) => [`W${i}`]);
+  const rounds = groups.map((g, gi) => ({ isGroup: true, matches: [] }));
+  const ko = B.prelimKoMatches([{ isGroup: true, matches: [] }], groups, seeds, new RNG({ s: 1 }));
+  assert.equal(ko.length, 32); assert.ok(ko.every(m => m.a.startsWith('S') && m.b.startsWith('W')));
+  const at = id => ko.findIndex(m => m.a === id);
+  assert.ok(at('S1') < 16 && at('S2') >= 16, '1 und 2 in verschiedenen Hälften');
+  const eighth = id => Math.floor(at(id) / 4);   // 8 Qualifikanten = je ein Achtel des Baums
+  assert.equal(new Set(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'].map(eighth)).size, 8, 'Top 8 der Gesetzten in 8 verschiedenen Achteln');
+});
+
 console.log(`\n${n} Tests ok`);
