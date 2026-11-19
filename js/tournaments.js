@@ -608,7 +608,7 @@ function forcedMoment(live, lm, me = live.me) {
   const ro = lm.rem[1 - me];
   if (!fin && !(ro <= 170 && !BOGEY.has(ro))) return null;       // das Leg kann in dieser Runde noch nicht enden
   live.forceKey = vk;
-  if (boardPace(lm) < 1) live.kmLeg = lm.legIdx;
+  if (boardPace(lm) < 1) { live.kmLeg = lm.legIdx; live.kmCnt = 1; }
   return kind;
 }
 // ---- Einsatz (Version 107, Nutzerwunsch wie im Vorbild): 1 ❤ gelb / 2 ❤ orange (Standard, bisheriges Verhalten) / 3 ❤ rot ----
@@ -649,7 +649,7 @@ function pickMoment(state, live, lm) {
   if (fin && (lm.legStarter !== me || r > 60) && paced(state, lm, me, Math.min(1, eff))) return lm.legStarter !== me ? 'break' : 'finish';
   // ab und zu eine Scoring-Aufnahme mitten im Leg: lange Matches höchstens eine je Leg (35 %), kurze (First-to ≤ 6) bis zu zwei (je 55 %)
   if (r > 170 && r < 501) {
-    const vk = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`, short = boardPace(lm) >= 1;
+    const vk = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`, short = boardPace(lm) >= 1 || wmClutch(state, lm);   // Version 240: WM knapp wie kurze Matches
     if (live.scoreKey === vk) return 'scoring';                    // dieselbe Aufnahme noch einmal geprüft (Neuladen)
     const cnt = live.scoreLeg === lm.legIdx ? (live.scoreCnt ?? 0) : 0;
     const max = (short ? SCORING_SHORT_MAX : 1) + (eff > 1 ? 1 : 0) - (eff < 1 ? 1 : 0);   // Einsatz: 3 ❤ eine Scoring-Szene mehr je Leg, 1 ❤ eine weniger
@@ -671,18 +671,24 @@ export const boardPace = lm => Math.min(1, LONG_MATCH / matchLen(lm));
 // Häufigkeitsfaktor für Board-Momente in langen Matches (1 = kurze Matches, ungedrosselt)
 export const boardRate = (state, lm) => (boardPace(lm) >= 1 ? 1 : boardPace(lm) * BOARD_MORE * (state.activeEvent?.fmt === 'wm' ? WM_BOARD : 1));
 export const lateMatch = lm => wouldWinMatch(lm, 0) || wouldWinMatch(lm, 1) || inExtension(lm.format, lm.legs);   // Version 132: Verlängerung (Two clear legs) = Schlussphase
+// Version 240 (Nutzerwunsch): WM – knappe Schlussphase (höchstens 1 Satz Unterschied, einer nur noch 1 Satz vom Sieg entfernt) → mehr Szenen:
+// jedes Leg ist ein Board-Leg, bis zu 2 Board-Momente und 2 Scoring-Aufnahmen je Leg (wie in kurzen Matches)
+export const WM_CLUTCH_MOMENTS = 2;
+export const wmClutch = (state, lm) => state.activeEvent?.fmt === 'wm' && (lm.format.sets ?? 0) > 1
+  && Math.abs(lm.sets[0] - lm.sets[1]) <= 1 && Math.max(lm.sets[0], lm.sets[1]) >= lm.format.sets - 1;
 function paced(state, lm, me, chance = 1) {
   const live = state.activeEvent.live, pace = boardPace(lm), key = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`;
   if (live.kmKey === key) return true;                                   // diese Aufnahme wurde schon vergeben (Neuladen, erneute Prüfung)
   if (pace < 1) {
-    const late = lateMatch(lm);
-    if (live.kmLeg === lm.legIdx || (chance < 1 && !late)) return false; // höchstens ein Moment je Leg, Scoring nur in der Schlussphase
-    if (!late) {
+    const late = lateMatch(lm), clutch = wmClutch(state, lm), max = clutch ? WM_CLUTCH_MOMENTS : 1;
+    if ((live.kmLeg === lm.legIdx && (live.kmCnt ?? 1) >= max) || (chance < 1 && !late && !clutch)) return false; // höchstens ein Moment je Leg (WM knapp: 2), Scoring nur in der Schlussphase
+    if (!late && !clutch) {
       if (live.kmRoll?.leg !== lm.legIdx) live.kmRoll = { leg: lm.legIdx, on: new RNG(state.rng).chance(Math.min(1, 0.8 * boardRate(state, lm) * EFFORT_SCENES[effortOf(live)])) };
       if (!live.kmRoll.on) return false;
     }
   }
   if (chance < 1 && !new RNG(state.rng).chance(chance)) return false;
+  live.kmCnt = live.kmLeg === lm.legIdx ? (live.kmCnt ?? 1) + 1 : 1;
   live.kmKey = key; live.kmLeg = lm.legIdx;
   return true;
 }

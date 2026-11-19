@@ -3298,4 +3298,27 @@ test('New Star Darts v237: Masters-Vorrunde – Platz 25–56 gesetzt und im Bau
   assert.equal(new Set(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'].map(eighth)).size, 8, 'Top 8 der Gesetzten in 8 verschiedenen Achteln');
 });
 
+test('New Star Darts v240: WM – in knapper Schlussphase mehr Spielszenen', async () => {
+  const N = await import('../js/nsd.js');
+  const run = seed => {
+    const s = N.newNsdCareer({ first: 'W', last: 'M', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+    ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+    const live = ET.startManualMatch(s), lm = live.m; s.activeEvent.fmt = 'wm'; lm.format = { sets: 4, legs: 3 };
+    const per = { clutch: [0, 0], normal: [0, 0] }; let leg = -1, cl = false;
+    for (let k = 0; k < 6000 && !lm.done; k++) {
+      s.player.energy = 100;
+      if (lm.legIdx !== leg) { leg = lm.legIdx; cl = ET.wmClutch(s, lm); per[cl ? 'clutch' : 'normal'][1]++; }
+      if (lm.turn === live.me && !lm.visit.darts.length && ET.keyMoment(s)) per[cl ? 'clutch' : 'normal'][0]++;
+      ET.liveAiVisit(s);
+    }
+    return per;
+  };
+  const tot = { clutch: [0, 0], normal: [0, 0] };
+  for (const sd of [1, 2, 3, 4, 5, 6]) { const r = run(sd); for (const k of ['clutch', 'normal']) { tot[k][0] += r[k][0]; tot[k][1] += r[k][1]; } }
+  const c = tot.clutch[0] / Math.max(1, tot.clutch[1]), n = tot.normal[0] / Math.max(1, tot.normal[1]);
+  assert.ok(tot.clutch[1] > 5 && c > n * 1.3, `knapp ${c.toFixed(2)} vs. sonst ${n.toFixed(2)} Szenen je Leg`);
+  const st = { activeEvent: { fmt: 'wm' } }, m = (a, b) => ({ format: { sets: 4, legs: 3 }, sets: [a, b] });
+  assert.ok(ET.wmClutch(st, m(3, 2)) && ET.wmClutch(st, m(3, 3)) && !ET.wmClutch(st, m(3, 1)) && !ET.wmClutch(st, m(1, 1)) && !ET.wmClutch({ activeEvent: { fmt: 'matchplay' } }, m(3, 3)));
+});
+
 console.log(`\n${n} Tests ok`);
