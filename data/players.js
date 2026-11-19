@@ -150,6 +150,20 @@ export const CT_FORMER = [
 export const WOMEN_ON_TOUR = ['Beau Greaves', 'Zehra Gemi', 'Merve Hummel', 'Celina Glaser'];
 // Version 180: Average-Spanne je Match für Tour-Spielerinnen (Nutzervorgabe: Beau Greaves Ø 95 ± 10)
 export const TOUR_AVG_RANGE = { 'Beau Greaves': [95, [85, 105]] };
+// Version 232: fehlende Spieler der Challenge-/Dev-Tour-OOM 2025 (Nutzerliste: [Name, Nation, Alter 2026, Ø]); IDs E… (Barkhausen 25 J. → Challenge Tour)
+export const CT_ADDED_2026 = [['Sam Spivey', 'ENG', 30, 84], ['Danny van Trijp', 'NL', 29, 84], ['Graham Hall', 'ENG', 37, 84], ['Jannis Barkhausen', 'DE', 25, 81]];
+// Version 232: echte Top 8 der Order of Merits 2025 (Nutzerliste) – für die Masters-Vorrunde 2026 (Vorjahres-Top-8); Gordon-Glen Mathers = „Gordon Mathers“
+export const OOM_2025 = {
+  challenge: ['Ted Evetts', 'Michael Unterbuchner', 'Jack Tweddell', 'Sam Spivey', 'Scott Waites', 'Scott Campbell', 'Danny van Trijp', 'Graham Hall'],
+  dev: ['Jamai van den Herik', 'Ryan Branley', 'James Beeton', 'Jenson Walker', 'Jannis Barkhausen', 'Patrik Williams', 'Nathan Potter', 'Henry Coates'],
+  women: ['Fallon Sherrock', 'Lisa Ashton', 'Noa-Lynn van Leuven', 'Gemma Hayter', 'Kirsi Viinikainen', 'Robyn Byrne', "Rhian O'Sullivan", 'Lorraine Winstanley'],
+  nb: ['Andreas Harrysson', 'Teemu Harju', 'Marko Kantele', 'Valters Melderis', 'Johan Engström', 'Daniel Larsson', 'Jonas Masalin', 'Andreas Hyllgaardhus'],
+  asia: ['Alexis Toylo', 'Motomu Sakai', 'Lourence Ilagan', 'Ryusei Azemoto', 'Paul Lim', 'Man Lok Leung', 'Paolo Nebrida', 'Tomoya Goto'],
+  cdc: ['Adam Sevada', 'Stowe Buntz', 'David Cameron', 'Leonard Gates', 'Alex Spellman', 'Darryl Christie', 'Gary Mawson', 'Jason Brandon'],
+  dpa: ['Joe Comito', 'James Bailey', 'Brody Klinge', 'Tim Pusey', 'Brandon Weening', 'Stuart Coburn', 'Gordon Mathers', 'Harley Kemp'],
+  dpnz: ['Jonny Tata', 'Ben Robb', 'John Hurring', 'Mark Cleaver', 'Jaymie Hilton-Jones', 'Haupai Puha', 'Jack Sheppard', 'Tukina Weko'],
+  cdlc: ['Jesús Salate', 'Rashad Sweeting', 'Norman Madhoo', 'Sudesh Fitzgerald', 'Jonathon Heron', 'Roberto Wentz', 'Robin Albury', 'Guillermo Soto'],
+};
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
 export const CHALLENGE_PLAYERS = [
   ['Joe Hunt', 'ENG', 34, 91.0], ['Derek Coulson', 'WAL', 58, 90.9], ['Tommy Morris', 'ENG', 34, 90.7],

@@ -1,7 +1,7 @@
 // Spielstand: neue Karriere, Speicher-Slots, Export/Import (DOM-frei bis auf Blob/Download in exportGame)
 import { RNG, randomSeed } from './rng.js';
 import { startAttrs, ratingForAvg, EXP_MIN, levelFromXp, attrsForAverage, startExp, START_AGES } from './player.js';
-import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer, addSuperLeague, markWomen, retireSecondaryDupes } from './world.js';
+import { createWorld, upgradeWorld, WORLD_VERSION, LOCAL_SHIFT, addWeakPool, changeStrength, addSecondary, addJdc, addFormer, addSuperLeague, addCtExtra, markWomen, retireSecondaryDupes } from './world.js';
 import { tourSinceStart } from '../data/players.js';
 import { LOCAL_PLAYERS, DEV_PLAYERS, DEV_AT_CT_LEVEL, NATION_FIXES, NAME_FIXES, JDC_TALENTS, TOUR_PLAYERS, CHALLENGE_PLAYERS, CT_FICTIONAL, CT_FORMER } from '../data/players.js';
 import { SECONDARY } from '../data/secondary.js';
@@ -179,6 +179,7 @@ export function migrate(s) {
   }
   addFormer(s.world.players, new RNG(s.rng), s.date.year);   // Version 96
   addSuperLeague(s.world.players, new RNG(s.rng), s.date.year);   // Version 185
+  addCtExtra(s.world.players, new RNG(s.rng), s.date.year);   // Version 232
   markWomen(s.world.players);
   retireSecondaryDupes(s.world.players);   // Version 181
   for (const x of Object.values(s.world.players)) { if (NAME_FIXES[x.name]) x.name = NAME_FIXES[x.name]; if (NATION_FIXES[x.name]) x.nation = NATION_FIXES[x.name]; }

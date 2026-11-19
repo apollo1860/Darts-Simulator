@@ -6,6 +6,7 @@ import { overall, targetAverage } from './player.js';
 import { RNG, hashSeed } from './rng.js';
 import { nationName } from '../data/nations.js';
 import { WM_QUALIFIERS } from '../data/tournaments.js';
+import { OOM_2025 } from '../data/players.js';
 import { clamp } from './util.js';
 import { seedOrder } from './bracket.js';
 
@@ -215,11 +216,14 @@ export function mastersPrelimField(state, withPlayer) {
   const pool = h.slice(56), y = state.date.year - 1;
   const ok = id => id && (withPlayer || id !== 'P');
   const add = ids => ids.filter(ok).slice(0, 8).forEach(id => { if (!used.has(id)) { used.add(id); pool.push(id); } });
-  for (const type of ['challenge', 'dev']) add(idsOf(orderOfMerit(state, type, y)));
+  // Version 232: für das Vorjahr 2025 die echten Top 8 (Nutzerliste, nach Namen); ohne Liste (ADG) wie bisher
+  const norm = n => String(n ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
+  const real = key => y === 2025 && OOM_2025[key] ? OOM_2025[key].map(n => Object.values(state.world.players).find(p => p.tier !== 'retired' && norm(p.name) === norm(n))?.id ?? (norm(state.player.name) === norm(n) ? 'P' : null)).filter(Boolean) : null;
+  for (const type of ['challenge', 'dev']) add(real(type) ?? idsOf(orderOfMerit(state, type, y)));
   const avgOf = id => (id === 'P' ? 0 : getPlayer(state, id)?.avg ?? 0);
-  for (const c of PRELIM_SEC) add(c === 'adg'   // African Darts Group = Südliches Afrika + übriges Afrika: die besten 8 aus beiden Top 8
+  for (const c of PRELIM_SEC) add(real(c) ?? (c === 'adg'   // African Darts Group = Südliches Afrika + übriges Afrika: die besten 8 aus beiden Top 8
     ? [...secondaryOrder(state, 'safrica', y, { tour: true }).slice(0, 8), ...secondaryOrder(state, 'africa', y, { tour: true }).slice(0, 8)].sort((a, b) => avgOf(b) - avgOf(a))
-    : secondaryOrder(state, c, y, { tour: true }));
+    : secondaryOrder(state, c, y, { tour: true })));
   playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => { used.add(p.id); pool.push(p.id); });
   return { seeds, pool };
 }

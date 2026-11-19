@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR, TOUR_AVG_RANGE, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR, TOUR_AVG_RANGE, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT, CT_ADDED_2026 } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -32,6 +32,7 @@ export function createWorld(rng, startYear = 2027) {
   addJdc(players, rng, startYear);
   addFormer(players, rng, startYear);
   addSuperLeague(players, rng, startYear);
+  addCtExtra(players, rng, startYear);
   markWomen(players);
   const world = { version: WORLD_VERSION, players, nextId: 1 };
   // Fiktive Spieler (lokale Amateure, fiktive CT-Spieler): Namen je Karriere zufällig aus Vor-/Nachnamen der Nation
@@ -171,6 +172,15 @@ export function addSuperLeague(players, rng, year) {
     if (players[id] || have.has(normName(name))) return;
     const tier = age <= DEV_MAX_AGE ? 'dev' : 'challenge';
     players[id] = { id, name, nation, age, avg, tier, cardUntil: null, superLeague: true, attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
+  });
+}
+// Version 232: fehlende CT-/Dev-Spieler der OOM 2025 (IDs E1 …), auch in alten Spielständen
+export function addCtExtra(players, rng, year) {
+  const have = new Set(Object.values(players).map(p => normName(p.name)));
+  CT_ADDED_2026.forEach(([name, nation, age26, avg], i) => {
+    const id = `E${i + 1}`, age = age26 + (year - 2026);
+    if (players[id] || have.has(normName(name))) return;
+    players[id] = { id, name, nation, age, avg, tier: age <= DEV_MAX_AGE ? 'dev' : 'challenge', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng) };
   });
 }
 // Ehemalige Tourcard-Holder (Version 96): fehlende als Challenge-Spieler aufnehmen (IDs K1 …), auch in alten Spielständen
@@ -327,10 +337,10 @@ export function addSecondary(players, rng, startYear) {
   const have = new Set(Object.values(players).filter(p => p.tier === 'secondary' || p.circuit).map(p => p.name));   // Version 161: auch Zurückgetretene (behalten circuit) nicht neu anlegen
   const main = new Set(Object.values(players).filter(p => p.tier !== 'secondary' && !p.circuit).map(p => normName(p.name)));   // Version 181: wer schon Tour/CT/Dev-Spieler ist, nicht noch einmal als Nebentour-Spieler
   let sNo = Object.keys(players).filter(id => /^S\d+$/.test(id)).reduce((m, id) => Math.max(m, +id.slice(1)), 0);
-  for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base, range], i) => {
+  for (const [circuit, c] of Object.entries(SECONDARY)) c.players.forEach(([name, nation, age0, base, range, exactOne], i) => {
     if (have.has(name) || main.has(normName(name))) return;
     const age = age0 ?? rng.int(25, 45) + (2026 - startYear);
-    const avg = Math.round((base ? (c.exact ? base : base * rng.float(1 - SECONDARY_SPREAD, 1 + SECONDARY_SPREAD)) : c.avgTop - i) * 10) / 10, id = `S${++sNo}`;   // exact: Average aus der Vorlage
+    const avg = Math.round((base ? (c.exact || exactOne ? base : base * rng.float(1 - SECONDARY_SPREAD, 1 + SECONDARY_SPREAD)) : c.avgTop - i) * 10) / 10, id = `S${++sNo}`;   // exact: Average aus der Vorlage
     players[id] = { id, name, nation, age: age - (2026 - startYear), avg, tier: 'secondary', circuit, cardUntil: null,
       attrs: attrsForAverage(avg, rng), exp: aiExp('challenge', age, rng), ...(c.woman ? { woman: true } : {}), ...(range ? { avgRange: range } : {}) };
   });

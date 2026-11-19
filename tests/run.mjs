@@ -50,7 +50,7 @@ test('Neue Karriere: Startwerte', () => {
   assert.deepEqual(b.player.attrs, { sco: 80, fin: 60, men: 60, foc: 60, cal: 65 });   // max. 25 Bonuspunkte
   assert.deepEqual(Object.keys(s.player.attrs), ['sco', 'fin', 'men', 'foc', 'cal']);
   assert.equal(s.player.avgReal, null); // kein vorgegebener Average
-  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 338 + 6 + 19 + 25);   // Version 203: + Zehra Gemi, Merve Hummel (JDC 2027) · Version 194: + 11 Nordafrika · Version 192: + 10 CDLC · Version 190: + 30 Polen · Version 189: + 12 China · Version 188: + 16 südliches Afrika · Version 187: + 15 Inder · Version 185: + 25 Super-League-Spieler · Version 184: + Tergel Khurelkhuu (JDC, 16 in 2027) · Version 183: Asien 53 · Version 182: Osteuropa 46 · Version 181: Radek Szagański nur noch Challenge Tour · Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
+  assert.equal(Object.keys(s.world.players).length, 128 + 92 + 97 + 50 + 63 + 1 + 90 + 351 + 6 + 19 + 25 + 4);   // Version 232: + 13 Nebentour, + 4 CT (E…) ·   // Version 203: + Zehra Gemi, Merve Hummel (JDC 2027) · Version 194: + 11 Nordafrika · Version 192: + 10 CDLC · Version 190: + 30 Polen · Version 189: + 12 China · Version 188: + 16 südliches Afrika · Version 187: + 15 Inder · Version 185: + 25 Super-League-Spieler · Version 184: + Tergel Khurelkhuu (JDC, 16 in 2027) · Version 183: Asien 53 · Version 182: Osteuropa 46 · Version 181: Radek Szagański nur noch Challenge Tour · Version 161: + Silvia Lindner · Version 101: 91 Spielerinnen, Noa-Lynn in der Challenge Tour   // + ehem. Holder (Version 96) + JDC-Talente ab 16 (2027: Cook, Lawrie, Dopfer) + Rivale + schwacher Pool + Nebentouren (7 × 8)
   // Start 2027: 64 verlängert + 33 neu 2026 + 4 CT/Dev-2026 = 101 Karten, Rest in der Q-School
   assert.equal(playersOfTier(s, 'tour').length, 101);
   assert.ok(playersOfTier(s, 'dev').every(p => p.age <= 23));
@@ -1017,7 +1017,7 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   const { majorField, mastersPrelimField } = await import('../js/majors.js');
   const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed: 16 });
   const sec = playersOfTier(s, 'secondary');
-  assert.equal(sec.length, 338);   // Version 194: Nordafrika +11 · Version 192: CDLC +10 · Version 190: Polen 30 · Version 189: China 12 · Version 188: südliches Afrika 16 · Version 187: Indien 15 · Version 183: Asien 53 (+38) · Version 182: Osteuropa 46 (+39) · Version 181: − Szagański (Doppelung) · Version 161: + Silvia Lindner · Version 96: + Zong, Lim, Baggish, Whitlock; Version 101: 91 Spielerinnen
+  assert.equal(sec.length, 351);   // Version 232: + 13 (CDC 3, DPA 3, DPNZ 4, NB 2, CDLC 1) ·   // Version 194: Nordafrika +11 · Version 192: CDLC +10 · Version 190: Polen 30 · Version 189: China 12 · Version 188: südliches Afrika 16 · Version 187: Indien 15 · Version 183: Asien 53 (+38) · Version 182: Osteuropa 46 (+39) · Version 181: − Szagański (Doppelung) · Version 161: + Silvia Lindner · Version 96: + Zong, Lim, Baggish, Whitlock; Version 101: 91 Spielerinnen
   { const W = await import('../js/world.js'), pl = { C1: { id: 'C1', name: 'Radek Szaganski', tier: 'challenge' }, S1: { id: 'S1', name: 'Radek Szagański', tier: 'secondary', circuit: 'ee' } };
     W.retireSecondaryDupes(pl); assert.equal(pl.S1.tier, 'retired'); assert.equal(pl.C1.tier, 'challenge'); }   // Version 181: Doppelungen stilllegen
   for (const c of ['women', 'asia', 'cdc', 'dpa', 'dpnz', 'nb', 'ee']) {
@@ -1028,10 +1028,12 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   // Masters-Vorrunde (Version 212): je Top 8 des Vorjahres von 8 Nebentouren (ADG = Südliches Afrika + Afrika), Holder ab Platz 57, CT/Dev Top 8, 4 JDC
   const pf = mastersPrelimField(s, false), secIn = pf.pool.filter(id => s.world.players[id]?.tier === 'secondary');
   assert.ok(secIn.length >= 60 && secIn.length <= 64, `Nebentour-Plätze ${secIn.length}`);   // Beau Greaves (Holderin) zählt einmal
-  for (const c of ['nb', 'asia', 'cdc', 'dpa', 'dpnz', 'cdlc']) assert.equal(secIn.filter(id => s.world.players[id].circuit === c).length, 8, c);
+  // Version 232: 2026 = echte Top 8 der OOM 2025 (nach Namen; Melderis steht im Osteuropa-Pool, Noa-Lynn auf der Challenge Tour)
+  { const { OOM_2025 } = await import('../data/players.js'), nm = id => s.world.players[id]?.name;
+    for (const [k, names] of Object.entries(OOM_2025)) for (const n of names) assert.ok(pf.pool.map(nm).includes(n) || pf.seeds.map(nm).includes(n), `${k}: ${n}`); }
   assert.equal(secIn.filter(id => ['safrica', 'africa'].includes(s.world.players[id].circuit)).length, 8);
   assert.equal(pf.seeds.length, 32); assert.ok(pf.pool.length >= 140 && pf.pool.length <= 160, `Vorrunde ${pf.pool.length}`);
-  assert.ok(pf.pool.includes(secondaryOrder(s, 'women', 2025)[0]));
+  assert.ok(pf.pool.map(id => s.world.players[id]?.name).includes('Fallon Sherrock'));
   // Grand Slam: 2 Spielerinnen der Women's Series
   s.date.week = 46;
   const gs = majorField(s, eventsInWeek(s, 2026, 46).find(e => e.id === 'gsod'), false);

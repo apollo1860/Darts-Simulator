@@ -61,16 +61,21 @@ export const SECONDARY = {
     ['Nitin Kumar', 'IN', 40, 75]] },
   cdc: { label: 'CDC ProTour (Nordamerika)', avgTop: 88, players: [
     ['Danny Lauby', 'US', 33], ['Danny Baggish', 'US', 42], ['Jeff Smith', 'CA', 50], ['Matt Campbell', 'CA', 36], ['Adam Sevada', 'US', 40], ['Fred Krueger', 'US', 40],
-    ['Brayden Hall', 'CA', 22], ['David Cameron', 'CA', 56], ['Dawson Murschell', 'CA', 30], ['Leonard Gates', 'US', 55], ['Alex Spellman', 'US', 37], ['Jules van Dongen', 'US', 35], ['Stowe Buntz', 'US', 46]] },
+    ['Brayden Hall', 'CA', 22], ['David Cameron', 'CA', 56], ['Dawson Murschell', 'CA', 30], ['Leonard Gates', 'US', 55], ['Alex Spellman', 'US', 37], ['Jules van Dongen', 'US', 35], ['Stowe Buntz', 'US', 46],
+    // Version 232: CDC-Top-8 2025 (Nutzerliste), Average exakt
+    ['Darryl Christie', 'CA', null, 78, null, true], ['Gary Mawson', 'US', 63, 80, null, true], ['Jason Brandon', 'US', 51, 81, null, true]] },
   dpa: { label: 'DPA ProTour (Australien)', avgTop: 87, players: [
     ['Simon Whitlock', 'AU', 56], ['Joe Comito', 'AU', 44], ['Raymond Smith', 'AU', 46], ['Mal Cuming', 'AU', 49], ['Tim Pusey', 'AU', 33],
-    ['Gordon Mathers', 'AU', 44], ['Corey Cadby', 'AU', 30], ['Brody Klinge', 'AU', 33], ['James Bailey', 'AU', 56]] },
+    ['Gordon Mathers', 'AU', 44], ['Corey Cadby', 'AU', 30], ['Brody Klinge', 'AU', 33], ['James Bailey', 'AU', 56],
+    ['Brandon Weening', 'AU', 28, 80, null, true], ['Stuart Coburn', 'AU', null, 78, null, true], ['Harley Kemp', 'AU', 32, 78, null, true]] },   // Version 232
   dpnz: { label: 'DPNZ ProTour (Neuseeland)', avgTop: 86, players: [
     ['Haupai Puha', 'NZ', 40], ['Ben Robb', 'NZ', 37], ['Mark Cleaver', 'NZ', 58], ['Cody Harris', 'NZ', 40],
-    ['Jonny Tata', 'NZ', 33], ['Warren Parry', 'NZ', 61], ['Darren Herewini', 'NZ', 34], ['Craig Caldwell', 'NZ', 42]] },
+    ['Jonny Tata', 'NZ', 33], ['Warren Parry', 'NZ', 61], ['Darren Herewini', 'NZ', 34], ['Craig Caldwell', 'NZ', 42],
+    ['John Hurring', 'NZ', 42, 77, null, true], ['Jaymie Hilton-Jones', 'NZ', null, 78, null, true], ['Jack Sheppard', 'NZ', 20, 78, null, true], ['Tukina Weko', 'NZ', null, 76, null, true]] },   // Version 232
   nb: { label: 'Nordic & Baltic ProTour', avgTop: 88, players: [
     ['Daniel Larsson', 'SE', 44], ['Dennis Nilsson', 'SE', 49], ['Andreas Harrysson', 'SE', 50], ['Johan Engström', 'SE', 49], ['Niels Heinsøe', 'DK', 56],
-    ['Benjamin Reus', 'DK', 27], ['Vladimir Andersen', 'DK', 36], ['Marko Kantele', 'FI', 57], ['Teemu Harju', 'FI', 33]] },
+    ['Benjamin Reus', 'DK', 27], ['Vladimir Andersen', 'DK', 36], ['Marko Kantele', 'FI', 57], ['Teemu Harju', 'FI', 33],
+    ['Jonas Masalin', 'FI', 46, 82, null, true], ['Andreas Hyllgaardhus', 'DK', 33, 79, null, true]] },   // Version 232
   // Version 182: Osteuropa-Pool nach Nutzerliste (50 Spieler): Ø = Mitte der angegebenen Spanne, je Match ± 8 (avgRange); Tourcard-Holder
   // (Tytus Kanik, Pero Ljubić, Filip Bereza) und Dev-Tour-Spieler (Milan Biro, Peter Kelemen) nicht doppelt; Michal Ondo (alt) bleibt (Ø 81 geschätzt)
   ee: { label: 'Osteuropa (ET-/WM-Qualifier)', avgTop: 96.5, exact: true, players: [
@@ -93,7 +98,7 @@ export const SECONDARY = {
     ['Romero Cartwright', 'BS', 48, 75], ['Joshua Balfour', 'TT', 42, 72], ['Sudesh Fitzgerald', 'GY', 39, 70],
     ['Guillermo Soto', 'CR', null, 76], ['Victor Guillín', 'AR', 44, 76], ['Dean Persad', 'TT', null, 72], ['Robin Albury', 'BS', null, 72],
     ['Jafet Vanegas', 'CR', null, 72], ['Nelson Rahming', 'BS', null, 68], ['Artur Vaille', 'BR', null, 68], ['Navarro Bastian', 'BS', null, 65],
-    ['Jonathan Heron', 'JM', null, 64], ['Roberto Wentz', 'BR', 63, 58]] },
+    ['Jonathan Heron', 'JM', null, 64], ['Roberto Wentz', 'BR', 63, 58], ['Jonathon Heron', 'BS', null, 75]   /* Version 232: Nation unbekannt → Annahme Bahamas */] },
   // Version 187: Indien nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Nitin Kumar steht im Asien-Pool und behält seinen Ø
   // Version 189: China nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Zong, Zhan, Wen, Li stehen im Asien-Pool und behalten ihren Ø
   // Version 190: Polen nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Kciuk und Kozłowski stehen im Osteuropa-Pool und behalten ihren Ø
