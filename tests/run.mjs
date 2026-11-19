@@ -3215,4 +3215,24 @@ test('New Star Darts v221: Platzierungen aller Spieler im laufenden Jahr, Tourca
   R.pruneSave(s, 2028); assert.ok(!s.placements[2026]);   // höchstens 2 Jahre
 });
 
+test('New Star Darts v224: Premier League – Rundenturnier 1–7/9–15, Spieltag 8/16 nach Tabelle, Tie-Breaker; Nachwuchs-IDs ohne Kollision', async () => {
+  const N = await import('../js/nsd.js'), M = await import('../js/majors.js'), S = await import('../js/season.js'), C = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'Paul', last: 'Liga', nation: 'DE', age: 25, slot: 1, seed: 31 });
+  const pl = M.plState(s), key = (a, b) => [a, b].sort().join('|'), seen = new Map();
+  for (let n = 1; n <= 7; n++) for (const [a, b] of M.plPairs(s, n)) { const k = key(a, b); seen.set(k, (seen.get(k) ?? 0) + 1); }
+  assert.equal(seen.size, 28); assert.ok([...seen.values()].every(v => v === 1));                       // jeder gegen jeden genau einmal
+  for (let n = 1; n <= 7; n++) assert.deepEqual(M.plPairs(s, n + 8).map(x => key(...x)), M.plPairs(s, n).map(x => key(...x)));   // 9–15 = 1–7
+  for (let n of [1, 8, 16]) assert.equal(new Set(M.plPairs(s, n).flat()).size, 8);
+  pl.players.forEach((id, i) => { pl.points[id] = 10; pl.nw[id] = i % 2; pl.mw[id] = i; });
+  const t = M.plTable(s).map(x => x.id); assert.deepEqual(t.slice(0, 4), [pl.players[7], pl.players[5], pl.players[3], pl.players[1]]);   // Punkte gleich → Spieltagssiege, dann Matchsiege
+  assert.deepEqual(M.plPairs(s, 8), [[t[0], t[7]], [t[3], t[4]], [t[2], t[5]], [t[1], t[6]]]);
+  // Spieltag-Feld: Viertelfinals wie geplant, Halbfinale aus benachbarten Viertelfinals
+  const ev = C.eventsInWeek(s, 2026, 6).find(e => e.fmt === 'pln'); s.date.week = 6;
+  const f = M.majorField(s, ev, true), r1 = (await import('../js/bracket.js')).buildRounds(f, { default: { legs: 6 } })[0].matches.map(m => key(m.a, m.b));
+  assert.deepEqual(r1, M.plPairs(s, 1).map(x => key(...x)));
+  // Nachwuchs bekommt Y-IDs, Super-League-Spieler (G…) bleiben erhalten
+  s.date.week = 3; const g2 = s.world.players.G2?.name; while (!(s.date.year === 2027 && s.date.week === 3)) S.nextWeek(s);
+  assert.equal(s.world.players.G2?.name, g2); assert.ok(Object.values(s.world.players).filter(p => p.generated && !p.circuit).every(p => p.id[0] === 'Y'));
+});
+
 console.log(`\n${n} Tests ok`);

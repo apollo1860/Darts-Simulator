@@ -4,7 +4,7 @@ export const PLACE_BY_REMAINING = { 2: 'F', 4: 'SF', 8: 'QF', 16: 'L16', 32: 'L3
 const nextPow2 = n => { let s = 2; while (s < n) s *= 2; return s; };
 
 // Setzpositionen (1-basiert) für Feldgröße size: 1 vs size, 2 vs size-1 … verteilt
-function seedOrder(size) {
+export function seedOrder(size) {
   let order = [1, 2];
   while (order.length < size) {
     const n = order.length * 2;

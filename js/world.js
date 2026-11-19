@@ -164,7 +164,9 @@ export const womenOf = state => Object.values(state.world.players).filter(p => p
 export function addSuperLeague(players, rng, year) {
   const have = new Set(Object.values(players).map(p => normName(p.name)));
   SUPER_LEAGUE.forEach(([name, nation, age26, sl], i) => {
-    const id = `G${i + 1}`, age = age26 + (year - 2026), avg = Math.round((sl - SUPER_LEAGUE_SHIFT) * 10) / 10;
+    let id = `G${i + 1}`;
+    const age = age26 + (year - 2026), avg = Math.round((sl - SUPER_LEAGUE_SHIFT) * 10) / 10;
+    if (players[id] && normName(players[id].name) !== normName(name)) id = `GL${i + 1}`;   // Version 224: ID von einem Nachwuchsspieler belegt (alter Fehler) → Ersatz-ID
     if (players[id] || have.has(normName(name))) return;
     const tier = age <= DEV_MAX_AGE ? 'dev' : 'challenge';
     players[id] = { id, name, nation, age, avg, tier, cardUntil: null, superLeague: true, attrs: attrsForAverage(avg, rng), exp: aiExp(tier, age, rng) };
@@ -197,7 +199,7 @@ export function addJdc(players, rng, year, ageOffset = 0) {
 
 function newTalent(state, rng, year) {
   const nation = randomNation(rng), used = new Set(Object.values(state.world.players).map(p => p.name));
-  const id = `G${state.world.nextId++}`;
+  let id; do id = `Y${state.world.nextId++}`; while (state.world.players[id]);   // Version 224: eigenes Präfix (G… sind die Super-League-Spieler – vorher überschrieben)
   const avg = Math.round(rng.float(70, 82));          // Dev-Niveau (unter der Challenge Tour)
   const p = {
     id, name: randomName(rng, nation, used), nation,

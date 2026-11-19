@@ -7,10 +7,11 @@ import { RNG, hashSeed } from './rng.js';
 import { nationName } from '../data/nations.js';
 import { WM_QUALIFIERS } from '../data/tournaments.js';
 import { clamp } from './util.js';
+import { seedOrder } from './bracket.js';
 
 export const MAJOR_CATS = ['major', 'ws', 'pl'];
 // Anzahl gesetzter Spieler (Rest wird zugelost)
-const SEEDS = { masters: 16, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 999, plf: 4, wmq: 0, gsq: 0, pln: 0, gsod: 32 };
+const SEEDS = { masters: 16, matchplay: 16, wgp: 16, ec: 32, pcf: 32, ukopen: 999, wm: 32, ws: 8, wsf: 8, wcod: 999, plf: 4, wmq: 0, gsq: 0, pln: 8, gsod: 32 };
 
 export const RULE_TEXT = {
   masters: 'Top 24 der PDC Order of Merit (Tour-Modus: alle Tourcard-Holder, Vorrunden)', ukopen: 'Tourcard, Top 8 Challenge-/Dev-Tour-OOM oder Riley’s-Amateur-Qualifier',
@@ -157,8 +158,25 @@ export function wcWithdraw(state) {
 export function plState(state) {
   const pl = ((state.pl ??= {})[state.date.year] ??= { players: null, points: {}, legs: {}, nights: 0 });
   if (!pl.players) pl.players = idsOf(orderOfMerit(state, 'pdc')).slice(0, 8);
-  for (const id of pl.players) { pl.points[id] ??= 0; pl.legs[id] ??= 0; }
+  pl.nw ??= {}; pl.mw ??= {};   // Version 224: gewonnene Spieltage / gewonnene Matches (Tie-Breaker)
+  for (const id of pl.players) { pl.points[id] ??= 0; pl.legs[id] ??= 0; pl.nw[id] ??= 0; pl.mw[id] ??= 0; }
   return pl;
+}
+// Version 224: Viertelfinal-Paarungen wie echt – Spieltag 1–7 jeder gegen jeden (Rundenturnier, Reihenfolge je Jahr fest ausgelost),
+// 9–15 wiederholen 1–7, an Spieltag 8 und 16 nach Tabelle (1–8, 4–5, 3–6, 2–7 → Halbfinale 1/8 gegen 4/5, 3/6 gegen 2/7).
+export function plPairs(state, night) {
+  const pl = plState(state);
+  if (night === 8 || night === 16) { const t = plTable(state).map(x => x.id); return [[t[0], t[7]], [t[3], t[4]], [t[2], t[5]], [t[1], t[6]]]; }
+  pl.order ??= new RNG(hashSeed(state.seed, 'plorder', state.date.year)).shuffle([...pl.players]);
+  const o = pl.order.filter(id => pl.players.includes(id)), k = (night <= 7 ? night - 1 : night - 9) % 7;
+  const rest = o.slice(1), arr = [o[0], ...rest.slice(k), ...rest.slice(0, k)];   // Kreismethode: einer fest, die anderen rotieren
+  return [0, 1, 2, 3].map(i => [arr[i], arr[7 - i]]);
+}
+// Paarungen → Feldreihenfolge für buildRounds (Position s spielt gegen 9 − s; Halbfinale = Sieger benachbarter Viertelfinals)
+function plNightField(state, night) {
+  const flat = plPairs(state, night).flat(), so = seedOrder(8), out = Array(8);
+  so.forEach((seed, j) => { out[seed - 1] = flat[j]; });
+  return out;
 }
 // Version 77: Die Aufstellung steht zum Jahreswechsel fest (season.js: `announcePl`); die reine Anzeige (Ranglisten) friert nichts ein –
 // solange sie noch offen ist (alte Spielstände, Startjahr), zeigt sie nur eine Vorschau der aktuellen Top 8.
@@ -166,8 +184,8 @@ export function plTable(state) {
   const fixed = state.pl?.[state.date.year]?.players;
   if (!fixed) return idsOf(orderOfMerit(state, 'pdc')).slice(0, 8).map(id => ({ id, pts: 0, legs: 0 }));
   const pl = plState(state);
-  return pl.players.map(id => ({ id, pts: pl.points[id], legs: pl.legs[id] }))
-    .sort((a, b) => b.pts - a.pts || b.legs - a.legs);
+  return pl.players.map(id => ({ id, pts: pl.points[id], legs: pl.legs[id], nw: pl.nw[id], mw: pl.mw[id] }))
+    .sort((a, b) => b.pts - a.pts || b.nw - a.nw || b.mw - a.mw || b.legs - a.legs);   // Version 224: Punkte, gewonnene Spieltage, gewonnene Matches
 }
 // Spieltag gewertet: Sieger 5, Finalist 3, Halbfinalisten 2 Punkte; Leg-Differenz für die Tabelle
 export function scorePlNight(state, inst) {
@@ -177,7 +195,9 @@ export function scorePlNight(state, inst) {
     if (!m.score || m.bye) continue;
     pl.legs[m.a] = (pl.legs[m.a] ?? 0) + m.score[0] - m.score[1];
     pl.legs[m.b] = (pl.legs[m.b] ?? 0) + m.score[1] - m.score[0];
+    if (m.winner) pl.mw[m.winner] = (pl.mw[m.winner] ?? 0) + 1;
   }
+  for (const [id, place] of Object.entries(inst.places ?? {})) if (place === 'W') pl.nw[id] = (pl.nw[id] ?? 0) + 1;
   for (const [id, place] of Object.entries(inst.places ?? {})) pl.points[id] = (pl.points[id] ?? 0) + (pts[place] ?? 0);
   pl.nights++;
 }
@@ -287,7 +307,7 @@ function computeField(state, ev) {
       const ord = q.wmOrder ?? pdc, rk = id => { const i = ord.indexOf(id); return i < 0 ? 1e4 + all.indexOf(id) : i; };
       return all.sort((a, b) => rk(a) - rk(b));                                // Version 201: nach PDC-Platz (für Gruppe A/B/C)
     }
-    case 'pln': return rng.shuffle([...plState(state).players]);
+    case 'pln': return plNightField(state, ev.plNight ?? 1);
     case 'plf': return plTable(state).slice(0, 4).map(x => x.id);
     case 'wcod': return Object.values(wcTeams(state)).sort((a, b) => b.strength - a.strength).map(t => t.id);
     default: return [];
