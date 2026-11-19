@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 248**: Spielvorschau (Turnier-Lobby): Hinweis „Match kostet ca. X % Energie (Floor/Bühne)“ entfernt (Nutzerwunsch); Nervosität/Verletzung jetzt als eigene Zeilen.
 - [x] **Version 247**: Formkurve (Status, Lobby): neuestes Match jetzt rechts, ältestes links (bei weniger als 5 Matches bleiben links leere Punkte).
 - [x] **Version 246**: Offene Fragen geklärt: Valters Melderis spielt jetzt die Nordic & Baltic ProTour statt Osteuropa (Ø 84, Spanne 76–92 bleibt). Jonathon Heron kommt aus Jamaika: Der doppelte Eintrag (Version 232, Annahme Bahamas, Ø 75) entfällt, der bisherige „Jonathan Heron“ (JM, Ø 64) heißt jetzt „Jonathon Heron“ wie in der CDLC-OOM 2025. Migration `v246sec` für alte Spielstände (Melderis → nb; Doppel: Bahamas-Eintrag wird Jamaika mit Ø/Werten des alten Eintrags, der alte tritt zurück). Getränke mitten im Turnier bleiben erlaubt (Nutzerentscheid). WM-Szenen-Test auf 24 Seeds erweitert (hing von zufällig knappen Matches ab).
 - [x] **Version 245**: Walk-on-Song schon bei der Profilerstellung wählbar (eigener und realer Spieler, optional): Suchfeld + Auswahlliste unter Alter/Wurfhand, Liste wird erst dann geladen. Der Start-Song hat keine Fan-Wirkung und keine 4-Wochen-Sperre (`walkon.since = null`). Laden/Suchen gemeinsam in `js/ui/nsd/walkonList.js` (`loadSongs`, `songHits`).
