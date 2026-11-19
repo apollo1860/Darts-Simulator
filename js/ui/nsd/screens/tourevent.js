@@ -34,7 +34,8 @@ function myPath(s, inst) {
 
 // Auslosung der aktuellen Runde (Version 94): kompakt und eingeklappt; in Gruppenphasen ◀ ▶ von Gruppe zu Gruppe
 const draw = { key: null, gi: 0, open: false, ri: 0 };
-const gName = gi => (gi < 26 ? String.fromCharCode(65 + gi) : `${gi + 1}`);
+// Gruppen A … Z, danach AA, AB … (Version 236, wie Tabellenspalten)
+const gName = gi => { let n = gi + 1, out = ''; while (n > 0) { n--; out = String.fromCharCode(65 + (n % 26)) + out; n = Math.floor(n / 26); } return out; };
 const short = (s, id) => (s.activeEvent?.teams?.[id] ? nameOf(s, id) : id === 'P' ? surname(s.player.name) : surname(nameOf(s, id)));
 function drawLine(s, m) {
   const me = m.a === 'P' || m.b === 'P' || s.activeEvent?.teams?.[m.a]?.members?.includes('P') || s.activeEvent?.teams?.[m.b]?.members?.includes('P');

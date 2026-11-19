@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 236** – Gruppennamen nach Z weiter mit AA, AB … (vorher Zahlen ab Gruppe 27; betrifft die 32 Gruppen der Masters-Vorrunde).
 - [x] **Version 235** – **Taylor McGuckian** (ENG, 17, Ø 73; JDC-Talent, Annahme Potenzial 89) als 4. JDC-Vertreter der Masters-Vorrunde 2026: JDC-Liste mit 4 Plätzen, bereits Qualifizierte (Ryan Branley über die Dev-Tour-Top-8) werden übersprungen.
 - [x] **Version 234** – JDC-Vertreter ergänzt: **Lex Paeshuyse** (BE, 14, Ø 75) und **Jack Nankervis** (ENG, 15, Ø 79) als JDC-Talente (Start-Ø exakt; Annahme Potenzial +16 → 91 bzw. 95). Beide sind 2026 noch unter 16 → wie Khurelkhuu früh in der Welt (nur Masters-Vorrunde), ab 16 Development Tour.
 - [x] **Version 233** – Masters-Vorrunde: **African Darts Group** = die 8 nach Average besten Afrikaner des Pools (Südliches Afrika + übriges Afrika, gilt jedes Jahr; Nutzerwunsch). **JDC-Vertreter 2026** nach Nutzerliste (`OOM_2025.jdc`): Ryan Branley (schon über die Dev-Tour-Top-8 dabei → kein Nachrücker), Lex Paeshuyse, Jack Nankervis (fehlen noch – Daten angefragt), Tergel Khurelkhuu: mit 15 als JDC-Talent schon in der Welt (Stufe `jdc` = spielt nur die Masters-Vorrunde), mit 16 wie geplant Development Tour.
