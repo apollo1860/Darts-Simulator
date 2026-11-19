@@ -779,4 +779,20 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 .nsd-vac .lb { display: flex; flex-direction: column; font-size: 1.25rem; }
 .nsd-vac .lb small { font-size: .72rem; font-weight: 600; opacity: .85; }
 .nsd-vac .lb .t { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.nsd-vs-walk { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* Version 244: Walk-on (nur Bühne) */
+.nsd-lrow { display: flex; gap: 8px; margin: 8px 10px; }   /* Version 244: Urlaub + Walk-on */
+.nsd-lrow .nsd-vac { flex: 1 1 0; min-width: 0; margin: 0; }
+.nsd-lrow .nsd-vac .lb { min-width: 0; font-size: 1.1rem; }
+.nsd-lrow .nsd-vac .lb small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.nsd-walk-cur { display: flex; align-items: center; gap: 10px; margin: 6px 10px; padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,.35); color: #fff; }
+.nsd-walk-cur .ic { font-size: 1.8rem; }
+.nsd-walk-cur div, .nsd-walk-hit { display: flex; flex-direction: column; min-width: 0; }
+.nsd-walk-cur b, .nsd-walk-hit b { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nsd-walk-cur small, .nsd-walk-hit small { font-size: .8rem; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nsd-walk-wait { margin: 0 10px 4px; color: #ffd54a; font-weight: 700; font-size: .85rem; text-align: center; }
+.nsd-walk-q { width: auto; margin: 4px 10px 6px; height: 42px; font-size: 1.1rem; }
+.nsd-walk-list { margin: 0 10px 6px; border-radius: 8px; background: rgba(255,255,255,.92); }
+.nsd-walk-hit { width: 100%; text-align: left; padding: 7px 12px; border: 0; border-bottom: 1px solid #ddd; background: none; color: #222; cursor: pointer; font: inherit; }
+.nsd-walk-hit:active { background: #ffe9a8; }
+.nsd-walk-info { padding: 14px; text-align: center; color: #444; }
 .nsd-fitcol { display: flex; flex-direction: column; align-items: center; gap: 3px; line-height: 1.1; white-space: nowrap; }

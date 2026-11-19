@@ -3363,4 +3363,23 @@ test('New Star Darts v243: mitten im Turnier kein Training und keine Beziehungsp
   assert.ok(T.canTrain(s, 'sco', 1).ok); assert.ok(C.doRelAction(s, C.pickRelAction(s, 'fans')) > 0);
 });
 
+test('New Star Darts v244: Walk-on-Song – Liste, 50/50 Fan-Wirkung, 4 Wochen Sperre', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), fs = await import('node:fs');
+  const lines = fs.readFileSync(new URL('../data/walkons.txt', import.meta.url), 'utf8').split('\n').filter(l => l.trim());
+  assert.ok(lines.length > 5000);
+  assert.deepEqual(L.parseWalkon('River Deep – Mountain High – Tina Turner'), { t: 'River Deep – Mountain High', a: 'Tina Turner' });
+  assert.ok(lines.every(l => L.parseWalkon(l).a), 'jede Zeile hat einen Interpreten');
+  let good = 0, bad = 0;
+  for (let i = 0; i < 40; i++) {
+    const s = N.newNsdCareer({ first: 'W', last: 'O', nation: 'DE', age: 25, slot: 1, seed: 100 + i }); s.player.rel.fans = 30;
+    const r = L.setWalkon(s, L.parseWalkon(lines[i]), new RNG({ s: i * 7 + 1 }));
+    if (r.good) { good++; assert.ok(s.player.rel.fans > 30 && r.delta > 0); } else { bad++; assert.ok(s.player.rel.fans <= 28 && r.delta < 0); }
+    assert.equal(s.player.walkon.t, L.parseWalkon(lines[i]).t);
+    assert.throws(() => L.setWalkon(s, L.parseWalkon(lines[i + 1])), /4 Wochen/);
+    s.date.week += L.WALKON_WEEKS; assert.equal(L.walkonWait(s), 0);
+    assert.throws(() => L.setWalkon(s, { ...s.player.walkon }), /schon/);
+  }
+  assert.ok(good > 8 && bad > 8, `${good}/${bad}`);
+});
+
 console.log(`\n${n} Tests ok`);

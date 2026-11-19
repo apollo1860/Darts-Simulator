@@ -294,3 +294,23 @@ export function checkAchievements(state) {
   }
   return got;
 }
+
+// ---- Version 244: Walk-on-Song (Liste data/walkons.txt „Titel – Interpret“, nur Anzeige, nichts wird abgespielt) ----
+// Jeder Wechsel 50/50: Die Fans feiern den Song (+2–4, gebremst über addFans) oder pfeifen ihn aus (−2–4). Neuer Wechsel frühestens nach 4 Wochen.
+export const WALKON_FANS = [2, 4], WALKON_WEEKS = 4;
+export function parseWalkon(line) {   // am LETZTEN „ – “ trennen (Titel können selbst „ – “ enthalten)
+  const s = String(line ?? '').trim(), i = s.lastIndexOf(' – ');
+  return i > 0 ? { t: s.slice(0, i).trim(), a: s.slice(i + 3).trim() } : { t: s, a: '' };
+}
+export const walkonText = w => (w ? `${w.t}${w.a ? ` – ${w.a}` : ''}` : '');
+export const walkonWait = state => { const w = state.player.walkon; return w?.since != null ? Math.max(0, w.since + WALKON_WEEKS - absWeek(state)) : 0; };
+export function setWalkon(state, song, rng = new RNG(state.rng)) {
+  const p = state.player, wait = walkonWait(state);
+  if (!song?.t) throw new Error('Kein Song gewählt.');
+  if (p.walkon && p.walkon.t === song.t && p.walkon.a === song.a) throw new Error('Das ist schon dein Walk-on.');
+  if (wait) throw new Error(`Neuer Walk-on erst in ${wait} ${wait === 1 ? 'Woche' : 'Wochen'} möglich.`);
+  const n = rng.int(...WALKON_FANS), good = rng.chance(0.5), before = p.rel.fans ?? 0;
+  if (good) addFans(p, n); else addRel(p, 'fans', -n);
+  p.walkon = { t: song.t, a: song.a ?? '', since: absWeek(state) };
+  return { good, delta: Math.round(((p.rel.fans ?? 0) - before) * 10) / 10 };
+}

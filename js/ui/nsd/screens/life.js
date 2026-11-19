@@ -29,7 +29,8 @@ export function render(app) {
       <button class="nsd-btn" data-rel="${k}"><span class="ic">${ICONS[k]}</span></button>
     </div>`).join('')}</div>
     <div class="nsd-strip"><span>Erholung</span><span class="mid">+${weeklyEnergy(p)} %/Woche</span><span class="r">Ziel ${Math.round(satisfactionTarget(p))}</span></div>
-    ${(() => { const v = vacationStatus(app.state); return `<button class="nsd-btn row nsd-vac" id="l-vac" ${v.ok ? '' : 'disabled'}><span class="ic">🏝️</span><span class="lb"><span class="t">${app.state.week.vacation ? 'Im Urlaub' : `Urlaub ${coin(v.cost)}`}</span>${v.ok ? '' : `<small>${esc(v.reason)}</small>`}</span></button>`; })()}`,
+    <div class="nsd-lrow">${(() => { const v = vacationStatus(app.state); return `<button class="nsd-btn row nsd-vac" id="l-vac" ${v.ok ? '' : 'disabled'}><span class="ic">🏝️</span><span class="lb"><span class="t">${app.state.week.vacation ? 'Im Urlaub' : `Urlaub ${coin(v.cost)}`}</span>${v.ok ? '' : `<small>${esc(v.reason)}</small>`}</span></button>`; })()}
+    <button class="nsd-btn row nsd-vac" id="l-walk"><span class="ic">🎵</span><span class="lb"><span class="t">Walk-on</span><small>${p.walkon ? esc(p.walkon.t) : 'Song wählen'}</small></span></button></div>`,
     bottom: bar([
       { go: 'hub', icon: nicon('home'), label: 'Start' },
       { go: 'lifestyle', icon: '💎', label: 'Lifestyle' },
@@ -43,6 +44,7 @@ export function mount(root, app) {
   bindHead(root, app, partnerText(HELP, app.state.player));
   root.querySelectorAll('[data-rel]').forEach(b => b.onclick = () => relModal(app, b.dataset.rel));
   root.querySelector('#l-ach').onclick = () => app.go('achievements');
+  root.querySelector('#l-walk').onclick = () => app.go('walkon');   // Version 244
   root.querySelector('#l-vac')?.addEventListener('click', async () => {   // Version 241: Urlaub
     const v = vacationStatus(app.state);
     if (!await confirmDialog('Urlaub machen?', `Kostet ${v.cost} ★. Energie 100 %, Zufriedenheit +${VACATION_SAT}, danach 4 Wochen bessere Erholung. Diese Woche kein Training und keine Turniere. Nur einmal pro Jahr.`, 'Ab in den Urlaub')) return;
