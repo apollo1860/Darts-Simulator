@@ -222,10 +222,12 @@ export function mastersPrelimField(state, withPlayer) {
   // Version 232: für das Vorjahr 2025 die echten Top 8 (Nutzerliste, nach Namen); ohne Liste (ADG) wie bisher
   const norm = n => String(n ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
   const real = key => y === 2025 && OOM_2025[key] ? OOM_2025[key].map(n => Object.values(state.world.players).find(p => p.tier !== 'retired' && norm(p.name) === norm(n))?.id ?? (norm(state.player.name) === norm(n) ? 'P' : null)).filter(Boolean) : null;
-  for (const type of ['challenge', 'dev']) add(real(type) ?? idsOf(orderOfMerit(state, type, y)));
+  // Version 239: CT/Dev/Women's Series = Top ohne Tourcard (junge Holder spielen die Dev Tour mit und sind ohnehin über die Holder-Rangliste dabei)
+  const noCard = id => (id === 'P' ? state.player.tour !== 'tour' : getPlayer(state, id)?.tier !== 'tour');
+  for (const type of ['challenge', 'dev']) add(real(type) ?? idsOf(orderOfMerit(state, type, y)).filter(noCard));
   // African Darts Group (Version 233, Nutzerwunsch): die 8 nach Average besten Afrikaner des Pools (Südliches Afrika + übriges Afrika, ohne Karte)
   const adg = () => Object.values(state.world.players).filter(p => ['safrica', 'africa'].includes(p.circuit) && p.tier === 'secondary').sort((a, b) => b.avg - a.avg).map(p => p.id);
-  for (const c of PRELIM_SEC) add(real(c) ?? (c === 'adg' ? adg() : secondaryOrder(state, c, y, { tour: true })), PRELIM_SEC_TOP);   // Version 238: Nebentouren je Top 4
+  for (const c of PRELIM_SEC) add(real(c) ?? (c === 'adg' ? adg() : secondaryOrder(state, c, y).filter(noCard)), PRELIM_SEC_TOP);   // Version 238: Nebentouren je Top 4 (ohne Tourcard)
   const jdc = real('jdc');   // 2026: JDC-Vertreter 2025 (Liste mit Nachrücker), sonst die 4 stärksten Talente bis 18
   if (jdc) jdc.filter(id => !used.has(id)).slice(0, 4).forEach(id => { used.add(id); pool.push(id); });   // Version 235: 4 Plätze, schon Qualifizierte überspringen
   else playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => { used.add(p.id); pool.push(p.id); });
