@@ -3149,4 +3149,13 @@ test('New Star Darts v213: Shoppingtour mit der Freundin (Ja → Shop, Nein −3
   assert.equal(p.partnerName, null);
 });
 
+test('New Star Darts v215: Statistik-Ansicht Titel & Ehrungen (Auszeichnungen im Archiv, alte aus den News)', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), S = await import('../js/state.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 17, slot: 1, seed: 8 });
+  s.player.rel.fans = 80; C.seasonAwards(s, 2026);
+  assert.ok(s.archive.awards.some(w => w.year === 2026 && w.label === 'Fan-Liebling'));
+  const o = JSON.parse(JSON.stringify(s)); delete o.archive.awards; delete o.flags.v215awards;
+  const m = S.migrate(o); assert.ok(m.archive.awards.some(w => w.label === 'Fan-Liebling'));
+});
+
 console.log(`\n${n} Tests ok`);

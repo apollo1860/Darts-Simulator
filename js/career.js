@@ -563,6 +563,7 @@ export function seasonAwards(state, y) {
     out.push({ label, id, name: nm(id), mine: id === 'P' });
     if (id === 'P') {
       (state.flags ??= {}).award = true;
+      ((state.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} }).awards ??= []).unshift({ year: y, label });   // Version 215: für die Statistik-Ansicht „Titel & Ehrungen“
       const r = starPayout(reward, p.star.level);
       state.stars = (state.stars ?? 0) + r; addStarProgress(state, 30); addFans(p, 3);
       addNews(state, 'result', `🏅 Auszeichnung: ${label}`, `Belohnung: ${r} ★.`);

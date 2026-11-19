@@ -206,6 +206,11 @@ export function migrate(s) {
   s.version = VERSION;
   if (s.mode === 'nsd') pruneSave(s);   // Version 163: alte Jahre aus großen Spielständen entfernen
   if (s.mode === 'nsd') lateTop64Cards(s);   // Version 200
+  if (s.mode === 'nsd' && !s.flags?.v215awards) {   // Version 215: bisherige eigene Auszeichnungen aus den News ins Archiv (Statistik „Titel & Ehrungen“)
+    const a = (s.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });
+    if (!a.awards) a.awards = (s.news ?? []).filter(n => n.title?.startsWith('🏅 Auszeichnung: ')).map(n => ({ year: n.year, label: n.title.slice('🏅 Auszeichnung: '.length) }));
+    (s.flags ??= {}).v215awards = true;
+  }
   if (s.mode === 'nsd' && !s.flags?.v209cards) { if (s.date.year === 2026) keep128(s); (s.flags ??= {}).v209cards = true; }   // Version 209: 129 → 128 Holder (Rosney ohne Karte)
   return s;
 }
