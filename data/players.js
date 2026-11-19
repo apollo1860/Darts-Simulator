@@ -85,7 +85,9 @@ export const JDC_TALENTS = [['Mitchell Lawrie', 'SCO', 15, 82, 106], ['Jack John
   ['Owen Bryceland', 'SCO', 11, 75, 90], ['Lewis Cook', 'ENG', 16, 74, 92], ['Benjamin Dopfer', 'DE', 15, 70, 90], ['Nicardo Pieper', 'DE', 14, 70, 85],
   ['Tergel Khurelkhuu', 'MN', 15, 80, 96, 8],
   // Version 203: JDC-Spielerinnen (Start-Ø = Nutzerwert, Potenzial +12) – Women's Series, Q-School, Challenge & Dev Tour
-  ['Zehra Gemi', 'TR', 16, 64, 80], ['Merve Hummel', 'DE', 15, 62, 78], ['Celina Glaser', 'AT', 14, 61, 77]];   // Version 184: Mongole, Start-Ø 84 (80 + ¼ × 16), je Match ± 8 (6. Wert = Schwankung)
+  ['Zehra Gemi', 'TR', 16, 64, 80], ['Merve Hummel', 'DE', 15, 62, 78], ['Celina Glaser', 'AT', 14, 61, 77],
+  // Version 234: JDC-Vertreter 2025 (Nutzerliste) – Start-Ø exakt 75 bzw. 79, Potenzial (Annahme) +16
+  ['Lex Paeshuyse', 'BE', 14, 69.7, 91], ['Jack Nankervis', 'ENG', 15, 73.7, 95]];   // Version 184: Mongole, Start-Ø 84 (80 + ¼ × 16), je Match ± 8 (6. Wert = Schwankung)
 export const jdcStartAvg = (lo, hi) => Math.round((lo + 0.25 * (hi - lo)) * 10) / 10;
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
@@ -162,7 +164,7 @@ export const OOM_2025 = {
   cdc: ['Adam Sevada', 'Stowe Buntz', 'David Cameron', 'Leonard Gates', 'Alex Spellman', 'Darryl Christie', 'Gary Mawson', 'Jason Brandon'],
   dpa: ['Joe Comito', 'James Bailey', 'Brody Klinge', 'Tim Pusey', 'Brandon Weening', 'Stuart Coburn', 'Gordon Mathers', 'Harley Kemp'],
   dpnz: ['Jonny Tata', 'Ben Robb', 'John Hurring', 'Mark Cleaver', 'Jaymie Hilton-Jones', 'Haupai Puha', 'Jack Sheppard', 'Tukina Weko'],
-  jdc: ['Ryan Branley', 'Lex Paeshuyse', 'Jack Nankervis', 'Tergel Khurelkhuu'],   // JDC-Vertreter 2025 (Paeshuyse/Nankervis folgen)
+  jdc: ['Ryan Branley', 'Lex Paeshuyse', 'Jack Nankervis', 'Tergel Khurelkhuu'],   // JDC-Vertreter 2025
   cdlc: ['Jesús Salate', 'Rashad Sweeting', 'Norman Madhoo', 'Sudesh Fitzgerald', 'Jonathon Heron', 'Roberto Wentz', 'Robin Albury', 'Guillermo Soto'],
 };
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
