@@ -3338,6 +3338,10 @@ test('New Star Darts v241: Bilanz gegen Gegner, Formkurve, Spitzname, Urlaub', a
   s.date.week = 7; s.week = { played: false, eventId: null }; s.player.energy = 30; const sat = s.player.satisfaction;
   const v = ET.vacationStatus(s); assert.ok(v.ok, v.reason);
   ET.takeVacation(s); assert.equal(s.player.energy, 100); assert.ok(s.player.satisfaction > sat); assert.ok(s.week.vacation);
+  { const T = await import('../js/skilltrain.js'), L = await import('../js/life.js');   // Version 242: kein Training im Urlaub, danach 4 Wochen +25 % Erholung
+    assert.ok(!T.canTrain(s, 'sco', 1).ok && /Urlaub/.test(T.canTrain(s, 'sco', 1).reason));
+    const p = s.player, base = L.weeklyEnergy({ ...p, vacRegen: 0 }); assert.equal(L.weeklyEnergy(p), base + L.VAC_REGEN);
+    for (let i = 0; i < 4; i++) { assert.ok(p.vacRegen > 0); L.lifeWeek(s, new RNG({ s: i })); s.lifeEvent = null; } assert.equal(p.vacRegen, 0); }
   const pc = eventsInWeek(s, 2026, 7).find(e => e.cat === 'pc'); if (pc) assert.ok(!ET.eventStatus(s, pc).playable);
   s.week = { played: false, eventId: null }; assert.ok(!ET.vacationStatus(s).ok, 'nur einmal pro Jahr');
   s.player.vacationYear = 2025; s.date.week = 10; s.week = { played: false, eventId: null };   // UK Open: alle Holder dabei → kein Urlaub

@@ -29,7 +29,7 @@ export function render(app) {
       <button class="nsd-btn" data-rel="${k}"><span class="ic">${ICONS[k]}</span></button>
     </div>`).join('')}</div>
     <div class="nsd-strip"><span>Erholung</span><span class="mid">+${weeklyEnergy(p)} %/Woche</span><span class="r">Ziel ${Math.round(satisfactionTarget(p))}</span></div>
-    ${(() => { const v = vacationStatus(app.state); return `<button class="nsd-btn row nsd-vac" id="l-vac" ${v.ok ? '' : 'disabled'}><span class="ic">🏝️</span><span class="lb"><span class="t">${app.state.week.vacation ? 'Im Urlaub' : `Urlaub ${coin(v.cost)}`}</span><small>${v.ok ? '1× pro Jahr · eine Woche keine Turniere' : esc(v.reason)}</small></span></button>`; })()}`,
+    ${(() => { const v = vacationStatus(app.state); return `<button class="nsd-btn row nsd-vac" id="l-vac" ${v.ok ? '' : 'disabled'}><span class="ic">🏝️</span><span class="lb"><span class="t">${app.state.week.vacation ? 'Im Urlaub' : `Urlaub ${coin(v.cost)}`}</span>${v.ok ? '' : `<small>${esc(v.reason)}</small>`}</span></button>`; })()}`,
     bottom: bar([
       { go: 'hub', icon: nicon('home'), label: 'Start' },
       { go: 'lifestyle', icon: '💎', label: 'Lifestyle' },
@@ -45,7 +45,7 @@ export function mount(root, app) {
   root.querySelector('#l-ach').onclick = () => app.go('achievements');
   root.querySelector('#l-vac')?.addEventListener('click', async () => {   // Version 241: Urlaub
     const v = vacationStatus(app.state);
-    if (!await confirmDialog('Urlaub machen?', `Kostet ${v.cost} ★. Energie 100 %, Zufriedenheit +${VACATION_SAT}, diese Woche keine Turniere. Nur einmal pro Jahr.`, 'Ab in den Urlaub')) return;
+    if (!await confirmDialog('Urlaub machen?', `Kostet ${v.cost} ★. Energie 100 %, Zufriedenheit +${VACATION_SAT}, danach 4 Wochen bessere Erholung. Diese Woche kein Training und keine Turniere. Nur einmal pro Jahr.`, 'Ab in den Urlaub')) return;
     try { takeVacation(app.state); app.save(); toast('🏝️ Gute Erholung!', 'success'); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   });
 }

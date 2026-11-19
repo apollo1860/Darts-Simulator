@@ -93,7 +93,9 @@ export function upkeepWeek(state, rng) {
 // ---- Wöchentliche Erholung: Basis 40 + bestes Zuhause + Fitnesstrainer + Zufriedenheit (−10 … +10) ----
 export const fitnessRegen = p => p.fitness?.regen ?? 0;
 // Version 152: verletzt → Erholung stark vermindert (× INJ_REGEN)
-export const weeklyEnergy = p => { const e = ENERGY_WEEK + homeRegen(p) + fitnessRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5); return p.injury ? Math.round(e * INJ_REGEN) : e; };
+// Version 242: nach dem Urlaub 4 Wochen deutlich bessere Erholung (+25 %/Woche, `p.vacRegen` = verbleibende Wochen, lifeWeek zählt runter)
+export const VAC_REGEN = 25, VAC_REGEN_WEEKS = 4;
+export const weeklyEnergy = p => { const e = ENERGY_WEEK + homeRegen(p) + fitnessRegen(p) + Math.round(((p.satisfaction ?? 50) - 50) / 5) + (p.vacRegen > 0 ? VAC_REGEN : 0); return p.injury ? Math.round(e * INJ_REGEN) : e; };
 
 // Zufriedenheit: Zielwert aus Lifestyle, Freundin, Fans und Selbstvertrauen; wöchentlich 20 % Richtung Ziel
 // Zufriedenheit: Ziel aus Luxus (Lifestyle), Freundin und dem Schnitt aller bestehenden Beziehungen; Start niedrig (30)
@@ -253,6 +255,7 @@ export function lifeWeek(state, rng) {
   if (p.partnerName && p.partnerSince == null) p.partnerSince = absWeek(state);   // ältere Spielstände: Beziehung zählt ab jetzt
   if (p.rel.partner > 0 && !(p.married && absWeek(state) % 2)) { addRel(p, 'partner', -1); if (p.rel.partner <= 0) breakUp(state); }   // verheiratet: nur jede 2. Woche −1
   upkeepWeek(state, rng);
+  if (p.vacRegen > 0) p.vacRegen--;   // Version 242: Urlaubs-Erholung läuft ab
   const s = p.satisfaction ?? 50;
   p.satisfaction = Math.round(clamp(s + (satisfactionTarget(p) - s) * 0.08, 0, 100) * 10) / 10;   // langsam
   p.lifestyle = lifestyleOf(p);

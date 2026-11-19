@@ -27,7 +27,7 @@ import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch, titleFans, isFloor, starPrice } from './nsd.js';
 import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
-import { checkAchievements } from './life.js';
+import { checkAchievements, VAC_REGEN, VAC_REGEN_WEEKS } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
 import { useBoosts, flightPrice } from './skilltrain.js';
 import { titleArticle, finalArticle, wmTicketArticle, nineArticle } from './articles.js';
@@ -849,8 +849,8 @@ export function takeVacation(state) {
   state.stars = Math.round(((state.stars ?? 0) - st.cost) * 10) / 10;
   p.energy = 100; p.satisfaction = Math.min(100, (p.satisfaction ?? 50) + VACATION_SAT);
   if ((p.rel?.partner ?? 0) > 0) p.rel.partner = Math.min(100, p.rel.partner + VACATION_PARTNER);
-  p.vacationYear = state.date.year; state.week.vacation = true;
-  addNews(state, 'info', '🏝️ Urlaub!', `Eine Woche abschalten: Energie 100 %, Zufriedenheit +${VACATION_SAT}${(p.rel?.partner ?? 0) > 0 ? `, ${p.partnerName ?? 'deine Begleitung'} freut sich (+${VACATION_PARTNER})` : ''}. Diese Woche keine Turniere.`);
+  p.vacationYear = state.date.year; state.week.vacation = true; p.vacRegen = VAC_REGEN_WEEKS;   // Version 242: danach 4 Wochen bessere Erholung
+  addNews(state, 'info', '🏝️ Urlaub!', `Eine Woche abschalten: Energie 100 %, Zufriedenheit +${VACATION_SAT}${(p.rel?.partner ?? 0) > 0 ? `, ${p.partnerName ?? 'deine Begleitung'} freut sich (+${VACATION_PARTNER})` : ''}. Diese Woche kein Training und keine Turniere, danach ${VAC_REGEN_WEEKS} Wochen +${VAC_REGEN} % Erholung.`);
   return st.cost;
 }
 // Version 241: direkte Bilanz je Gegner (state.h2h[id] = {w, l, last}) und Formkurve (state.form = letzte 5 Matches, neueste zuerst)

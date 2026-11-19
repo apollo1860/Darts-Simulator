@@ -71,6 +71,7 @@ export const nextLevel = (p, key) => { for (let L = 1; L <= SKILL_LEVELS; L++) i
 // Training starten: kostet Energie (Einstufung/freies Training nicht)
 export function canTrain(state, key, L) {
   const p = state.player;
+  if (state.week?.vacation) return { ok: false, reason: 'Du bist im Urlaub – kein Training' };   // Version 242
   if (!TRAINABLE.some(t => t.key === key)) return { ok: false, reason: 'Nicht trainierbar' };
   if (!levelOpen(p, key, L)) return { ok: false, reason: `Erst Level ${L - 1} schaffen` };
   if (levelPoints(p, key, L) >= 3) return { ok: false, reason: 'Level schon perfekt' };
