@@ -178,7 +178,7 @@ export function applyEffects(state, e) {
     const le = state.lifeEvent, t = TRAINABLE.find(x => x.key === le?.skill);
     let k = 0; if (t) for (let i = 0; i < (le.n ?? 1); i++) if (removePoint(p, t.key)) k++;
     if (k) { syncAttrs(p); out.push(`${t.label} −${k} (jetzt ${skillValue(p, t.key)})`); }
-    if (state.week && !state.activeEvent) { state.week.accident = true; out.push('Diese Woche keine Turniere (Majors ausgenommen)'); }   // Version 217
+    if (state.week && !state.activeEvent) { state.week.accident = true; out.push('Diese Woche keine Turniere'); }   // Version 217 (Majors bleiben stillschweigend spielbar)
   }
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
   if (e.single) breakUp(state, false);
