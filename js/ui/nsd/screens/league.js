@@ -61,23 +61,32 @@ function tourText(s, p, tour) {
   if (!p.tourSince) return `Tourcard seit vor ${y0} – mind. ${n(y - y0 + 1)} in Folge`;
   return `Tourcard seit ${p.tourSince} – ${y - p.tourSince + 1}. Jahr in Folge`;
 }
-function playerPopup(app, id) {
+function playerPopup(app, id, year = app.state.date.year, bd = null) {
   const s = app.state, p = id === 'P' ? s.player : getPlayer(s, id);
   if (!p) return;
-  const tour = id === 'P' ? s.player.tour === 'tour' : p.tier === 'tour', list = placementsOf(s, id);
-  const bd = document.createElement('div');
+  const tour = id === 'P' ? s.player.tour === 'tour' : p.tier === 'tour', list = placementsOf(s, id, year);
+  const years = [s.date.year - 1, s.date.year].filter(y => y === s.date.year || s.placements?.[y]);   // Version 222: laufendes Jahr + Vorjahr
+  const fresh = !bd;
+  bd ??= document.createElement('div');
   bd.className = 'nsd-pop-bd';
+  const yi = years.indexOf(year), yearSel = years.length > 1
+    ? `<button class="nsd-pop-y" data-y="${years[yi - 1] ?? ''}" ${yi > 0 ? '' : 'disabled'}>◀</button>${year}<button class="nsd-pop-y" data-y="${years[yi + 1] ?? ''}" ${yi < years.length - 1 ? '' : 'disabled'}>▶</button>` : `${year}`;
   bd.innerHTML = `<div class="nsd-pop" role="dialog" aria-modal="true">
     <button class="nsd-sq red nsd-pop-x" aria-label="Schließen">✖</button>
     <div class="nsd-pop-name">${flag(p.nation)} ${esc(p.name)}</div>
     <div class="nsd-pop-info">${esc(nationName(p.nation))} · ${p.age} Jahre</div>
     <div class="nsd-pop-info">${esc(tourText(s, p, tour))}</div>
-    <div class="nsd-pop-list">${list.length ? `<table class="nsd-table nsd-pop-t"><tr><th>KW</th><th style="text-align:left">Turnier ${s.date.year}</th><th>Platz</th></tr>
+    <div class="nsd-pop-list">${list.length ? `<table class="nsd-table nsd-pop-t"><tr><th>KW</th><th style="text-align:left">Turnier</th><th>Platz</th></tr>
       ${list.map(r => `<tr class="${r.place === 'W' ? 'win' : ''}"><td class="c">${r.week}</td><td class="tn">${esc(r.name)}</td><td class="c pl">${esc(placeLabel(r.place, r.cat, r.eventId))}</td></tr>`).join('')}</table>`
-      : `<div class="nsd-pop-empty">Noch keine Turniere in ${s.date.year}.</div>`}</div>
+      : `<div class="nsd-pop-empty">Keine Turniere in ${year}.</div>`}</div>
   </div>`;
-  const close = () => bd.remove();
-  bd.addEventListener('click', e => { if (e.target === bd || e.target.closest('.nsd-pop-x')) close(); });
+  bd.querySelector('.nsd-pop-list').insertAdjacentHTML('beforebegin', `<div class="nsd-pop-years">${yearSel}</div>`);
+  if (!fresh) return;
+  bd.addEventListener('click', e => {
+    const yb = e.target.closest('.nsd-pop-y');
+    if (yb && yb.dataset.y) return playerPopup(app, id, +yb.dataset.y, bd);
+    if (e.target === bd || e.target.closest('.nsd-pop-x')) bd.remove();
+  });
   document.body.appendChild(bd);
 }
 export function mount(root, app) {

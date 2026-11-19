@@ -3209,8 +3209,10 @@ test('New Star Darts v221: Platzierungen aller Spieler im laufenden Jahr, Tourca
   assert.ok(q && !Object.values(q.p).flat().some(id => direct.has(id)), 'WM-Qualifier ohne direkt Qualifizierte');
   assert.ok(JSON.stringify(s.placements).length < 260 * 1024);
   while (s.date.week !== 3) S.nextWeek(s);   // Jahreswechsel + Q-School
-  assert.ok(!s.placements[2026]); const fresh = Object.values(s.world.players).filter(x => x.tier === 'tour' && x.tourSince === 2027);
+  assert.ok(s.placements[2026] && H.placementsOf(s, top, 2026).length >= pl.length);   // Version 222: Vorjahr bleibt
+  const fresh = Object.values(s.world.players).filter(x => x.tier === 'tour' && x.tourSince === 2027);
   assert.ok(fresh.length > 0 && Object.values(s.world.players).every(x => x.tier === 'tour' ? x.tourSince != null : x.tourSince == null));
+  R.pruneSave(s, 2028); assert.ok(!s.placements[2026]);   // höchstens 2 Jahre
 });
 
 console.log(`\n${n} Tests ok`);
