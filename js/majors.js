@@ -220,11 +220,12 @@ export function mastersPrelimField(state, withPlayer) {
   const norm = n => String(n ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
   const real = key => y === 2025 && OOM_2025[key] ? OOM_2025[key].map(n => Object.values(state.world.players).find(p => p.tier !== 'retired' && norm(p.name) === norm(n))?.id ?? (norm(state.player.name) === norm(n) ? 'P' : null)).filter(Boolean) : null;
   for (const type of ['challenge', 'dev']) add(real(type) ?? idsOf(orderOfMerit(state, type, y)));
-  const avgOf = id => (id === 'P' ? 0 : getPlayer(state, id)?.avg ?? 0);
-  for (const c of PRELIM_SEC) add(real(c) ?? (c === 'adg'   // African Darts Group = Südliches Afrika + übriges Afrika: die besten 8 aus beiden Top 8
-    ? [...secondaryOrder(state, 'safrica', y, { tour: true }).slice(0, 8), ...secondaryOrder(state, 'africa', y, { tour: true }).slice(0, 8)].sort((a, b) => avgOf(b) - avgOf(a))
-    : secondaryOrder(state, c, y, { tour: true })));
-  playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => { used.add(p.id); pool.push(p.id); });
+  // African Darts Group (Version 233, Nutzerwunsch): die 8 nach Average besten Afrikaner des Pools (Südliches Afrika + übriges Afrika, ohne Karte)
+  const adg = () => Object.values(state.world.players).filter(p => ['safrica', 'africa'].includes(p.circuit) && p.tier === 'secondary').sort((a, b) => b.avg - a.avg).map(p => p.id);
+  for (const c of PRELIM_SEC) add(real(c) ?? (c === 'adg' ? adg() : secondaryOrder(state, c, y, { tour: true })));
+  const jdc = real('jdc');   // 2026: JDC-Vertreter 2025 (Doppelte ohne Nachrücker), sonst die 4 stärksten Talente bis 18
+  if (jdc) jdc.forEach(id => { if (!used.has(id)) { used.add(id); pool.push(id); } });
+  else playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => { used.add(p.id); pool.push(p.id); });
   return { seeds, pool };
 }
 

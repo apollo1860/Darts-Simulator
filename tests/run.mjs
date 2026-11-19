@@ -1030,7 +1030,10 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   assert.ok(secIn.length >= 60 && secIn.length <= 64, `Nebentour-Plätze ${secIn.length}`);   // Beau Greaves (Holderin) zählt einmal
   // Version 232: 2026 = echte Top 8 der OOM 2025 (nach Namen; Melderis steht im Osteuropa-Pool, Noa-Lynn auf der Challenge Tour)
   { const { OOM_2025 } = await import('../data/players.js'), nm = id => s.world.players[id]?.name;
-    for (const [k, names] of Object.entries(OOM_2025)) for (const n of names) assert.ok(pf.pool.map(nm).includes(n) || pf.seeds.map(nm).includes(n), `${k}: ${n}`); }
+    assert.ok(Object.values(s.world.players).some(p => p.name === 'Tergel Khurelkhuu' && p.tier === 'jdc'));   // Version 233: mit 15 schon da (nur Masters-Vorrunde)
+    const af = Object.values(s.world.players).filter(p => ['safrica', 'africa'].includes(p.circuit)).sort((a, b) => b.avg - a.avg).slice(0, 8);
+    assert.ok(af.every(p => pf.pool.includes(p.id)), 'ADG = 8 beste Afrikaner');
+    for (const [k, names] of Object.entries(OOM_2025)) for (const n of names) if (Object.values(s.world.players).some(p => p.name === n)) assert.ok(pf.pool.map(nm).includes(n) || pf.seeds.map(nm).includes(n), `${k}: ${n}`); }
   assert.equal(secIn.filter(id => ['safrica', 'africa'].includes(s.world.players[id].circuit)).length, 8);
   assert.equal(pf.seeds.length, 32); assert.ok(pf.pool.length >= 140 && pf.pool.length <= 160, `Vorrunde ${pf.pool.length}`);
   assert.ok(pf.pool.map(id => s.world.players[id]?.name).includes('Fallon Sherrock'));
@@ -2206,10 +2209,10 @@ test('New Star Darts v94: Youth-WM für U24-Holder, Grand Slam Gruppensieger, JD
   s.player.age = 24; assert.ok(!T.eventStatus(s, yw).playable, 'ab 24 nicht mehr');
   // JDC-Talente: Lewis Cook (16) ist 2026 dabei, Lawrie (15) kommt zum Jahreswechsel, Potenzial wird nie überschritten
   const ids = Object.fromEntries(Object.values(s.world.players).filter(p => p.jdc).map(p => [p.name, p]));
-  assert.deepEqual(Object.keys(ids).sort(), ['Lewis Cook', 'Zehra Gemi']);   // Version 203: + Zehra Gemi (16) assert.equal(ids['Lewis Cook'].age, 16); assert.equal(ids['Lewis Cook'].avg, 78.5); assert.equal(ids['Lewis Cook'].tier, 'dev');
+  assert.deepEqual(Object.keys(ids).sort(), ['Lewis Cook', 'Tergel Khurelkhuu', 'Zehra Gemi']);   // Version 233: Khurelkhuu (15) als JDC-Vertreter schon da   // Version 203: + Zehra Gemi (16) assert.equal(ids['Lewis Cook'].age, 16); assert.equal(ids['Lewis Cook'].avg, 78.5); assert.equal(ids['Lewis Cook'].tier, 'dev');
   ids['Lewis Cook'].avg = 91.5;
   const rep = W.developWorld(s, new RNG(3), 2026);
-  assert.deepEqual(rep.jdc.sort(), ['Benjamin Dopfer', 'Merve Hummel', 'Mitchell Lawrie', 'Tergel Khurelkhuu']);   // Version 184: + Tergel, 203: + Merve Hummel (15 → 16)
+  assert.deepEqual(rep.jdc.sort(), ['Benjamin Dopfer', 'Merve Hummel', 'Mitchell Lawrie']); assert.equal(ids['Tergel Khurelkhuu'].tier, 'dev');   // Version 233: Khurelkhuu war schon da → mit 16 Dev Tour   // Version 184: + Tergel, 203: + Merve Hummel (15 → 16)
   assert.ok(ids['Lewis Cook'].avg <= 92);
   const law = Object.values(s.world.players).find(p => p.name === 'Mitchell Lawrie');
   assert.ok(law.age === 15 && law.avg === 88 && law.potential === 106);

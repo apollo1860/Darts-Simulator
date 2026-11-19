@@ -1,6 +1,6 @@
 // KI-Spielwelt (DOM-frei): Aufbau, Lookups, Jahresentwicklung (Ruhestand, Nachwuchs, Form).
 import { SECONDARY, SECONDARY_SPREAD } from '../data/secondary.js';
-import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR, TOUR_AVG_RANGE, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT, CT_ADDED_2026 } from '../data/players.js';
+import { TOUR_TOP64, TOUR_EXPIRING, TOUR_NEW_2026, CHALLENGE_PLAYERS, DEV_PLAYERS, LOCAL_PLAYERS, QSCHOOL_UK_2026, CT_FICTIONAL, JDC_TALENTS, jdcStartAvg, CT_FORMER, WOMEN_ON_TOUR, TOUR_AVG_RANGE, SUPER_LEAGUE, SUPER_LEAGUE_SHIFT, CT_ADDED_2026, OOM_2025 } from '../data/players.js';
 import { NAME_POOLS, POOL_WEIGHTS, randomName } from '../data/names.js';
 import { attrsForAverage, overall, ratingForAvgExact, EXP_MIN, EXP_MAX } from './player.js';
 import { clamp } from './util.js';
@@ -200,9 +200,11 @@ export function addJdc(players, rng, year, ageOffset = 0) {
   const added = [];
   JDC_TALENTS.forEach(([name, nation, age26, lo, hi, spread], i) => {
     const id = `J${i + 1}`, age = age26 + (year - 2026);
-    if (players[id] || age < 16) return;
+    if (players[id]) { if (players[id].tier === 'jdc' && age >= 16) players[id].tier = 'dev'; return; }   // Version 233: Früh-Aufnahme → mit 16 Dev Tour
+    const early = age < 16 && year === 2026 && OOM_2025.jdc.includes(name);   // Version 233: JDC-Vertreter der Masters-Vorrunde 2026 schon mit 15 (spielt sonst nichts)
+    if (age < 16 && !early) return;
     const avg = jdcStartAvg(lo, hi);
-    players[id] = { id, name, nation, age: age + ageOffset, avg, potential: hi, jdc: true, tier: 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 16, rng), ...(spread ? { avgSpread: spread } : {}), ...(WOMEN_ON_TOUR.includes(name) ? { woman: true } : {}) };
+    players[id] = { id, name, nation, age: age + ageOffset, avg, potential: hi, jdc: true, tier: early ? 'jdc' : 'dev', cardUntil: null, attrs: attrsForAverage(avg, rng), exp: aiExp('dev', 16, rng), ...(spread ? { avgSpread: spread } : {}), ...(WOMEN_ON_TOUR.includes(name) ? { woman: true } : {}) };
     added.push(name);
   });
   return added;

@@ -162,6 +162,7 @@ export const OOM_2025 = {
   cdc: ['Adam Sevada', 'Stowe Buntz', 'David Cameron', 'Leonard Gates', 'Alex Spellman', 'Darryl Christie', 'Gary Mawson', 'Jason Brandon'],
   dpa: ['Joe Comito', 'James Bailey', 'Brody Klinge', 'Tim Pusey', 'Brandon Weening', 'Stuart Coburn', 'Gordon Mathers', 'Harley Kemp'],
   dpnz: ['Jonny Tata', 'Ben Robb', 'John Hurring', 'Mark Cleaver', 'Jaymie Hilton-Jones', 'Haupai Puha', 'Jack Sheppard', 'Tukina Weko'],
+  jdc: ['Ryan Branley', 'Lex Paeshuyse', 'Jack Nankervis', 'Tergel Khurelkhuu'],   // JDC-Vertreter 2025 (Paeshuyse/Nankervis folgen)
   cdlc: ['Jesús Salate', 'Rashad Sweeting', 'Norman Madhoo', 'Sudesh Fitzgerald', 'Jonathon Heron', 'Roberto Wentz', 'Robin Albury', 'Guillermo Soto'],
 };
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
