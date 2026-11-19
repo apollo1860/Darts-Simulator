@@ -3172,6 +3172,11 @@ test('New Star Darts v216: Unfälle → Scoring/Finishing −1…2 (nur mit Punk
   N.setSkill(p, 'sco', 30); N.setSkill(p, 'fin', 30); p.owned = ['tretroller']; le = roll();
   assert.equal(le.car, 'tretroller'); assert.ok(L.lifeEventView(s).text.includes('E-Scooter') && L.lifeEventView(s).text.includes('Tretroller'));
   const k = le.skill, n = le.n; L.resolveLifeEvent(s, 0, rng); assert.equal(N.skillValue(p, k), 30 - n);
+  // Version 217: eine KW keine Turniere – außer Majors und deren Qualifier
+  const T = await import('../js/tournaments.js'); assert.ok(s.week.accident);
+  assert.ok(!T.eventStatus(s, { id: 'pc-x', cat: 'pc', name: 'PC', week: s.date.week }).playable);
+  assert.ok(T.majorPath({ cat: 'major' }) && T.majorPath({ cat: 'mastersq' }) && T.majorPath({ cat: 'wmreg' }) && !T.majorPath({ cat: 'et' }) && !T.majorPath({ cat: 'pc' }));
+  assert.ok(!/Unfall/.test(T.eventStatus(s, { id: 'masters', cat: 'major', fmt: 'masters', name: 'Masters', week: s.date.week }).reason ?? ''));
   for (const id of Object.keys(D.VEHICLE_KIND)) assert.ok((await import('../data/lifestyle.js')).LIFESTYLE.some(x => x.id === id && x.cat === 'vehicle'), id);
 });
 

@@ -84,6 +84,8 @@ export function eligibility(state, ev) {
   }
 }
 
+// Version 217: Majors, World Series, Premier League und Qualifier, über die man in ein Major kommt (Masters-Vorrunde, WM-Qualifier)
+export const majorPath = ev => MAJOR_CATS.includes(ev.cat) || ['mastersq', 'wmqs', 'wmreg'].includes(ev.cat);
 // Gesamtstatus für die UI
 export function eventStatus(state, ev, n = null) {
   let cost = eventCost(ev, ev.pick ? n ?? 1 : null, state.player.level ?? 1, 1);
@@ -96,6 +98,7 @@ export function eventStatus(state, ev, n = null) {
   const elig = eligibility(state, ev);
   let playable = true, reason = '';
   if (state.week.blocked) { playable = false; reason = `Ausfall: ${state.week.blocked.label}`; }
+  else if (state.week.accident && !majorPath(ev)) { playable = false; reason = 'Ausfall: Unfallfolgen'; }   // Version 217: Unfall – nur Majors (und ihre Qualifier) spielbar
   else if (ev.startsThisWeek === false) { playable = false; reason = 'Läuft bereits'; }
   else if (ev.extra ? state.week.extras?.includes(ev.id) : state.week.played) {
     playable = false; reason = state.week.eventId === ev.id || ev.extra ? 'Gespielt' : 'Diese Woche schon gespielt';

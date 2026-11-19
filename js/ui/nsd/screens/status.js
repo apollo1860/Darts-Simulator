@@ -32,7 +32,7 @@ export function render(app) {
       </div>
       <div class="nsd-rowpair">
         <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">${nicon('card')} ${p.tour === 'tour' ? `Tourcard bis Ende ${p.cardUntil}` : 'Keine Tourcard'}</div>
-        <div class="nsd-dark ${fit && !inj ? '' : 'red'}">${inj ? `${inj.icon} ${s.week?.blocked ? 'Ausfall' : 'Verletzt'}` : fit ? 'Match-fit' : 'Nicht fit'}</div>
+        <div class="nsd-dark ${fit && !inj && !s.week?.accident ? '' : 'red'}">${inj ? `${inj.icon} ${s.week?.blocked ? 'Ausfall' : 'Verletzt'}` : s.week?.accident ? '🩹 Ausfall' : fit ? 'Match-fit' : 'Nicht fit'}</div>
       </div>
       <div class="nsd-rowpair x">
         <button class="nsd-btn row" id="s-shop"><span class="ic">${nicon('shop')}</span><span class="lb">Shop</span></button>
