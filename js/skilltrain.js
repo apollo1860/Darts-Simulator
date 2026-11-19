@@ -1,6 +1,6 @@
 // New Star Darts (DOM-frei): Training per Minispiel, Einstufung, Formverlust, Getränke, Darts-Shop.
 // Jede trainierbare Fähigkeit: 20 Level × max. 3 Punkte. Erfolg im 1./2./3. Versuch → 3/2/1 Punkte (Level behält das Beste).
-import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, drinkFactor, addEnergy, addRel, relLabel, DRINK_MULT } from './nsd.js';
+import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, drinkFactor, addEnergy, addRel, relLabel, DRINK_MULT, inTournament, IN_TOURNAMENT_MSG } from './nsd.js';
 import { DRINKS, DARTS, DRINK_MAX } from '../data/gear.js';
 import { FLIGHT_NAMES, BARREL_NAMES, SHOP_WEEKS } from '../data/accessories.js';
 import { RNG } from './rng.js';
@@ -72,6 +72,7 @@ export const nextLevel = (p, key) => { for (let L = 1; L <= SKILL_LEVELS; L++) i
 export function canTrain(state, key, L) {
   const p = state.player;
   if (state.week?.vacation) return { ok: false, reason: 'Du bist im Urlaub – kein Training' };   // Version 242
+  if (inTournament(state)) return { ok: false, reason: IN_TOURNAMENT_MSG };   // Version 243
   if (!TRAINABLE.some(t => t.key === key)) return { ok: false, reason: 'Nicht trainierbar' };
   if (!levelOpen(p, key, L)) return { ok: false, reason: `Erst Level ${L - 1} schaffen` };
   if (levelPoints(p, key, L) >= 3) return { ok: false, reason: 'Level schon perfekt' };

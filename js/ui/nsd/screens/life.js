@@ -1,5 +1,5 @@
 // Leben: Zufriedenheit, Energie, Beziehungen (Manager, Fans, Freundin, Sponsoren), Lifestyle, Erfolge
-import { relLabel, relLabelOf, partnerText } from '../../../nsd.js';
+import { relLabel, relLabelOf, partnerText, inTournament, IN_TOURNAMENT_MSG } from '../../../nsd.js';
 import { vacationStatus, takeVacation, VACATION_SAT } from '../../../tournaments.js';
 import { relAvailable, pickRelAction, doRelAction } from '../../../career.js';
 import { breakUp, satisfactionTarget, weeklyEnergy, canMarry, marry, WEDDING_COST } from '../../../life.js';
@@ -54,6 +54,7 @@ export function mount(root, app) {
 const LINK = { manager: ['team', 'Team'], sponsors: ['sponsors', 'Verträge'] };
 function relModal(app, key) {
   const s = app.state, p = s.player;
+  if (inTournament(s) && relAvailable(s, key)) return toast(IN_TOURNAMENT_MSG, 'error');   // Version 243
   if (!relAvailable(s, key)) {
     const txt = partnerText({ partner: 'Noch keine Freundin – vielleicht lernst du ja bald jemanden kennen …', manager: 'Noch kein Manager.', sponsors: 'Noch keine Sponsoren.' }[key], p);
     return LINK[key] ? app.go(LINK[key][0]) : toast(txt);

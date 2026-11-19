@@ -3352,4 +3352,15 @@ test('New Star Darts v241: Bilanz gegen Gegner, Formkurve, Spitzname, Urlaub', a
   assert.ok(s.articles.at(-1).text.includes('Benny „The Hammer“ Buchse') || s.articles.at(-1).title.includes('Buchse'));
 });
 
+test('New Star Darts v243: mitten im Turnier kein Training und keine Beziehungspflege', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js'), C = await import('../js/career.js');
+  const s = N.newNsdCareer({ first: 'T', last: 'U', nation: 'DE', age: 25, slot: 1, seed: 4 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null }; s.stars = 500;
+  assert.ok(T.canTrain(s, 'sco', 1).ok);
+  ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+  assert.ok(N.inTournament(s)); assert.ok(!T.canTrain(s, 'sco', 1).ok && /Turnier/.test(T.canTrain(s, 'sco', 1).reason));
+  assert.throws(() => C.doRelAction(s, C.pickRelAction(s, 'fans')), /Turnier/);
+  ET.simulateRest(s); ET.closeEvent(s); assert.ok(!N.inTournament(s)); s.player.energy = 100;
+  assert.ok(T.canTrain(s, 'sco', 1).ok); assert.ok(C.doRelAction(s, C.pickRelAction(s, 'fans')) > 0);
+});
+
 console.log(`\n${n} Tests ok`);

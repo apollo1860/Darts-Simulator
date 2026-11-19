@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 242;
+export const APP_VERSION = 243;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -66,6 +66,9 @@ export const skillLevel = (p, key) => (p.skills?.[key] ?? []).reduce((hi, v, i) 
 export const gearOf = p => DARTS.find(d => d.id === p.gear?.id) ?? null;
 // Zubehör-Boosts (player.boosts = [{id, name, bonus, left}]) gelten für die nächsten eigenen Matches
 export const boostBonus = (p, key) => (p.boosts ?? []).reduce((a, b) => a + (b.bonus?.[key] ?? 0), 0);
+// Version 243: mitten im Turnier (noch nicht ausgeschieden) – kein Training, keine Beziehungspflege
+export const inTournament = state => !!state.activeEvent && !state.activeEvent.done && state.activeEvent.playerAlive !== false;
+export const IN_TOURNAMENT_MSG = 'Du bist mitten im Turnier – erst danach wieder möglich';
 // Version 219: Kater nach zu viel Alkohol – eine KW lang −20 auf Scoring, Finishing, Fokus, Rechnen (skilltrain.js: drink/soberUp)
 export const HANGOVER_MALUS = 20;
 export const skillBonus = (p, key) => (key === 'men' ? 0 : (gearOf(p)?.bonus[key] ?? 0) + (p.buzz ?? 0) + boostBonus(p, key) - (p.hangover ? HANGOVER_MALUS : 0));

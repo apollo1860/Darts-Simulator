@@ -8,7 +8,7 @@ import { surname } from './util.js';
 import { RNG } from './rng.js';
 import { CONTROVERSIAL, CONTROVERSIAL_FROM, CONTROVERSIAL_PAY, CONTROVERSY_FIRST, CONTROVERSY_GAP, CONTROVERSY_OFFER_WEEKS, CONTROVERSY_SIGN_FANS, CONTROVERSY_EVENT, CONTROVERSY_LENGTHS, CONTROVERSY_KINDS, CONTROVERSY_PARAMS } from '../data/controversial.js';
 import { REAL_SPONSORS, SMALL_SPONSORS, BRANCHEN, SPONSOR_MAX, brancheOfName, REAL_FROM, FAME_PAY, SMALL_PAY, REAL_SHARE, NEW_TIER_FOCUS, SPONSOR_PAY, PAY_V, scaleSponsorPay } from '../data/sponsorsreal.js';
-import { starPrice, starPayout, starFactor, priceFactor, PRICE_MULT, addRel, addFans, addStarProgress, addEnergy, isFloor } from './nsd.js';
+import { starPrice, starPayout, starFactor, priceFactor, PRICE_MULT, addRel, addFans, addStarProgress, addEnergy, isFloor, inTournament, IN_TOURNAMENT_MSG } from './nsd.js';
 import { addNews } from './news.js';
 import { rankOf } from './rankings.js';
 import { getPlayer } from './world.js';
@@ -128,6 +128,7 @@ export function pickRelAction(state, key, rng = new RNG(state.rng)) {
 }
 export function doRelAction(state, act) {
   const p = state.player;
+  if (inTournament(state)) throw new Error(IN_TOURNAMENT_MSG);   // Version 243
   if (!relAvailable(state, act.key)) throw new Error('Diese Beziehung gibt es (noch) nicht');
   if (act.energy && (p.energy ?? 0) < act.energy) throw new Error(`Zu müde – ${act.energy} % Energie nötig`);
   if (act.stars && (state.stars ?? 0) < act.stars) throw new Error('Nicht genug ★');
