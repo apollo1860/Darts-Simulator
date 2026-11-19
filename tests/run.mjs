@@ -3268,4 +3268,17 @@ test('New Star Darts v229: Getränke Bier, Weinschorle, Schnaps (alte Vorräte �
   assert.deepEqual(St.migrate(o).player.drinks, { beer: 4, schnaps: 2, wine: 7 });
 });
 
+test('New Star Darts v231: Luxus-Manager erst ab Star-Status 40 (Angebot per News), nur Weltmarken, Fans-PR', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), { RNG } = await import('../js/rng.js');
+  const s = N.newNsdCareer({ first: 'L', last: 'X', nation: 'DE', age: 25, slot: 1, seed: 3 }), p = s.player, rng = new RNG({ s: 9 });
+  p.star.level = 39; assert.ok(!C.managersOf(s).some(m => m.id === 'm4'));
+  C.careerWeek(s, rng); assert.ok(!s.news.some(n => n.title.includes('Luxus-Manager')));
+  p.star.level = 40; assert.ok(C.managersOf(s).some(m => m.id === 'm4'));
+  C.careerWeek(s, rng); C.careerWeek(s, rng); assert.equal(s.news.filter(n => n.title.includes('Luxus-Manager')).length, 1);   // nur einmal
+  C.hireManager(s, 'm4'); assert.ok(C.managerOf(s).luxury);
+  const f0 = p.rel.fans; C.careerWeek(s, rng); assert.ok(p.rel.fans > f0);
+  for (let i = 0; i < 40; i++) { const o = C.pickSponsor(40, new Set(), rng, true); assert.ok(o.real, 'nur echte Marken'); }
+  p.star.level = 10; assert.ok(C.managersOf(s).some(m => m.id === 'm4'), 'eigener Manager bleibt sichtbar');
+});
+
 console.log(`\n${n} Tests ok`);

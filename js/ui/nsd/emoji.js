@@ -22,7 +22,7 @@ export const EMOJI = {
   '🔍': 'magnifier', '💥': 'burst', '💣': 'burst', '🛌': 'bed', '🛏️': 'bed', '📱': 'phone', '📸': 'phone', '📷': 'phone', '🌐': 'globe', '🌍': 'globe',
   '📣': 'megaphone', '🔊': 'megaphone', '🦴': 'injury', '🤕': 'injury', '🦷': 'injury', '🩹': 'injury', '💊': 'injury', '👕': 'shirt', '🐟': 'fish',
   '⏩': 'ff', '⏭': 'skip', '⏸': 'pause', '📰': 'news', '🗞️': 'news', '💯': 'hundred', '🧹': 'broom', '🏰': 'ranks', '🌊': 'ranks',
-  '🕴️': 'person', '🤵': 'person', '🧔': 'person', '👩‍💼': 'person', '👪': 'life', '👥': 'life',
+  '🕴️': 'person', '🎩': 'person', '🤵': 'person', '🧔': 'person', '👩‍💼': 'person', '👪': 'life', '👥': 'life',
   '🛩️': 'plane', '✈️': 'plane', '🚁': 'plane', '💰': 'money', '🎮': 'gamepad', '🕹️': 'gamepad', '🧠': 'bulb', '💡': 'bulb',
   '💬': 'chat', '💭': 'chat', '📬': 'letter', '📝': 'letter', '⚖️': 'scale', '➕': 'plus', '⏳': 'hourglass', '🛒': 'shop', '🛡️': 'card',
   // Version 173: restliche Emojis (Sponsoren-Branchen, Spielmomente, Einzelfälle, Pfeile)

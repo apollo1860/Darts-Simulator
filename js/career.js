@@ -27,7 +27,7 @@ export function nameTeam(state, rng = new RNG(state.rng)) {
   return t.names;
 }
 const named = (state, x) => (x ? { ...x, name: team(state).names?.[x.id] ?? x.name } : null);
-export const managersOf = state => (nameTeam(state), MANAGERS.map(m => named(state, m)));
+export const managersOf = state => (nameTeam(state), MANAGERS.filter(m => !m.offerOnly || managerOk(state, m) || team(state).manager === m.id).map(m => named(state, m)));   // Version 231: Luxus-Manager erst sichtbar, wenn er dich nimmt
 
 // ---------- Manager ----------
 export const managerOf = state => named(state, MANAGERS.find(m => m.id === team(state).manager));
@@ -165,14 +165,14 @@ export const realPayRamp = (pay, level) => SMALL_PAY + (pay - SMALL_PAY) * Math.
 // Sponsor für ein Angebot (Version 70/71): `taken` = Branchen mit laufendem Vertrag (pro Branche nur ein Sponsor). Bis Star-Status 10 nur kleine
 // fiktive Marken (zahlen wenig); ab 11 meist echte Marken – Stufen ab 11 / 20 / 40, leichter Fokus auf die zuletzt freigeschaltete Stufe;
 // je bekannter die Marke, desto besser die Bezahlung. Die Branche wird gleichverteilt gewählt (nicht nach Markenzahl), dann die Marke.
-export function pickSponsor(level, taken, rng) {
+export function pickSponsor(level, taken, rng, luxury = false) {   // luxury: Luxus-Manager → immer echte Marke (sobald verfügbar)
   const small = () => {
     const pool = SMALL_SPONSORS.filter(x => !taken.has(x.branche));
     if (!pool.length) return null;
     const x = rng.pick(pool);
     return { name: x.name, branche: x.branche, real: false, fame: 0, pay: SMALL_PAY };
   };
-  if (level < REAL_FROM[0] || !rng.chance(REAL_SHARE)) return small();
+  if (level < REAL_FROM[0] || (!luxury && !rng.chance(REAL_SHARE))) return small();
   const pool = REAL_SPONSORS.filter(x => x.from <= level && !taken.has(x.branche));
   if (!pool.length) return small();
   const branchen = [...new Set(pool.map(x => x.branche))], b = rng.pick(branchen), inB = pool.filter(x => x.branche === b);
@@ -197,7 +197,7 @@ export function sponsorWeek(state, rng) {
   // (dann muss für den Neuen einer gekündigt werden), aber nie aus einer Branche, in der du schon einen Vertrag hast.
   const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) : 0;
   const blocked = weekIndex(state) < (s.blockUntil ?? 0);                    // Sponsoren-Sperre nach einem Skandal
-  const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng) : null;
+  const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng, !!m?.luxury) : null;
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
     const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * (sp0.real ? realPayRamp(sp0.pay, p.star.level) : sp0.pay) * SPONSOR_PAY));
@@ -537,6 +537,14 @@ export function careerWeek(state, rng) {
   if (before && team(state).offersUntil !== before) addNews(state, 'info', '🏃 Neue Fitnesstrainer verfügbar', 'Drei neue Angebote im Team-Screen – Preise, Dauer und Erholung sind neu.');
   out.sponsor = sponsorWeek(state, rng).paid;
   if (managerOf(state) && p.rel.manager > 0 && rng.chance(0.15)) addRel(p, 'manager', -1);   // will Erfolge sehen
+  // Version 231: Luxus-Manager – einmaliges Angebot ab Star-Status 40, danach PR: Fans +1 pro Woche
+  const lux = MANAGERS.find(x => x.luxury);
+  if (lux && !state.flags?.luxOffer && managerOk(state, lux) && team(state).manager !== lux.id) {
+    (state.flags ??= {}).luxOffer = true;
+    const n = named(state, lux);
+    addNews(state, 'star', `🎩 Angebot vom Luxus-Manager ${n.name}`, `Der Manager der Superstars will dich unter Vertrag nehmen: nur noch Weltmarken als Sponsoren, Beträge ×${String(lux.mult).replace('.', ',')}, PR-Arbeit für deine Fans – Provision ${Math.round(lux.cut * 100)} %. Zu finden im Team-Screen.`);
+  }
+  if (managerOf(state)?.luxury) addFans(p, 1);
   return out;
 }
 
