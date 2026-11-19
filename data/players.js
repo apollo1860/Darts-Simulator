@@ -113,7 +113,7 @@ export const TOUR_PLAYERS = [...TOUR_TOP64, ...TOUR_EXPIRING, ...TOUR_NEW_2026];
 // --- Challenge Tour (nur ohne Tourcard): Nutzerliste CT-OOM, Plätze 1–75 ---
 // Stärke aus Platzierung: 91 Ø − 0,14 je Platz (75 → 80,6). Dev-Spieler auf der Liste stehen nur in DEV_PLAYERS
 // (spielen ohnehin CT mit; Average = max(Dev, CT)). Danach 30 fiktive Europäer (~66–72 Ø) als Kanonenfutter.
-// Version 185: DDV-Super-League-Spieler (Teilnehmer 2024/25, Nutzerliste), die noch fehlten → echte Spieler ohne Karte (IDs G…):
+// Version 185: PDC-Super-League-Spieler (Teilnehmer 2024/25, Nutzerliste), die noch fehlten → echte Spieler ohne Karte (IDs G…):
 // bis 23 Jahre Development Tour, sonst Challenge Tour (beide spielen auch die Host-Nation-Qualifier). Format [Name, Nation, Alter 2026, Super-League-Ø];
 // Welt-Ø = Super-League-Ø − SUPER_LEAGUE_SHIFT (Annahme: bei den schon vorhandenen SL-Spielern liegt der Welt-Ø im Mittel ~4 Punkte unter dem SL-Ø).
 export const SUPER_LEAGUE_SHIFT = 4;
