@@ -162,6 +162,11 @@ export function drink(state, id, rng) {
   if (!(p.drinks[id] > 0)) throw new Error(`Kein ${d.name} mehr da`);
   p.drinks[id]--;
   p.energy = 100;                                   // jedes Getränk füllt die Energie ganz auf
+  // Version 219: zu viel auf einmal (je KW zufällige Grenze 4–10 Getränke) → nächste KW verkatert
+  const w = (p.drunk ??= { n: 0, limit: null });
+  w.limit ??= rng.int(DRUNK_MIN, DRUNK_MAX); w.n++;
+  const drunk = !p.hangoverNext && w.n >= w.limit;
+  if (drunk) p.hangoverNext = true;
   if (d.buzz) { p.buzz = (p.buzz ?? 0) + d.buzz; syncAttrs(p); }
   let rel = null;
   if (d.rel) {                                  // niedrigste bestehende Beziehung (Fans immer, andere nur wenn vorhanden)
@@ -170,10 +175,16 @@ export function drink(state, id, rng) {
     rel = rng.pick(keys.filter(k => (p.rel[k] ?? 0) === low));
     addRel(p, rel, d.rel);
   }
-  return { energy: p.energy, buzz: p.buzz ?? 0, rel };
+  return { energy: p.energy, buzz: p.buzz ?? 0, rel, drunk };
 }
-// Wochenende: Rausch verfliegt
-export function soberUp(p) { if (p.buzz) { p.buzz = 0; syncAttrs(p); } }
+// Wochenende: Rausch verfliegt; Kater (Version 219) gilt genau die KW nach dem Absturz, der Trinkzähler beginnt neu
+export const DRUNK_MIN = 4, DRUNK_MAX = 10;
+export function soberUp(p) {
+  const was = !!p.hangover;
+  p.hangover = !!p.hangoverNext; p.hangoverNext = false; p.drunk = null;
+  if (p.buzz || was || p.hangover) { p.buzz = 0; syncAttrs(p); }
+  return p.hangover;
+}
 
 // ---- Darts-Shop ----
 export const dartsPrice = (d, level) => starPrice(d.price, level);

@@ -54,7 +54,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 
 ## Woche & Energie
 - „Weiter“ → `nextWeek`: Hintergrundturniere, Wochen-Update (Energie, Sponsoren, News), Ereignisse.
-- Energie: Woche +40 + Immobilie + Fitnesstrainer + Zufriedenheits-Anteil (`weeklyEnergy`). Match −(3 + 1 × Legs) %, max. 30 %, Floor-Turniere × 0,75; Einsatz 1–3 Herzen im Liveticker (1 ❤: Energie × 0,3, kaum Szenen, simulierte Aufnahmen −5…−10 Ø). Unter 20 %: kein Selbstwerfen, wachsender Malus. Training kostet 55 %. Getränke füllen auf 100 %.
+- Energie: Woche +40 + Immobilie + Fitnesstrainer + Zufriedenheits-Anteil (`weeklyEnergy`). Match −(3 + 1 × Legs) %, max. 30 %, Floor-Turniere × 0,75; Einsatz 1–3 Herzen im Liveticker (1 ❤: Energie × 0,3, kaum Szenen, simulierte Aufnahmen −5…−10 Ø). Unter 20 %: kein Selbstwerfen, wachsender Malus. Training kostet 55 %. Getränke füllen auf 100 %; zu viel in einer KW (zufällige Grenze 4–10) → nächste KW verkatert (−20 auf alle trainierbaren Fähigkeiten, `p.hangover`).
 - **Verletzungen** (`js/injury.js`): ~5 %/Woche (+3 % bei Energie < 30 %, + ab 35 Jahren, × 0,7 mit Fitnesstrainer, 4 Wochen Abklingzeit); sofort −50 % Energie, 1–2 Wochen, Erholung × 0,4, Attribut-Abzug (Ø ≈ −3…−5), größerer Zielkreis/schnelleres Zielkreuz. **Schwere Rückenschmerzen** (18 % der Rückenverletzungen): `state.week.blocked` – keine Turniere der Woche; Premier League kampflos (Freilos für den Gegner), World Cup mit Nachrücker.
 
 ## Fähigkeiten & Training

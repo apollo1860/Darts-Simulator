@@ -3180,4 +3180,21 @@ test('New Star Darts v216: Unfälle → Scoring/Finishing −1…2 (nur mit Punk
   for (const id of Object.keys(D.VEHICLE_KIND)) assert.ok((await import('../data/lifestyle.js')).LIFESTYLE.some(x => x.id === id && x.cat === 'vehicle'), id);
 });
 
+test('New Star Darts v219: zu viel auf einmal getrunken (Grenze 4–10 je KW) → nächste KW verkatert, danach normal', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js');
+  const s = N.newNsdCareer({ first: 'Kurt', last: 'Kater', nation: 'DE', age: 30, slot: 1, seed: 12 }), p = s.player, rng = new RNG({ s: 3 });
+  for (const k of ['sco', 'fin', 'foc', 'cal']) N.setSkill(p, k, 30); N.syncAttrs(p);
+  const a0 = { ...p.attrs }; p.drinks = { beer: 25 };
+  for (let i = 0; i < 3; i++) assert.ok(!T.drink(s, 'beer', rng).drunk);     // bis 3 nie
+  let n = 3, r; do { r = T.drink(s, 'beer', rng); n++; } while (!r.drunk && n < 12);
+  assert.ok(r.drunk && n >= T.DRUNK_MIN && n <= T.DRUNK_MAX, `Absturz nach ${n}`);
+  assert.ok(!T.drink(s, 'beer', rng).drunk);                                  // nur einmal
+  assert.ok(p.hangoverNext && !p.hangover); assert.equal(p.attrs.sco, a0.sco);  // diese KW noch normal
+  assert.ok(T.soberUp(p)); assert.ok(p.hangover && !p.hangoverNext);
+  assert.ok(p.attrs.sco < a0.sco - 5 && p.attrs.fin < a0.fin - 3 && p.attrs.men === a0.men);   // massiv, Mental unberührt
+  assert.ok(!T.soberUp(p)); assert.ok(!p.hangover); assert.equal(p.attrs.sco, a0.sco);         // danach normal
+  const lims = new Set(); for (let i = 0; i < 200; i++) { p.drunk = null; p.hangoverNext = false; p.drinks.beer = 25; let k = 0; while (!T.drink(s, 'beer', rng).drunk) k++; lims.add(k + 1); }
+  assert.equal(Math.min(...lims), 4); assert.equal(Math.max(...lims), 10);
+});
+
 console.log(`\n${n} Tests ok`);

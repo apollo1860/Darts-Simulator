@@ -35,7 +35,8 @@ export function nextWeek(state) {
     addEnergy(state.player, weeklyEnergy(state.player));
     const inj = injuryWeek(state, new RNG(state.rng), e0);   // Version 152: Verletzung (nach der Erholung, kostet sofort 50 %)
     if (inj) addNews(state, 'info', inj.title, inj.text);
-    soberUp(state.player); expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); dilemmaWeek(state, new RNG(state.rng));
+    if (soberUp(state.player)) addNews(state, 'info', '🥴 Verkatert!', 'Zu viel getrunken: Diese Woche sind Scoring, Finishing, Fokus und Rechnen stark geschwächt. Nächste Woche bist du wieder fit.');
+    expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); dilemmaWeek(state, new RNG(state.rng));
     state.weekly = { ...c, energy: state.player.energy - e0, injury: inj ? -50 : 0 };
     if (state.date.week === 1) { ageDeclineYear(state); setGoals(state); }   // Version 163: Altersabbau zum Jahreswechsel
     lastChanceCheck(state);

@@ -8,14 +8,14 @@ import { toast } from '../../components.js';
 import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
-const HELP = '<p><b>Bier</b> füllt die Energie auf 100 %. <b>Schnaps</b> gibt Energie und einen Rausch: Bonus auf Scoring, Finishing, Fokus und Rechnen bis zum Wochenende. <b>Wodka</b> wie Schnaps, stärker, und verbessert eine Beziehung um 1.</p><p>Mental bekommt nie einen Bonus. Preise steigen mit deinem Star-Status.</p>';
+const HELP = '<p><b>Bier</b> füllt die Energie auf 100 %. <b>Schnaps</b> gibt Energie und einen Rausch: Bonus auf Scoring, Finishing, Fokus und Rechnen bis zum Wochenende. <b>Wodka</b> wie Schnaps, stärker, und verbessert eine Beziehung um 1.</p><p>Mental bekommt nie einen Bonus. Preise steigen mit deinem Star-Status. Vorsicht: Wer zu viel auf einmal trinkt, ist danach eine Woche verkatert.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, e = Math.round(p.energy ?? 100), lvl = p.star.level;
   return frame({
     body: `${header(p.name)}${titleBand('Getränke')}
       <div class="nsd-meters one">${meter({ icon: heartIcon(), label: `Energie ${e} %`, pct: e, tone: e >= 20 ? 'green' : 'red' })}</div>
-      <div class="nsd-strip"><span>${p.buzz ? `🥴 +${p.buzz}` : 'Nüchtern'}</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
+      <div class="nsd-strip"><span>${p.hangover ? 'Verkatert' : p.hangoverNext ? 'Betrunken' : p.buzz ? `🥴 +${p.buzz}` : 'Nüchtern'}</span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       <div class="nsd-evs">${DRINKS.map(d => `<div class="nsd-ev">
         <div class="nsd-ev-main"><div class="nsd-ev-name">${d.icon} ${d.name} <small>× ${p.drinks[d.id] ?? 0} / ${DRINK_MAX}</small></div>
           <div class="nsd-ev-sub">Energie auf 100 %${d.buzz ? ` · Rausch +${d.buzz}` : ''}${d.rel ? ' · Beziehung +1' : ''}</div>
@@ -36,7 +36,8 @@ export function mount(root, app) {
   root.querySelectorAll('[data-drink]').forEach(b => b.onclick = () => {
     try {
       const r = drink(s, b.dataset.drink, new RNG(s.rng)); app.save();
-      toast(`Prost! Energie ${r.energy} %${r.buzz ? ` · Rausch +${r.buzz}` : ''}${r.rel ? ` · ${relLabelOf(app.state.player, r.rel)} +1` : ''}`);
+      if (r.drunk) toast('🥴 Du hast eindeutig zu viel getrunken … Nächste Woche wirst du einen üblen Kater haben!', 'error');
+      else toast(`Prost! Energie ${r.energy} %${r.buzz ? ` · Rausch +${r.buzz}` : ''}${r.rel ? ` · ${relLabelOf(app.state.player, r.rel)} +1` : ''}`);
       app.refresh();
     } catch (e) { toast(e.message, 'error'); }
   });
