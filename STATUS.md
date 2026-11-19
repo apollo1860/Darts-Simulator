@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 220** – Getränke-Hilfetext ohne Warnung vor dem Kater (Nutzerwunsch: kein Hinweis).
 - [x] **Version 219** – **Kater**: Wer in einer KW zu viel trinkt (Bier, Schnaps, Wodka zusammen; Grenze je KW zufällig 4–10, `DRUNK_MIN/MAX`, festgelegt beim ersten Getränk der Woche), ist sofort „Betrunken“ (Toast) und in der **nächsten KW verkatert**: Scoring, Finishing, Fokus und Rechnen je −20 effektiv (`HANGOVER_MALUS`, ≈ −5,7 Ø Scoring, −4,2 auf die übrigen Attribute; Mental nicht), gilt auch im Training. Danach wieder normal. Anzeige: Getränke-Leiste „Betrunken/Verkatert“, Status „🥴 Verkatert“, News zu Wochenbeginn. Hilfetext warnt allgemein („zu viel auf einmal“), ohne die Grenze zu nennen. Annahme: „auf einmal“ = innerhalb einer KW.
 - [x] **Version 218** – Unfallkarte zeigt nur noch „Diese Woche keine Turniere“ – die Major-Ausnahme wird nicht mehr erwähnt (gilt aber weiter).
 - [x] **Version 217** – Nach einem Unfall **eine KW keine Turniere** (`state.week.accident`, Grund „Ausfall: Unfallfolgen“, Status „🩹 Ausfall“). Ausgenommen sind alles, was zu einem Major gehört (`majorPath`): Majors, World Series, Premier League, World Cup sowie Masters-Vorrunde und WM-Qualifier – ein Unfall kostet nie ein Major. Läuft gerade ein Turnier, greift die Sperre nicht. Annahme: Sperre gilt für die KW, in der die Unfall-Karte bestätigt wird.
