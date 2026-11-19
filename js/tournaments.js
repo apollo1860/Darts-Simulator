@@ -21,7 +21,7 @@ import { mastersPrelimField, MAJOR_CATS, majorField, majorEligibility, autoPlaye
 import { addMoney, settleOom, orderOfMerit, rankOf, devHolders } from './rankings.js';
 import { fmtEUR } from './util.js';
 import { routeTarget, scriptedHit } from './decisions.js';
-import { trackTitle, recordChampion } from './history.js';
+import { trackTitle, recordChampion, recordPlaces } from './history.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
@@ -963,6 +963,7 @@ function settle(state, inst) {
     if (oomPrize) { for (const t of inst.oom) addMoney(state, t, id, oomPrize, year); oomMap[id] = oomPrize; }
     if (id === 'P') { inst.place = place; inst.prize = prize; }
   }
+  recordPlaces(state, inst);   // Version 221: Platzierungen aller Teilnehmer (Spieler-Pop-up)
   if (inst.oom?.length) settleOom(state, `${inst.eventId}#${inst.sub ?? 0}`, inst.oom, oomMap, year);   // 2-Jahres-OOM: gleiches Turnier von vor 2 Jahren fällt heraus
   if (inst.eventId === 'wm-quali') { qualOf(state).wmqSurvivors = survivors; wmAnnounce(state, survivors, 'WM-Tickets beim Tour Card Holder Qualifier', 'Über den Tour Card Holder Qualifier für die WM qualifiziert', true); }
   if (inst.eventId === 'gs-quali') qualOf(state).gsqSurvivors = survivors;

@@ -3197,4 +3197,20 @@ test('New Star Darts v219: zu viel auf einmal getrunken (Grenze 4â€“10 je KW) â†
   assert.equal(Math.min(...lims), 4); assert.equal(Math.max(...lims), 10);
 });
 
+test('New Star Darts v221: Platzierungen aller Spieler im laufenden Jahr, Tourcard in Folge, WM-Qualifier ohne direkt Qualifizierte', async () => {
+  const N = await import('../js/nsd.js'), S = await import('../js/season.js'), H = await import('../js/history.js'), R = await import('../js/rankings.js'), M = await import('../js/majors.js');
+  const s = N.newNsdCareer({ first: 'Pia', last: 'Popup', nation: 'DE', age: 25, slot: 1, seed: 21 });
+  assert.equal(s.player.tourSince, 2026); assert.ok(Object.values(s.world.players).filter(x => x.tier === 'tour').every(x => x.tourSince === 0));
+  while (s.date.week < 50) S.nextWeek(s);
+  const top = R.orderOfMerit(s, 'pdc')[0].p.id, pl = H.placementsOf(s, top);
+  assert.ok(pl.length >= 25 && pl.every(r => r.place && r.place !== 'undefined' && r.week >= 1)); assert.ok(pl[0].week >= pl[pl.length - 1].week);   // neueste zuerst
+  assert.ok(pl.some(r => r.cat === 'pc') && pl.some(r => r.cat === 'major'));
+  const direct = new Set(M.wmDirect(s)), q = s.placements[2026].find(e => e.e === 'wm-quali');
+  assert.ok(q && !Object.values(q.p).flat().some(id => direct.has(id)), 'WM-Qualifier ohne direkt Qualifizierte');
+  assert.ok(JSON.stringify(s.placements).length < 260 * 1024);
+  while (s.date.week !== 3) S.nextWeek(s);   // Jahreswechsel + Q-School
+  assert.ok(!s.placements[2026]); const fresh = Object.values(s.world.players).filter(x => x.tier === 'tour' && x.tourSince === 2027);
+  assert.ok(fresh.length > 0 && Object.values(s.world.players).every(x => x.tier === 'tour' ? x.tourSince != null : x.tourSince == null));
+});
+
 console.log(`\n${n} Tests ok`);

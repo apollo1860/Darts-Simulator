@@ -314,7 +314,8 @@ export function majorField(state, ev, withPlayer) {
     if (state.date.week >= ev.week) q[ev.id] = field;
   }
   if (withPlayer || !field.includes('P') || ev.cat === 'pl' || ev.team) return [...field];
-  const all = computeField(state, ev).concat(idsOf(orderOfMerit(state, 'pdc')));
+  // Version 221: Holder-Qualifier (WM/Grand Slam) – Nachrücker nur aus dem Qualifier-Kreis, nie direkt Qualifizierte aus der Rangliste
+  const all = ['wmq', 'gsq'].includes(ev.fmt) ? computeField(state, ev) : computeField(state, ev).concat(idsOf(orderOfMerit(state, 'pdc')));
   const reserve = all.find(id => id !== 'P' && !field.includes(id) && !String(id).startsWith('W:'));
   return field.map(id => (id === 'P' ? reserve : id)).filter(Boolean);
 }

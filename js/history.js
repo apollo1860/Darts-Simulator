@@ -17,6 +17,34 @@ export function recordChampion(state, inst, id, runnerUp = null) {
     who: t ? nationName(t.nation) : w?.name ?? '?', nation: t?.nation ?? w?.nation ?? null, ...(t ? { team: true } : {}), ...(runnerUp ? { runnerUp } : {}) });
 }
 
+// Version 221: Platzierungen ALLER Teilnehmer je Turnier im laufenden Jahr (für das Spieler-Pop-up der Ranglisten).
+// state.placements[Jahr] = [{ w: KW, n: Name, c: Kategorie, e: Event-ID, p: { Platz: [IDs] } }] – kompakt nach Platz gruppiert, nur das aktuelle Jahr (pruneSave)
+const NO_PLACES = new Set(['local', 'ddv', 'wdf']);
+export function recordPlaces(state, inst) {
+  if (!inst.places || inst.teams || NO_PLACES.has(inst.cat)) return;
+  const p = {};
+  for (const [id, pl] of Object.entries(inst.places)) (p[pl ?? 'NQ'] ??= []).push(id);   // Holder-Qualifier ohne Platz → nicht qualifiziert
+  ((state.placements ??= {})[state.date.year] ??= []).push({ w: inst.week ?? state.date.week, n: inst.name, c: inst.cat, e: inst.eventId, p });
+}
+export function placementsOf(state, id, year = state.date.year) {
+  const out = [];
+  for (const ev of state.placements?.[year] ?? []) for (const [pl, ids] of Object.entries(ev.p)) if (ids.includes(id)) { out.push({ week: ev.w, name: ev.n, cat: ev.c, eventId: ev.e, place: pl }); break; }
+  return out.reverse();   // neueste zuerst
+}
+// Version 221: Tourcard ohne Unterbrechung seit (Jahr); 0 = schon vor Spielbeginn (echte Dauer unbekannt). Wöchentlich nachgeführt.
+export function trackTourSince(state) {
+  const y = state.date.year, p = state.player;
+  for (const x of Object.values(state.world.players)) {
+    if (x.tier === 'tour') x.tourSince ??= y;
+    else if (x.tourSince != null) delete x.tourSince;
+  }
+  if (p.tour === 'tour') p.tourSince ??= y;
+  else if (p.tourSince != null) delete p.tourSince;
+}
+export function initTourSince(state) {   // Karrierestart/alte Spielstände: alle aktuellen Holder „seit vor Spielbeginn“
+  for (const x of Object.values(state.world.players)) if (x.tier === 'tour') x.tourSince ??= 0;
+}
+
 // Nach jedem eigenen Turnier
 export function trackTitle(state, inst) {
   if (inst.isQualifier || !inst.place) return;

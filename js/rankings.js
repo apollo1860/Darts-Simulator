@@ -50,6 +50,7 @@ export function pruneSave(state, year = state.date.year) {
   cut(state.rankings?.years, KEEP_MONEY_YEARS);
   cut(state.champions, KEEP_CHAMPION_YEARS);
   cut(state.qual, KEEP_QUAL_YEARS);
+  cut(state.placements, 1);   // Version 221: Platzierungen aller Spieler nur im laufenden Jahr
 }
 
 // Teilnehmerkreis je Rangliste

@@ -10,7 +10,7 @@ import { rankArticle, cardArticle, plArticle, plLineupArticle } from './articles
 import { WEEKS_PER_YEAR, surname } from './util.js';
 import { plTable, plState } from './majors.js';
 import { rivalYearEnd } from './rival.js';
-import { recordHistory, trackPeak } from './history.js';
+import { recordHistory, trackPeak, trackTourSince } from './history.js';
 import { eventStatus } from './tournaments.js';
 import { syncAttrs, addEnergy } from './nsd.js';
 import { lifeWeek, weeklyEnergy } from './life.js';
@@ -35,6 +35,7 @@ export function nextWeek(state) {
     addEnergy(state.player, weeklyEnergy(state.player));
     const inj = injuryWeek(state, new RNG(state.rng), e0);   // Version 152: Verletzung (nach der Erholung, kostet sofort 50 %)
     if (inj) addNews(state, 'info', inj.title, inj.text);
+    trackTourSince(state);   // Version 221: Tourcard in Folge
     if (soberUp(state.player)) addNews(state, 'info', '🥴 Verkatert!', 'Zu viel getrunken: Diese Woche sind Scoring, Finishing, Fokus und Rechnen stark geschwächt. Nächste Woche bist du wieder fit.');
     expireBoosts(state); decayWeek(state, new RNG(state.rng)); lifeWeek(state, new RNG(state.rng)); dilemmaWeek(state, new RNG(state.rng));
     state.weekly = { ...c, energy: state.player.energy - e0, injury: inj ? -50 : 0 };

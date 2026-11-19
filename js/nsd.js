@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 220;
+export const APP_VERSION = 221;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -126,6 +126,8 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
   addNews(s, 'info', `Willkommen auf der Tour, ${first}!`,
     `Über die Q-School ${y} hast du deine Tourcard gewonnen – gültig bis Ende ${y + 1}. Auf dem Papier gehörst du zu den Schwächsten. Zeit, das zu ändern.`);
   if (!base) keep128(s);   // realer Spieler: erst nach der Übernahme prüfen
+  for (const x of Object.values(s.world.players)) if (x.tier === 'tour') x.tourSince = 0;   // Version 221: Holder „seit vor Spielbeginn“
+  p.tourSince = y; (s.flags ??= {}).v221tour = true;
   return s;
 }
 // Version 209 (Nutzerwunsch): immer genau 128 Tourcard-Holder – startest du ohne vorhandene KI-Karte (eigener Spieler, realer Spieler
@@ -196,7 +198,7 @@ export function newRealCareer({ name, hand = 'R', slot = 1, seed, angle = ANGLE_
   const p = s.player, y = s.date.year, ai = Object.values(s.world.players).find(x => x.name === name && !x.rival);
   if (ai) { renameId(s.rankings, ai.id, 'P'); renameId(s.qual, ai.id, 'P'); delete s.world.players[ai.id]; p.age = own ?? ai.age; p.exp = Math.max(3, ai.exp ?? 0); }
   // Holder behalten ihre Karte samt Laufzeit; wer ohne Karte startet, bekommt wie ein eigener Spieler eine 2-Jahres-Tourcard (Version 99)
-  if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}` });
+  if (ai?.tier === 'tour') Object.assign(p, { tour: 'tour', cardUntil: ai.cardUntil, cardVia: ai.cardVia ?? `Tourcard ${y}`, tourSince: 0 });
   if (r.woman) p.woman = true;
   const sk = realStartFor({ ...r, card: ai?.tier === 'tour' || r.card });
   for (const t of TRAINABLE) p.skills[t.key] = fillSkill(sk[t.key]);

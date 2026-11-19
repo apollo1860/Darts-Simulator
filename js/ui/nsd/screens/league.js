@@ -1,7 +1,9 @@
 // Ranglisten: Ranglisten im NSS-Tabellenlook (PDC-, Pro-Tour-, Players-Championship-, European-Tour-, Challenge-/Development-Tour-Rangliste in ★, Premier-League-Tabelle), eigene Zeile grün, Zone blau
 import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
-import { flag } from '../../../../data/nations.js';
+import { flag, nationName } from '../../../../data/nations.js';
+import { placementsOf } from '../../../history.js';
+import { placeLabel } from '../../../tournaments.js';
 import { frame, bar, arrowIcon } from '../frame.js';
 import { starShow, PL_LEAGUE_PAY } from '../../../nsd.js';
 import { plTable } from '../../../majors.js';
@@ -41,7 +43,7 @@ export function render(app) {
       </div>
       <div class="nsd-scroll" id="lg-scroll"><table class="nsd-table">
         <tr><th>Pos</th><th style="text-align:left">Name</th>${type === 'pdc' ? '<th class="alt nsd-tc-col"></th>' : ''}<th class="alt num">${pl ? 'Punkte' : 'Preisgeld ★'}</th>${pl ? '<th class="alt num">Preis ★</th>' : ''}</tr>
-        ${list.map(x => `<tr class="${x.p.id === 'P' ? 'me' : (cardIds ? cardIds.has(x.p.id) : x.rank != null && x.rank <= zone) ? 'zone' : ''}" ${x.p.id === 'P' ? 'id="lg-me"' : ''}>
+        ${list.map(x => `<tr class="${x.p.id === 'P' ? 'me' : (cardIds ? cardIds.has(x.p.id) : x.rank != null && x.rank <= zone) ? 'zone' : ''}" ${x.p.id === 'P' ? 'id="lg-me"' : ''} ${pl ? '' : `data-pid="${esc(x.p.id)}"`}>
           <td class="c">${x.rank ?? '–'}</td><td class="nm">${flag(x.p.nation)} ${esc(x.p.name)}</td>${type === 'pdc' ? `<td class="nsd-tc-col">${x.tc ? '<i class="nsd-tc" title="Tourcard"></i>' : ''}</td>` : ''}<td class="num">${pl ? x.money : ct || wos ? money1(x.money) : money(x.money)}</td>${pl ? `<td class="num">${plPrize(x.rank, s.player.star.level)}</td>` : ''}</tr>`).join('')}
       </table>${wos ? `<div class="nsd-ev-sub" style="padding:8px 14px">${list.length ? '' : '<b>Noch keine Turniere in dieser Saison</b> – das erste Wochenende ist in KW 6. '}Die Women's Series läuft im Hintergrund (6 Wochenenden × 4 Turniere). Die Top 8 spielen das Women's World Matchplay (KW 29); die Rangliste vergibt auch Plätze für Grand Slam und WM.</div>` : ''}${ct && !list.length ? `<div class="nsd-ev-sub" style="padding:14px"><b>Noch keine ${type === 'dev' ? 'Development-Tour' : 'Challenge-Tour'}-Turniere in dieser Saison</b> – das erste Wochenende ist in KW ${first}.</div>` : ''}${ct ? `<div class="nsd-ev-sub" style="padding:8px 14px">${type === 'dev' ? 'Die Development Tour (bis 23 Jahre; auch Tourcard-Holder außerhalb der PDC-Top-64)' : 'Die Challenge Tour'} läuft im Hintergrund (5 Wochenenden × 5 Turniere). Die besten zwei Spieler ohne Tourcard bekommen am Saisonende eine Tourcard.</div>` : ''}</div>`,
     bottom: bar([
@@ -52,7 +54,34 @@ export function render(app) {
     ]),
   });
 }
+// Version 221: Spieler-Pop-up – Name + Nation, Alter, Tourcard in Folge, alle Platzierungen des laufenden Jahres (neueste zuerst)
+function tourText(s, p, tour) {
+  if (!tour) return 'Keine Tourcard';
+  const y = s.date.year, y0 = s.startYear ?? 2026, n = k => `${k} ${k === 1 ? 'Jahr' : 'Jahre'}`;
+  if (!p.tourSince) return `Tourcard seit vor ${y0} – mind. ${n(y - y0 + 1)} in Folge`;
+  return `Tourcard seit ${p.tourSince} – ${y - p.tourSince + 1}. Jahr in Folge`;
+}
+function playerPopup(app, id) {
+  const s = app.state, p = id === 'P' ? s.player : getPlayer(s, id);
+  if (!p) return;
+  const tour = id === 'P' ? s.player.tour === 'tour' : p.tier === 'tour', list = placementsOf(s, id);
+  const bd = document.createElement('div');
+  bd.className = 'nsd-pop-bd';
+  bd.innerHTML = `<div class="nsd-pop" role="dialog" aria-modal="true">
+    <button class="nsd-sq red nsd-pop-x" aria-label="Schließen">✖</button>
+    <div class="nsd-pop-name">${flag(p.nation)} ${esc(p.name)}</div>
+    <div class="nsd-pop-info">${esc(nationName(p.nation))} · ${p.age} Jahre</div>
+    <div class="nsd-pop-info">${esc(tourText(s, p, tour))}</div>
+    <div class="nsd-pop-list">${list.length ? `<table class="nsd-table nsd-pop-t"><tr><th>KW</th><th style="text-align:left">Turnier ${s.date.year}</th><th>Platz</th></tr>
+      ${list.map(r => `<tr class="${r.place === 'W' ? 'win' : ''}"><td class="c">${r.week}</td><td class="tn">${esc(r.name)}</td><td class="c pl">${esc(placeLabel(r.place, r.cat, r.eventId))}</td></tr>`).join('')}</table>`
+      : `<div class="nsd-pop-empty">Noch keine Turniere in ${s.date.year}.</div>`}</div>
+  </div>`;
+  const close = () => bd.remove();
+  bd.addEventListener('click', e => { if (e.target === bd || e.target.closest('.nsd-pop-x')) close(); });
+  document.body.appendChild(bd);
+}
 export function mount(root, app) {
+  root.querySelectorAll('[data-pid]').forEach(tr => tr.onclick = () => playerPopup(app, tr.dataset.pid));
   root.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { idx = (idx + LISTS.length + +b.dataset.l) % LISTS.length; app.refresh(); });
   root.querySelector('#lg-me')?.scrollIntoView({ block: 'center' });
 }

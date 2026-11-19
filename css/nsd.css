@@ -738,3 +738,20 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 .nsd-angle-box .sub { font-size: .78rem; line-height: 1.3; opacity: .85; margin: 4px 0; }
 .nsd-angle-box p { margin: 4px 0; }
 .nsd-angle-box .nsd-range { width: 100%; margin: 4px 0 8px; }
+
+/* Version 221: Spieler-Pop-up in den Ranglisten */
+[data-pid] { cursor: pointer; }
+.nsd-pop-bd { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.nsd-pop { position: relative; width: min(100%, 400px); max-height: 76vh; display: flex; flex-direction: column; gap: 4px; padding: 14px 12px 12px;
+  background: linear-gradient(#3b3f46, #23262b); border: 2px solid #8a8a8a; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.6); color: #fff; text-shadow: var(--nsd-shadow); }
+.nsd-pop-x { position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; min-height: 0; font-size: 1.3rem; }
+.nsd-pop-name { font-size: 1.4rem; font-weight: 800; padding-right: 48px; line-height: 1.15; }
+.nsd-pop-info { font-size: .98rem; color: #d8d8d8; }
+.nsd-pop-list { margin-top: 6px; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; flex: 1; min-height: 80px; }
+.nsd-pop-t { font-size: .88rem; color: #111; text-shadow: none; }
+.nsd-pop-t th { color: #fff; text-shadow: var(--nsd-shadow); }
+.nsd-pop-t td { padding: 6px 4px; }
+.nsd-pop-t td.tn { white-space: normal; line-height: 1.15; }
+.nsd-pop-t td.pl { white-space: normal; line-height: 1.1; font-size: .82rem; }
+.nsd-pop-t tr.win td { background: linear-gradient(#ffe27a 0, #ffd23a 50%, #f0b800 50%, #ffcc33 100%); font-weight: 800; }
+.nsd-pop-empty { padding: 18px 8px; text-align: center; color: #ccc; }

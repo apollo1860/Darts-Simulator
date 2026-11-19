@@ -206,6 +206,11 @@ export function migrate(s) {
   s.version = VERSION;
   if (s.mode === 'nsd') pruneSave(s);   // Version 163: alte Jahre aus großen Spielständen entfernen
   if (s.mode === 'nsd') lateTop64Cards(s);   // Version 200
+  if (s.mode === 'nsd' && !s.flags?.v221tour) {   // Version 221: Tourcard in Folge – bisherige Holder „seit vor Spielbeginn“, eigener Spieler über yearsOnTour
+    for (const x of Object.values(s.world?.players ?? {})) if (x.tier === 'tour') x.tourSince ??= 0;
+    if (s.player?.tour === 'tour') s.player.tourSince ??= Math.max(s.startYear ?? s.date.year, s.date.year - (s.player.yearsOnTour ?? 0));
+    (s.flags ??= {}).v221tour = true;
+  }
   if (s.mode === 'nsd' && !s.flags?.v215awards) {   // Version 215: bisherige eigene Auszeichnungen aus den News ins Archiv (Statistik „Titel & Ehrungen“)
     const a = (s.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });
     if (!a.awards) a.awards = (s.news ?? []).filter(n => n.title?.startsWith('🏅 Auszeichnung: ')).map(n => ({ year: n.year, label: n.title.slice('🏅 Auszeichnung: '.length) }));
