@@ -75,14 +75,15 @@ export const SECONDARY = {
   nb: { label: 'Nordic & Baltic ProTour', avgTop: 88, players: [
     ['Daniel Larsson', 'SE', 44], ['Dennis Nilsson', 'SE', 49], ['Andreas Harrysson', 'SE', 50], ['Johan Engström', 'SE', 49], ['Niels Heinsøe', 'DK', 56],
     ['Benjamin Reus', 'DK', 27], ['Vladimir Andersen', 'DK', 36], ['Marko Kantele', 'FI', 57], ['Teemu Harju', 'FI', 33],
-    ['Jonas Masalin', 'FI', 46, 82, null, true], ['Andreas Hyllgaardhus', 'DK', 33, 79, null, true]] },   // Version 232
+    ['Jonas Masalin', 'FI', 46, 82, null, true], ['Andreas Hyllgaardhus', 'DK', 33, 79, null, true],
+    ['Valters Melderis', 'LV', null, 84, [76, 92], true]] },   // Version 232 · Version 246: Melderis aus Osteuropa hierher (Ø bleibt)
   // Version 182: Osteuropa-Pool nach Nutzerliste (50 Spieler): Ø = Mitte der angegebenen Spanne, je Match ± 8 (avgRange); Tourcard-Holder
   // (Tytus Kanik, Pero Ljubić, Filip Bereza) und Dev-Tour-Spieler (Milan Biro, Peter Kelemen) nicht doppelt; Michal Ondo (alt) bleibt (Ø 81 geschätzt)
   ee: { label: 'Osteuropa (ET-/WM-Qualifier)', avgTop: 96.5, exact: true, players: [
     ['Boris Krčmar', 'HR', 46, 96.5, [88.5, 104.5]], ['Krzysztof Kciuk', 'PL', 45, 90, [82, 98]], ['András Borbély', 'HU', null, 90, [82, 98]], ['Petr Tous', 'CZ', null, 89.5, [81.5, 97.5]],
     ['David Pisek', 'CZ', null, 89, [81, 97]], ['Romeo Grbavac', 'HR', null, 88.5, [80.5, 96.5]], ['Mladen Radosavljević', 'RS', null, 87, [79, 95]], ['László Kádár', 'RO', null, 86, [78, 94]],
     ['Zvonimir Lešić', 'HR', null, 86, [78, 94]], ['Dominik Moravčík', 'SK', null, 86, [78, 94]], ['Patrik Kovács', 'HU', 29, 86, [78, 94]], ['György Jehirszki', 'HU', null, 85, [77, 93]],
-    ['Valters Melderis', 'LV', null, 84, [76, 92]], ['Petr Křivka', 'CZ', 35, 84, [76, 92]], ['Michal Smejda', 'CZ', null, 84, [76, 92]], ['Andrei Mladen', 'RO', null, 83, [75, 91]],
+    ['Petr Křivka', 'CZ', 35, 84, [76, 92]], ['Michal Smejda', 'CZ', null, 84, [76, 92]], ['Andrei Mladen', 'RO', null, 83, [75, 91]],
     ['Danijel Bartolić', 'HR', null, 83, [75, 91]], ['Denis Duh', 'SI', null, 83, [75, 91]], ['Eduard Szabó', 'HU', null, 83, [75, 91]], ['Zsolt Bai', 'HU', null, 82, [74, 90]],
     ['Jiří Brejcha', 'CZ', 40, 82, [74, 90]], ['Kryštof Vaculík', 'CZ', null, 82, [74, 90]], ['Mario Čegir', 'HR', null, 82, [74, 90]], ['Stefan Trbojević', 'RS', null, 82, [74, 90]],
     ['Rok Bahor', 'SI', null, 81, [73, 89]], ['Mario Pilipović', 'HR', null, 81, [73, 89]], ['Marcel Cristescu', 'RO', null, 81, [73, 89]], ['Nándor Major', 'HU', 35, 81, [73, 89]],
@@ -98,7 +99,7 @@ export const SECONDARY = {
     ['Romero Cartwright', 'BS', 48, 75], ['Joshua Balfour', 'TT', 42, 72], ['Sudesh Fitzgerald', 'GY', 39, 70],
     ['Guillermo Soto', 'CR', null, 76], ['Victor Guillín', 'AR', 44, 76], ['Dean Persad', 'TT', null, 72], ['Robin Albury', 'BS', null, 72],
     ['Jafet Vanegas', 'CR', null, 72], ['Nelson Rahming', 'BS', null, 68], ['Artur Vaille', 'BR', null, 68], ['Navarro Bastian', 'BS', null, 65],
-    ['Jonathan Heron', 'JM', null, 64], ['Roberto Wentz', 'BR', 63, 58], ['Jonathon Heron', 'BS', null, 75]   /* Version 232: Nation unbekannt → Annahme Bahamas */] },
+    ['Jonathon Heron', 'JM', null, 64], ['Roberto Wentz', 'BR', 63, 58]   /* Version 246: Jonathon Heron = Jamaika (vorher doppelt als Bahamas-Annahme) */] },
   // Version 187: Indien nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Nitin Kumar steht im Asien-Pool und behält seinen Ø
   // Version 189: China nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Zong, Zhan, Wen, Li stehen im Asien-Pool und behalten ihren Ø
   // Version 190: Polen nach Nutzerliste (fester Ø, Alter k. A. → zufällig 25–45); Kciuk und Kozłowski stehen im Osteuropa-Pool und behalten ihren Ø

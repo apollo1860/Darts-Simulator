@@ -239,6 +239,14 @@ export function migrate(s) {
     if (d && 'wodka' in d) { d.wine = d.schnaps ?? 0; d.schnaps = d.wodka ?? 0; delete d.wodka; }
     (s.flags ??= {}).v229drinks = true;
   }
+  if (s.flags && !s.flags.v246sec && s.world?.players) {   // Version 246: Melderis → Nordic & Baltic; Jonathon Heron = Jamaika (Doppel aus Version 232 zusammengeführt)
+    const P = s.world.players, all = Object.values(P);
+    const mel = all.find(p => p.name === 'Valters Melderis'); if (mel?.circuit === 'ee') mel.circuit = 'nb';
+    const old = all.find(p => p.name === 'Jonathan Heron' && p.tier !== 'retired'), dup = all.find(p => p.name === 'Jonathon Heron');
+    if (dup) { dup.nation = 'JM'; if (old) { dup.avg = old.avg; dup.attrs = old.attrs; dup.age = old.age; delete dup.avgRange; old.tier = 'retired'; old.dupe = true; } }
+    else if (old) old.name = 'Jonathon Heron';
+    s.flags.v246sec = true;
+  }
   if (s.mode === 'nsd' && !s.flags?.v215awards) {   // Version 215: bisherige eigene Auszeichnungen aus den News ins Archiv (Statistik „Titel & Ehrungen“)
     const a = (s.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });
     if (!a.awards) a.awards = (s.news ?? []).filter(n => n.title?.startsWith('🏅 Auszeichnung: ')).map(n => ({ year: n.year, label: n.title.slice('🏅 Auszeichnung: '.length) }));
