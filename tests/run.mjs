@@ -1027,15 +1027,15 @@ test('New Star Darts v9: Nebentour-Pools (Top 8 Vorjahres-OOM) für Masters-Vorr
   assert.ok(sec.filter(p => p.circuit === 'women').every(p => p.woman) && sec.every(p => p.avg >= (p.circuit === 'women' ? 35 : 55) && p.avg <= 100));
   // Masters-Vorrunde (Version 212): je Top 8 des Vorjahres von 8 Nebentouren (ADG = Südliches Afrika + Afrika), Holder ab Platz 57, CT/Dev Top 8, 4 JDC
   const pf = mastersPrelimField(s, false), secIn = pf.pool.filter(id => s.world.players[id]?.tier === 'secondary');
-  assert.ok(secIn.length >= 60 && secIn.length <= 64, `Nebentour-Plätze ${secIn.length}`);   // Beau Greaves (Holderin) zählt einmal
+  assert.ok(secIn.length >= 28 && secIn.length <= 32, `Nebentour-Plätze ${secIn.length}`);   // Version 238: je Top 4 (Beau Greaves als Holderin einmal)
   // Version 232: 2026 = echte Top 8 der OOM 2025 (nach Namen; Melderis steht im Osteuropa-Pool, Noa-Lynn auf der Challenge Tour)
   { const { OOM_2025 } = await import('../data/players.js'), nm = id => s.world.players[id]?.name;
     assert.ok(Object.values(s.world.players).some(p => p.name === 'Tergel Khurelkhuu' && p.tier === 'jdc'));   // Version 233: mit 15 schon da (nur Masters-Vorrunde)
-    const af = Object.values(s.world.players).filter(p => ['safrica', 'africa'].includes(p.circuit)).sort((a, b) => b.avg - a.avg).slice(0, 8);
-    assert.ok(af.every(p => pf.pool.includes(p.id)), 'ADG = 8 beste Afrikaner');
-    for (const [k, names] of Object.entries(OOM_2025)) for (const n of names) if (Object.values(s.world.players).some(p => p.name === n)) assert.ok(pf.pool.map(nm).includes(n) || pf.seeds.map(nm).includes(n), `${k}: ${n}`); }
-  assert.equal(secIn.filter(id => ['safrica', 'africa'].includes(s.world.players[id].circuit)).length, 8);
-  assert.equal(pf.seeds.length, 32); assert.ok(pf.pool.length >= 140 && pf.pool.length <= 160, `Vorrunde ${pf.pool.length}`);
+    const af = Object.values(s.world.players).filter(p => ['safrica', 'africa'].includes(p.circuit)).sort((a, b) => b.avg - a.avg).slice(0, 4);
+    assert.ok(af.every(p => pf.pool.includes(p.id)), 'ADG = 4 beste Afrikaner');
+    for (const [k, names] of Object.entries(OOM_2025)) for (const n of names.slice(0, ['challenge', 'dev'].includes(k) ? 8 : 4)) if (Object.values(s.world.players).some(p => p.name === n)) assert.ok(pf.pool.map(nm).includes(n) || pf.seeds.map(nm).includes(n), `${k}: ${n}`); }
+  assert.equal(secIn.filter(id => ['safrica', 'africa'].includes(s.world.players[id].circuit)).length, 4);
+  assert.equal(pf.seeds.length, 32); assert.ok(pf.pool.length >= 110 && pf.pool.length <= 128, `Vorrunde ${pf.pool.length}`);   // Version 238: höchstens 32 × 4
   assert.ok(pf.pool.map(id => s.world.players[id]?.name).includes('Fallon Sherrock'));
   // Grand Slam: 2 Spielerinnen der Women's Series
   s.date.week = 46;

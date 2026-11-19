@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 238** – Masters-Vorrunde mit **Vierergruppen** (Nutzerwunsch, höchstens 128 in der Gruppenphase): Holder ab Platz 57 (72) + Challenge- und Development-Tour je Top 8 + Women's Series, Nordic & Baltic, Asien, CDC, DPA, DPNZ, African Darts Group, CDLC **je Top 4** (`PRELIM_SEC_TOP`) + 4 JDC. Ohne Nachrücker – doppelt Qualifizierte fallen weg, dann vereinzelt Dreiergruppen (2026: 123 Spieler, 27 × 4 + 5 × 3; 2027 z. B. 113). Spieler aus der Gruppenphase: 3 Gruppenspiele + bis zu 3 K.-o.-Runden.
 - [x] **Version 237** – Masters-Vorrunde: die gesetzten Holder Platz 25–56 (Holder-Rangfolge nach PDC-OOM ohne die Top 24) stehen jetzt **nach Setzliste im K.-o.-Baum** (vorher der Reihe nach – Platz 25 und 26 konnten sich schon in der 2. K.-o.-Runde treffen). Die Top 8 der Gesetzten sind auf die 8 Achtel verteilt (je Achtel ein Qualifikant). Gilt auch für den World Cup (Top 4 in verschiedenen Vierteln).
 - [x] **Version 236** – Gruppennamen nach Z weiter mit AA, AB … (vorher Zahlen ab Gruppe 27; betrifft die 32 Gruppen der Masters-Vorrunde).
 - [x] **Version 235** – **Taylor McGuckian** (ENG, 17, Ø 73; JDC-Talent, Annahme Potenzial 89) als 4. JDC-Vertreter der Masters-Vorrunde 2026: JDC-Liste mit 4 Plätzen, bereits Qualifizierte (Ryan Branley über die Dev-Tour-Top-8) werden übersprungen.

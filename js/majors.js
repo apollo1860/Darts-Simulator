@@ -206,23 +206,26 @@ export function scorePlNight(state, inst) {
 // ---- Winmau World Masters: Vorrunde ----
 // Holder nach PDC-Rangliste (inkl. Spieler mit Karte)
 const holdersByRank = state => idsOf(orderOfMerit(state, 'pdc')).filter(id => (id === 'P' ? state.player.tour === 'tour' : getPlayer(state, id)?.tier === 'tour'));
-// Gesetzt (K.-o.): Platz 25–56. Gruppenphase: Holder ab Platz 57 + je Top 8 des Vorjahres von Challenge Tour, Development Tour,
-// Women's Series, Nordic & Baltic, Asian Tour, CDC, DPA, DPNZ, African Darts Group, CDLC + 4 JDC-Talente (Version 212).
-// Doppelt Qualifizierte zählen einmal, ohne Nachrücker („theoretisch 188 Startberechtigte“).
+// Gesetzt (K.-o.): Platz 25–56. Gruppenphase (Version 238): Holder ab Platz 57 + Top 8 des Vorjahres von Challenge und Development Tour
+// + je Top 4 von Women's Series, Nordic & Baltic, Asian Tour, CDC, DPA, DPNZ, African Darts Group, CDLC + 4 JDC-Talente (max. 128 → Vierergruppen).
+// Doppelt Qualifizierte zählen einmal, ohne Nachrücker (dann vereinzelt Dreiergruppen).
 const PRELIM_SEC = ['women', 'nb', 'asia', 'cdc', 'dpa', 'dpnz', 'adg', 'cdlc'];
+// Version 238 (Nutzerwunsch): höchstens 128 in der Gruppenphase → 32 Gruppen à 4 (vereinzelt 3): Holder ab Platz 57 (72) + CT/Dev je Top 8
+// + 8 Nebentouren je Top 4 + 4 JDC, ohne Nachrücker
+export const PRELIM_SEC_TOP = 4;
 export function mastersPrelimField(state, withPlayer) {
   const h = holdersByRank(state).filter(id => withPlayer || id !== 'P');
   const seeds = h.slice(24, 56), used = new Set(h);
   const pool = h.slice(56), y = state.date.year - 1;
   const ok = id => id && (withPlayer || id !== 'P');
-  const add = ids => ids.filter(ok).slice(0, 8).forEach(id => { if (!used.has(id)) { used.add(id); pool.push(id); } });
+  const add = (ids, n = 8) => ids.filter(ok).slice(0, n).forEach(id => { if (!used.has(id)) { used.add(id); pool.push(id); } });   // ohne Nachrücker
   // Version 232: für das Vorjahr 2025 die echten Top 8 (Nutzerliste, nach Namen); ohne Liste (ADG) wie bisher
   const norm = n => String(n ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
   const real = key => y === 2025 && OOM_2025[key] ? OOM_2025[key].map(n => Object.values(state.world.players).find(p => p.tier !== 'retired' && norm(p.name) === norm(n))?.id ?? (norm(state.player.name) === norm(n) ? 'P' : null)).filter(Boolean) : null;
   for (const type of ['challenge', 'dev']) add(real(type) ?? idsOf(orderOfMerit(state, type, y)));
   // African Darts Group (Version 233, Nutzerwunsch): die 8 nach Average besten Afrikaner des Pools (Südliches Afrika + übriges Afrika, ohne Karte)
   const adg = () => Object.values(state.world.players).filter(p => ['safrica', 'africa'].includes(p.circuit) && p.tier === 'secondary').sort((a, b) => b.avg - a.avg).map(p => p.id);
-  for (const c of PRELIM_SEC) add(real(c) ?? (c === 'adg' ? adg() : secondaryOrder(state, c, y, { tour: true })));
+  for (const c of PRELIM_SEC) add(real(c) ?? (c === 'adg' ? adg() : secondaryOrder(state, c, y, { tour: true })), PRELIM_SEC_TOP);   // Version 238: Nebentouren je Top 4
   const jdc = real('jdc');   // 2026: JDC-Vertreter 2025 (Liste mit Nachrücker), sonst die 4 stärksten Talente bis 18
   if (jdc) jdc.filter(id => !used.has(id)).slice(0, 4).forEach(id => { used.add(id); pool.push(id); });   // Version 235: 4 Plätze, schon Qualifizierte überspringen
   else playersOfTier(state, 'dev').filter(p => p.age <= 18 && !used.has(p.id)).sort((a, b) => b.avg - a.avg).slice(0, 4).forEach(p => { used.add(p.id); pool.push(p.id); });
