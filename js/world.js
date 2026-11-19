@@ -55,6 +55,7 @@ export function createWorld(rng, startYear = 2027) {
   }
   if (!y26) for (const [pre, label] of [['C', 'Challenge Tour'], ['D', 'Development Tour']]) for (const i of [1, 2]) players[pre + i].cardVia = `${label} ${startYear - 1}`;
   updateTiers({ world });
+  world.proBase = Object.values(players).filter(p => PRO_TIERS.has(p.tier)).map(p => p.avg).sort((a, b) => b - a);   // Version 226: Referenz-Niveau
   return world;
 }
 
@@ -214,6 +215,23 @@ export const BREAKOUT_P = 0.06, SLUMP_P = 0.04;   // Chance je Jahr auf ein Durc
 // Version 156: Spieler mit (früherer) Tourcard – für die Rücktrittsliste in den News
 export const hadCard = p => !!(p.cardVia || p.cardUntil || String(p.id).startsWith('K'));
 export const TOP_PROTECT = 24, TOP_PROTECT_AGE = 65;   // Top 24 der PDC-OOM treten nicht zurück, außer sie sind über 65
+// Version 226: Ohne Rückstellkraft lief die Entwicklung als Zufallslauf auseinander – die Spitze wurde Jahr für Jahr stärker
+// (4 Seeds × 10 Jahre: Top-16-Ø 96,8 → 104,5, Spieler ≥ 100 Ø: 2 → 21). Jetzt wird die Rang-Verteilung aller Profis (Tour, Challenge,
+// Dev) jedes Jahr zur Hälfte an die Verteilung des ersten Jahres (`world.proBase`) angeglichen: Wer sich gut entwickelt, steigt weiter
+// in der Rangfolge – nur das Gesamtniveau inflationiert nicht. Der eigene Spieler ist nicht betroffen.
+export const PRO_NORM = 0.5;
+const PRO_TIERS = new Set(['tour', 'challenge', 'dev']);
+export function normalizePros(state) {
+  const pros = Object.values(state.world.players).filter(p => PRO_TIERS.has(p.tier)).sort((a, b) => b.avg - a.avg);
+  if (pros.length < 2) return;
+  const base = (state.world.proBase ??= pros.map(p => p.avg));
+  const at = q => { const x = q * (base.length - 1), i = Math.floor(x), f = x - i; return base[i] + (base[Math.min(i + 1, base.length - 1)] - base[i]) * f; };
+  pros.forEach((p, i) => {
+    const d = PRO_NORM * (at(i / (pros.length - 1)) - p.avg);
+    if (Math.abs(d) >= 0.05) changeStrength(p, d);
+    if (p.potential && p.avg > p.potential + (p.potBonus ?? 0)) changeStrength(p, p.potential + (p.potBonus ?? 0) - p.avg);
+  });
+}
 export function developWorld(state, rng, year, protect = new Set()) {
   const report = { retired: [], retiredTc: [], talents: [], breakouts: [], slumps: [] };
   const tcOut = p => { if (hadCard(p)) report.retiredTc.push({ id: p.id, name: p.name, age: p.age, nation: p.nation }); };
@@ -221,7 +239,7 @@ export function developWorld(state, rng, year, protect = new Set()) {
     if (p.tier === 'local' || p.tier === 'ddv' || p.tier === 'amateur' || p.tier === 'secondary' || p.tier === 'retired') continue;
     const a = p.age;
     if (a < 38 && rng.chance(p.tier === 'tour' ? 0.45 : 0.3)) p.exp = Math.min(EXP_MAX, (p.exp ?? 0) + 1);
-    const mean = a <= 20 ? 2.2 : a <= 23 ? 1.4 : a <= 28 ? 0.5 : a <= 34 ? 0 : a <= 40 ? -0.4 : -1;
+    const mean = a <= 20 ? 2.2 : a <= 23 ? 1.4 : a <= 28 ? 0.5 : a <= 34 ? 0 : a <= 40 ? -0.4 : a <= 45 ? -1 : -1.5;   // Version 226: ab 46 −1,5
     // Durchbruch-/Einbruchjahre (selten, deutlich größer als der normale Jahreswandel): Jüngere explodieren eher, Ältere brechen eher ein.
     // Durchbrüche werden nahe der Weltspitze kleiner (Ø 106 = Grenze).
     let jump = 0;
@@ -242,6 +260,7 @@ export function developWorld(state, rng, year, protect = new Set()) {
     const kept = protect.has(p.id) && a <= TOP_PROTECT_AGE;
     if (!kept && rng.chance(pRet)) { tcOut(p); report.retired.push(p.name); p.tier = 'retired'; p.cardUntil = null; }   // bleibt für Historie erhalten
   }
+  normalizePros(state);                                 // Version 226: Niveau der Profi-Welt stabil halten
   developSecondary(state, rng, year, report);          // Version 138: Nebentouren altern, treten zurück, Nachwuchs
   report.jdc = addJdc(state.world.players, rng, year + 1, -1);   // JDC-Talente, die im neuen Jahr 16 werden
   // Nachwuchs: jedes Jahr mind. 12 Talente, Dev-Pool (nach dem Altern ≤ 23) bei ~90 halten
