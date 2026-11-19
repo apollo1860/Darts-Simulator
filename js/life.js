@@ -27,7 +27,7 @@ export function buyItem(state, id) {
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
   state.stars = Math.round((state.stars - cost) * 10) / 10;
   (p.owned ??= []).push(id);
-  if (state.shopping) state.shopping.bought = true;   // Version 213: Kauf während der Shoppingtour
+  if (state.shopping) { state.shopping.bought = true; state.shopping.n = (state.shopping.n ?? 0) + 1; }   // Version 213/214: Käufe während der Shoppingtour
   (p.upkeep ??= {})[id] = newUpkeep(state, new RNG(state.rng));
   p.lifestyle = lifestyleOf(p);
   p.satisfaction = clamp((p.satisfaction ?? 50) + it.sat, 0, 100);
@@ -192,12 +192,13 @@ export function resolveLifeEvent(state, idx, rng) {
 // ---- Shoppingtour mit der Freundin (Version 213) ----
 // Ja → Lifestyle-Shop; wer dort etwas kauft, macht sie glücklich (+4). Ohne Kauf wieder raus: −6 (schlimmer als gleich Nein: −3).
 // Die Änderungen werden nirgends angekündigt oder angezeigt (Nutzerwunsch).
-export const SHOP_BUY = 4, SHOP_EMPTY = -6, SHOP_NO = -3;
+export const SHOP_BUY = 4, SHOP_EMPTY = -6, SHOP_NO = -3, SHOP_ENERGY = 5;   // Version 214: am Ende −5 % Energie je gekauftem Teil
 export function startShopping(state) { state.shopping = { bought: false }; }
 export function endShopping(state) {
   const sh = state.shopping, p = state.player;
   if (!sh) return null;
   state.shopping = null;
+  if (sh.n) addEnergy(p, -SHOP_ENERGY * sh.n);
   if (!((p.rel?.partner ?? 0) > 0)) return null;
   const n = sh.bought ? SHOP_BUY : SHOP_EMPTY;
   addRel(p, 'partner', n);

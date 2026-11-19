@@ -3142,7 +3142,9 @@ test('New Star Darts v213: Shoppingtour mit der Freundin (Ja → Shop, Nein −3
   assert.ok(L.SHOP_EMPTY < L.SHOP_NO && L.SHOP_BUY > 0);
   p.rel.partner = 50; s.lifeEvent = { id: 'shopping' }; L.resolveLifeEvent(s, 0, rng);       // Ja + Kauf
   const LS = (await import('../data/lifestyle.js')).LIFESTYLE, it = LS.find(x => !p.owned?.includes(x.id) && x.price <= s.stars);
-  L.buyItem(s, it.id); L.endShopping(s); assert.equal(p.rel.partner, 50 + L.SHOP_BUY);
+  p.energy = 80; L.buyItem(s, it.id); const it2 = LS.find(x => !p.owned?.includes(x.id) && x.price <= s.stars); L.buyItem(s, it2.id);
+  assert.equal(p.energy, 80); L.endShopping(s); assert.equal(p.rel.partner, 50 + L.SHOP_BUY); assert.equal(p.energy, 80 - 2 * L.SHOP_ENERGY);   // Energie erst am Ende
+  p.energy = 80; L.buyItem(s, LS.find(x => !p.owned?.includes(x.id) && x.price <= s.stars).id); assert.equal(p.energy, 80);   // ohne Shoppingtour keine Energie
   p.rel.partner = 3; s.lifeEvent = { id: 'shopping' }; L.resolveLifeEvent(s, 0, rng); L.endShopping(s);   // zu tief → Schluss
   assert.equal(p.partnerName, null);
 });
