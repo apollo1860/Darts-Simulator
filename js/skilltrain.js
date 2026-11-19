@@ -160,6 +160,7 @@ export function buyDrink(state, id, n = 1) {
 export function drink(state, id, rng) {
   const p = state.player, d = DRINKS.find(x => x.id === id);
   if (!(p.drinks[id] > 0)) throw new Error(`Kein ${d.name} mehr da`);
+  if (p.drinkBonus) throw new Error('Erst den Bonus des letzten Getränks wählen');
   p.drinks[id]--;
   p.energy = 100;                                   // jedes Getränk füllt die Energie ganz auf
   // Version 219: zu viel auf einmal (je KW zufällige Grenze 4–10 Getränke) → nächste KW verkatert
@@ -167,15 +168,29 @@ export function drink(state, id, rng) {
   w.limit ??= rng.int(DRUNK_MIN, DRUNK_MAX); w.n++;
   const drunk = !p.hangoverNext && w.n >= w.limit;
   if (drunk) p.hangoverNext = true;
-  if (d.buzz) { p.buzz = (p.buzz ?? 0) + d.buzz; syncAttrs(p); }
-  let rel = null;
-  if (d.rel) {                                  // niedrigste bestehende Beziehung (Fans immer, andere nur wenn vorhanden)
-    const keys = Object.keys(relLabel).filter(k => k === 'fans' || p.rel[k] > 0);
-    const low = Math.min(...keys.map(k => p.rel[k] ?? 0));
-    rel = rng.pick(keys.filter(k => (p.rel[k] ?? 0) === low));
-    addRel(p, rel, d.rel);
+  if (d.bonus && drinkBonusOptions(state, d.bonus).some(o => o.ok)) p.drinkBonus = d.bonus;   // Version 230: Bonus wird danach gewählt
+  return { energy: p.energy, bonus: p.drinkBonus ?? null, drunk };
+}
+// Version 230: dauerhafter Getränke-Bonus – Weinschorle +1 Punkt auf eine Fähigkeit (nicht volle), Schnaps +4–5 auf eine bestehende Beziehung
+export const DRINK_REL_BONUS = [4, 5];
+export function drinkBonusOptions(state, kind = state.player.drinkBonus) {
+  const p = state.player, rel = p.rel ?? {};
+  if (kind === 'skill') return TRAINABLE.map(t => ({ key: t.key, label: t.label, value: skillValue(p, t.key), pct: skillValue(p, t.key) / (SKILL_LEVELS * 3) * 100, ok: (p.skills?.[t.key] ?? []).some(v => v < 3) }));
+  const has = { manager: !!state.team?.manager, fans: true, partner: (rel.partner ?? 0) > 0, sponsors: (state.nsdSponsors?.active?.length ?? 0) > 0 || (rel.sponsors ?? 0) > 0 };
+  return Object.keys(relLabel).map(k => ({ key: k, value: rel[k] ?? 0, pct: has[k] ? rel[k] ?? 0 : 0, ok: has[k] && (rel[k] ?? 0) < 100 }));
+}
+export function applyDrinkBonus(state, key, rng = new RNG(state.rng)) {
+  const p = state.player, kind = p.drinkBonus, opt = drinkBonusOptions(state, kind).find(o => o.key === key);
+  if (!kind) throw new Error('Kein Bonus offen');
+  if (!opt?.ok) throw new Error('Nicht wählbar');
+  p.drinkBonus = null;
+  if (kind === 'skill') {
+    const arr = p.skills[key]; arr[arr.findIndex(v => v < 3)]++;
+    syncAttrs(p);
+    return { kind, key, n: 1, value: skillValue(p, key) };
   }
-  return { energy: p.energy, buzz: p.buzz ?? 0, rel, drunk };
+  const n = rng.int(...DRINK_REL_BONUS);
+  return { kind, key, n: addRel(p, key, n) - opt.value, value: p.rel[key] };
 }
 // Wochenende: Rausch verfliegt; Kater (Version 219) gilt genau die KW nach dem Absturz, der Trinkzähler beginnt neu
 export const DRUNK_MIN = 4, DRUNK_MAX = 10;

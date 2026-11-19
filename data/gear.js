@@ -1,12 +1,12 @@
 // New Star Darts: Getränke und Darts (fiktiv). Preise = Basis bei Star-Status 1 (× starFactor).
-// Getränke: Energie sofort auf 100 %; Weinschorle/Schnaps zusätzlich „Rausch“ = Bonuspunkte auf alle trainierbaren Fähigkeiten bis Wochenende,
-// Schnaps außerdem Beziehung +1 (niedrigste bestehende). Version 229: Reihenfolge Bier, Weinschorle, Schnaps (vorher Bier, Schnaps, Wodka).
+// Getränke: Energie sofort auf 100 %. Version 230: Weinschorle zusätzlich dauerhaft +1 Punkt auf eine wählbare Fähigkeit, Schnaps dauerhaft
+// +4–5 auf eine wählbare Beziehung (Auswahl-Bildschirm `drinkbonus`). Version 229: Reihenfolge Bier, Weinschorle, Schnaps.
 // Vorrat: von jedem Getränk höchstens so viele gleichzeitig (Version 81)
 export const DRINK_MAX = 25;
 export const DRINKS = [
   { id: 'beer', name: 'Bier', icon: '🍺', price: 1, energy: 100, buzz: 0, rel: 0 },
-  { id: 'wine', name: 'Weinschorle', icon: '🍷', price: 3, energy: 100, buzz: 2, rel: 0 },
-  { id: 'schnaps', name: 'Schnaps', icon: '🥃', price: 5, energy: 100, buzz: 3, rel: 1 },
+  { id: 'wine', name: 'Weinschorle', icon: '🍷', price: 3, energy: 100, buzz: 0, rel: 0, bonus: 'skill' },
+  { id: 'schnaps', name: 'Schnaps', icon: '🥃', price: 5, energy: 100, buzz: 0, rel: 0, bonus: 'rel' },
 ];
 // Darts: dauerhafter Bonus (Fähigkeitspunkte), solange ausgerüstet
 // Version 121: Man besitzt immer Darts und Flights – der Brass Dart (9 g) und der Standard-Flight sind kostenlos, automatisch im Besitz und ohne Wirkung.

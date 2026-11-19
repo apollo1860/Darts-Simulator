@@ -806,9 +806,15 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   s.stars = 100;
   T.buyDrink(s, 'beer', 2); assert.equal(s.stars, 98);
   T.drink(s, 'beer', rng); assert.equal(p.energy, 100);                          // Getränke füllen auf 100 %
+  // Version 230: Schnaps → Beziehung +4–5 (wählbar, dauerhaft), Weinschorle → +1 Fähigkeitspunkt (wählbar, dauerhaft)
   T.buyDrink(s, 'schnaps'); const fans = p.rel.fans; const r = T.drink(s, 'schnaps', rng);
-  assert.equal(p.buzz, 3); assert.equal(p.attrs.sco, AS(6)); assert.equal(p.attrs.men, A(1));   // kein Mental-Bonus
-  assert.equal(r.rel, 'fans'); assert.equal(p.rel.fans, fans + 1);
+  assert.equal(r.bonus, 'rel'); assert.equal(p.drinkBonus, 'rel'); assert.equal(p.rel.fans, fans);
+  assert.ok(!T.drinkBonusOptions(s).find(o => o.key === 'partner').ok);                 // ohne Freundin nicht wählbar
+  assert.throws(() => T.applyDrinkBonus(s, 'partner', rng)); T.buyDrink(s, 'beer'); assert.throws(() => T.drink(s, 'beer', rng), /Bonus/);
+  const rb = T.applyDrinkBonus(s, 'fans', rng); assert.ok(rb.n >= 4 && rb.n <= 5 && p.rel.fans === fans + rb.n && !p.drinkBonus);
+  T.drink(s, 'beer', rng);
+  s.stars = 100; T.buyDrink(s, 'wine'); const sco0 = N.skillValue(p, 'sco'); assert.equal(T.drink(s, 'wine', rng).bonus, 'skill');
+  T.applyDrinkBonus(s, 'sco', rng); assert.equal(N.skillValue(p, 'sco'), sco0 + 1); assert.equal(p.buzz ?? 0, 0); assert.equal(p.attrs.men, A(1));
   assert.throws(() => T.drink(s, 'schnaps', rng));
   // Version 78: Getränke-Schlüssel – Bier Status 1 = 1 ★, Status 40 = 120 ★ (Schnaps ×3, Wodka ×5), danach +5 %/Stufe
   assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 150);   // Version 106: Getränke × 1,25
@@ -823,8 +829,8 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
     const r = N.newNsdCareer({ first: 'D', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 5 }); r.stars = 1e6; T.buyDrink(r, 'schnaps', 20); T.buyDrink(r, 'schnaps', 5); assert.equal(r.player.drinks.schnaps, 25); assert.throws(() => T.buyDrink(r, 'schnaps', 1)); }
   p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 350);   // Version 106: Bier bei Status 40 = 150 ★ p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
   // Darts: Bonus solange ausgerüstet
-  s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 3 + 3 + 2);
-  T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, AS(5));
+  s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 4 + 2);   // Version 230: 3 + Weinschorle-Punkt, kein Rausch mehr
+  T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, AS(6));
   // Formverlust: Warnung ab 7 Wochen, ab 9 Wochen Verlust (letzter Stern des höchsten Levels), ab 13 zwei
   assert.equal(T.decayPoints(8), 0); assert.equal(T.decayPoints(9), 1); assert.equal(T.decayPoints(13), 2);
   p.skills.cal = Array(20).fill(0); p.skills.cal[0] = 3; p.skills.cal[1] = 2;
@@ -3256,7 +3262,7 @@ test('New Star Darts v228: „Tourcard seit“ in alten Spielständen aus der Ka
 test('New Star Darts v229: Getränke Bier, Weinschorle, Schnaps (alte Vorräte übernommen)', async () => {
   const N = await import('../js/nsd.js'), St = await import('../js/state.js'), { DRINKS } = await import('../data/gear.js');
   assert.deepEqual(DRINKS.map(d => d.name), ['Bier', 'Weinschorle', 'Schnaps']);
-  assert.deepEqual(DRINKS.map(d => [d.price, d.buzz, d.rel]), [[1, 0, 0], [3, 2, 0], [5, 3, 1]]);
+  assert.deepEqual(DRINKS.map(d => [d.price, d.bonus ?? null]), [[1, null], [3, 'skill'], [5, 'rel']]);   // Version 230
   const s = N.newNsdCareer({ first: 'W', last: 'S', nation: 'DE', age: 25, slot: 1, seed: 2 }); assert.deepEqual(Object.keys(s.player.drinks), ['beer', 'wine', 'schnaps']);
   const o = JSON.parse(JSON.stringify(s)); o.player.drinks = { beer: 4, schnaps: 7, wodka: 2 }; delete o.flags.v229drinks;
   assert.deepEqual(St.migrate(o).player.drinks, { beer: 4, schnaps: 2, wine: 7 });
