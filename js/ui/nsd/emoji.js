@@ -11,7 +11,7 @@ export const EMOJI = {
   '📈': 'chartUp', '⬆️': 'chartUp', '⬆': 'chartUp', '📉': 'chartDown', '📊': 'stats', '📋': 'stats', '🧮': 'stats', '🏁': 'flag', '🎟️': 'ticket', '🎫': 'ticket',
   '⚔️': 'swords', '🗡️': 'swords', '🏹': 'swords', '🔧': 'wrench', '🛠️': 'wrench', '🔩': 'wrench', '🔨': 'wrench', '💼': 'team',
   '💪': 'fitness', '🏋️': 'fitness', '🏃': 'fitness', '👟': 'fitness', '🧘': 'fitness', '🚴': 'fitness', '💆': 'fitness',
-  '💍': 'ring', '🥶': 'cold', '🧊': 'cold', '⚡': 'bolt', '🪶': 'darts', '🎲': 'dice', '🎰': 'dice',
+  '💍': 'ring', '🛍️': 'bags', '🛍': 'bags', '🥶': 'cold', '🧊': 'cold', '⚡': 'bolt', '🪶': 'darts', '🎲': 'dice', '🎰': 'dice',
   '😰': 'faceNervous', '😬': 'faceNervous', '😵': 'faceNervous', '🥴': 'faceNervous', '😷': 'faceSad', '🤧': 'faceSad',
   '😊': 'faceHappy', '🙂': 'faceHappy', '😄': 'faceHappy', '😌': 'faceHappy', '😏': 'faceHappy', '👋': 'faceHappy', '😐': 'faceNeutral', '😠': 'faceAngry', '😤': 'faceAngry',
   '🗓️': 'calendar', '🧣': 'fans', '🎉': 'party', '🥳': 'party', '🎆': 'party', '🎈': 'party', '🪩': 'party', '🎂': 'party',

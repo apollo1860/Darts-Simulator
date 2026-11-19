@@ -855,7 +855,7 @@ test('New Star Darts: Lifestyle-Shop, Zufriedenheit, Ereignisse, Freundin, Erfol
   p.star.level = 21; assert.equal(L.itemPrice({ price: 90 }), 90); p.star.level = 1;   // Lifestyle-Preise fest, keine Status-Anpassung
   assert.ok(s.achievements.home && s.achievements.wheels === undefined);
   // Ereignisse: Bedingungen, Kosten, Zufall
-  for (const e of LIFE_EVENTS) for (const o of e.opts) assert.ok(o.label && (o.out || o.chance), e.id);
+  for (const e of LIFE_EVENTS) for (const o of e.opts) assert.ok(o.label && (o.out || o.chance || o.shop), e.id);
   s.lifeEvent = { id: 'meet', name: 'Lena' };
   const v = L.lifeEventView(s); assert.ok(v.text.includes('Lena') && v.opts[0].cost === N.starPrice(2, s.player.star.level));
   let r; do { s.stars = 1000; s.lifeEvent = { id: 'meet', name: 'Lena' }; r = L.resolveLifeEvent(s, 0, rng); } while (!(p.rel.partner > 0));
@@ -3125,6 +3125,26 @@ test('New Star Darts v210: nach der Q-School nie mehr als 128 Holder', async () 
   for (const p of W.playersOfTier(s, 'challenge').slice(0, 5)) { p.tier = 'tour'; p.cardUntil = 2027; }
   assert.equal(cnt(), 133); assert.equal(T.trimTo128(s).length, 5); assert.equal(cnt(), 128); assert.equal(s.player.tour, 'tour');
   assert.equal(T.trimTo128(s).length, 0);
+});
+
+test('New Star Darts v213: Shoppingtour mit der Freundin (Ja → Shop, Nein −3, ohne Kauf −6, mit Kauf +4, kein Hinweis)', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), { LIFE_EVENTS } = await import('../data/lifeevents.js');
+  const s = N.newNsdCareer({ first: 'Sven', last: 'Shop', nation: 'DE', age: 25, slot: 1, seed: 7 }), p = s.player, rng = new RNG({ s: 5 });
+  const ev = LIFE_EVENTS.find(e => e.id === 'shopping');
+  assert.ok(!/sauer|verärgert|freut|glücklich|Beziehung/i.test(ev.text + ev.opts.map(o => o.label + (o.out ?? '')).join(' ')));
+  assert.ok(!ev.if(p, s));                                                     // nur mit Freundin
+  p.partnerName = 'Lena'; p.rel.partner = 50; s.stars = 0; assert.ok(ev.if(p, s)); assert.ok(!L.canShop(s));
+  s.stars = 1000; assert.ok(L.canShop(s));
+  s.lifeEvent = { id: 'shopping' }; let r = L.resolveLifeEvent(s, 1, rng);      // Nein
+  assert.equal(p.rel.partner, 50 + L.SHOP_NO); assert.equal(r.changes.length, 0); assert.ok(r.text.includes('Lena'));
+  p.rel.partner = 50; s.lifeEvent = { id: 'shopping' }; r = L.resolveLifeEvent(s, 0, rng);   // Ja, nichts gekauft
+  assert.ok(r.shop && s.shopping && p.rel.partner === 50); L.endShopping(s); assert.equal(p.rel.partner, 50 + L.SHOP_EMPTY); assert.equal(s.shopping, null);
+  assert.ok(L.SHOP_EMPTY < L.SHOP_NO && L.SHOP_BUY > 0);
+  p.rel.partner = 50; s.lifeEvent = { id: 'shopping' }; L.resolveLifeEvent(s, 0, rng);       // Ja + Kauf
+  const LS = (await import('../data/lifestyle.js')).LIFESTYLE, it = LS.find(x => !p.owned?.includes(x.id) && x.price <= s.stars);
+  L.buyItem(s, it.id); L.endShopping(s); assert.equal(p.rel.partner, 50 + L.SHOP_BUY);
+  p.rel.partner = 3; s.lifeEvent = { id: 'shopping' }; L.resolveLifeEvent(s, 0, rng); L.endShopping(s);   // zu tief → Schluss
+  assert.equal(p.partnerName, null);
 });
 
 console.log(`\n${n} Tests ok`);

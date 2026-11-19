@@ -205,6 +205,13 @@ Object.assign(ICONS, {
     body: `<path d="${heartPath}" fill="${u('h')}" stroke="#8a0000" stroke-width="1.2"/><ellipse cx="15" cy="13" rx="6" ry="3.6" fill="#fff" opacity=".45"/>` })),
   heartBroken: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('h', [[0, '#ff7a7a'], [1, '#c40000']]),
     body: `<path d="${heartPath}" fill="${u('h')}" stroke="#8a0000" stroke-width="1.2"/><path d="M24 9.5 L20 18 L27 24 L21 31 L24 43" fill="none" stroke="#3a0000" stroke-width="2.4" stroke-linejoin="round"/>` })),
+  // Version 213: Shoppingtour – zwei Einkaufstüten (pink + türkis) mit Kordelgriffen
+  bags: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('p', [[0, '#ff8cc6'], [1, '#c2186f']]) + L('t', [[0, '#7ee8e0'], [1, '#0f8f87']]),
+    body: `<path d="M8 17 C8 8 18 8 18 17" fill="none" stroke="#8a1150" stroke-width="2"/><path d="M4 17 H22 L24 42 H2 Z" fill="${u('p')}" stroke="#8a1150" stroke-width="1.2" stroke-linejoin="round"/>
+      ${hl('M6 19 H9 L8 38 H5 Z', 0.35)}
+      <path d="M27 21 C27 12 37 12 37 21" fill="none" stroke="#0b5f5a" stroke-width="2"/><path d="M21 21 H43 L45 44 H19 Z" fill="${u('t')}" stroke="#0b5f5a" stroke-width="1.2" stroke-linejoin="round"/>
+      ${hl('M23 23 H26 L25.3 40 H22 Z', 0.35)}<circle cx="27" cy="21" r="1.2" fill="#0b5f5a"/><circle cx="37" cy="21" r="1.2" fill="#0b5f5a"/>
+      <path d="M28.5 30 l1.6 3.2 3.5 .5 -2.5 2.4 .6 3.4 -3.2 -1.7 -3.2 1.7 .6 -3.4 -2.5 -2.4 3.5 -.5 Z" fill="#fff" opacity=".8"/>` })),
   ring: mk('0 0 48 48', false, ({ L, u }) => ({ defs: L('g', GOLD, 1, 0) + L('d', [[0, '#e6fbff'], [1, '#5ac0f0']]),
     body: `<circle cx="24" cy="30" r="13" fill="none" stroke="#8a5a00" stroke-width="6"/><circle cx="24" cy="30" r="13" fill="none" stroke="${u('g')}" stroke-width="4"/>
       <path d="M17 12 L20 6 H28 L31 12 L24 19 Z" fill="${u('d')}" stroke="#1d6fa8" stroke-width="1"/>${hl('M19 11 L21 7 H24 L21.5 12 Z', 0.6)}` })),

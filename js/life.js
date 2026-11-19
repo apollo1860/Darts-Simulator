@@ -27,6 +27,7 @@ export function buyItem(state, id) {
   if ((state.stars ?? 0) < cost) throw new Error('Nicht genug ★');
   state.stars = Math.round((state.stars - cost) * 10) / 10;
   (p.owned ??= []).push(id);
+  if (state.shopping) state.shopping.bought = true;   // Version 213: Kauf während der Shoppingtour
   (p.upkeep ??= {})[id] = newUpkeep(state, new RNG(state.rng));
   p.lifestyle = lifestyleOf(p);
   p.satisfaction = clamp((p.satisfaction ?? 50) + it.sat, 0, 100);
@@ -110,7 +111,7 @@ export const eventById = id => LIFE_EVENTS.find(e => e.id === id);
 export function rollLifeEvent(state, rng) {
   const p = state.player;
   if (state.lifeEvent || !rng.chance(LIFE_EVENT_CHANCE)) return null;
-  const pool = LIFE_EVENTS.filter(e => (!e.if || e.if(p, state)) && e.id !== state.lastLifeEvent);
+  const pool = LIFE_EVENTS.filter(e => (!e.if || e.if(p, state)) && e.id !== state.lastLifeEvent && (e.id !== 'shopping' || canShop(state)));
   const ev = rng.pick(pool);
   const names = p.woman ? PARTNER_NAMES_M : PARTNER_NAMES;
   state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(names) : null, lover: ev.id === 'affair' ? rng.pick(names.filter(n => n !== p.partnerName)) : null };
@@ -161,6 +162,7 @@ export function applyEffects(state, e) {
       out.push(`${it.name} ${brokenWord(it)} – Reparatur ${repairCost(p, it)} ★`);
     }
   }
+  if (e.shopNo && p.rel.partner > 0) { addRel(p, 'partner', SHOP_NO); if (p.rel.partner <= 0) breakUp(state); }   // still, ohne Anzeige
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
   if (e.single) breakUp(state, false);
   return out;
@@ -183,9 +185,27 @@ export function resolveLifeEvent(state, idx, rng) {
   }
   state.lastLifeEvent = le.id;
   state.lifeEvent = null;
+  if (opt.shop) { startShopping(state); return { shop: true, text: '', changes }; }
   checkAchievements(state);
   return { text: fill(text, { partnerName: p.partnerName ?? name, woman: p.woman, lover: le.lover, ...borrowCtx(state, le) }), changes };
 }
+// ---- Shoppingtour mit der Freundin (Version 213) ----
+// Ja → Lifestyle-Shop; wer dort etwas kauft, macht sie glücklich (+4). Ohne Kauf wieder raus: −6 (schlimmer als gleich Nein: −3).
+// Die Änderungen werden nirgends angekündigt oder angezeigt (Nutzerwunsch).
+export const SHOP_BUY = 4, SHOP_EMPTY = -6, SHOP_NO = -3;
+export function startShopping(state) { state.shopping = { bought: false }; }
+export function endShopping(state) {
+  const sh = state.shopping, p = state.player;
+  if (!sh) return null;
+  state.shopping = null;
+  if (!((p.rel?.partner ?? 0) > 0)) return null;
+  const n = sh.bought ? SHOP_BUY : SHOP_EMPTY;
+  addRel(p, 'partner', n);
+  if (p.rel.partner <= 0) breakUp(state);
+  return n;
+}
+// Shoppingtour nur, wenn es im Shop überhaupt etwas Bezahlbares gibt
+export const canShop = state => LIFESTYLE.some(it => !state.player.owned?.includes(it.id) && itemPrice(it) <= (state.stars ?? 0));
 export function breakUp(state, news = true) {
   const p = state.player, name = p.partnerName ?? partnerText('Deine Freundin', p), wed = !!p.married;
   p.rel.partner = 0; p.partnerName = null; p.partnerSince = null; p.married = null;

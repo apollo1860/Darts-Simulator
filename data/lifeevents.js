@@ -20,6 +20,10 @@ export const LIFE_EVENTS = [
     // Chance hängt von Lifestyle und Star-Status ab (life.js: meetChance); ohne beides wirst du ausgelacht
     opts: [{ label: 'Auf einen Drink einladen', stars: -2, chance: { p: 'meet', ok: { meet: 30, sat: 10, out: 'Ihr versteht euch blendend – ihr seid jetzt zusammen!' }, fail: { fans: -1, sat: -3, out: 'Sie lacht dich aus und geht zu ihren Freundinnen zurück. Autsch.' } } },
       { label: 'Freundlich abwinken', out: 'Du konzentrierst dich auf Darts.' }] },
+  // Version 213: Shoppingtour – Ja → Lifestyle-Shop (life.js: startShopping/endShopping), Nein → verärgert; bewusst ohne Hinweis auf die Folgen
+  { id: 'shopping', icon: '🛍️', if: hasPartner, text: '{partner} hat Lust auf eine Shoppingtour und möchte, dass du mitkommst.',
+    opts: [{ label: 'Klar, gehen wir!', shop: true },
+      { label: 'Keine Lust', shopNo: true, out: '{partner} zieht alleine los.' }] },
   { id: 'dinner', icon: '🍝', if: hasPartner, text: '{partner} möchte mit dir schick essen gehen.',
     opts: [{ label: 'Edles Restaurant', stars: -5, partner: 6, sat: 4, out: '{partner} strahlt den ganzen Abend.' },
       { label: 'Gemütlich zu Hause', partner: 2, energy: 5, out: 'Pizza und Couch – auch schön.' },

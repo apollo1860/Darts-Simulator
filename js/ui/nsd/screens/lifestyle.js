@@ -1,6 +1,7 @@
 // Lifestyle-Shop: Gegenstände, Fahrzeuge, Immobilien einmalig kaufen (Lifestyle, Zufriedenheit, Immobilien: Energie-Erholung)
 import { LIFESTYLE, LIFESTYLE_CATS } from '../../../../data/lifestyle.js';
-import { fmtNum } from '../../../util.js';
+import { fmtNum, esc } from '../../../util.js';
+import { partnerText } from '../../../nsd.js';
 import { lifeArt } from '../art/index.js';
 import { itemPrice, buyItem, lifestyleOf, homeRegen, repairCost, repairItem, repairAll, repairAllInfo, brokenItems, brokenWord, fixWord } from '../../../life.js';
 import { frame, header, titleBand, meter, coin, bar, bindHead } from '../frame.js';
@@ -20,6 +21,7 @@ export function render(app) {
     body: `${header(p.name)}${titleBand('Lifestyle')}
       <div class="nsd-meters">${meter({ icon: '<span style="font-size:2rem">💎</span>', label: `Lifestyle ${fmtNum(lifestyleOf(p), 1)}`, pct: lifestyleOf(p) })}
         ${meter({ icon: '<span style="font-size:2rem">🛌</span>', label: `Erholung +${homeRegen(p)}`, pct: homeRegen(p) * 5 })}</div>
+      ${s.shopping ? `<div class="nsd-dark nsd-alert">🛍️ ${esc(partnerText(`Shoppingtour mit ${p.partnerName ?? 'deiner Freundin'}`, p))}</div>` : ''}
       <div class="nsd-pager"><button data-t="-1">◀</button><b>${label}</b><button data-t="1">▶</button></div>
       <div class="nsd-strip"><span></span><span class="mid">Guthaben</span><span class="r">${coin(s.stars ?? 0)}</span></div>
       ${brokenItems(p).length ? `<div class="nsd-dark nsd-alert">🔧 ${brokenLabel(p)} – Reparatur ${repairAllInfo(p).sum} ★ gesamt</div>` : ''}

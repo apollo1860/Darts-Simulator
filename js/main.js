@@ -4,6 +4,7 @@ import { toast, modal } from './ui/components.js';
 import { flushMilestones } from './ui/nsd/msToast.js';
 import { animateMeters } from './ui/nsd/frame.js';
 import { APP_VERSION } from './nsd.js';
+import { endShopping } from './life.js';
 import { installEmojiSwap } from './ui/nsd/emoji.js';
 // New Star Darts
 import * as title from './ui/nsd/screens/title.js';
@@ -63,6 +64,7 @@ const app = {
     const scr = SCREENS[name];
     if (!scr) return console.error('Unbekannter Screen', name);
     if (!app.state && !NO_STATE.includes(name)) name = 'title';
+    if (app.state?.shopping && name !== 'lifestyle') { endShopping(app.state); app.save(); }   // Version 213: Shoppingtour endet beim Verlassen des Shops
     SCREENS[app.screen]?.unmount?.();
     app.screen = name; app.params = params;
     root.innerHTML = wrap(SCREENS[name], SCREENS[name].render(app, params));
