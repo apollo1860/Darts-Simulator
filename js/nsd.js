@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 228;
+export const APP_VERSION = 229;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -41,7 +41,7 @@ export const PRICE_MULT = 1.25, DRINK_MULT = 1.25;
 export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * priceFactor(level) * PRICE_MULT * 100) / 100));
 // Getränke-Preisschlüssel (Version 78, Nutzerwunsch): Bier Status 1 = 1 ★, Status 40 = 120 ★. Bis Status 40 wächst der Faktor geometrisch
 // (120^((Stufe−1)/39) ≈ +13,06 % je Stufe; Status 11 ≈ 3,4, 21 ≈ 11,6, 30 ≈ 35), danach +5 % je Stufe (wie die Einnahmen), sonst wären es bei Status 100 > 190.000 ★.
-// Gilt nur für Getränke (Bier 1 / Schnaps 3 / Wodka 5 Basis-★); alle anderen Preise laufen weiter über `priceFactor`.
+// Gilt nur für Getränke (Bier 1 / Weinschorle 3 / Schnaps 5 Basis-★); alle anderen Preise laufen weiter über `priceFactor`.
 export const DRINK_ANCHOR = { level: 40, price: 120 }, DRINK_TAIL = 0.05;
 export const drinkFactor = (level = 1) => {
   const L = Math.max(1, level), { level: a, price } = DRINK_ANCHOR;
@@ -62,7 +62,7 @@ export const skillsAvg = p => SKILLS.reduce((a, s) => a + skillValue(p, s.key), 
 // Höchstes Level mit mindestens einem Punkt (+1 = nächstes spielbares Level)
 export const skillLevel = (p, key) => (p.skills?.[key] ?? []).reduce((hi, v, i) => (v > 0 ? i + 1 : hi), 0);
 
-// Bonus durch Darts (ausgerüstet) und Rausch (Schnaps/Wodka, bis Wochenende) – nicht auf Mental
+// Bonus durch Darts (ausgerüstet) und Rausch (Weinschorle/Schnaps, bis Wochenende) – nicht auf Mental
 export const gearOf = p => DARTS.find(d => d.id === p.gear?.id) ?? null;
 // Zubehör-Boosts (player.boosts = [{id, name, bonus, left}]) gelten für die nächsten eigenen Matches
 export const boostBonus = (p, key) => (p.boosts ?? []).reduce((a, b) => a + (b.bonus?.[key] ?? 0), 0);
@@ -109,7 +109,7 @@ export function newNsdCareer({ first, last, nation, age = 18, hand = 'R', slot =
     tour: 'tour', cardUntil: y + 1, everTourcard: true, cardVia: `Q-School ${y}`, proMatches: 0,
     star: { level: 1, xp: 0 }, energy: 100,
     skills: Object.fromEntries(TRAINABLE.map(t => [t.key, Array(SKILL_LEVELS).fill(0)])),
-    drinks: { beer: 0, schnaps: 0, wodka: 0 },
+    drinks: { beer: 0, wine: 0, schnaps: 0 },
     rel: { manager: 0, fans: 10, partner: 0, sponsors: 0 },
     satisfaction: 30, lifestyle: 0,
     gear: { id: STARTER_DART, name: DARTS[0].name }, darts: [STARTER_DART], fitness: null, assessed: false, buzz: 0,

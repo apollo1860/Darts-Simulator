@@ -91,6 +91,14 @@ const ICONS = {
     defs: L('sh', [[0, '#fff1c9'], [1, '#d89a2a']]),
     body: `<path d="M11 9 H37 L33 44 H15 Z" fill="#eef7ff" fill-opacity=".85" stroke="#8aa4bb" stroke-width="1"/><path d="M13.2 22 H34.8 L33 44 H15 Z" fill="${u('sh')}"/>${hl('M14 11 H18 L16.5 41 H15.6 Z', 0.6)}`,
   })),
+  // Version 229: Weinschorle – Weinglas mit heller, perlender Schorle
+  wine: mk('0 0 48 48', false, ({ L, u }) => ({
+    defs: L('ws', [[0, '#fff8c4'], [1, '#e6c24a']]),
+    body: `<path d="M12 4 H36 C37 15 33 24 24 25 C15 24 11 15 12 4 Z" fill="#eef7ff" fill-opacity=".8" stroke="#8aa4bb" stroke-width="1"/>
+      <path d="M12.6 11 H35.4 C35.4 19 31.5 23.6 24 24 C16.5 23.6 12.6 19 12.6 11 Z" fill="${u('ws')}"/>
+      ${[[18, 18, 1], [23, 15, 1.2], [28, 19, 0.9], [26, 13, 0.8], [20, 13.5, 0.7]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity=".85"/>`).join('')}
+      <path d="M24 25 V41 M15 43 H33" stroke="#8aa4bb" stroke-width="2.6" stroke-linecap="round"/>${hl('M15 6 H19 L18 18 H16 Z', 0.55)}`,
+  })),
   cocktail: mk('0 0 48 48', false, ({ L, u }) => ({
     defs: L('ck', [[0, '#d6f7ff'], [1, '#2aa3cc']]),
     body: `<path d="M5 8 H43 L24 28 Z" fill="${u('ck')}" stroke="#1d7aa0" stroke-width="1"/><path d="M24 28 V42 M15 43 H33" stroke="#8aa4bb" stroke-width="2.6" stroke-linecap="round"/>

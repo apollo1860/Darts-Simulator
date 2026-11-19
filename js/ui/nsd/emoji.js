@@ -17,7 +17,7 @@ export const EMOJI = {
   '🗓️': 'calendar', '🧣': 'fans', '🎉': 'party', '🥳': 'party', '🎆': 'party', '🎈': 'party', '🪩': 'party', '🎂': 'party',
   '🏅': 'medal', '🥇': 'medal', '🥈': 'medalS', '🥉': 'medalB', '👑': 'crown',
   '❤️': 'heart', '❤': 'heart', '🧡': 'heartO', '💛': 'heartY', '💞': 'heart', '💘': 'heart', '💋': 'heart', '🌹': 'heart', '💔': 'heartBroken',
-  '🍺': 'pint', '🍻': 'pint', '🥤': 'pint', '🥃': 'shot', '🍸': 'cocktail', '🥂': 'cocktail',
+  '🍺': 'pint', '🍻': 'pint', '🥤': 'pint', '🥃': 'shot', '🍷': 'wine', '🍸': 'cocktail', '🥂': 'cocktail',
   '📺': 'tv', '📻': 'tv', '🎬': 'tv', '🖥️': 'laptop', '💻': 'laptop', '🚗': 'car', '🏎️': 'car', '🚘': 'car', '🏠': 'home', '🏡': 'home',
   '🔍': 'magnifier', '💥': 'burst', '💣': 'burst', '🛌': 'bed', '🛏️': 'bed', '📱': 'phone', '📸': 'phone', '📷': 'phone', '🌐': 'globe', '🌍': 'globe',
   '📣': 'megaphone', '🔊': 'megaphone', '🦴': 'injury', '🤕': 'injury', '🦷': 'injury', '🩹': 'injury', '💊': 'injury', '👕': 'shirt', '🐟': 'fish',

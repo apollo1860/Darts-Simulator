@@ -1,4 +1,4 @@
-// Getränke: kaufen (★, Preis steigt mit dem Status) und trinken – Bier: Energie, Schnaps: + Rausch, Wodka: + Beziehung
+// Getränke: kaufen (★, Preis steigt mit dem Status) und trinken – Bier: Energie, Weinschorle: + Rausch, Schnaps: + Rausch + Beziehung
 import { DRINKS, DRINK_MAX } from '../../../../data/gear.js';
 import { drinkPrice, buyDrink, drink } from '../../../skilltrain.js';
 import { relLabelOf } from '../../../nsd.js';
@@ -8,7 +8,7 @@ import { toast } from '../../components.js';
 import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
-const HELP = '<p><b>Bier</b> füllt die Energie auf 100 %. <b>Schnaps</b> gibt Energie und einen Rausch: Bonus auf Scoring, Finishing, Fokus und Rechnen bis zum Wochenende. <b>Wodka</b> wie Schnaps, stärker, und verbessert eine Beziehung um 1.</p><p>Mental bekommt nie einen Bonus. Preise steigen mit deinem Star-Status.</p>';
+const HELP = '<p><b>Bier</b> füllt die Energie auf 100 %. <b>Weinschorle</b> gibt Energie und einen Rausch: Bonus auf Scoring, Finishing, Fokus und Rechnen bis zum Wochenende. <b>Schnaps</b> wie Weinschorle, stärker, und verbessert eine Beziehung um 1.</p><p>Mental bekommt nie einen Bonus. Preise steigen mit deinem Star-Status.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, e = Math.round(p.energy ?? 100), lvl = p.star.level;

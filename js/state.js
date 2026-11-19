@@ -233,6 +233,11 @@ export function migrate(s) {
     }
     (s.flags ??= {}).v228tour = true;
   }
+  if (s.mode === 'nsd' && !s.flags?.v229drinks) {   // Version 229: Getränke Bier/Weinschorle/Schnaps – alter Schnaps-Vorrat → Weinschorle, Wodka → Schnaps
+    const d = s.player?.drinks;
+    if (d && 'wodka' in d) { d.wine = d.schnaps ?? 0; d.schnaps = d.wodka ?? 0; delete d.wodka; }
+    (s.flags ??= {}).v229drinks = true;
+  }
   if (s.mode === 'nsd' && !s.flags?.v215awards) {   // Version 215: bisherige eigene Auszeichnungen aus den News ins Archiv (Statistik „Titel & Ehrungen“)
     const a = (s.archive ??= { seasons: {}, titles: [], bests: {}, peak: {} });
     if (!a.awards) a.awards = (s.news ?? []).filter(n => n.title?.startsWith('🏅 Auszeichnung: ')).map(n => ({ year: n.year, label: n.title.slice('🏅 Auszeichnung: '.length) }));

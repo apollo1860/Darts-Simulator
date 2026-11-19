@@ -806,7 +806,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   s.stars = 100;
   T.buyDrink(s, 'beer', 2); assert.equal(s.stars, 98);
   T.drink(s, 'beer', rng); assert.equal(p.energy, 100);                          // Getränke füllen auf 100 %
-  T.buyDrink(s, 'wodka'); const fans = p.rel.fans; const r = T.drink(s, 'wodka', rng);
+  T.buyDrink(s, 'schnaps'); const fans = p.rel.fans; const r = T.drink(s, 'schnaps', rng);
   assert.equal(p.buzz, 3); assert.equal(p.attrs.sco, AS(6)); assert.equal(p.attrs.men, A(1));   // kein Mental-Bonus
   assert.equal(r.rel, 'fans'); assert.equal(p.rel.fans, fans + 1);
   assert.throws(() => T.drink(s, 'schnaps', rng));
@@ -817,7 +817,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   assert.ok(Math.abs(N.drinkFactor(41) / N.drinkFactor(40) - 1.05) < 1e-9); assert.ok(N.drinkFactor(100) < 2500);
   // Version 81: höchstens 25 je Sorte gleichzeitig
   { const q = N.newNsdCareer({ first: 'D', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 4 }); q.stars = 1e6;
-    for (const id of ['beer', 'schnaps', 'wodka']) { T.buyDrink(q, id, 25); assert.equal(q.player.drinks[id], 25); assert.throws(() => T.buyDrink(q, id), /Höchstens 25/); assert.throws(() => T.buyDrink(q, id, 3), /Höchstens 25/); }
+    for (const id of ['beer', 'wine', 'schnaps']) { T.buyDrink(q, id, 25); assert.equal(q.player.drinks[id], 25); assert.throws(() => T.buyDrink(q, id), /Höchstens 25/); assert.throws(() => T.buyDrink(q, id, 3), /Höchstens 25/); }
     const before = q.stars; assert.throws(() => T.buyDrink(q, 'beer')); assert.equal(q.stars, before, 'kein Geld abgebucht');
     T.drink(q, 'beer', new RNG(1)); assert.equal(q.player.drinks.beer, 24); T.buyDrink(q, 'beer'); assert.equal(q.player.drinks.beer, 25);
     const r = N.newNsdCareer({ first: 'D', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 5 }); r.stars = 1e6; T.buyDrink(r, 'schnaps', 20); T.buyDrink(r, 'schnaps', 5); assert.equal(r.player.drinks.schnaps, 25); assert.throws(() => T.buyDrink(r, 'schnaps', 1)); }
@@ -3251,6 +3251,15 @@ test('New Star Darts v228: „Tourcard seit“ in alten Spielständen aus der Ka
   assert.ok(exact / fresh.length >= 0.9, `rekonstruiert ${exact}/${fresh.length}`);
   const startWrong = hold.filter(p => /^[TXN]\d/.test(p.id) && truth[p.id] > 2026 && !(p.tourSince > 2026)).length;   // Karte verloren + zurückgewonnen
   assert.ok(startWrong <= 6, `Start-Holder falsch: ${startWrong}`);
+});
+
+test('New Star Darts v229: Getränke Bier, Weinschorle, Schnaps (alte Vorräte übernommen)', async () => {
+  const N = await import('../js/nsd.js'), St = await import('../js/state.js'), { DRINKS } = await import('../data/gear.js');
+  assert.deepEqual(DRINKS.map(d => d.name), ['Bier', 'Weinschorle', 'Schnaps']);
+  assert.deepEqual(DRINKS.map(d => [d.price, d.buzz, d.rel]), [[1, 0, 0], [3, 2, 0], [5, 3, 1]]);
+  const s = N.newNsdCareer({ first: 'W', last: 'S', nation: 'DE', age: 25, slot: 1, seed: 2 }); assert.deepEqual(Object.keys(s.player.drinks), ['beer', 'wine', 'schnaps']);
+  const o = JSON.parse(JSON.stringify(s)); o.player.drinks = { beer: 4, schnaps: 7, wodka: 2 }; delete o.flags.v229drinks;
+  assert.deepEqual(St.migrate(o).player.drinks, { beer: 4, schnaps: 2, wine: 7 });
 });
 
 console.log(`\n${n} Tests ok`);
