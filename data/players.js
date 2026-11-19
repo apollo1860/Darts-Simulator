@@ -87,7 +87,8 @@ export const JDC_TALENTS = [['Mitchell Lawrie', 'SCO', 15, 82, 106], ['Jack John
   // Version 203: JDC-Spielerinnen (Start-Ø = Nutzerwert, Potenzial +12) – Women's Series, Q-School, Challenge & Dev Tour
   ['Zehra Gemi', 'TR', 16, 64, 80], ['Merve Hummel', 'DE', 15, 62, 78], ['Celina Glaser', 'AT', 14, 61, 77],
   // Version 234: JDC-Vertreter 2025 (Nutzerliste) – Start-Ø exakt 75 bzw. 79, Potenzial (Annahme) +16
-  ['Lex Paeshuyse', 'BE', 14, 69.7, 91], ['Jack Nankervis', 'ENG', 15, 73.7, 95]];   // Version 184: Mongole, Start-Ø 84 (80 + ¼ × 16), je Match ± 8 (6. Wert = Schwankung)
+  ['Lex Paeshuyse', 'BE', 14, 69.7, 91], ['Jack Nankervis', 'ENG', 15, 73.7, 95],
+  ['Taylor McGuckian', 'ENG', 17, 67.7, 89]];   // Version 235: Start-Ø 73, Potenzial +16 (Annahme)   // Version 184: Mongole, Start-Ø 84 (80 + ¼ × 16), je Match ± 8 (6. Wert = Schwankung)
 export const jdcStartAvg = (lo, hi) => Math.round((lo + 0.25 * (hi - lo)) * 10) / 10;
 
 // Q-School-2026-Gewinner UK (Rest von c ohne CT/Dev 2025 = EU)
@@ -164,7 +165,7 @@ export const OOM_2025 = {
   cdc: ['Adam Sevada', 'Stowe Buntz', 'David Cameron', 'Leonard Gates', 'Alex Spellman', 'Darryl Christie', 'Gary Mawson', 'Jason Brandon'],
   dpa: ['Joe Comito', 'James Bailey', 'Brody Klinge', 'Tim Pusey', 'Brandon Weening', 'Stuart Coburn', 'Gordon Mathers', 'Harley Kemp'],
   dpnz: ['Jonny Tata', 'Ben Robb', 'John Hurring', 'Mark Cleaver', 'Jaymie Hilton-Jones', 'Haupai Puha', 'Jack Sheppard', 'Tukina Weko'],
-  jdc: ['Ryan Branley', 'Lex Paeshuyse', 'Jack Nankervis', 'Tergel Khurelkhuu'],   // JDC-Vertreter 2025
+  jdc: ['Ryan Branley', 'Lex Paeshuyse', 'Jack Nankervis', 'Tergel Khurelkhuu', 'Taylor McGuckian'],   // JDC-Vertreter 2025: 4 Plätze, Branley schon über die Dev Tour → McGuckian rückt als 4. nach
   cdlc: ['Jesús Salate', 'Rashad Sweeting', 'Norman Madhoo', 'Sudesh Fitzgerald', 'Jonathon Heron', 'Roberto Wentz', 'Robin Albury', 'Guillermo Soto'],
 };
 export const CT_FICTIONAL = 30;   // die letzten 30 Einträge sind fiktiv (Namen werden je Karriere neu gewürfelt)
