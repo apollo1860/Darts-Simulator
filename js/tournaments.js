@@ -25,7 +25,7 @@ import { trackTitle, recordChampion, recordPlaces } from './history.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { applyInjury, injuryAim } from './injury.js';
 import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
-  matchRating, addRel, addFans, fansAfterMatch, titleFans, isFloor } from './nsd.js';
+  matchRating, addRel, addFans, fansAfterMatch, titleFans, isFloor, starPrice } from './nsd.js';
 import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
 import { checkAchievements } from './life.js';
 import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
@@ -98,7 +98,8 @@ export function eventStatus(state, ev, n = null) {
   const elig = eligibility(state, ev);
   let playable = true, reason = '';
   if (state.week.blocked) { playable = false; reason = `Ausfall: ${state.week.blocked.label}`; }
-  else if (state.week.accident && !majorPath(ev)) { playable = false; reason = 'Ausfall: Unfallfolgen'; }   // Version 217: Unfall – nur Majors (und ihre Qualifier) spielbar
+  else if (state.week.accident && !majorPath(ev)) { playable = false; reason = 'Ausfall: Unfallfolgen'; }
+  else if (state.week.vacation) { playable = false; reason = 'Du bist im Urlaub'; }   // Version 241   // Version 217: Unfall – nur Majors (und ihre Qualifier) spielbar
   else if (ev.startsThisWeek === false) { playable = false; reason = 'Läuft bereits'; }
   else if (ev.extra ? state.week.extras?.includes(ev.id) : state.week.played) {
     playable = false; reason = state.week.eventId === ev.id || ev.extra ? 'Gespielt' : 'Diese Woche schon gespielt';
@@ -829,6 +830,40 @@ function recordPlayerMatch(state, inst, m, res) {
   };
 }
 
+// Version 241: Urlaub – einmal pro Jahr eine Woche aussetzen: Energie 100 %, Zufriedenheit +15, Freundin +5, kostet ★ (Status-Preis);
+// in dieser KW keine Turniere. Nicht in Wochen, in denen du ein Major (inkl. WS/PL/Major-Qualifier) spielen darfst, und nicht mit laufendem Turnier.
+export const VACATION_STARS = 15, VACATION_SAT = 15, VACATION_PARTNER = 5;
+export function vacationStatus(state) {
+  const p = state.player, cost = starPrice(VACATION_STARS, p.star.level);
+  if (p.vacationYear === state.date.year) return { ok: false, cost, reason: `Dein Urlaub ${state.date.year} ist schon vorbei – nächstes Jahr wieder` };
+  if (state.week.vacation) return { ok: false, cost, reason: 'Du bist gerade im Urlaub' };
+  if (state.activeEvent || state.week.played) return { ok: false, cost, reason: 'Diese Woche hast du schon gespielt' };
+  const major = eventsInWeek(state, state.date.year, state.date.week).find(ev => majorPath(ev) && eligibility(state, ev).ok);
+  if (major) return { ok: false, cost, reason: `Diese Woche steht ${major.name} an` };
+  if ((state.stars ?? 0) < cost) return { ok: false, cost, reason: `Urlaub kostet ${cost} ★` };
+  return { ok: true, cost };
+}
+export function takeVacation(state) {
+  const st = vacationStatus(state), p = state.player;
+  if (!st.ok) throw new Error(st.reason);
+  state.stars = Math.round(((state.stars ?? 0) - st.cost) * 10) / 10;
+  p.energy = 100; p.satisfaction = Math.min(100, (p.satisfaction ?? 50) + VACATION_SAT);
+  if ((p.rel?.partner ?? 0) > 0) p.rel.partner = Math.min(100, p.rel.partner + VACATION_PARTNER);
+  p.vacationYear = state.date.year; state.week.vacation = true;
+  addNews(state, 'info', '🏝️ Urlaub!', `Eine Woche abschalten: Energie 100 %, Zufriedenheit +${VACATION_SAT}${(p.rel?.partner ?? 0) > 0 ? `, ${p.partnerName ?? 'deine Begleitung'} freut sich (+${VACATION_PARTNER})` : ''}. Diese Woche keine Turniere.`);
+  return st.cost;
+}
+// Version 241: direkte Bilanz je Gegner (state.h2h[id] = {w, l, last}) und Formkurve (state.form = letzte 5 Matches, neueste zuerst)
+export const FORM_LEN = 5;
+export function recordH2H(state, inst, oppId, won, my, opp, avg) {
+  (state.form ??= []).unshift({ w: won ? 1 : 0, a: Math.round((avg ?? 0) * 10) / 10 });
+  state.form.length = Math.min(state.form.length, FORM_LEN);
+  if (inst.teams || !oppId || String(oppId).startsWith('W:')) return;   // World Cup: keine Einzel-Bilanz
+  const h = ((state.h2h ??= {})[oppId] ??= { w: 0, l: 0 });
+  if (won) h.w++; else h.l++;
+  h.last = { y: state.date.year, w: won ? 1 : 0, s: `${my}:${opp}`, n: inst.name };
+}
+export const h2hOf = (state, id) => state.h2h?.[id] ?? null;
 // New Star Darts: Energie, Star-Status, Note, Fans (keine XP-/Level-Systeme)
 function recordNsdMatch(state, inst, m, res, me, won) {
   const p = state.player, s = res.stats[me], o = res.stats[1 - me];
@@ -863,6 +898,7 @@ function recordNsdMatch(state, inst, m, res, me, won) {
   addClutch(p, Math.round((2 + (decider ? 3 : 0) + (decider && won ? 3 : 0)) * xpFactor(inst)));
   updateMomentum(p, { won, opp: oppP, cat: inst.cat, big: inst.big?.includes(oppId) });
   if (isRival(state, oppId)) rivalMeeting(state, inst, won, `${my}:${opp}`);
+  recordH2H(state, inst, oppId, won, my, opp, s.avg);   // Version 241: Bilanz gegen den Gegner + Formkurve
   if (!won && !inst.rounds[inst.current].isGroup) inst.playerAlive = false;
   inst.star = Math.round(((inst.star ?? 0) + star) * 10) / 10;
   inst.lastMatch = {

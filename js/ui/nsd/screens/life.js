@@ -1,9 +1,10 @@
 // Leben: Zufriedenheit, Energie, Beziehungen (Manager, Fans, Freundin, Sponsoren), Lifestyle, Erfolge
 import { relLabel, relLabelOf, partnerText } from '../../../nsd.js';
+import { vacationStatus, takeVacation, VACATION_SAT } from '../../../tournaments.js';
 import { relAvailable, pickRelAction, doRelAction } from '../../../career.js';
 import { breakUp, satisfactionTarget, weeklyEnergy, canMarry, marry, WEDDING_COST } from '../../../life.js';
 import { esc } from '../../../util.js';
-import { frame, header, meter, heartIcon, bar, bindHead } from '../frame.js';
+import { frame, header, meter, heartIcon, bar, bindHead, coin } from '../frame.js';
 import { toast, modal, confirmDialog } from '../../components.js';
 import { icon as nicon } from '../icons.js';
 
@@ -27,7 +28,8 @@ export function render(app) {
       ${meter({ label: k === 'partner' && p.partnerName ? `${esc(p.partnerName)}` : relLabelOf(p, k), pct: has[k] ? rel[k] ?? 0 : 0, tone: has[k] ? 'green' : 'grey', from: has[k] ? from.rel?.[k] ?? null : null })}
       <button class="nsd-btn" data-rel="${k}"><span class="ic">${ICONS[k]}</span></button>
     </div>`).join('')}</div>
-    <div class="nsd-strip"><span>Erholung</span><span class="mid">+${weeklyEnergy(p)} %/Woche</span><span class="r">Ziel ${Math.round(satisfactionTarget(p))}</span></div>`,
+    <div class="nsd-strip"><span>Erholung</span><span class="mid">+${weeklyEnergy(p)} %/Woche</span><span class="r">Ziel ${Math.round(satisfactionTarget(p))}</span></div>
+    ${(() => { const v = vacationStatus(app.state); return `<button class="nsd-btn row nsd-vac" id="l-vac" ${v.ok ? '' : 'disabled'}><span class="ic">🏝️</span><span class="lb"><span class="t">${app.state.week.vacation ? 'Im Urlaub' : `Urlaub ${coin(v.cost)}`}</span><small>${v.ok ? '1× pro Jahr · eine Woche keine Turniere' : esc(v.reason)}</small></span></button>`; })()}`,
     bottom: bar([
       { go: 'hub', icon: nicon('home'), label: 'Start' },
       { go: 'lifestyle', icon: '💎', label: 'Lifestyle' },
@@ -41,6 +43,11 @@ export function mount(root, app) {
   bindHead(root, app, partnerText(HELP, app.state.player));
   root.querySelectorAll('[data-rel]').forEach(b => b.onclick = () => relModal(app, b.dataset.rel));
   root.querySelector('#l-ach').onclick = () => app.go('achievements');
+  root.querySelector('#l-vac')?.addEventListener('click', async () => {   // Version 241: Urlaub
+    const v = vacationStatus(app.state);
+    if (!await confirmDialog('Urlaub machen?', `Kostet ${v.cost} ★. Energie 100 %, Zufriedenheit +${VACATION_SAT}, diese Woche keine Turniere. Nur einmal pro Jahr.`, 'Ab in den Urlaub')) return;
+    try { takeVacation(app.state); app.save(); toast('🏝️ Gute Erholung!', 'success'); app.refresh(); } catch (e) { toast(e.message, 'error'); }
+  });
 }
 
 // Beziehung pflegen: zufällige Aktion (Fans/Manager/Sponsoren: 60 % Energie, Freundin: Geschenk in ★) → Balken steigt

@@ -6,9 +6,9 @@ import { flag } from '../../../../data/nations.js';
 import { getPlayer } from '../../../world.js';
 import { formatLabel } from '../../../matchEngine.js';
 import { rankOf } from '../../../rankings.js';
-import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub, simulateRoundAI } from '../../../tournaments.js';
+import { playerMatch, playRound, nextRound, simulateRest, closeEvent, placeLabel, nextSub, simulateRoundAI, h2hOf } from '../../../tournaments.js';
 import { starPct, starNeed, canSelfPlay, nervesOf, matchEnergy, isFloor } from '../../../nsd.js';
-import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead, arrowIcon, checkIcon } from '../frame.js';
+import { starMeter, frame, header, titleBand, darkBar, bar, meter, coin, starIcon, heartIcon, card, bindHead, arrowIcon, checkIcon, formDots } from '../frame.js';
 import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
@@ -110,18 +110,24 @@ function bindDraw(root, s) {
   });
 }
 
+// Version 241: direkte Bilanz gegen diesen Gegner
+function h2hLine(s, id) {
+  const h = h2hOf(s, id);
+  if (!h) return '<div class="nsd-vs-h2h">Erstes Duell</div>';
+  return `<div class="nsd-vs-h2h">Bilanz <b>${h.w}–${h.l}</b>${h.last ? ` · zuletzt <span class="${h.last.w ? 'pos' : 'neg'}">${h.last.w ? 'Sieg' : 'Niederlage'} ${h.last.s}</span> (${esc(h.last.n)} ${h.last.y})` : ''}</div>`;
+}
 function versus(s, inst, m) {
   const oppId = m.a === 'P' ? m.b : m.a, opp = getPlayer(s, oppId), p = s.player;
   const r = rankOf(s, 'pdc', oppId), mine = rankOf(s, 'pdc', 'P');
   const nv = nervesOf(p, inst, oppId), f = inst.rounds[inst.current]?.format ?? {}, cost = matchEnergy(Math.round((f.legs ?? 3) * (f.sets ?? 1) * 1.6), inst);
   return `<div class="nsd-vs">
-    <div class="nsd-vs-side me"><div class="fl">${flag(p.nation)}</div><div class="nm">${esc(p.name)}</div>
-      <div class="dt">${starIcon(p.star.level, 'sm')} Status · OOM ${mine ?? '–'}</div></div>
+    <div class="nsd-vs-side me"><div class="fl">${flag(p.nation)}</div><div class="nm">${esc(p.name)}</div>${p.nick ? `<div class="dt">„${esc(p.nick)}“</div>` : ''}
+      <div class="dt">${starIcon(p.star.level, 'sm')} Status · OOM ${mine ?? '–'}</div><div class="dt">Form ${formDots(s)}</div></div>
     <div class="nsd-vs-x">VS</div>
     <div class="nsd-vs-side"><div class="fl">${flag(nationOf(s, oppId))}</div><div class="nm">${esc(nameOf(s, oppId))}</div>
       <div class="dt">OOM ${r ?? '–'}</div><div class="dt">Ø ${Math.round((opp?.avg ?? 0) * 0.85)}–${Math.round((opp?.avg ?? 0) * 1.15)}</div></div>
   </div>
-  <div class="nsd-vs-info">⚡ Match kostet ca. ${cost} % Energie (${isFloor(inst) ? 'Floor' : 'Bühne'})${nv.pts ? `<br><span class="neg">😰 Nervosität −${nv.pts.toFixed(1).replace('.', ',')}: ${nv.parts.map(x => x.label).join(', ')} – Mental (Star-Status) baut sie ab</span>` : ''}${s.player.injury ? `<br><span class="neg">${esc(injuryText(s))}</span>` : ''}</div>`;
+  <div class="nsd-vs-info">${h2hLine(s, oppId)}⚡ Match kostet ca. ${cost} % Energie (${isFloor(inst) ? 'Floor' : 'Bühne'})${nv.pts ? `<br><span class="neg">😰 Nervosität −${nv.pts.toFixed(1).replace('.', ',')}: ${nv.parts.map(x => x.label).join(', ')} – Mental (Star-Status) baut sie ab</span>` : ''}${s.player.injury ? `<br><span class="neg">${esc(injuryText(s))}</span>` : ''}</div>`;
 }
 
 export function render(app) {

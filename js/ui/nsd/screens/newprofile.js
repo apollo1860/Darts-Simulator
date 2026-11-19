@@ -11,7 +11,7 @@ import { frame, titleBand, darkBar, bar, arrowIcon, checkIcon } from '../frame.j
 import { toast, confirmDialog } from '../../components.js';
 
 export const nsd = true;
-const form = { mode: 'own', first: '', last: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT, search: '', real: '', realAge: 25 };
+const form = { mode: 'own', first: '', last: '', nick: '', nation: 'DE', age: 18, hand: 'R', angle: ANGLE_DEFAULT, search: '', real: '', realAge: 25 };
 let REAL = null;
 const reals = () => (REAL ??= realPlayers());
 const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -43,6 +43,7 @@ export function render() {
           `<button class="nsd-btn ${form.hand === h ? 'blue' : ''}" data-h="${h}"><span class="lb">${l}</span></button>`).join('')}</div></div>` : `
       ${darkBar('Vorname')}<input class="nsd-input" id="p-first" maxlength="16" value="${esc(form.first)}" autocomplete="off">
       ${darkBar('Nachname')}<input class="nsd-input" id="p-last" maxlength="18" value="${esc(form.last)}" autocomplete="off">
+      ${darkBar('Spitzname (optional)')}<input class="nsd-input" id="p-nick" maxlength="20" placeholder="z. B. The Hammer" value="${esc(form.nick)}" autocomplete="off">
       ${darkBar('Nation')}
       <div class="nsd-field arrow"><select class="nsd-select" id="p-nation">${Object.entries(NATIONS).map(([c, n]) =>
         `<option value="${c}" ${c === form.nation ? 'selected' : ''}>${n.name}</option>`).join('')}</select></div>
@@ -72,6 +73,7 @@ export function mount(root, app, params) {
   root.querySelector('#p-mode').onclick = e => { const b = e.target.closest('[data-m]'); if (b && b.dataset.m !== form.mode) { form.mode = b.dataset.m; app.refresh(); } };
   on('#p-first', 'oninput', e => { form.first = e.target.value; });
   on('#p-last', 'oninput', e => { form.last = e.target.value; });
+  on('#p-nick', 'oninput', e => { form.nick = e.target.value; });
   on('#p-nation', 'onchange', e => { form.nation = e.target.value; });
   on('#p-age', 'onchange', e => { form.age = +e.target.value; });
   // Realer Spieler: Eingabefeld filtert die Auswahlliste (ohne Neuaufbau, damit die Tastatur offen bleibt)
@@ -103,8 +105,10 @@ export function mount(root, app, params) {
     if (!listSlots().find(s => s.slot === slot).empty && !await confirmDialog('Slot überschreiben?', `In Slot ${slot} liegt bereits ein Spielstand.`, 'Überschreiben')) return;
     app.state = real ? newRealCareer({ name: form.real, hand: form.hand, angle: form.angle, slot, seed: randomSeed(), age: form.realAge })
       : newNsdCareer({ first, last, nation: form.nation, age: form.age, hand: form.hand, angle: form.angle, slot, seed: randomSeed() });
+    const nick = form.nick.trim().replace(/^["„“']+|["„“']+$/g, '');
+    if (nick && !real) app.state.player.nick = nick;   // Version 241: Spitzname
     saveGame(app.state);
-    form.first = ''; form.last = '';
+    form.first = ''; form.last = ''; form.nick = '';
     app.go('intro');
   };
 }

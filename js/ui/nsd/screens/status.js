@@ -2,7 +2,7 @@
 import { esc } from '../../../util.js';
 import { injuryOf } from '../../../injury.js';
 import { skillsAvg, SKILL_MAX, starPct, starNeed } from '../../../nsd.js';
-import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead, arrowIcon } from '../frame.js';
+import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead, arrowIcon, formDots } from '../frame.js';
 import { icon as nicon } from '../icons.js';
 
 export const nsd = true;
@@ -32,7 +32,7 @@ export function render(app) {
       </div>
       <div class="nsd-rowpair">
         <div class="nsd-tag ${p.tour === 'tour' ? 'green' : 'red'}">${nicon('card')} ${p.tour === 'tour' ? `Tourcard bis Ende ${p.cardUntil}` : 'Keine Tourcard'}</div>
-        <div class="nsd-dark ${fit && !inj && !s.week?.accident && !p.hangover ? '' : 'red'}">${inj ? `${inj.icon} ${s.week?.blocked ? 'Ausfall' : 'Verletzt'}` : s.week?.accident ? '🩹 Ausfall' : p.hangover ? '🥴 Verkatert' : fit ? 'Match-fit' : 'Nicht fit'}</div>
+        <div class="nsd-dark ${fit && !inj && !s.week?.accident && !p.hangover ? '' : 'red'}"><span class="nsd-fitcol"><span>${inj ? `${inj.icon} ${s.week?.blocked ? 'Ausfall' : 'Verletzt'}` : s.week?.accident ? '🩹 Ausfall' : p.hangover ? '🥴 Verkatert' : fit ? 'Match-fit' : 'Nicht fit'}</span>${formDots(s)}</span></div>
       </div>
       <div class="nsd-rowpair x">
         <button class="nsd-btn row" id="s-shop"><span class="ic">${nicon('shop')}</span><span class="lb">Shop</span></button>

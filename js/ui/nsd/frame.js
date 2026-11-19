@@ -26,6 +26,9 @@ export const checkIcon = () => `<svg class="nsd-gfx2" width="80" height="62" vie
   <path d="M12 20.5 L22 30 L54 6.5 L24 31 Z" fill="#fff" opacity=".3"/></svg>`;
 export const coin = n => `<span class="nsd-coin">${starIcon('', 'sm')}${typeof n === 'number' ? (Math.round(n * 10) / 10).toLocaleString('de-DE') : n}</span>`;
 
+// Version 241: Formkurve – letzte 5 Matches (links = neuestes), grün Sieg, rot Niederlage, grau noch kein Match
+export const formDots = state => `<span class="nsd-form" title="Form: letzte 5 Matches">${Array.from({ length: 5 }, (_, i) => {
+  const f = state.form?.[i]; return `<i class="${f ? (f.w ? 'w' : 'l') : ''}" ${f ? `title="${f.w ? 'Sieg' : 'Niederlage'} · Ø ${String(f.a).replace('.', ',')}"` : ''}></i>`; }).join('')}</span>`;
 // ---- Bausteine ----
 export const titleBand = text => `<div class="nsd-title"><span>${text}</span></div>`;
 export const darkBar = (text, extra = '') => `<div class="nsd-dark ${extra}">${text}</div>`;

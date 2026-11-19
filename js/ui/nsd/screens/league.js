@@ -3,7 +3,7 @@ import { orderOfMerit } from '../../../rankings.js';
 import { esc } from '../../../util.js';
 import { flag, nationName } from '../../../../data/nations.js';
 import { placementsOf } from '../../../history.js';
-import { placeLabel } from '../../../tournaments.js';
+import { placeLabel, h2hOf } from '../../../tournaments.js';
 import { frame, bar, arrowIcon } from '../frame.js';
 import { starShow, PL_LEAGUE_PAY } from '../../../nsd.js';
 import { plTable } from '../../../majors.js';
@@ -76,6 +76,7 @@ function playerPopup(app, id, year = app.state.date.year, bd = null) {
     <div class="nsd-pop-name">${flag(p.nation)} ${esc(p.name)}</div>
     <div class="nsd-pop-info">${esc(nationName(p.nation))} · ${p.age} Jahre</div>
     <div class="nsd-pop-info">${esc(tourText(s, p, tour))}</div>
+    ${id !== 'P' && h2hOf(s, id) ? `<div class="nsd-pop-info">Bilanz gegen dich: <b>${h2hOf(s, id).l}–${h2hOf(s, id).w}</b></div>` : ''}
     <div class="nsd-pop-list">${list.length ? `<table class="nsd-table nsd-pop-t"><tr><th>KW</th><th style="text-align:left">Turnier</th><th>Platz</th></tr>
       ${list.map(r => `<tr class="${r.place === 'W' ? 'win' : ''}"><td class="c">${r.week}</td><td class="tn">${esc(r.name)}</td><td class="c pl">${esc(placeLabel(r.place, r.cat, r.eventId))}</td></tr>`).join('')}</table>`
       : `<div class="nsd-pop-empty">Keine Turniere in ${year}.</div>`}</div>

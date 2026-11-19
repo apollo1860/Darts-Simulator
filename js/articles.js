@@ -15,7 +15,8 @@ function publish(state, icon, kicker, title, text) {
   addNews(state, 'article', title, text);
   return a;
 }
-const names = state => { const n = state.player.name; return { n, sn: surname(n) }; };
+// Version 241: Spitzname zwischen Vor- und Nachname (Benny „The Hammer“ Buchse)
+const names = state => { const p = state.player, n = p.nick && p.first && p.last ? `${p.first} „${p.nick}“ ${p.last}` : p.name; return { n, sn: surname(p.name) }; };
 const rngOf = state => new RNG(state.rng);
 
 // Turniersieg: {event, cat, fmt, opp, score, stars, titles}

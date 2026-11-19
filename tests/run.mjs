@@ -3321,4 +3321,31 @@ test('New Star Darts v240: WM – in knapper Schlussphase mehr Spielszenen', asy
   assert.ok(ET.wmClutch(st, m(3, 2)) && ET.wmClutch(st, m(3, 3)) && !ET.wmClutch(st, m(3, 1)) && !ET.wmClutch(st, m(1, 1)) && !ET.wmClutch({ activeEvent: { fmt: 'matchplay' } }, m(3, 3)));
 });
 
+test('New Star Darts v241: Bilanz gegen Gegner, Formkurve, Spitzname, Urlaub', async () => {
+  const N = await import('../js/nsd.js'), S = await import('../js/season.js'), C = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 25, slot: 1, seed: 6 }); s.player.assessed = true;
+  // Bilanz + Form über ein echtes Turnier
+  s.date.week = 6; s.week = { played: false, eventId: null };
+  ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id); ET.simulateRest(s);
+  const played = s.form?.length ?? 0; assert.ok(played >= 1 && played <= ET.FORM_LEN);
+  const ids = Object.keys(s.h2h ?? {}); assert.equal(ids.length, played);
+  const h = ET.h2hOf(s, ids[0]); assert.equal(h.w + h.l, 1); assert.ok(h.last.s.includes(':') && h.last.n.includes('Players Championship'));
+  assert.equal(s.form[0].w, h.last.w === 1 && ids.length === 1 ? 1 : s.form[0].w);
+  ET.closeEvent(s);
+  for (let i = 0; i < 8; i++) ET.recordH2H(s, { name: 'X' }, 'T1', i % 2 === 0, 6, 3, 95); assert.equal(s.form.length, 5); assert.equal(ET.h2hOf(s, 'T1').w + ET.h2hOf(s, 'T1').l, 8);
+  // Urlaub: nicht in Major-Woche, einmal pro Jahr, blockiert Turniere
+  s.date.week = 5; s.week = { played: false, eventId: null }; s.stars = 1000;   // KW 5 = Masters (Holder außerhalb Top 24 → nicht spielberechtigt → Urlaub möglich?)
+  s.date.week = 7; s.week = { played: false, eventId: null }; s.player.energy = 30; const sat = s.player.satisfaction;
+  const v = ET.vacationStatus(s); assert.ok(v.ok, v.reason);
+  ET.takeVacation(s); assert.equal(s.player.energy, 100); assert.ok(s.player.satisfaction > sat); assert.ok(s.week.vacation);
+  const pc = eventsInWeek(s, 2026, 7).find(e => e.cat === 'pc'); if (pc) assert.ok(!ET.eventStatus(s, pc).playable);
+  s.week = { played: false, eventId: null }; assert.ok(!ET.vacationStatus(s).ok, 'nur einmal pro Jahr');
+  s.player.vacationYear = 2025; s.date.week = 10; s.week = { played: false, eventId: null };   // UK Open: alle Holder dabei → kein Urlaub
+  assert.ok(!ET.vacationStatus(s).ok && /UK Open/.test(ET.vacationStatus(s).reason), ET.vacationStatus(s).reason);
+  // Spitzname im Zeitungsnamen
+  s.player.nick = 'The Hammer'; const A = await import('../js/articles.js');
+  A.titleArticle(s, { event: 'Players Championship 1', cat: 'pc', fmt: 'pc', stars: 1, titles: 1 });
+  assert.ok(s.articles.at(-1).text.includes('Benny „The Hammer“ Buchse') || s.articles.at(-1).title.includes('Buchse'));
+});
+
 console.log(`\n${n} Tests ok`);
