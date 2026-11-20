@@ -231,6 +231,9 @@ export function pickSponsor(level, taken, rng, luxury = false) {   // luxury: Lu
   for (const x of inB) { r -= w(x); if (r <= 0) { pick = x; break; } }
   return { name: pick.name, branche: b, real: true, fame: pick.fame, pay: FAME_PAY[pick.fame] };
 }
+// Version 258: Manager-Beziehung beeinflusst Sponsor-Angebote – Häufigkeit × 0,4 (Beziehung 0) … 1,0 (50) … 1,6 (100), Höhe × 0,85 … 1,0 … 1,15
+export const mgrOfferChance = rel => 0.4 + 1.2 * Math.max(0, Math.min(100, rel)) / 100;
+export const mgrOfferPay = rel => 0.85 + 0.3 * Math.max(0, Math.min(100, rel)) / 100;
 export function sponsorWeek(state, rng) {
   const s = sp(state), p = state.player, out = { paid: 0, ended: [] };
   for (const c of s.active) { state.stars = (state.stars ?? 0) + c.perWeek; out.paid += c.perWeek; c.weeksLeft--; }
@@ -245,12 +248,12 @@ export function sponsorWeek(state, rng) {
   if (s.offer && --s.offer.weeks <= 0) s.offer = null;
   // Ohne Manager keine Sponsoren; Kneipen-Kumpel selten und klein, Profi-Manager oft und groß. Angebote kommen auch bei voller Sponsorenliste
   // (dann muss für den Neuen einer gekündigt werden), aber nie aus einer Branche, in der du schon einen Vertrag hast.
-  const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) : 0;
+  const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) * mgrOfferChance(p.rel.manager ?? 50) : 0;   // Version 258: Manager-Beziehung
   const blocked = weekIndex(state) < (s.blockUntil ?? 0);                    // Sponsoren-Sperre nach einem Skandal
   const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng, !!m?.luxury) : null;
   if (sp0) {
     const name = sp0.name, branche = sp0.branche;
-    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * (sp0.real ? realPayRamp(sp0.pay, p.star.level) : sp0.pay) * SPONSOR_PAY));
+    const perWeek = Math.max(1, Math.round(sponsorBase(state) * m.mult * mgrOfferPay(p.rel.manager ?? 50) * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * (sp0.real ? realPayRamp(sp0.pay, p.star.level) : sp0.pay) * SPONSOR_PAY));
     // Prämien: Wochenhonorar + Siegprämie, manchmal Major-Teilnahme (Version 143: keine 180er-Prämie mehr)
     s.offer = { name, branche, real: sp0.real, fame: sp0.fame, perWeek, win: Math.max(1, Math.round(perWeek * 0.5)),
       s180: 0, major: rng.chance(0.3) ? Math.max(2, Math.round(perWeek * 2)) : 0,
@@ -268,7 +271,7 @@ function controversialOffer(state, m, rng) {
   s.cAt ??= wk + rng.int(CONTROVERSY_FIRST[0], CONTROVERSY_FIRST[1]);
   if (s.cOffer || hasControversial(state) || wk < s.cAt) return;
   const b = rng.pick(CONTROVERSIAL.filter(x => x.name !== s.cLast)); s.cLast = b.name;
-  const perWeek = Math.max(2, Math.round(sponsorBase(state) * m.mult * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * CONTROVERSIAL_PAY * SPONSOR_PAY));
+  const perWeek = Math.max(2, Math.round(sponsorBase(state) * m.mult * mgrOfferPay(p.rel.manager ?? 50) * rng.float(0.8, 1.2) * sponsorGrowth(p.star.level) * CONTROVERSIAL_PAY * SPONSOR_PAY));
   s.cOffer = { name: b.name, sector: b.sector, tag: b.tag, perWeek, win: Math.max(1, Math.round(perWeek * 0.4)), weeks: CONTROVERSY_OFFER_WEEKS, length: rng.pick(CONTROVERSY_LENGTHS) };
   s.cAt = wk + rng.int(CONTROVERSY_GAP[0], CONTROVERSY_GAP[1]);
   addNews(state, 'info', `⚠️ Umstrittenes Sponsor-Angebot: ${b.name}`, `${b.tag} · ${perWeek} ★ pro Woche für ${s.cOffer.length} Wochen – sehr gut bezahlt, aber Fans und andere Sponsoren könnten verärgert reagieren. Entscheide im Sponsoren-Screen.`);

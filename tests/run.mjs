@@ -1861,7 +1861,8 @@ test('New Star Darts v70/71: echte Marken nach Branchen – eine Branche je Spon
   assert.ok(newer / tot > modeNew + 0.02, `Fokus ${newer / tot} statt ${modeNew}`);
   // Bezahlung: kleine Marken wenig, bekannte mehr, je Bekanntheit steigend
   assert.ok(R.SMALL_PAY < R.FAME_PAY[1]); for (let f = 2; f <= 5; f++) assert.ok(R.FAME_PAY[f] > R.FAME_PAY[f - 1]);
-  const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 20, slot: 1, seed: 6 }); s.team = { manager: 'm3', trainer: null }; s.player.star.level = 15; s.player.rel.fans = 50;
+  const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 20, slot: 1, seed: 6 }); s.team = { manager: 'm3', trainer: null }; s.player.star.level = 15; s.player.rel.fans = 50; s.player.rel.manager = 50;   // Version 258: Manager-Beziehung 50 = neutral
+ 
   C.nameTeam(s); const ratio = { small: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, m = C.managerOf(s), unit = C.sponsorBase(s) * m.mult * C.sponsorGrowth(15) * R.SPONSOR_PAY;   // Version 93: alle Beträge × SPONSOR_PAY
   for (let k = 0; k < 4000; k++) { s.nsdSponsors = { active: [], offer: null }; C.sponsorWeek(s, rng); const o = s.nsdSponsors.offer; if (o) { assert.ok(typeof o.real === 'boolean' && o.fame >= 0 && o.branche === br(o.name)); (o.real ? ratio[o.fame] : ratio.small).push(o.perWeek / unit); } }
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
@@ -1911,7 +1912,7 @@ test('New Star Darts v73: umstrittene Sponsoren – ab Status 25, alle 1–2 Jah
   // Angebot verfällt nach 4 Wochen; Bezahlung deutlich über normal
   const t = mk(30); t.nsdSponsors = { active: [], offer: null, cAt: 0 }; let o = null; for (let k = 0; k < 5 && !o; k++) { tick(t); C.sponsorWeek(t, rng); o = t.nsdSponsors.cOffer; }
   assert.ok(o && o.weeks === 4, 'Angebot da'); for (let k = 0; k < 4; k++) { tick(t); C.sponsorWeek(t, rng); } assert.equal(t.nsdSponsors.cOffer, null, 'verfällt');
-  const unit = C.sponsorBase(t) * C.managerOf(t).mult * C.sponsorGrowth(30) * R.SPONSOR_PAY, pays = [];
+  const unit = C.sponsorBase(t) * C.managerOf(t).mult * C.mgrOfferPay(t.player.rel.manager ?? 50) * C.sponsorGrowth(30) * R.SPONSOR_PAY, pays = [];
   for (let k = 0; k < 600; k++) { t.nsdSponsors = { active: [], offer: null, cAt: 0 }; tick(t); C.sponsorWeek(t, rng); if (t.nsdSponsors.cOffer) pays.push(t.nsdSponsors.cOffer.perWeek / unit); }
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length; assert.ok(Math.abs(mean(pays) - X.CONTROVERSIAL_PAY) < 0.2, `Bezahlfaktor ${mean(pays)}`);
   // Annehmen: außerhalb der Branchenregel und der 5 Plätze, Fans sofort −3, nur ein umstrittener Vertrag
@@ -3447,6 +3448,22 @@ test('New Star Darts v257: Beziehung unter 25 – Trennung/Kündigung immer wahr
   for (let i = 0; i < 60 && (C.managerOf(s) || s.nsdSponsors.active.length > 1); i++) C.lowRelWeek(s, new RNG({ s: 100 + i }));
   assert.equal(C.managerOf(s), null); assert.ok(s.nsdSponsors.active[0].name === 'B', 'schwächster Sponsor steigt zuerst aus');
   assert.ok(s.news.some(x => x.title.includes('kündigt die Zusammenarbeit')));
+});
+
+test('New Star Darts v258: Manager-Beziehung beeinflusst Sponsor-Angebote', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  assert.equal(C.mgrOfferChance(50), 1); assert.equal(C.mgrOfferPay(50), 1);
+  assert.ok(Math.abs(C.mgrOfferChance(0) - 0.4) < 1e-9 && Math.abs(C.mgrOfferChance(100) - 1.6) < 1e-9);
+  assert.ok(Math.abs(C.mgrOfferPay(0) - 0.85) < 1e-9 && Math.abs(C.mgrOfferPay(100) - 1.15) < 1e-9);
+  const count = rel => {
+    let n = 0;
+    for (let i = 0; i < 300; i++) {
+      const s = N.newNsdCareer({ first: 'O', last: 'F', nation: 'DE', age: 25, slot: 1, seed: 4 }); C.hireManager(s, 'm1'); s.player.rel.manager = rel;
+      C.sponsorWeek(s, new RNG({ s: i + 7 })); if (s.nsdSponsors.offer) n++;
+    }
+    return n;
+  };
+  const lo = count(5), hi = count(95); assert.ok(hi > lo * 2, `${lo} vs ${hi}`);
 });
 
 console.log(`\n${n} Tests ok`);
