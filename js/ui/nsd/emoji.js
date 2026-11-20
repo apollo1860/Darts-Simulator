@@ -13,7 +13,7 @@ export const EMOJI = {
   '💪': 'fitness', '🏋️': 'fitness', '🏃': 'fitness', '👟': 'fitness', '🧘': 'fitness', '🚴': 'fitness', '💆': 'fitness',
   '💍': 'ring', '🛍️': 'bags', '🛍': 'bags', '🥶': 'cold', '🧊': 'cold', '⚡': 'bolt', '🪶': 'darts', '🎲': 'dice', '🎰': 'dice',
   '😰': 'faceNervous', '😬': 'faceNervous', '😵': 'faceNervous', '🥴': 'faceNervous', '😷': 'faceSad', '🤧': 'faceSad',
-  '😊': 'faceHappy', '🙂': 'faceHappy', '😄': 'faceHappy', '😌': 'faceHappy', '😏': 'faceHappy', '👋': 'faceHappy', '😐': 'faceNeutral', '😠': 'faceAngry', '😤': 'faceAngry',
+  '😊': 'faceHappy', '🙂': 'faceHappy', '😄': 'faceHappy', '😌': 'faceHappy', '😏': 'faceHappy', '👋': 'faceHappy', '😐': 'faceNeutral', '🙁': 'faceSad', '😠': 'faceAngry', '😤': 'faceAngry',
   '🗓️': 'calendar', '🧣': 'fans', '🎉': 'party', '🥳': 'party', '🎆': 'party', '🎈': 'party', '🪩': 'party', '🎂': 'party',
   '🏅': 'medal', '🥇': 'medal', '🥈': 'medalS', '🥉': 'medalB', '👑': 'crown',
   '❤️': 'heart', '❤': 'heart', '🧡': 'heartO', '💛': 'heartY', '💞': 'heart', '💘': 'heart', '💋': 'heart', '🌹': 'heart', '💔': 'heartBroken',

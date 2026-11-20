@@ -28,7 +28,7 @@ import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, e
   matchRating, addRel, addFans, fansAfterMatch, addMatchFans, relAfterMatch, titleFans, isFloor, starPrice } from './nsd.js';
 import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
 import { checkAchievements, VAC_REGEN, VAC_REGEN_WEEKS } from './life.js';
-import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay } from './career.js';
+import { managerCut, maybeInterviewNsd, managerOf, sponsorMatchPay, careRel } from './career.js';
 import { useBoosts, flightPrice } from './skilltrain.js';
 import { titleArticle, finalArticle, wmTicketArticle, nineArticle } from './articles.js';
 import { stageFactor, applyStage, updateMomentum, titleMomentum, applyNerves, nervesFor, PRO_CATS, proMatchesOf } from './form.js';
@@ -849,6 +849,7 @@ export function takeVacation(state) {
   state.stars = Math.round(((state.stars ?? 0) - st.cost) * 10) / 10;
   p.energy = 100; p.satisfaction = Math.min(100, (p.satisfaction ?? 50) + VACATION_SAT);
   if ((p.rel?.partner ?? 0) > 0) p.rel.partner = Math.min(100, p.rel.partner + VACATION_PARTNER);
+  if ((p.rel?.partner ?? 0) > 0) careRel(state, 'partner');   // Version 255: Urlaub zählt als Zeit für die Beziehung
   p.vacationYear = state.date.year; state.week.vacation = true; p.vacRegen = VAC_REGEN_WEEKS;   // Version 242: danach 4 Wochen bessere Erholung
   addNews(state, 'info', '🏝️ Urlaub!', `Eine Woche abschalten: Energie 100 %, Zufriedenheit +${VACATION_SAT}${(p.rel?.partner ?? 0) > 0 ? `, ${p.partnerName ?? 'deine Begleitung'} freut sich (+${VACATION_PARTNER})` : ''}. Diese Woche kein Training und keine Turniere, danach ${VAC_REGEN_WEEKS} Wochen +${VAC_REGEN} % Erholung.`);
   return st.cost;

@@ -12,7 +12,7 @@ import { rankOf } from '../js/rankings.js';
 import { DRINKS } from '../data/gear.js';
 import { LIFESTYLE } from '../data/lifestyle.js';
 
-const seasons = +(process.argv[2] ?? 5), seed = +(process.argv[3] ?? 1), skillQ = +(process.argv[4] ?? 0.6);
+const seasons = +(process.argv[2] ?? 5), seed = +(process.argv[3] ?? 1), skillQ = +(process.argv[4] ?? 0.6), care = +(process.argv[5] ?? 1);   // care 1: Beziehungen alle 5 Wochen pflegen (Version 255)
 const s = N.newNsdCareer({ first: 'Bot', last: 'Spieler', nation: 'DE', age: 20, seed });
 const p = s.player, rng = new RNG({ s: seed * 7 + 1 });
 for (const t of N.TRAINABLE) T.finishTraining(s, t.key, 1, rng.int(1, 3), { placement: true });
@@ -45,6 +45,12 @@ while (s.date.year < N.NSD_START.year + seasons && !s.ended) {
   if (!p.fitness && s.stars > 60) try { C.hireTrainer(s, C.trainerOffers(s).at(-1).id); } catch { }
   const cheap = LIFESTYLE.filter(x => !p.owned?.includes(x.id)).sort((a, b) => a.price - b.price)[0];
   if (cheap && s.stars > 3 * L.itemPrice(cheap, p.star.level)) L.buyItem(s, cheap.id);
+  if (care && !N.inTournament(s)) for (const k of ['fans', 'manager', 'partner']) {   // Version 255: gegen Vernachlässigung
+    if (!C.relAvailable(s, k) || C.weekIndex(s) - (p.relCare?.[k] ?? C.weekIndex(s)) < 5) continue;
+    const act = C.pickRelAction(s, k);
+    if (act.energy && p.energy < act.energy && s.stars >= T.drinkPrice(DRINKS[0], p.star.level)) { T.buyDrink(s, 'beer'); T.drink(s, 'beer', rng); }
+    try { C.doRelAction(s, act); } catch { }
+  }
   // Training (Erfolg je nach „Spielerqualität“ skillQ), vorher bei Bedarf Bier
   if (p.energy < T.TRAIN_ENERGY && s.stars >= T.drinkPrice(DRINKS[0], p.star.level) + 3) { T.buyDrink(s, 'beer'); T.drink(s, 'beer', rng); }
   const key = [...N.TRAINABLE].sort((a, b) => N.skillValue(p, a.key) - N.skillValue(p, b.key))[0].key, lv = T.nextLevel(p, key);

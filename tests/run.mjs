@@ -3405,4 +3405,18 @@ test('New Star Darts v252: Wartung mit steigendem Status häufiger', async () =>
   s.player.star.level = 90; assert.deepEqual(L.repairWeeks(s), [7, 9]);
 });
 
+test('New Star Darts v255: Vernachlässigung von Freundin, Fans, Manager', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  const s = N.newNsdCareer({ first: 'V', last: 'N', nation: 'DE', age: 25, slot: 1, seed: 7 }), p = s.player;
+  p.rel.fans = 80; p.energy = 100; C.neglectWeek(s); assert.equal(C.neglectWeeks(s, 'fans'), 0);
+  for (let i = 0; i < C.NEGLECT_GRACE; i++) { s.date.week++; C.neglectWeek(s); } assert.equal(p.rel.fans, 80, 'Schonfrist');
+  const seen = []; for (let i = 0; i < 6; i++) { s.date.week++; const b = p.rel.fans; C.neglectWeek(s); seen.push(Math.round((b - p.rel.fans) * 10) / 10); }
+  assert.deepEqual(seen, [0.5, 1, 1.5, 2, 2.5, 3], 'wachsender Abzug');
+  assert.equal(p.relCap.fans, 88); const b = p.rel.fans; N.addRel(p, 'fans', 4); assert.equal(p.rel.fans, b + 2, 'Leistung zählt nur halb');
+  p.rel.fans = 87; N.addRel(p, 'fans', 10); assert.equal(p.rel.fans, 88, 'nicht über die Obergrenze');
+  assert.ok(s.news.some(x => x.title.includes('vernachlässigt')));
+  C.doRelAction(s, C.pickRelAction(s, 'fans')); assert.equal(p.relCap.fans, undefined); assert.equal(C.neglectWeeks(s, 'fans'), 0);
+  N.addRel(p, 'fans', 4); assert.ok(p.rel.fans > 88, 'nach Pflege wieder voll');
+});
+
 console.log(`\n${n} Tests ok`);

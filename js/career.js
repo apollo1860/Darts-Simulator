@@ -134,7 +134,33 @@ export function doRelAction(state, act) {
   if (act.stars && (state.stars ?? 0) < act.stars) throw new Error('Nicht genug ★');
   if (act.energy) p.energy = Math.max(0, p.energy - act.energy);
   if (act.stars) state.stars = Math.round((state.stars - act.stars) * 10) / 10;
+  careRel(state, act.key);   // Version 255: gepflegt → Vernachlässigung zurückgesetzt
   return addRel(p, act.key, act.gain);
+}
+// ---------- Version 255: Vernachlässigung (Freundin, Fans, Manager) ----------
+// Ohne Pflege-Aktion länger als NEGLECT_GRACE Wochen: jede Woche ein wachsender Abzug (0,5 je Woche darüber, max. 3) und eine sinkende
+// Obergrenze (100 − 2 je Woche, mind. 50); Zuwächse durch Leistungen zählen dann nur halb (NEGLECT_GAIN) – nicht voll ausgleichbar.
+export const NEGLECT_KEYS = ['partner', 'fans', 'manager'], NEGLECT_GRACE = 6, NEGLECT_STEP = 0.5, NEGLECT_MAX = 3, NEGLECT_CAP_STEP = 2, NEGLECT_CAP_MIN = 50;
+export function careRel(state, key) {
+  const p = state.player; (p.relCare ??= {})[key] = weekIndex(state);
+  if (p.relCap) delete p.relCap[key];
+}
+export const neglectWeeks = (state, key) => Math.max(0, weekIndex(state) - (state.player.relCare?.[key] ?? weekIndex(state)) - NEGLECT_GRACE);
+const relExists = (state, key) => key === 'fans' || (key === 'manager' ? !!managerOf(state) : !!state.player.partnerName && (state.player.rel.partner ?? 0) > 0);
+export function neglectWeek(state) {
+  const p = state.player; p.relCare ??= {};
+  for (const key of NEGLECT_KEYS) {
+    if (!relExists(state, key)) { careRel(state, key); continue; }   // neue Beziehung/neuer Manager startet frisch
+    p.relCare[key] ??= weekIndex(state);
+    const w = neglectWeeks(state, key);
+    if (!w) { if (p.relCap) delete p.relCap[key]; continue; }
+    if (w === 1) addNews(state, 'info', key === 'fans' ? '🙁 Deine Fans fühlen sich vernachlässigt' : key === 'manager' ? '🙁 Dein Manager fühlt sich übergangen' : `🙁 ${p.partnerName ?? 'Deine Beziehung'} vermisst dich`,
+      'Schon lange nichts mehr zusammen gemacht – die Beziehung wird jetzt jede Woche schlechter, und gute Leistungen gleichen das nur zum Teil aus. Pflege sie im Leben-Screen.');
+    (p.relCap ??= {})[key] = Math.max(NEGLECT_CAP_MIN, 100 - NEGLECT_CAP_STEP * w);
+    addRel(p, key, -Math.min(NEGLECT_MAX, NEGLECT_STEP * w));
+    if (key === 'partner' && p.rel.partner <= 0) breakUp(state);
+    if (key === 'manager' && p.rel.manager <= 0) fireManager(state);
+  }
 }
 
 // ---------- Sponsoren ----------
@@ -540,6 +566,7 @@ export function careerWeek(state, rng) {
   trainerOffers(state, rng);
   if (before && team(state).offersUntil !== before) addNews(state, 'info', '🏃 Neue Fitnesstrainer verfügbar', 'Drei neue Angebote im Team-Screen – Preise, Dauer und Erholung sind neu.');
   out.sponsor = sponsorWeek(state, rng).paid;
+  neglectWeek(state);                                              // Version 255
   if (managerOf(state) && p.rel.manager > 0 && rng.chance(0.15)) addRel(p, 'manager', -1);   // will Erfolge sehen
   // Version 231: Luxus-Manager – einmaliges Angebot ab Star-Status 40, danach PR: Fans +1 pro Woche
   const lux = MANAGERS.find(x => x.luxury);

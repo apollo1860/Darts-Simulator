@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 254;
+export const APP_VERSION = 255;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -395,7 +395,13 @@ export function matchRating({ won, avg, coPct, s180 = 0, my, opp, oppAvg = null,
 }
 // Fans: Zuwachs wird mit vielen Fans kleiner (100 % ist schwer zu erreichen); Verluste voll
 export const addFans = (p, n) => addRel(p, 'fans', n > 0 ? Math.round(n * Math.max(0.05, (1 - (p.rel.fans ?? 0) / 100) ** 2) * 10) / 10 : n);
-export function addRel(p, key, n) { p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key]; }
+// Version 255: vernachlässigte Beziehung (p.relCap[key], gesetzt in career.js neglectWeek) – Zuwächse zählen nur halb und nicht über die Obergrenze
+export const NEGLECT_GAIN = 0.5;
+export function addRel(p, key, n) {
+  const cap = p.relCap?.[key];
+  if (n > 0 && cap != null) n = Math.max(0, Math.min(n * NEGLECT_GAIN, cap - (p.rel[key] ?? 0)));
+  p.rel[key] = Math.max(0, Math.min(100, (p.rel[key] ?? 0) + n)); return p.rel[key];
+}
 // Version 159: Fans nach jedem Match: über 7,0 +1 (ab 8,5 +2), 6,1–7,0 ±0, bis 6,0 −1 – Version 160: nach einem Sieg nie ein Verlust
 // Version 163: Titel bringen deutlich mehr Fans (gebremst nur mit (1 − Fans/100), nicht quadratisch); WM-Titel: die Hälfte des Abstands zu 100, mind. +15
 export const TITLE_FANS = { floor: 3, et: 5, ws: 5, pl: 10, major: 10, matchplay: 14 };   // PL-Spieltag: 1
