@@ -45,7 +45,7 @@ while (s.date.year < N.NSD_START.year + seasons && !s.ended) {
   if (!p.fitness && s.stars > 60) try { C.hireTrainer(s, C.trainerOffers(s).at(-1).id); } catch { }
   const cheap = LIFESTYLE.filter(x => !p.owned?.includes(x.id)).sort((a, b) => a.price - b.price)[0];
   if (cheap && s.stars > 3 * L.itemPrice(cheap, p.star.level)) L.buyItem(s, cheap.id);
-  if (care && !N.inTournament(s)) for (const k of ['fans', 'manager', 'partner']) {   // Version 255: gegen Vernachlässigung
+  if (care && !N.inTournament(s)) for (const k of ['fans', 'manager', 'partner', 'sponsors']) {   // Version 255/256: gegen Vernachlässigung
     if (!C.relAvailable(s, k) || C.weekIndex(s) - (p.relCare?.[k] ?? C.weekIndex(s)) < 5) continue;
     const act = C.pickRelAction(s, k);
     if (act.energy && p.energy < act.energy && s.stars >= T.drinkPrice(DRINKS[0], p.star.level)) { T.buyDrink(s, 'beer'); T.drink(s, 'beer', rng); }

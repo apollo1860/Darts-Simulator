@@ -3419,4 +3419,15 @@ test('New Star Darts v255: Vernachlässigung von Freundin, Fans, Manager', async
   N.addRel(p, 'fans', 4); assert.ok(p.rel.fans > 88, 'nach Pflege wieder voll');
 });
 
+test('New Star Darts v256: Sponsoren ohne Pflege schlechter, bei 0 kündigt der schwächste', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  const s = N.newNsdCareer({ first: 'S', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 8 }), p = s.player;
+  C.neglectWeek(s); assert.ok(p.relCare.sponsors != null);
+  s.nsdSponsors = { active: [{ name: 'A', branche: 'darts', perWeek: 5, weeksLeft: 99 }, { name: 'B', branche: 'mode', perWeek: 9, weeksLeft: 99 }], offer: null };
+  p.rel.sponsors = 6; for (let i = 0; i < C.NEGLECT_GRACE + 5; i++) { s.date.week++; C.neglectWeek(s); }
+  assert.deepEqual(s.nsdSponsors.active.map(c => c.name), ['B'], 'schwächster Vertrag gekündigt'); assert.ok(p.rel.sponsors > 0);
+  assert.ok(s.news.some(x => x.title.includes('Sponsoren fühlen sich')) && s.news.some(x => x.title.includes('A kündigt')));
+  C.doRelAction(s, C.pickRelAction(s, 'sponsors')); assert.equal(C.neglectWeeks(s, 'sponsors'), 0);
+});
+
 console.log(`\n${n} Tests ok`);

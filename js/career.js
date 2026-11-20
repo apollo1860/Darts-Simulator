@@ -137,16 +137,16 @@ export function doRelAction(state, act) {
   careRel(state, act.key);   // Version 255: gepflegt → Vernachlässigung zurückgesetzt
   return addRel(p, act.key, act.gain);
 }
-// ---------- Version 255: Vernachlässigung (Freundin, Fans, Manager) ----------
+// ---------- Version 255: Vernachlässigung (Freundin, Fans, Manager; Version 256: + Sponsoren mit Vertrag) ----------
 // Ohne Pflege-Aktion länger als NEGLECT_GRACE Wochen: jede Woche ein wachsender Abzug (0,5 je Woche darüber, max. 3) und eine sinkende
 // Obergrenze (100 − 2 je Woche, mind. 50); Zuwächse durch Leistungen zählen dann nur halb (NEGLECT_GAIN) – nicht voll ausgleichbar.
-export const NEGLECT_KEYS = ['partner', 'fans', 'manager'], NEGLECT_GRACE = 6, NEGLECT_STEP = 0.5, NEGLECT_MAX = 3, NEGLECT_CAP_STEP = 2, NEGLECT_CAP_MIN = 50;
+export const NEGLECT_KEYS = ['partner', 'fans', 'manager', 'sponsors'], NEGLECT_GRACE = 6, NEGLECT_STEP = 0.5, NEGLECT_MAX = 3, NEGLECT_CAP_STEP = 2, NEGLECT_CAP_MIN = 50;
 export function careRel(state, key) {
   const p = state.player; (p.relCare ??= {})[key] = weekIndex(state);
   if (p.relCap) delete p.relCap[key];
 }
 export const neglectWeeks = (state, key) => Math.max(0, weekIndex(state) - (state.player.relCare?.[key] ?? weekIndex(state)) - NEGLECT_GRACE);
-const relExists = (state, key) => key === 'fans' || (key === 'manager' ? !!managerOf(state) : !!state.player.partnerName && (state.player.rel.partner ?? 0) > 0);
+const relExists = (state, key) => key === 'fans' || (key === 'manager' ? !!managerOf(state) : key === 'sponsors' ? sp(state).active.length > 0 : !!state.player.partnerName && (state.player.rel.partner ?? 0) > 0);   // Version 256: Sponsoren nur mit Vertrag
 export function neglectWeek(state) {
   const p = state.player; p.relCare ??= {};
   for (const key of NEGLECT_KEYS) {
@@ -154,12 +154,17 @@ export function neglectWeek(state) {
     p.relCare[key] ??= weekIndex(state);
     const w = neglectWeeks(state, key);
     if (!w) { if (p.relCap) delete p.relCap[key]; continue; }
-    if (w === 1) addNews(state, 'info', key === 'fans' ? '🙁 Deine Fans fühlen sich vernachlässigt' : key === 'manager' ? '🙁 Dein Manager fühlt sich übergangen' : `🙁 ${p.partnerName ?? 'Deine Beziehung'} vermisst dich`,
+    if (w === 1) addNews(state, 'info', key === 'fans' ? '🙁 Deine Fans fühlen sich vernachlässigt' : key === 'manager' ? '🙁 Dein Manager fühlt sich übergangen' : key === 'sponsors' ? '🙁 Deine Sponsoren fühlen sich vernachlässigt' : `🙁 ${p.partnerName ?? 'Deine Beziehung'} vermisst dich`,
       'Schon lange nichts mehr zusammen gemacht – die Beziehung wird jetzt jede Woche schlechter, und gute Leistungen gleichen das nur zum Teil aus. Pflege sie im Leben-Screen.');
     (p.relCap ??= {})[key] = Math.max(NEGLECT_CAP_MIN, 100 - NEGLECT_CAP_STEP * w);
     addRel(p, key, -Math.min(NEGLECT_MAX, NEGLECT_STEP * w));
     if (key === 'partner' && p.rel.partner <= 0) breakUp(state);
     if (key === 'manager' && p.rel.manager <= 0) fireManager(state);
+    if (key === 'sponsors' && p.rel.sponsors <= 0) {   // Version 256: der schwächste normale Vertrag wird gekündigt
+      const s = sp(state), c = [...normalContracts(state)].sort((a, b) => a.perWeek - b.perWeek)[0];
+      if (c) { s.active = s.active.filter(x => x !== c); addNews(state, 'info', `🤝 ${c.name} kündigt den Vertrag`, 'Zu lange keine Pflege – der Sponsor steigt aus.'); }
+      p.rel.sponsors = 10;
+    }
   }
 }
 
