@@ -173,7 +173,7 @@ function boardHtml(head, extra = '', zoom = false) {
   return `<div class="nsd-aim-head">${head}</div>
     <div class="nsd-aim-stage" id="stage"><svg id="bsvg" viewBox="-200 -200 400 400" aria-label="Dartscheibe">${boardSvg()}
       <path class="target-region" id="region" d=""/>
-      <g id="cross" class="crosshair" style="display:none"><circle r="7"/></g>
+      <g id="cross" class="crosshair" style="display:none"></g><!-- Version 259: gelber Zielkreis entfernt -->
       <circle id="circ" class="nsd-circ" r="0" style="display:none"/>
       <line id="vline" class="aim-line v" x1="0" x2="0" y1="-200" y2="200" style="display:none"/>
       <line id="hline" class="aim-line h" x1="-200" x2="200" y1="0" y2="0" style="display:none"/>
