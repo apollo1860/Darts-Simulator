@@ -8,12 +8,15 @@ import { RNG } from './rng.js';
 import { getPlayer } from './world.js';
 import { surname } from './util.js';
 import { addMod, playerMatch, lateMatch, nineAlive, bigFish, dinScene, MOD_GOOD_POW } from './tournaments.js';
-import { addFans, addRel, addEnergy } from './nsd.js';
+import { addFans, addRel, addEnergy, skillEffective } from './nsd.js';
 import { managerOf } from './career.js';
 
 export const MOMENT_AFTER_ONE = 0.5;     // nach einem Match mit Moment: 50 % für das nächste, danach garantiert (→ alle 1–2 Matches)
 export const MOMENT_WIN = 0.5;           // jede Option: gleiche Chance auf Gewinn und Verlust
 export const MOMENT_VISITS = [2, 6];     // ab der wievielten eigenen Aufnahme (zufällig)
+// Version 264 (Nutzerwunsch): Wirkung (gut wie schlecht) hält 3–4 Aufnahmen; sind Fokus UND Mental schwach (beide unter 20), 5–6
+export const MOMENT_DUR = [3, 4], MOMENT_DUR_WEAK = [5, 6], MOMENT_WEAK = 20;
+export const momentVisits = (p, rng) => rng.int(...(skillEffective(p, 'foc') < MOMENT_WEAK && skillEffective(p, 'men') < MOMENT_WEAK ? MOMENT_DUR_WEAK : MOMENT_DUR));
 const NO_REPEAT = 8;                     // so viele zuletzt gesehene Momente werden nicht wiederholt
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -54,7 +57,7 @@ export function describeMoment(state, mo) {
 // Kurztext einer Wirkung („Dein Wurf: 10 % besser für 3 Aufnahmen“)
 export const effectLines = eff => {
   const out = [], pct = m => Math.round(Math.abs(1 - m) * 100);
-  if (eff.s) out.push({ good: eff.s[0] < 1, text: `Deine Würfe ${pct(eff.s[0] < 1 ? Math.pow(eff.s[0], MOD_GOOD_POW) : eff.s[0])} % ${eff.s[0] < 1 ? 'genauer' : 'ungenauer'} · ${eff.s[1]} Aufnahmen` });
+  if (eff.s) out.push({ good: eff.s[0] < 1, text: `Deine Würfe ${pct(Math.pow(eff.s[0], MOD_GOOD_POW))} % ${eff.s[0] < 1 ? 'genauer' : 'ungenauer'} · ${eff.s[1]} Aufnahmen` });
   if (eff.o) out.push({ good: eff.o[0] > 1, text: `Gegner ${pct(eff.o[0])} % ${eff.o[0] > 1 ? 'ungenauer' : 'genauer'} · ${eff.o[1]} Aufnahmen` });
   const L = { fans: 'Fans', manager: 'Manager', sponsors: 'Sponsoren', sat: 'Zufriedenheit', mom: 'Selbstvertrauen', energy: 'Energie' };
   for (const [k, v] of Object.entries(eff.fx ?? {})) out.push({ good: v > 0, text: `${L[k]} ${v > 0 ? '+' : '−'}${Math.abs(v)}${k === 'energy' ? ' %' : ''}` });
@@ -66,8 +69,9 @@ export function resolveMoment(state, idx) {
   const live = state.activeEvent.live, mo = live.moment, def = MOMENTS.find(x => x.id === mo?.id), opt = def?.options[idx];
   if (!opt || mo.done) throw new Error('Kein offener Moment');
   const ok = new RNG(state.rng).chance(MOMENT_WIN), eff = ok ? opt.win : opt.lose, p = state.player;
-  if (eff.s) addMod(live, live.me, eff.s[0], eff.s[1]);
-  if (eff.o) addMod(live, 1 - live.me, eff.o[0], eff.o[1]);
+  const rv = new RNG(state.rng), vS = eff.s ? momentVisits(p, rv) : 0, vO = eff.o ? rv.int(...MOMENT_DUR) : 0;   // Version 264: 3–4 Aufnahmen, schwach in Fokus+Mental 5–6
+  if (eff.s) addMod(live, live.me, eff.s[0], vS);
+  if (eff.o) addMod(live, 1 - live.me, eff.o[0], vO);
   const fx = eff.fx ?? {};
   if (fx.fans) addFans(p, fx.fans);
   if (fx.manager && managerOf(state)) addRel(p, 'manager', fx.manager);
@@ -77,5 +81,5 @@ export function resolveMoment(state, idx) {
   if (fx.energy) addEnergy(p, fx.energy);
   mo.done = true; mo.choice = idx; mo.success = ok;
   (state.mstats ??= {}).moments = (state.mstats.moments ?? 0) + 1;
-  return { ok, label: opt.label, text: fill(eff.t, oppName(state)), lines: effectLines(eff) };
+  return { ok, label: opt.label, text: fill(eff.t, oppName(state)), lines: effectLines({ ...eff, s: eff.s && [eff.s[0], vS], o: eff.o && [eff.o[0], vO] }) };
 }

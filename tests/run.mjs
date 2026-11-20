@@ -1791,7 +1791,7 @@ test('New Star Darts v68: Spielmomente – alle 1–2 Matches, zwei Optionen je 
   }
   // Modifikator wirkt auf den Zielkreis und läuft nach n eigenen Aufnahmen ab
   live.mods = []; const r0 = ET.aimParams(s, 'T20').radius; ET.addMod(live, live.me, 1.2, 2);
-  assert.ok(Math.abs(ET.aimParams(s, 'T20').radius / r0 - 1.2) < 1e-9 && ET.momentMult(s) === 1.2);
+  assert.ok(Math.abs(ET.aimParams(s, "T20").radius / r0 - 1.44) < 1e-9 && Math.abs(ET.momentMult(s) - 1.44) < 1e-9);   // Version 264: für dich quadriert
   live.mods = [{ side: live.me, mult: 1.2, visits: 1 }]; lm.turn = live.me; ET.liveAiVisit(s); assert.equal(ET.momentMult(s), 1, 'nach einer Aufnahme abgelaufen');
   // Gegner-Effekt, Nebenwirkung Fans, Text mit Gegnername
   live.moment = { id: 'slow', atVisit: 2, done: false }; live.mods = []; const info = M.describeMoment(s, live.moment);
@@ -3523,6 +3523,32 @@ test('New Star Darts v263: positive Spielmomente – merklich gute Aufnahmen', a
   assert.ok(good.a > base.a + 15, `Ø ${base.a.toFixed(1)} → ${good.a.toFixed(1)}`);
   assert.ok(good.min >= 26, `schlechteste Aufnahme ${good.min}`);
   const M = await import('../js/moments.js'); assert.ok(M.effectLines({ s: [0.9, 3] })[0].text.includes('19 % genauer'));
+});
+
+test('New Star Darts v264: Spielmomente 3–4 Aufnahmen (schwach in Fokus+Mental 5–6), negative spürbar', async () => {
+  const N = await import('../js/nsd.js'), M = await import('../js/moments.js');
+  const durs = pl => { const r = new RNG({ s: 3 }), out = new Set(); for (let i = 0; i < 200; i++) out.add(M.momentVisits(pl, r)); return [...out].sort(); };
+  const s0 = N.newNsdCareer({ first: 'D', last: 'U', nation: 'DE', age: 20, slot: 1, seed: 3 }), pl = s0.player;
+  pl.skills.foc = Array(20).fill(2); pl.star.level = 45; assert.deepEqual(durs(pl), [3, 4]);
+  pl.skills.foc = [1, 1, 1, 1, 1]; pl.star.level = 1; assert.deepEqual(durs(pl), [5, 6]);
+  pl.star.level = 45; assert.deepEqual(durs(pl), [3, 4], 'nur Fokus schwach → normal');
+  assert.ok(M.effectLines({ s: [1.2, 4] })[0].text.includes('44 % ungenauer'));
+  const avg = mult => {
+    let tot = 0, n = 0;
+    for (let seed = 1; seed <= 10; seed++) {
+      const s = N.newNsdCareer({ first: 'G', last: 'M', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+      ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+      const live = ET.startManualMatch(s), lm = live.m;
+      for (let k = 0; k < 4000 && !lm.done; k++) {
+        s.player.energy = 100; const mine = lm.turn === live.me, r0 = lm.rem[live.me];
+        if (mine) live.mods = mult === 1 ? [] : [{ side: live.me, mult, visits: 99 }];
+        ET.liveAiVisit(s);
+        if (mine && r0 > 170) { tot += r0 - lm.rem[live.me]; n++; }
+      }
+    }
+    return tot / n;
+  };
+  const base = avg(1), bad = avg(1.12); assert.ok(bad < base - 15, `Ø ${base.toFixed(1)} → ${bad.toFixed(1)}`);
 });
 
 console.log(`\n${n} Tests ok`);
