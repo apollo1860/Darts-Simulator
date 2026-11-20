@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 268**: Zielkreis-Kurve konkav (Exponent 0,5 statt 1,4): anfangs schnell kleiner, gegen Ende nur noch minimal. Effektiv (× 1,15): Fähigkeit 0 → 14,5 mm, 15 → 11,9, 30 → 10,8, 45 → 9,9, 60 → 9,2.
 - [x] **Version 267**: Zielkreis: kleiner starten, dafür weniger schrumpfen – Grundkurve 12,6 mm bei Fähigkeit 0 bis 8 mm bei 60 (vorher 17 → 8), Aufschlag × 1,15 wieder konstant (`matchCircle`). Effektiv im Match/Training: Fähigkeit 0 → 14,5 mm (vorher 17), 15 → 13,7 (16,9), 30 → 12,5 (15,6), 45 → 11,0 (12,6), 60 → 9,2 (gleich). Bull weiterhin × 1,25 zusätzlich.
 - [x] **Version 266**: Matchdarts (und Entscheidungsleg) sind für Anfänger nicht mehr immer eigene Szenen: gleiche Chance wie die übrigen Szenen (`rookieScenes`: 35 % bei Status 1 → immer ab Status 15), einmal je Leg gewürfelt (`rookieRoll`); sonst wird die Aufnahme simuliert. World Cup unverändert; 170/9-Darter-Szenen bleiben.
 - [x] **Version 265**: Einstieg leichter: Der Kreis-Aufschlag aus Version 260 wächst erst mit der Fähigkeit hinein (`matchCircle`: 0 Punkte × 1,0, 15 Punkte × 1,075, ab 30 × 1,15; Match und Training) – Anfangskreis z. B. 17 statt 19,6 mm. Lokaler Start-Sponsor (`localSponsorWeek`): 2–4 Wochen nach Karrierestart einmalig ein kleiner Betrieb (bevorzugt „Gasthaus Zum goldenen Pfeil“), 1 ★ pro Woche für 8–10 Wochen, ohne Manager, News; ältere Spielstände ab Status 11 bekommen ihn nicht mehr (Annahme).

@@ -2025,7 +2025,8 @@ test('New Star Darts v82: Zielkreis schrumpft langsamer (konvex) und bleibt am E
   const R = (await import('../js/throwModel.js')).circleRadius, T = await import('../js/skilltrain.js');
   assert.equal(R(0), 12.6); assert.equal(R(60), 8); assert.equal(R(-5), 13.6); assert.equal(R(90), 8, 'über 60 nicht kleiner');   // Version 267: Start 12,6 statt 17
   let prev = Infinity; for (let sk = 0; sk <= 60; sk++) { const r = R(sk); assert.ok(r < prev + 1e-12, `fällt (${sk})`); assert.ok(r >= 8 - 1e-9 && r <= 12.6 + 1e-9); prev = r; }
-  assert.ok(Math.abs(R(30) - 10.86) < 0.05 && Math.abs(R(45) - 9.53) < 0.05);
+  assert.ok(Math.abs(R(15) - 10.3) < 0.05 && Math.abs(R(30) - 9.35) < 0.05 && Math.abs(R(45) - 8.62) < 0.05);   // Version 268: konkav – erst schnell, dann kaum noch
+  assert.ok(R(0) - R(15) > 3 * (R(45) - R(60)), 'anfangs deutlich schneller kleiner als am Ende');
   // Training nutzt dieselbe Kurve – seit Version 89 ohne Level-Zuschlag (Test v89)
   assert.ok(Math.abs(T.trainAim(40, 40, 20).radius - R(40) * 1.15) < 1e-9); assert.ok(Math.abs(T.trainAim(40, 40, 1).radius - R(40) * 1.15) < 1e-9);   // Version 260: × 1,15
 });
