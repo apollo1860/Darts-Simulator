@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 250**: Match-Wirkung weiter erhöht (Nutzerwunsch): Fans je Match > 7,0 +1, ab 8,0 +2, ab 8,5 +3, ab 9,0 +4, ab 9,5 +5, Bühne × 2 (vorher × 1,5), Floor × 0,75, gebremst mit (1 − Fans/100)² (Beispiel Finale Note 10 bei 33 Fans: +4,5). Manager/Sponsoren: ab 8,0 +1, ab 9,0 +2, ab 9,5 +3, Niederlage ≤ 4,0 −1. Bot (3 Seeds): nach Jahr 1 45–59 Fans, nach Jahr 3 69–78.
 - [x] **Version 249**: Spielbericht wirkt stärker (Nutzerwunsch: Note 10 brachte nur Fans +0,9, Manager/Sponsoren ±0). Fans je Match gestaffelt: > 7,0 +1, ab 8,0 +2, ab 9,0 +3, ab 9,5 +4 (≤ 6,0 bei Niederlage −1), Zuwachs auf der Bühne × 1,5, auf dem Floor × 0,75, weiter gebremst mit (1 − Fans/100)² (`addMatchFans`; Beispiel Finale Note 10 bei 33 Fans: +2,7). Neu: Manager und Sponsoren reagieren auf die Leistung (`relAfterMatch`): ab Note 8,5 +1, ab 9,5 +2, Niederlage mit Note ≤ 4,0 −1 (nur wenn Manager/Sponsoren vorhanden). Annahme: lineare Bremsung getestet und verworfen (Bot nach 2 Jahren bei 100 Fans).
 - [x] **Version 248**: Spielvorschau (Turnier-Lobby): Hinweis „Match kostet ca. X % Energie (Floor/Bühne)“ entfernt (Nutzerwunsch); Nervosität/Verletzung jetzt als eigene Zeilen.
 - [x] **Version 247**: Formkurve (Status, Lobby): neuestes Match jetzt rechts, ältestes links (bei weniger als 5 Matches bleiben links leere Punkte).

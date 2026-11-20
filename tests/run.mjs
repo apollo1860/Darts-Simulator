@@ -2999,9 +2999,9 @@ test('New Star Darts v158: Match-Note wird mit steigendem Star-Status strenger',
 
 test('New Star Darts v159: Note minimal strenger, Fans erst über 7,0 (6,1–7,0 ±0, darunter Abzug)', async () => {
   const N = await import('../js/nsd.js');
-  assert.deepEqual([7.1, 7.9, 8.0, 8.9, 9.0, 9.4, 9.5, 10].map(r => N.fansAfterMatch(true, r)), [1, 1, 2, 2, 3, 3, 4, 4]);   // Version 249
-  assert.deepEqual([[true, 10], [true, 9], [true, 8.5], [true, 6], [false, 4], [false, 5]].map(([w, r]) => N.relAfterMatch(w, r)), [2, 1, 1, 0, -1, 0]);
-  { const q = { rel: { fans: 33 } }; N.addMatchFans(q, 4); assert.equal(q.rel.fans, 35.7); const r = { rel: { fans: 33 } }; N.addMatchFans(r, 4, true); assert.equal(r.rel.fans, 34.3); }
+  assert.deepEqual([7.1, 7.9, 8.0, 8.4, 8.5, 8.9, 9.0, 9.4, 9.5, 10].map(r => N.fansAfterMatch(true, r)), [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);   // Version 250
+  assert.deepEqual([[true, 10], [true, 9], [true, 8.5], [true, 7.9], [true, 6], [false, 4], [false, 5]].map(([w, r]) => N.relAfterMatch(w, r)), [3, 2, 1, 0, 0, -1, 0]);
+  { const q = { rel: { fans: 33 } }; N.addMatchFans(q, 4); assert.equal(q.rel.fans, 36.6); const r = { rel: { fans: 33 } }; N.addMatchFans(r, 4, true); assert.equal(r.rel.fans, 34.3); }
   assert.deepEqual([6.1, 7.0].map(r => N.fansAfterMatch(true, r)), [0, 0]);
   assert.deepEqual([6.0, 5.5, 2].map(r => N.fansAfterMatch(true, r)), [0, 0, 0], 'Sieg: nie Verlust (Version 160)');
   assert.deepEqual([6.0, 5.5, 2].map(r => N.fansAfterMatch(false, r)), [-1, -1, -1], 'Niederlage bis 6,0: Abzug');

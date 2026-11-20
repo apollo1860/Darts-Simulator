@@ -68,7 +68,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 ## Star-Status, Note, Fans
 - Star-Status 1–100, Balken `starNeed` = 100 × 1,04^(Stufe−1); Sieg nach Gegnerrang, Average, Ergebnis, Turniergewicht; Titel-Bonus `titleStarBonus` (Major ×2,5, Matchplay ×4, WM ×8). **Ab Top 16 gedämpft** (`topSlow`: Top 16 × 0,7, Top 8 × 0,55, Top 3 × 0,45).
 - **Note** (`matchRating`): 6 + (Ø − erwarteter Ø)/5 + (Checkout − erwartet) × 6 + 180er + Sieg/Niederlage + Leg-Differenz; Erwartung steigt bis Stufe 46 (Ø 85 → 99, Checkout 33 → 43 %, `rateRef`). Sieg ≥ 5,5.
-- **Fans je Match** (`fansAfterMatch`, `addMatchFans`): Note > 7,0 +1, ≥ 8,0 +2, ≥ 9,0 +3, ≥ 9,5 +4 (Bühne × 1,5, Floor × 0,75), 6,1–7,0 ±0, ≤ 6,0 −1 (nach einem Sieg nie Verlust). **Manager/Sponsoren je Match** (`relAfterMatch`): ≥ 8,5 +1, ≥ 9,5 +2, Niederlage ≤ 4,0 −1. Sonstige Zuwächse über `addFans` (gebremst mit (1 − Fans/100)²).
+- **Fans je Match** (`fansAfterMatch`, `addMatchFans`): Note > 7,0 +1, ≥ 8,0 +2, ≥ 8,5 +3, ≥ 9,0 +4, ≥ 9,5 +5 (Bühne × 2, Floor × 0,75), 6,1–7,0 ±0, ≤ 6,0 −1 (nach einem Sieg nie Verlust). **Manager/Sponsoren je Match** (`relAfterMatch`): ≥ 8,0 +1, ≥ 9,0 +2, ≥ 9,5 +3, Niederlage ≤ 4,0 −1. Sonstige Zuwächse über `addFans` (gebremst mit (1 − Fans/100)²).
 - **Titel-Fans** (`titleFans`): Floor 3, ET/WS 5, PL-Play-offs/Major 10, Matchplay 14 (gebremst nur mit (1 − Fans/100)); **WM-Titel: halber Abstand zu 100, mind. +15**.
 - Nervosität (`nervesOf`): Top-8-Gegner, Anfänger (Status 1–5), große Bühne, Paulke-Interview; baut sich über Mental ab; zittrige Hand und schnelleres Zielkreuz im Liveticker.
 
