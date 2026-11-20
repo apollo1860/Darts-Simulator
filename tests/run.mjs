@@ -2028,7 +2028,7 @@ test('New Star Darts v82: Zielkreis schrumpft langsamer (konvex) und bleibt am E
   for (const sk of [10, 20, 30, 40, 50]) assert.ok(R(sk) > 17 - 0.2 * sk + 0.9, `größer als vorher bei ${sk}`);   // vorher linear 17 − 0,2 × Fähigkeit
   assert.ok(Math.abs(R(30) - 13.6) < 0.1 && Math.abs(R(40) - 11.9) < 0.1 && Math.abs(R(50) - 10) < 0.1);
   // Training nutzt dieselbe Kurve – seit Version 89 ohne Level-Zuschlag (Test v89)
-  assert.ok(Math.abs(T.trainAim(40, 40, 20).radius - R(40)) < 1e-9); assert.ok(Math.abs(T.trainAim(40, 40, 1).radius - R(40)) < 1e-9);
+  assert.ok(Math.abs(T.trainAim(40, 40, 20).radius - R(40) * 1.15) < 1e-9); assert.ok(Math.abs(T.trainAim(40, 40, 1).radius - R(40) * 1.15) < 1e-9);   // Version 260: × 1,15
 });
 
 test('New Star Darts v83: Nervosität – einzelne Darts mit größerem Zielkreis (einmal je Dart gewürfelt, mit Mental weg)', async () => {
@@ -2126,10 +2126,10 @@ test('New Star Darts v89: in jedem Leg mindestens eine eigene Spielszene – auc
 test('New Star Darts v89: Training wie im Spiel (Kreis aus aktueller Fähigkeit, gleiche Linien) und Tempo-Steigerung je Richtungswechsel', async () => {
   const TM = await import('../js/throwModel.js'), T = await import('../js/skilltrain.js'), MS_ = await import('../js/matchState.js');
   // Training = Spiel: Kreis nur aus der Fähigkeit, Linien nur aus dem Fokus, unabhängig vom Level
-  for (const L of [1, 7, 20]) { const a = T.trainAim(33, 40, L); assert.equal(a.radius, TM.circleRadius(33)); assert.equal(a.amp, TM.lineParams(40).amp); assert.equal(a.freq, TM.lineParams(40).freq); }
+  for (const L of [1, 7, 20]) { const a = T.trainAim(33, 40, L); assert.equal(a.radius, TM.circleRadius(33) * TM.MATCH_CIRCLE); assert.equal(a.amp, TM.lineParams(40).amp); assert.equal(a.freq, TM.lineParams(40).freq); }
   const at = { sco: 87.5 + 12.5 / 60 * 33, fin: 100, men: 90, foc: 87.5 + 12.5 / 60 * 40, cal: 90, exp: 0 };
   const cp = TM.circleParams(at, MS_.createMatch({ legs: 3 }, 0), 0, 'T20');          // Spiel ohne Druck/Ausdauer
-  assert.ok(Math.abs(cp.radius - TM.circleRadius(33)) < 1e-6 && Math.abs(cp.amp - TM.lineParams(40).amp) < 1e-6 && Math.abs(cp.freq - TM.lineParams(40).freq) < 1e-6, 'Spiel und Training liefern dieselben Parameter');
+  assert.ok(Math.abs(cp.radius - TM.circleRadius(33) * TM.MATCH_CIRCLE) < 1e-6 && Math.abs(cp.amp - TM.lineParams(40).amp) < 1e-6 && Math.abs(cp.freq - TM.lineParams(40).freq) < 1e-6, 'Spiel und Training liefern dieselben Parameter');
   assert.equal(TM.Y_SPEED, 0.8);
   // Tempo: erste halbe Schwingung im Grundtempo, danach jede um ×1,1 schneller, höchstens ×2,5
   const f = 0.7;
@@ -3464,6 +3464,14 @@ test('New Star Darts v258: Manager-Beziehung beeinflusst Sponsor-Angebote', asyn
     return n;
   };
   const lo = count(5), hi = count(95); assert.ok(hi > lo * 2, `${lo} vs ${hi}`);
+});
+
+test('New Star Darts v260: Match-Kreis größer, Bull nochmals größer', async () => {
+  const TM = await import('../js/throwModel.js'), MS = await import('../js/matchState.js');
+  const a = { sco: 95, fin: 95, foc: 90, men: 90, cal: 90, exp: 0 }, m = MS.createMatch({ legs: 3 }, 0);
+  const t20 = TM.circleParams(a, m, 0, 'T20').radius, d20 = TM.circleParams(a, m, 0, 'D20').radius, bull = TM.circleParams(a, m, 0, 'BULL').radius;
+  assert.ok(Math.abs(t20 - TM.circleRadius((95 - 87.5) / (12.5 / 60)) * TM.MATCH_CIRCLE) < 1e-6, 'Kreis × 1,15');
+  assert.ok(Math.abs(bull / d20 - TM.BULL_CIRCLE) < 1e-9, 'Bull × 1,25 gegenüber Doppel');
 });
 
 console.log(`\n${n} Tests ok`);
