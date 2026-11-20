@@ -469,6 +469,7 @@ export function liveAiDart(state, side) {
   return aiDart(state.activeEvent.live.m, side, simAttrs(state, side), new RNG(state.rng));
 }
 
+export const GOOD_FLOOR = 60, GOOD_TRIES = 3;
 // Eine komplette Aufnahme per KI (Schnellsimulation zum Zuschauen). Rückgabe: letztes Ereignis
 export function liveAiVisit(state) {
   const inst = state.activeEvent, lm = inst.live.m;
@@ -476,12 +477,24 @@ export function liveAiVisit(state) {
   const sig = aiSigma(a), mult = modMult(inst.live, side);
   let ev = null;
   const live = inst.live, mine = side === live.me;
-  while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) {
-    const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
-    const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
-    const d = aiDart(lm, side, a, rng, sig, mult, forced);
-    ev = throwDart(lm, scripted ?? d.hit, scripted ? null : d);
+  // Version 263: eigene simulierte Scoring-Aufnahme bei positivem Moment – fällt sie unter GOOD_FLOOR, wird sie bis zu GOOD_TRIES-mal neu geworfen (die beste zählt)
+  const good = mine && mult < 1 && lm.rem[side] > 170 && !lm.visit.darts.length, r0 = lm.rem[side];
+  const snap = good ? structuredClone(lm) : null, route0 = good ? structuredClone(live.route ?? null) : null;
+  let best = null;
+  for (let tr = 0; tr < (good ? GOOD_TRIES : 1); tr++) {
+    if (tr) { for (const k of Object.keys(lm)) delete lm[k]; Object.assign(lm, structuredClone(snap)); live.route = structuredClone(route0); ev = null; }
+    while (!lm.done && lm.turn === side && !(ev && ev.legEnd)) {
+      const forced = mine ? routeTarget(live, lm.rem[side], lm.visit.darts.length) : null;
+      const scripted = mine ? scriptedHit(live, lm.visit.start, lm.visit.darts.length) : null;
+      const d = aiDart(lm, side, a, rng, sig, mult, forced);
+      ev = throwDart(lm, scripted ?? d.hit, scripted ? null : d);
+    }
+    if (!good) break;
+    const sc = r0 - lm.rem[side];
+    if (!best || sc > best.sc) best = { sc, lm: structuredClone(lm), route: structuredClone(live.route ?? null), ev };
+    if (sc >= GOOD_FLOOR) break;
   }
+  if (good && best && r0 - lm.rem[side] < best.sc) { for (const k of Object.keys(lm)) delete lm[k]; Object.assign(lm, best.lm); live.route = best.route; ev = best.ev; }
   if (mine) live.route = null;
   tickMods(inst.live, side);
   return ev;
@@ -755,7 +768,9 @@ export function liveHumanDart(state, x, y, target) {
 export function addMod(live, side, mult, visits) {
   (live.mods ??= []).push({ side, mult, visits });
 }
-const modMult = (live, side) => (live.mods ?? []).filter(x => x.side === side).reduce((p, x) => p * x.mult, 1);
+// Version 263 (Nutzerwunsch): positive Momente für dich merklich stärker – Gesamtfaktor < 1 wird quadriert (0,9 → 0,81, 0,82 → 0,67), negative bleiben
+export const MOD_GOOD_POW = 2;
+const modMult = (live, side) => { const m = (live.mods ?? []).filter(x => x.side === side).reduce((p, x) => p * x.mult, 1); return m < 1 && side === live.me ? Math.pow(m, MOD_GOOD_POW) : m; };   // nur für dich
 function tickMods(live, side) {
   if (!live.mods) return;
   for (const x of live.mods) if (x.side === side) x.visits--;

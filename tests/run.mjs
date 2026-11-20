@@ -3502,4 +3502,27 @@ test('New Star Darts v262: Anfänger haben weniger Spielszenen', async () => {
   assert.ok(ra < rb * 0.7, `Anfänger ${ra.toFixed(2)} vs. Status 20 ${rb.toFixed(2)} Szenen je Leg`);
 });
 
+test('New Star Darts v263: positive Spielmomente – merklich gute Aufnahmen', async () => {
+  const N = await import('../js/nsd.js');
+  const avg = mult => {
+    let tot = 0, n = 0, min = 999;
+    for (let seed = 1; seed <= 10; seed++) {
+      const s = N.newNsdCareer({ first: 'G', last: 'M', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+      ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+      const live = ET.startManualMatch(s), lm = live.m;
+      for (let k = 0; k < 4000 && !lm.done; k++) {
+        s.player.energy = 100; const mine = lm.turn === live.me, r0 = lm.rem[live.me];
+        if (mine) live.mods = mult === 1 ? [] : [{ side: live.me, mult, visits: 99 }];
+        ET.liveAiVisit(s);
+        if (mine && r0 > 170) { const sc = r0 - lm.rem[live.me]; tot += sc; n++; min = Math.min(min, sc); }
+      }
+    }
+    return { a: tot / n, min };
+  };
+  const base = avg(1), good = avg(0.82);
+  assert.ok(good.a > base.a + 15, `Ø ${base.a.toFixed(1)} → ${good.a.toFixed(1)}`);
+  assert.ok(good.min >= 26, `schlechteste Aufnahme ${good.min}`);
+  const M = await import('../js/moments.js'); assert.ok(M.effectLines({ s: [0.9, 3] })[0].text.includes('19 % genauer'));
+});
+
 console.log(`\n${n} Tests ok`);

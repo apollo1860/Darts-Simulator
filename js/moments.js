@@ -7,7 +7,7 @@ import { MOMENTS } from '../data/moments.js';
 import { RNG } from './rng.js';
 import { getPlayer } from './world.js';
 import { surname } from './util.js';
-import { addMod, playerMatch, lateMatch, nineAlive, bigFish, dinScene } from './tournaments.js';
+import { addMod, playerMatch, lateMatch, nineAlive, bigFish, dinScene, MOD_GOOD_POW } from './tournaments.js';
 import { addFans, addRel, addEnergy } from './nsd.js';
 import { managerOf } from './career.js';
 
@@ -54,7 +54,7 @@ export function describeMoment(state, mo) {
 // Kurztext einer Wirkung („Dein Wurf: 10 % besser für 3 Aufnahmen“)
 export const effectLines = eff => {
   const out = [], pct = m => Math.round(Math.abs(1 - m) * 100);
-  if (eff.s) out.push({ good: eff.s[0] < 1, text: `Deine Würfe ${pct(eff.s[0])} % ${eff.s[0] < 1 ? 'genauer' : 'ungenauer'} · ${eff.s[1]} Aufnahmen` });
+  if (eff.s) out.push({ good: eff.s[0] < 1, text: `Deine Würfe ${pct(eff.s[0] < 1 ? Math.pow(eff.s[0], MOD_GOOD_POW) : eff.s[0])} % ${eff.s[0] < 1 ? 'genauer' : 'ungenauer'} · ${eff.s[1]} Aufnahmen` });
   if (eff.o) out.push({ good: eff.o[0] > 1, text: `Gegner ${pct(eff.o[0])} % ${eff.o[0] > 1 ? 'ungenauer' : 'genauer'} · ${eff.o[1]} Aufnahmen` });
   const L = { fans: 'Fans', manager: 'Manager', sponsors: 'Sponsoren', sat: 'Zufriedenheit', mom: 'Selbstvertrauen', energy: 'Energie' };
   for (const [k, v] of Object.entries(eff.fx ?? {})) out.push({ good: v > 0, text: `${L[k]} ${v > 0 ? '+' : '−'}${Math.abs(v)}${k === 'energy' ? ' %' : ''}` });
