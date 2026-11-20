@@ -915,11 +915,11 @@ test('New Star Darts: Manager, Fitnesstrainer, Sponsoren, Ziele, Interview, Sais
   assert.equal(s.nsdSponsors.active.length, 1); assert.equal(s.nsdSponsors.active[0].perWeek, val); assert.ok(p.rel.sponsors > 0);
   const st0 = s.stars; C.sponsorWeek(s, rng); assert.ok(s.stars >= st0 + val - 0);
   // Interview nach Titel
-  const iv = C.maybeInterviewNsd(s, { place: 'W', cat: 'et', name: 'ET 1' }, rng); assert.equal(iv.qs.length, 3);
+  const iv = C.maybeInterviewNsd(s, { place: 'W', cat: 'et', name: 'ET 1' }, rng); assert.ok(iv.qs.length >= 1 && iv.qs.length <= 3);
   assert.equal(C.maybeInterviewNsd(s, { place: 'QF', cat: 'major', name: 'X' }, rng), null);
   s.interview = iv; const xp0 = p.star.xp, lv0 = p.star.level;
-  for (let i = 0; i < 3; i++) C.answerInterview(s, 1, rng);
-  assert.equal(iv.answers.length, 3); assert.ok(Number.isFinite(iv.total)); assert.ok(p.star.level >= lv0);
+  while (iv.answers.length < iv.qs.length) C.answerInterview(s, 1, rng);
+  assert.ok(iv.answers.length >= 1); assert.ok(Number.isFinite(iv.total)); assert.ok(p.star.level >= lv0);
   // Saisonbericht + Ziele + Auszeichnungen
   s.stats.seasons[2026] = { ...(s.stats.seasons[2026] ?? {}), wins: 20, matches: 30 };
   s.rankings.years[2026] = { ...(s.rankings.years[2026] ?? {}), pdc: { T1: 300, P: 5 }, protour: { T2: 100 } };
@@ -1646,10 +1646,10 @@ test('New Star Darts v64: Interviews – Elmar Paulke vor jeder WM, gemischte An
   const counts = new Set(), firstPos = {}; s.flags ??= {};
   for (let k = 0; k < 40; k++) {
     s.flags.paulke = {}; const iv = C.preWmInterview(s, rng, true);
-    counts.add(iv.qs.length); assert.ok(iv.qs.length >= 3 && iv.qs.length <= 5 && iv.kind === 'paulke' && iv.qualified);
+    counts.add(iv.qs.length); assert.ok(iv.qs.length === 3 && iv.kind === 'paulke' && iv.qualified);   // Version 251: Paulke fest 3 Fragen
     const q = C.ivQuestion(iv); firstPos[q.a[0].tone] = (firstPos[q.a[0].tone] ?? 0) + 1;
   }
-  assert.deepEqual([...counts].sort(), [3, 4, 5]); assert.ok(Object.keys(firstPos).length >= 4, 'Reihenfolge der Antworten gemischt');
+  assert.deepEqual([...counts], [3]); assert.ok(Object.keys(firstPos).length >= 4, 'Reihenfolge der Antworten gemischt');
   assert.equal(C.preWmInterview(s, rng, true), null, 'nur einmal je Jahr');
   // WM-Nervosität aus dem Interview: große Töne → Druck, wirkt nur bei der WM dieses Jahres
   s.flags.paulke = {}; const iv = C.preWmInterview(s, rng, true); iv.mood = 1; iv.backed = true;
@@ -1736,9 +1736,9 @@ test('New Star Darts v67: Interview-Pools 50 / 30 / 25 Fragen, keine Duplikate, 
   }
   // Ziehung: 3 Fragen je Interview ohne Doppelte; viele Interviews decken den ganzen Pool ab
   const rng = new RNG(9), seen = new Set(), s = N.newNsdCareer({ first: 'D', last: 'Q', nation: 'DE', age: 20, slot: 1, seed: 3 });
-  for (let k = 0; k < 120; k++) {
+  for (let k = 0; k < 240; k++) {
     const iv = C.maybeInterviewNsd(s, { place: 'W', cat: 'major', name: 'X' }, rng);
-    assert.equal(new Set(iv.qs.map(q => q.i)).size, 3); for (const q of iv.qs) seen.add(q.i);
+    assert.equal(new Set(iv.qs.map(q => q.i)).size, iv.qs.length); for (const q of iv.qs) seen.add(q.i);
     s.interview = null;
   }
   assert.ok(seen.size >= 48, `nur ${seen.size} von 50 Fragen kamen vor`);
@@ -2546,7 +2546,7 @@ test('New Star Darts v125: Interview nach verlorenem Finale/Halbfinale mit eigen
   assert.ok(!TL.LOSS_QS.some(q => /Erfolg|Sieg|gewonnen|feier/i.test(q.q)), 'keine Sieger-Fragen');
   const s = N.newNsdCareer({ first: 'L', last: 'F', nation: 'DE', age: 25, slot: 1, seed: 81 }), rng = new RNG(4);
   for (const place of ['F', 'SF']) {
-    const iv = C.maybeInterviewNsd(s, { place, cat: 'major', name: 'X' }, rng);
+    let iv = null; while (!iv) iv = C.maybeInterviewNsd(s, { place, cat: 'major', name: 'X' }, rng);   // Version 251: nicht mehr immer
     assert.ok(iv.qs.every(q => q.set === 'loss')); assert.equal(C.ivIntro(iv), T.MOOD_INTRO.loss[String(iv.mood)]);
     assert.ok(TL.LOSS_QS.some(q => q.q === C.ivQuestion(iv).q));
     while (iv.answers.length < iv.qs.length) C.answerInterview(s, 0, rng);
@@ -3382,6 +3382,18 @@ test('New Star Darts v244: Walk-on-Song – Liste, 50/50 Fan-Wirkung, 4 Wochen S
     assert.throws(() => L.setWalkon(s, { ...s.player.walkon }), /schon/);
   }
   assert.ok(good > 8 && bad > 8, `${good}/${bad}`);
+});
+
+test('New Star Darts v251: weniger Interviews, je Interview 1–3 Fragen (meist 2)', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  const s = N.newNsdCareer({ first: 'I', last: 'V', nation: 'DE', age: 25, slot: 1, seed: 5 }), rng = new RNG(11);
+  const cnt = { 1: 0, 2: 0, 3: 0 }, got = { W: 0, F: 0, SF: 0 };
+  for (let k = 0; k < 600; k++) for (const place of ['W', 'F', 'SF']) {
+    const iv = C.maybeInterviewNsd(s, { place, cat: 'major', name: 'X' }, rng); s.interview = null;
+    if (iv) { got[place]++; cnt[iv.qs.length]++; }
+  }
+  assert.equal(got.W, 600); assert.ok(got.F > 300 && got.F < 420, `Finale ${got.F}`); assert.ok(got.SF > 160 && got.SF < 260, `Halbfinale ${got.SF}`);
+  assert.ok(cnt[2] > cnt[1] && cnt[2] > cnt[3] && cnt[1] > 0 && cnt[3] > 0, JSON.stringify(cnt));
 });
 
 console.log(`\n${n} Tests ok`);

@@ -408,12 +408,15 @@ function newInterview(state, rng, { kind, set, n, event, place, backed, extra = 
   };
   return state.interview;
 }
+// Version 251: etwas weniger Interviews (Sieg immer, Finale 60 %, Halbfinale 35 %) und je Interview 1–3 Fragen (25/50/25 %, am häufigsten 2)
+export const IV_CHANCE = { W: 1, F: 0.6, SF: 0.35 };
+export const ivCount = rng => { const r = rng.next(); return r < 0.25 ? 1 : r < 0.75 ? 2 : 3; };
 export function maybeInterviewNsd(state, inst, rng) {
   // Version 157: nach Players Championships und allen Floor-Turnieren (Qualifier, Dev/Challenge Tour, Women's Series …) gar kein Interview –
   // nur Bühnen-Events (European Tour, Majors, World Series, Premier League, WM, Women's World Matchplay)
   if (inst.isQualifier || (isFloor(inst) && inst.fmt !== 'wwm')) return null;
-  if (!['W', 'F', 'SF'].includes(inst.place)) return null;
-  return newInterview(state, rng, { kind: 'result', set: inst.place === 'W' ? 'result' : 'loss', n: 3, event: inst.name, place: inst.place, backed: ['W', 'F'].includes(inst.place) });   // Niederlage: eigene Fragen
+  if (!['W', 'F', 'SF'].includes(inst.place) || !rng.chance(IV_CHANCE[inst.place])) return null;   // Version 251: seltener nach Finale/Halbfinale
+  return newInterview(state, rng, { kind: 'result', set: inst.place === 'W' ? 'result' : 'loss', n: ivCount(rng), event: inst.name, place: inst.place, backed: ['W', 'F'].includes(inst.place) });   // Niederlage: eigene Fragen
 }
 // Vor jeder WM (einmal je Jahr): Elmar Paulke. Qualifiziert → WM-Fragen (wirken auf die WM-Nervosität), sonst Saison-Rückblick.
 export function preWmInterview(state, rng, qualified) {
@@ -422,7 +425,7 @@ export function preWmInterview(state, rng, qualified) {
   f[y] = true;
   const p = state.player, titles = (state.results ?? []).filter(r => r.year === y && r.place === 'W').length;
   const backed = (p.momentum ?? 0) >= 3 || (rankOf(state, 'pdc', 'P') ?? 999) <= 16 || titles > 0;
-  return newInterview(state, rng, { kind: 'paulke', set: qualified ? 'in' : 'out', n: rng.int(3, 5), event: `Weltmeisterschaft ${y}`,
+  return newInterview(state, rng, { kind: 'paulke', set: qualified ? 'in' : 'out', n: 3, event: `Weltmeisterschaft ${y}`,   // Version 251: Paulke fest 3 Fragen
     place: qualified ? 'WM' : 'NQ', backed, extra: { year: y, qualified: !!qualified } });
 }
 // Wirkung eines Tons in der aktuellen Lage → { e: {fans, star, …}, ok }
