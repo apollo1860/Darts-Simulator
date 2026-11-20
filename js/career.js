@@ -137,6 +137,24 @@ export function doRelAction(state, act) {
   careRel(state, act.key);   // Version 255: gepflegt → Vernachlässigung zurückgesetzt
   return addRel(p, act.key, act.gain);
 }
+// ---------- Version 257: Beziehung unter 25 → jede Woche Chance auf Trennung (Freundin), Kündigung (Manager) bzw. Ausstieg des schwächsten Sponsors ----------
+// linear: 25 → 0 %, 12,5 → 10 %, 0 → 20 % pro Woche
+export const LOW_REL = 25, LOW_REL_MAX = 0.2;
+export const lowRelChance = v => (v < LOW_REL ? LOW_REL_MAX * (LOW_REL - Math.max(0, v)) / LOW_REL : 0);
+export function lowRelWeek(state, rng) {
+  const p = state.player;
+  if (p.partnerName && (p.rel.partner ?? 0) > 0 && rng.chance(lowRelChance(p.rel.partner))) breakUp(state);
+  const m = managerOf(state);
+  if (m && rng.chance(lowRelChance(p.rel.manager ?? 0))) {
+    fireManager(state, false);
+    addNews(state, 'info', `💼 ${m.name} kündigt die Zusammenarbeit`, 'Die Beziehung war zu schlecht – du musst dir einen neuen Manager suchen.');
+  }
+  const c = [...normalContracts(state)].sort((a, b) => a.perWeek - b.perWeek)[0];
+  if (c && rng.chance(lowRelChance(p.rel.sponsors ?? 0))) {
+    const s = sp(state); s.active = s.active.filter(x => x !== c);
+    addNews(state, 'info', `🤝 ${c.name} kündigt den Vertrag`, 'Die Beziehung zu deinen Sponsoren ist zu schlecht – der Sponsor steigt vorzeitig aus.');
+  }
+}
 // ---------- Version 255: Vernachlässigung (Freundin, Fans, Manager; Version 256: + Sponsoren mit Vertrag) ----------
 // Ohne Pflege-Aktion länger als NEGLECT_GRACE Wochen: jede Woche ein wachsender Abzug (0,5 je Woche darüber, max. 3) und eine sinkende
 // Obergrenze (100 − 2 je Woche, mind. 50); Zuwächse durch Leistungen zählen dann nur halb (NEGLECT_GAIN) – nicht voll ausgleichbar.
@@ -572,6 +590,7 @@ export function careerWeek(state, rng) {
   if (before && team(state).offersUntil !== before) addNews(state, 'info', '🏃 Neue Fitnesstrainer verfügbar', 'Drei neue Angebote im Team-Screen – Preise, Dauer und Erholung sind neu.');
   out.sponsor = sponsorWeek(state, rng).paid;
   neglectWeek(state);                                              // Version 255
+  lowRelWeek(state, rng);                                          // Version 257
   if (managerOf(state) && p.rel.manager > 0 && rng.chance(0.15)) addRel(p, 'manager', -1);   // will Erfolge sehen
   // Version 231: Luxus-Manager – einmaliges Angebot ab Star-Status 40, danach PR: Fans +1 pro Woche
   const lux = MANAGERS.find(x => x.luxury);

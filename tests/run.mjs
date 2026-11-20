@@ -3430,4 +3430,23 @@ test('New Star Darts v256: Sponsoren ohne Pflege schlechter, bei 0 kündigt der 
   C.doRelAction(s, C.pickRelAction(s, 'sponsors')); assert.equal(C.neglectWeeks(s, 'sponsors'), 0);
 });
 
+test('New Star Darts v257: Beziehung unter 25 – Trennung/Kündigung immer wahrscheinlicher', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  assert.equal(C.lowRelChance(25), 0); assert.equal(C.lowRelChance(60), 0); assert.equal(C.lowRelChance(12.5), 0.1); assert.equal(C.lowRelChance(0), 0.2);
+  const once = rel => {   // Anteil der Wochen mit Trennung bei festem Wert
+    let hits = 0;
+    for (let i = 0; i < 400; i++) {
+      const s = N.newNsdCareer({ first: 'L', last: 'R', nation: 'DE', age: 25, slot: 1, seed: 3 }); s.player.partnerName = 'Lena'; s.player.rel.partner = rel;
+      C.lowRelWeek(s, new RNG({ s: i + 1 })); if (!s.player.partnerName) hits++;
+    }
+    return hits / 400;
+  };
+  assert.equal(once(40), 0); const a = once(20), b = once(5); assert.ok(a > 0.01 && a < 0.08 && b > 0.1 && b < 0.25 && b > a, `${a} / ${b}`);
+  const s = N.newNsdCareer({ first: 'M', last: 'K', nation: 'DE', age: 25, slot: 1, seed: 3 }); C.hireManager(s, 'm1'); s.player.rel.manager = 0.5;
+  s.nsdSponsors = { active: [{ name: 'A', branche: 'darts', perWeek: 5, weeksLeft: 99 }, { name: 'B', branche: 'mode', perWeek: 9, weeksLeft: 99 }], offer: null }; s.player.rel.sponsors = 0.5;
+  for (let i = 0; i < 60 && (C.managerOf(s) || s.nsdSponsors.active.length > 1); i++) C.lowRelWeek(s, new RNG({ s: 100 + i }));
+  assert.equal(C.managerOf(s), null); assert.ok(s.nsdSponsors.active[0].name === 'B', 'schwächster Sponsor steigt zuerst aus');
+  assert.ok(s.news.some(x => x.title.includes('kündigt die Zusammenarbeit')));
+});
+
 console.log(`\n${n} Tests ok`);
