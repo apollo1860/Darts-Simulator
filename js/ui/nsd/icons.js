@@ -90,7 +90,7 @@ const ICONS = {
   // Version 252: Schnaps = kleines Shotglas mit dunklem Kräuterlikör
   shot: mk('0 0 48 48', false, ({ L, u }) => ({
     defs: L('sh', [[0, '#7a3a14'], [0.55, '#3a1606'], [1, '#160602']]),
-    body: `<g transform="translate(24 42) scale(1.22) translate(-24 -42)"><path d="M15 20 H33 L31 41 H17 Z" fill="#eef7ff" fill-opacity=".85" stroke="#8aa4bb" stroke-width="1"/>
+    body: `<g transform="translate(24 36.5) scale(1.22) translate(-24 -42)"><path d="M15 20 H33 L31 41 H17 Z" fill="#eef7ff" fill-opacity=".85" stroke="#8aa4bb" stroke-width="1"/>
       <path d="M16.2 25 H31.8 L30.4 38.5 H17.6 Z" fill="${u('sh')}"/><ellipse cx="24" cy="25" rx="7.8" ry="1.1" fill="#9a5a2a" opacity=".8"/>
       <path d="M17 38.5 H31 L30.8 41 H17.2 Z" fill="#cfe0ee" stroke="#8aa4bb" stroke-width=".8"/>${hl('M17 21.5 H19.6 L18.6 37 H17.9 Z', 0.6)}</g>`,
   })),

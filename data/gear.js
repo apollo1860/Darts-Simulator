@@ -4,7 +4,7 @@
 // Vorrat: von jedem Getränk höchstens so viele gleichzeitig (Version 81)
 export const DRINK_MAX = 25;
 export const DRINKS = [
-  { id: 'beer', name: 'Bier', icon: '🍺', price: 1, energy: 100, buzz: 0, rel: 0 },
+  { id: 'beer', name: 'Bier', icon: '🍺', price: 1, energy: 100, buzz: 0, rel: 0, statusStep: 0.005 },   // Version 253: nur Bier +0,5 % je Status-Stufe
   { id: 'wine', name: 'Weinschorle', icon: '🍷', price: 3, energy: 100, buzz: 0, rel: 0, bonus: 'skill' },
   { id: 'schnaps', name: 'Schnaps', icon: '🥃', price: 5, energy: 100, buzz: 0, rel: 0, bonus: 'rel' },
 ];

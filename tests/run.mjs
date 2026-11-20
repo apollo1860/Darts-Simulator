@@ -817,8 +817,8 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   T.applyDrinkBonus(s, 'sco', rng); assert.equal(N.skillValue(p, 'sco'), sco0 + 1); assert.equal(p.buzz ?? 0, 0); assert.equal(p.attrs.men, A(1));
   assert.throws(() => T.drink(s, 'schnaps', rng));
   // Version 78: Getränke-Schlüssel – Bier Status 1 = 1 ★, Status 40 = 120 ★ (Schnaps ×3, Wodka ×5), danach +5 %/Stufe
-  assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 179);   // Version 106: Getränke × 1,25 · Version 252: × (1 + 0,5 % je Stufe)
-  assert.equal(T.drinkPrice({ price: 3 }, 40), 538); assert.equal(T.drinkPrice({ price: 5 }, 40), 896); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 1.25 * 120 ** (20 / 39) * 1.1));
+  assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 150); assert.equal(T.drinkPrice({ price: 1, statusStep: 0.005 }, 40), 179);   // Version 106: Getränke × 1,25 · Version 253: nur Bier × (1 + 0,5 % je Stufe)
+  assert.equal(T.drinkPrice({ price: 3 }, 40), 450); assert.equal(T.drinkPrice({ price: 5 }, 40), 750); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 1.25 * 120 ** (20 / 39)));
   let prev = 0; for (let l = 1; l <= 100; l++) { const f = N.drinkFactor(l); assert.ok(f > prev, `Faktor steigt (${l})`); prev = f; }
   assert.ok(Math.abs(N.drinkFactor(41) / N.drinkFactor(40) - 1.05) < 1e-9); assert.ok(N.drinkFactor(100) < 2500);
   // Version 81: höchstens 25 je Sorte gleichzeitig
@@ -2367,7 +2367,7 @@ test('New Star Darts v105: kein Sprung der Sponsorengelder ab Status 11 (echte M
 
 test('New Star Darts v106: variable Preise × 1,25, Top-Manager bringt keinen großen Sponsorensprung mehr', async () => {
   const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js'), TM = await import('../data/team.js');
-  assert.equal(N.PRICE_MULT, 1.25); assert.equal(N.starPrice(10, 1), 13); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 179);
+  assert.equal(N.PRICE_MULT, 1.25); assert.equal(N.starPrice(10, 1), 13); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1, statusStep: 0.005 }, 40), 179);
   assert.equal(TM.MANAGERS.find(m => m.id === 'm3').mult, 1.9);
 });
 
