@@ -162,8 +162,9 @@ export function circleParams(attrs, m, i, target) {
   };
 }
 // Gleichverteilter Punkt im Kreis
-export function landInCircle(x, y, r, rng) {
-  const a = rng.next() * 2 * Math.PI, d = r * Math.sqrt(rng.next());
+// Version 261: edge > 0 (Nervosität) verschiebt die Treffer zum Rand – Abstand r × u^(1/(2+edge)); edge 0 = gleichverteilt (u^(1/2))
+export function landInCircle(x, y, r, rng, edge = 0) {
+  const a = rng.next() * 2 * Math.PI, d = r * Math.pow(rng.next(), 1 / (2 + Math.max(0, edge)));
   return { x: x + Math.cos(a) * d, y: y + Math.sin(a) * d };
 }
 

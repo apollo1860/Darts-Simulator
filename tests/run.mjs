@@ -3474,4 +3474,12 @@ test('New Star Darts v260: Match-Kreis größer, Bull nochmals größer', async 
   assert.ok(Math.abs(bull / d20 - TM.BULL_CIRCLE) < 1e-9, 'Bull × 1,25 gegenüber Doppel');
 });
 
+test('New Star Darts v261: Nervosität → Treffer häufiger am Rand des Zielkreises', async () => {
+  const TM = await import('../js/throwModel.js'), N = await import('../js/nsd.js');
+  assert.equal(N.nerveEdge(0), 0); assert.equal(N.nerveEdge(1), 1.2); assert.equal(N.nerveEdge(10), 3);
+  const outer = edge => { const rng = new RNG({ s: 5 }); let o = 0; for (let i = 0; i < 4000; i++) { const p = TM.landInCircle(0, 0, 10, rng, edge); assert.ok(Math.hypot(p.x, p.y) <= 10 + 1e-9); if (Math.hypot(p.x, p.y) > 7) o++; } return o / 4000; };
+  const calm = outer(0), nervous = outer(3);
+  assert.ok(Math.abs(calm - 0.51) < 0.04, `ruhig ${calm}`); assert.ok(nervous > calm + 0.15, `nervös ${nervous}`);
+});
+
 console.log(`\n${n} Tests ok`);

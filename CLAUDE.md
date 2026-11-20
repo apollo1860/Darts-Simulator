@@ -70,7 +70,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - **Note** (`matchRating`): 6 + (Ø − erwarteter Ø)/5 + (Checkout − erwartet) × 6 + 180er + Sieg/Niederlage + Leg-Differenz; Erwartung steigt bis Stufe 46 (Ø 85 → 99, Checkout 33 → 43 %, `rateRef`). Sieg ≥ 5,5.
 - **Fans je Match** (`fansAfterMatch`, `addMatchFans`): Note > 7,0 +1, ≥ 8,0 +2, ≥ 8,5 +3, ≥ 9,0 +4, ≥ 9,5 +5 (Bühne × 2, Floor × 0,75), 6,1–7,0 ±0, ≤ 6,0 −1 (nach einem Sieg nie Verlust). **Manager/Sponsoren je Match** (`relAfterMatch`): ≥ 8,0 +1, ≥ 9,0 +2, ≥ 9,5 +3, Niederlage ≤ 4,0 −1. Sonstige Zuwächse über `addFans` (gebremst mit (1 − Fans/100)²).
 - **Titel-Fans** (`titleFans`): Floor 3, ET/WS 5, PL-Play-offs/Major 10, Matchplay 14 (gebremst nur mit (1 − Fans/100)); **WM-Titel: halber Abstand zu 100, mind. +15**.
-- Nervosität (`nervesOf`): Top-8-Gegner, Anfänger (Status 1–5), große Bühne, Paulke-Interview; baut sich über Mental ab; zittrige Hand und schnelleres Zielkreuz im Liveticker.
+- Nervosität (`nervesOf`): Top-8-Gegner, Anfänger (Status 1–5), große Bühne, Paulke-Interview; baut sich über Mental ab; zittrige Hand, schnelleres Zielkreuz und Treffer eher am Kreisrand (`nerveEdge`) im Liveticker.
 
 ## Sterne-Geld ★
 - 1 ★ = 1.000 £ der echten PDC-Preisgelder 2026 (`STAR_PRIZE_WIN`/`STAR_PRIZE_FIXED`); Auszahlung × `starFactor` (+5 %/Stufe), Ranglisten in Basis-★. Preise × `priceFactor` (+25 %/Stufe, × 1,25), Getränke über `drinkFactor` × 1,25, Bier zusätzlich × (1 + 0,5 % je Stufe) (`drinkPrice`/`statusStep`, Bier Status 40 = 179 ★), Lifestyle fest; Wartung mit steigendem Status häufiger (`repairWeeks`: Status 1 12–16 Wochen, Status 40 7–10).

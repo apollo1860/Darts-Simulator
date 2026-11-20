@@ -355,7 +355,7 @@ function stopLine() {
   a.fy = pos; $('#hline').setAttribute('transform', `translate(0 ${pos})`); $('#hline').classList.add('fixed');
   $('#circ').setAttribute('cy', pos);
   a.phase = 'busy'; $t().disabled = true;
-  const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng);
+  const pt = landInCircle(a.fx, a.fy, a.prm.radius, a.rng, a.prm.edge ?? 0);   // Version 261: Nervosität → eher am Rand
   const r = liveHumanDart(ui.s, pt.x, pt.y, a.target);
   if (r.dart.hit.label !== 'BOUNCER') mark(r.dart.x, r.dart.y, true);   // Version 205: nach einem Abpraller an der abgelenkten Stelle
   if (a.nine && !r.ev?.legEnd && !nineStill(ui.live.m, ui.me)) {   // Version 130: 9-Darter nicht mehr möglich → „9“ verschwindet sofort

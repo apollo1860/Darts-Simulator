@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 260;
+export const APP_VERSION = 261;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -315,6 +315,9 @@ export function nerveShake(pts, rng) {
 }
 // Version 113 (Nutzerwunsch): Nervosität macht das Zielkreuz auch schneller – Linien-Tempo × (1 + NERVE_SPEED × pts), höchstens × NERVE_SPEED_MAX
 export const NERVE_SPEED = 0.12, NERVE_SPEED_MAX = 1.5;
+// Version 261: Nervosität → Treffer häufiger am äußeren Rand des Zielkreises (landInCircle edge = 1,2 × Punkte, höchstens 3)
+export const NERVE_EDGE = 1.2, NERVE_EDGE_MAX = 3;
+export const nerveEdge = pts => (pts > 0 ? Math.min(NERVE_EDGE_MAX, NERVE_EDGE * pts) : 0);
 export const nerveSpeed = pts => (pts > 0 ? Math.min(NERVE_SPEED_MAX, 1 + NERVE_SPEED * pts) : 1);
 export function addEnergy(p, n) { p.energy = Math.max(0, Math.min(100, Math.round((p.energy ?? 100) + n))); return p.energy; }
 

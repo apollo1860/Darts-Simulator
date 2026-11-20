@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 261**: Nervosität verschiebt die Treffer im Zielkreis zum Rand: Abstand vom Zielpunkt r × u^(1/(2+edge)) statt gleichverteilt, edge = 1,2 × Nervositätspunkte (max. 3, `nerveEdge`/`landInCircle`). Beispiel äußere 30 % des Radius: ruhig ≈ 51 % der Treffer, Nervosität 1 ≈ 64 %, ab 2,5 ≈ 83 %. Gilt nur im Match (Training ohne Nervosität).
 - [x] **Version 260**: Mehr Streuung beim eigenen Werfen: Kreis generell × 1,15 (`MATCH_CIRCLE`; auch im Training, damit Training = Spiel bleibt), Bull im Match zusätzlich × 1,25 (`BULL_CIRCLE`; Annahme: gilt immer, wenn auf das Bull gezielt wird – praktisch nur beim Check).
 - [x] **Version 259**: Gelber Kreis auf dem Zielfeld im Liveticker entfernt (Nutzerwunsch); die gelbe Feldumrandung bleibt.
 - [x] **Version 258**: Manager-Beziehung beeinflusst Sponsor-Angebote: Häufigkeit × 0,4 (Beziehung 0) … 1,0 (50) … 1,6 (100) (`mgrOfferChance`), Wochenbetrag × 0,85 … 1,0 … 1,15 (`mgrOfferPay`, auch bei umstrittenen Angeboten). Neuer Manager startet mit 50 = wie bisher. Hilfetext im Team-Screen ergänzt.

@@ -24,7 +24,7 @@ import { routeTarget, scriptedHit } from './decisions.js';
 import { trackTitle, recordChampion, recordPlaces } from './history.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { applyInjury, injuryAim } from './injury.js';
-import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
+import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, nerveEdge, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch, addMatchFans, relAfterMatch, titleFans, isFloor, starPrice } from './nsd.js';
 import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
 import { checkAchievements, VAC_REGEN, VAC_REGEN_WEEKS } from './life.js';
@@ -701,6 +701,7 @@ export function aimParams(state, target) {
   const lm = live.m, key = `${lm.legIdx}:${lm.turn}:${lm.legDarts?.[lm.turn] ?? 0}`;
   if (live.shake?.key !== key) live.shake = { key, mult: nerveShake(nervesNow(state).pts, new RNG(state.rng)) };
   if (live.shake.mult > 1) { p.radius *= live.shake.mult; p.shaky = live.shake.mult; }
+  const edge = nerveEdge(nervesNow(state).pts); if (edge) p.edge = edge;   // Version 261: nervös → Treffer eher am Kreisrand
   const sp = nerveSpeed(nervesNow(state).pts);                     // Nervosität: Zielkreuz bewegt sich schneller
   if (sp > 1) { p.freq *= sp; p.nervy = sp; }
   const inj = injuryAim(state.player);                             // Version 152: Verletzung – mehr Streuung, unruhigeres Zielkreuz
