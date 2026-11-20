@@ -5,8 +5,8 @@
 export const DRINK_MAX = 25;
 export const DRINKS = [
   { id: 'beer', name: 'Bier', icon: '🍺', price: 1, energy: 100, buzz: 0, rel: 0, statusStep: 0.005 },   // Version 253: nur Bier +0,5 % je Status-Stufe
-  { id: 'wine', name: 'Weinschorle', icon: '🍷', price: 3, energy: 100, buzz: 0, rel: 0, bonus: 'skill' },
-  { id: 'schnaps', name: 'Schnaps', icon: '🥃', price: 5, energy: 100, buzz: 0, rel: 0, bonus: 'rel' },
+  { id: 'wine', name: 'Weinschorle', icon: '🍷', price: 4, energy: 100, buzz: 0, rel: 0, bonus: 'skill' },
+  { id: 'schnaps', name: 'Schnaps', icon: '🥃', price: 4, energy: 100, buzz: 0, rel: 0, bonus: 'rel' },   // Version 254: Weinschorle und Schnaps gleich teuer (4)
 ];
 // Darts: dauerhafter Bonus (Fähigkeitspunkte), solange ausgerüstet
 // Version 121: Man besitzt immer Darts und Flights – der Brass Dart (9 g) und der Standard-Flight sind kostenlos, automatisch im Besitz und ohne Wirkung.

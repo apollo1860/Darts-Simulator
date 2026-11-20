@@ -14,7 +14,7 @@ import { SECONDARY } from '../data/secondary.js';
 import { rankOf } from './rankings.js';
 
 // Version (Anzeige rechts oben im Titelbildschirm): bei JEDEM Push um 1 erhöhen (Nutzerwunsch)
-export const APP_VERSION = 253;
+export const APP_VERSION = 254;
 export const SKILL_MAX = 60, SKILL_LEVELS = 20;
 export const TRAINABLE = [
   { key: 'sco', label: 'Scoring', icon: '🎯' },
@@ -41,7 +41,7 @@ export const PRICE_MULT = 1.25, DRINK_MULT = 1.25;
 export const starPrice = (base, level = 1) => Math.max(1, Math.ceil(Math.round(base * priceFactor(level) * PRICE_MULT * 100) / 100));
 // Getränke-Preisschlüssel (Version 78, Nutzerwunsch): Bier Status 1 = 1 ★, Status 40 = 120 ★. Bis Status 40 wächst der Faktor geometrisch
 // (120^((Stufe−1)/39) ≈ +13,06 % je Stufe; Status 11 ≈ 3,4, 21 ≈ 11,6, 30 ≈ 35), danach +5 % je Stufe (wie die Einnahmen), sonst wären es bei Status 100 > 190.000 ★.
-// Gilt nur für Getränke (Bier 1 / Weinschorle 3 / Schnaps 5 Basis-★); alle anderen Preise laufen weiter über `priceFactor`.
+// Gilt nur für Getränke (Bier 1 / Weinschorle 4 / Schnaps 4 Basis-★, Version 254); alle anderen Preise laufen weiter über `priceFactor`.
 export const DRINK_ANCHOR = { level: 40, price: 120 }, DRINK_TAIL = 0.05;
 export const drinkFactor = (level = 1) => {
   const L = Math.max(1, level), { level: a, price } = DRINK_ANCHOR;

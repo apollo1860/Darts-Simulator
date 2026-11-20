@@ -819,6 +819,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   // Version 78: Getränke-Schlüssel – Bier Status 1 = 1 ★, Status 40 = 120 ★ (Schnaps ×3, Wodka ×5), danach +5 %/Stufe
   assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 150); assert.equal(T.drinkPrice({ price: 1, statusStep: 0.005 }, 40), 179);   // Version 106: Getränke × 1,25 · Version 253: nur Bier × (1 + 0,5 % je Stufe)
   assert.equal(T.drinkPrice({ price: 3 }, 40), 450); assert.equal(T.drinkPrice({ price: 5 }, 40), 750); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 1.25 * 120 ** (20 / 39)));
+  { const G = await import('../data/gear.js'), d = id => G.DRINKS.find(x => x.id === id); assert.equal(d('wine').price, d('schnaps').price); for (const l of [1, 21, 40, 80]) assert.equal(T.drinkPrice(d('wine'), l), T.drinkPrice(d('schnaps'), l)); }   // Version 254
   let prev = 0; for (let l = 1; l <= 100; l++) { const f = N.drinkFactor(l); assert.ok(f > prev, `Faktor steigt (${l})`); prev = f; }
   assert.ok(Math.abs(N.drinkFactor(41) / N.drinkFactor(40) - 1.05) < 1e-9); assert.ok(N.drinkFactor(100) < 2500);
   // Version 81: höchstens 25 je Sorte gleichzeitig
@@ -3269,7 +3270,7 @@ test('New Star Darts v228: „Tourcard seit“ in alten Spielständen aus der Ka
 test('New Star Darts v229: Getränke Bier, Weinschorle, Schnaps (alte Vorräte übernommen)', async () => {
   const N = await import('../js/nsd.js'), St = await import('../js/state.js'), { DRINKS } = await import('../data/gear.js');
   assert.deepEqual(DRINKS.map(d => d.name), ['Bier', 'Weinschorle', 'Schnaps']);
-  assert.deepEqual(DRINKS.map(d => [d.price, d.bonus ?? null]), [[1, null], [3, 'skill'], [5, 'rel']]);   // Version 230
+  assert.deepEqual(DRINKS.map(d => [d.price, d.bonus ?? null]), [[1, null], [4, 'skill'], [4, 'rel']]);   // Version 230
   const s = N.newNsdCareer({ first: 'W', last: 'S', nation: 'DE', age: 25, slot: 1, seed: 2 }); assert.deepEqual(Object.keys(s.player.drinks), ['beer', 'wine', 'schnaps']);
   const o = JSON.parse(JSON.stringify(s)); o.player.drinks = { beer: 4, schnaps: 7, wodka: 2 }; delete o.flags.v229drinks;
   assert.deepEqual(St.migrate(o).player.drinks, { beer: 4, schnaps: 2, wine: 7 });
