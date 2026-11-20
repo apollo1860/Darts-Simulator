@@ -1293,7 +1293,7 @@ test('New Star Darts v41: Lifestyle-Produkte gehen alle 12–16 Wochen kaputt, R
 
 test('New Star Darts v45: World Matchplay Bo19/21/31/33/35, Board-Momente in langen Matches seltener', async () => {
   const N = await import('../js/nsd.js');
-  const mk = seed => { const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; return s; };
+  const mk = seed => { const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; s.player.star.level = ET.ROOKIE_UNTIL; return s; };   // Version 262: Normalverhalten (ohne Anfänger-Dämpfung)
   // Format: Runde 1 Bo19, Achtelfinale Bo21, Viertelfinale Bo31, Halbfinale Bo33, Finale Bo35
   const s0 = mk(8); s0.date.week = 29;
   const inst = ET.runAITournament(s0, eventsInWeek(s0, 2026, 29).find(e => e.id === 'matchplay'));
@@ -1380,7 +1380,7 @@ test('New Star Darts v52: Abwechslung bei den Rest-Punkten vor dem Check (nicht 
   assert.equal(B.suggestTarget(120, 3, 0.05), B.suggestTarget(120, 3));                                       // Check-Phase unverändert
   const cnt = {}; let tot = 0;
   for (let seed = 1; seed <= 60; seed++) {
-    const s = N.newNsdCareer({ first: 'V', last: 'V', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true;
+    const s = N.newNsdCareer({ first: 'V', last: 'V', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; s.player.star.level = ET.ROOKIE_UNTIL;
     s.date.week = 6; s.week = { played: false, eventId: null };
     ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
     const live = ET.startManualMatch(s), lm = live.m; lm.format = { legs: 3 };
@@ -1606,7 +1606,7 @@ test('New Star Darts v63: Energie (Floor < Bühne, mehr als vorher), Nervosität
   // mehr Selbstwurf-Szenen in Best of 11 (First-to-6): vorher ≈ 17,5 je Match, jetzt > 20; höchstens zwei Scoring-Szenen je Leg
   let moments = 0, matches = 0, maxScore = 0;
   for (let seed = 1; seed <= 12; seed++) {
-    const t = N.newNsdCareer({ first: 'V', last: 'V', nation: 'DE', age: 20, slot: 1, seed }); t.player.assessed = true; t.date.week = 6; t.week = { played: false, eventId: null };
+    const t = N.newNsdCareer({ first: 'V', last: 'V', nation: 'DE', age: 20, slot: 1, seed }); t.player.assessed = true; t.player.star.level = ET.ROOKIE_UNTIL; t.date.week = 6; t.week = { played: false, eventId: null };
     ET.enterEvent(t, eventsInWeek(t, 2026, 6).find(e => e.cat === 'pc').id);
     const live = ET.startManualMatch(t), lm = live.m; lm.format = { legs: 6 }; let vis = '', perLeg = {};
     for (let k = 0; k < 6000 && !lm.done; k++) {
@@ -2103,7 +2103,7 @@ test('New Star Darts v88: Nationen laut Nutzerhinweisen (neue Karriere und älte
 test('New Star Darts v89: in jedem Leg mindestens eine eigene Spielszene – auch in langen Formaten', async () => {
   const N = await import('../js/nsd.js');
   for (const [seed, legs] of [[31, 18], [32, 10], [33, 3], [34, 6]]) {
-    const s = N.newNsdCareer({ first: 'Sz', last: 'Ene', nation: 'DE', age: 25, slot: 1, seed });
+    const s = N.newNsdCareer({ first: 'Sz', last: 'Ene', nation: 'DE', age: 25, slot: 1, seed }); s.player.star.level = ET.ROOKIE_UNTIL;   // Version 262: Mindest-Szene je Leg gilt voll ab Status 15
     s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
     ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id); const live = ET.startManualMatch(s), lm = live.m;
     lm.format = { legs };                                   // Matchplay-artig lang (First-to 18) bzw. kürzer
@@ -3480,6 +3480,26 @@ test('New Star Darts v261: Nervosität → Treffer häufiger am Rand des Zielkre
   const outer = edge => { const rng = new RNG({ s: 5 }); let o = 0; for (let i = 0; i < 4000; i++) { const p = TM.landInCircle(0, 0, 10, rng, edge); assert.ok(Math.hypot(p.x, p.y) <= 10 + 1e-9); if (Math.hypot(p.x, p.y) > 7) o++; } return o / 4000; };
   const calm = outer(0), nervous = outer(3);
   assert.ok(Math.abs(calm - 0.51) < 0.04, `ruhig ${calm}`); assert.ok(nervous > calm + 0.15, `nervös ${nervous}`);
+});
+
+test('New Star Darts v262: Anfänger haben weniger Spielszenen', async () => {
+  const N = await import('../js/nsd.js');
+  assert.equal(ET.rookieScenes(1), 0.35); assert.equal(ET.rookieScenes(15), 1); assert.equal(ET.rookieScenes(40), 1);
+  const scenes = (level, seed) => {
+    const s = N.newNsdCareer({ first: 'R', last: 'K', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; s.player.star.level = level; s.date.week = 6; s.week = { played: false, eventId: null };
+    ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+    const live = ET.startManualMatch(s), lm = live.m; let n = 0, legs = 0, leg = -1;
+    for (let k = 0; k < 4000 && !lm.done; k++) {
+      s.player.energy = 100; if (lm.legIdx !== leg) { leg = lm.legIdx; legs++; }
+      const km = ET.keyMoment(s); if (km && km !== 'match' && km !== 'decider') n++;
+      ET.liveAiVisit(s);
+    }
+    return [n, legs];
+  };
+  let a = [0, 0], b = [0, 0];
+  for (const sd of [1, 2, 3, 4, 5, 6, 7, 8]) { const x = scenes(1, sd), y = scenes(20, sd); a = [a[0] + x[0], a[1] + x[1]]; b = [b[0] + y[0], b[1] + y[1]]; }
+  const ra = a[0] / a[1], rb = b[0] / b[1];
+  assert.ok(ra < rb * 0.7, `Anfänger ${ra.toFixed(2)} vs. Status 20 ${rb.toFixed(2)} Szenen je Leg`);
 });
 
 console.log(`\n${n} Tests ok`);

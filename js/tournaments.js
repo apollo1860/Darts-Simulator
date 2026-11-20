@@ -555,7 +555,7 @@ export function keyMoment(state) {
   if (dinScene(state)) return 'din';                              // Version 144: Double-in – erste Aufnahme des Legs zu 75 % selbst (extra)
   if (nineAlive(state)) return wouldWinMatch(lm, live.me) && lm.rem[live.me] <= 170 ? 'match' : 'nine';   // 9-Darter: extra, zählt nicht mit
   if (bigFish(state)) return wouldWinMatch(lm, live.me) ? 'match' : 'fish';   // Version 129: Rest 170 – immer selbst, extra
-  let kind = pickMoment(state, live, lm) ?? (effortOf(live) === 1 ? null : forcedMoment(live, lm));   // 1 ❤: keine erzwungene Szene je Leg
+  let kind = pickMoment(state, live, lm) ?? (effortOf(live) === 1 || !rookieForce(state, live, lm) ? null : forcedMoment(live, lm));   // 1 ❤: keine erzwungene Szene je Leg; Version 262: Anfänger seltener
   if (kind === 'scoring' && needsIn(lm, live.me)) kind = 'din';   // noch nicht „drin“: die Szene heißt Double-in
   if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
   return kind;
@@ -612,6 +612,16 @@ function forcedMoment(live, lm, me = live.me) {
   if (boardPace(lm) < 1) { live.kmLeg = lm.legIdx; live.kmCnt = 1; }
   return kind;
 }
+// Version 262 (Nutzerwunsch): Anfänger haben weniger Spielszenen (Checken ist anfangs noch sehr schwer) – Check-/Break-/Scoring-Szenen und die
+// Mindest-Szene je Leg × 0,35 bei Status 1, linear bis × 1 ab Status 15. Matchdarts, Entscheidungsleg, 9-Darter, 170 und Double-in bleiben.
+export const ROOKIE_SCENES = 0.35, ROOKIE_UNTIL = 15;
+export const rookieScenes = lvl => Math.min(1, ROOKIE_SCENES + (1 - ROOKIE_SCENES) * (Math.max(1, lvl) - 1) / (ROOKIE_UNTIL - 1));
+function rookieForce(state, live, lm) {   // einmal je Leg gewürfelt (bleibt beim Neuladen)
+  const f = rookieScenes(state.player.star?.level ?? 1);
+  if (f >= 1) return true;
+  if (live.rfLeg !== lm.legIdx) { live.rfLeg = lm.legIdx; live.rfOn = new RNG(state.rng).chance(f); }
+  return live.rfOn;
+}
 // ---- Einsatz (Version 107, Nutzerwunsch wie im Vorbild): 1 ❤ gelb / 2 ❤ orange (Standard, bisheriges Verhalten) / 3 ❤ rot ----
 // Mehr Einsatz = mehr eigene Spielszenen, kostet aber mehr Energie (abgerechnet je Leg mit dem Einsatz, der in diesem Leg galt).
 export const EFFORT_DEFAULT = 2;
@@ -643,7 +653,7 @@ export function effortEnergyFactor(live, legsTotal) {
 // Spielszene (≈ 2,9 je Leg statt ≈ 1,5; Einzel Best of 11 ≈ 2,7). Matchdarts/Entscheidungsleg wie immer zuerst.
 function pickMoment(state, live, lm) {
   const team = !!state.activeEvent?.teams;
-  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)];
+  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)] * (team ? 1 : rookieScenes(state.player.star?.level ?? 1));   // Version 262: Anfänger weniger
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm)) return 'decider';
   if (team) return fin ? (lm.legStarter !== me ? 'break' : 'finish') : 'scoring';   // Doppel: jede deiner Aufnahmen ist eine Szene (du wirfst nur jede zweite)

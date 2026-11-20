@@ -82,7 +82,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Preisgeld immer gezahlt; Ranglisten: PDC, Pro Tour, PC, ET (2-Jahres, exakt je Turnier), CT/Dev/WoS (1 Jahr).
 
 ## Match & Liveticker (`live.js`, tournaments.js)
-- DartConnect-Ansicht; **Spielszenen** wirfst du selbst: Matchdarts, Entscheidungsleg, Break, Checks ab 61, mind. eine Szene je Leg, 9-Darter-/170-Szenen extra, Double-in-Einstieg (75 %). Lange Formate gedrosselt (`paced`); WM in knapper Schlussphase (≤ 1 Satz Unterschied, einer 1 Satz vor dem Sieg, `wmClutch`) mehr Szenen (bis 2 Board-Momente + 2 Scoring-Aufnahmen je Leg).
+- DartConnect-Ansicht; **Spielszenen** wirfst du selbst: Matchdarts, Entscheidungsleg, Break, Checks ab 61, mind. eine Szene je Leg, 9-Darter-/170-Szenen extra, Double-in-Einstieg (75 %). Lange Formate gedrosselt (`paced`); Anfänger weniger Szenen (× 0,35 bei Status 1 → × 1 ab Status 15, `rookieScenes`; Matchdarts/Entscheidungsleg immer); WM in knapper Schlussphase (≤ 1 Satz Unterschied, einer 1 Satz vor dem Sieg, `wmClutch`) mehr Szenen (bis 2 Board-Momente + 2 Scoring-Aufnahmen je Leg).
 - Checkvorschläge: mit 3 Darts PDC-Checkout-Tabelle 99–170 (`PDC_TABLE`, board.js), sonst kürzester Weg; Scoring-Pläne für bestimmte Reste > 170 (`SCORE_PLAN`, z. B. 265 T19, 302 T18, 232 T19 → Bull); Pläne erst ab Rechnen 40 (`PLAN_CE`); schwaches Rechnen → Vorschlag manchmal falsch, typisch um 10/20 Punkte verrechnet (`miscalcTarget`, 32 → D11).
 - Zielen: zwei Linien + Kreis (`circleRadius` × 1,15 `MATCH_CIRCLE`, auch im Training; Bull im Match nochmals × 1,25 `BULL_CIRCLE`; Tempo steigt bei jedem Richtungswechsel), Zoom-Schalter, TV-Spielstandsanzeige.
 - Kein Ticker-Logbuch (Leg/Break/180-Kommentare) – Hinweise nur als Toast.

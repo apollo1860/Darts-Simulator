@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 262**: Anfänger haben weniger Spielszenen (Checken ist anfangs noch sehr schwer): Check-/Break-/Scoring-Szenen und die Mindest-Szene je Leg × 0,35 bei Status 1, linear bis × 1 ab Status 15 (`rookieScenes`, `ROOKIE_UNTIL`). Matchdarts, Entscheidungsleg, 9-Darter, 170 und Double-in bleiben unverändert, World Cup (Doppel) ebenfalls. Gemessen (PC-Match, 20 Seeds): Status 1 ≈ 9 Szenen je Match, 5 ≈ 13, 10 ≈ 16, ab 15 ≈ 24 (vorher immer ≈ 24). Ältere Szenen-Tests laufen jetzt mit Status 15.
 - [x] **Version 261**: Nervosität verschiebt die Treffer im Zielkreis zum Rand: Abstand vom Zielpunkt r × u^(1/(2+edge)) statt gleichverteilt, edge = 1,2 × Nervositätspunkte (max. 3, `nerveEdge`/`landInCircle`). Beispiel äußere 30 % des Radius: ruhig ≈ 51 % der Treffer, Nervosität 1 ≈ 64 %, ab 2,5 ≈ 83 %. Gilt nur im Match (Training ohne Nervosität).
 - [x] **Version 260**: Mehr Streuung beim eigenen Werfen: Kreis generell × 1,15 (`MATCH_CIRCLE`; auch im Training, damit Training = Spiel bleibt), Bull im Match zusätzlich × 1,25 (`BULL_CIRCLE`; Annahme: gilt immer, wenn auf das Bull gezielt wird – praktisch nur beim Check).
 - [x] **Version 259**: Gelber Kreis auf dem Zielfeld im Liveticker entfernt (Nutzerwunsch); die gelbe Feldumrandung bleibt.
