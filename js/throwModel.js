@@ -147,6 +147,9 @@ export function rampPhase(t, freq, step = RAMP_STEP, cap = RAMP_CAP) {
 }
 // Version 260 (Nutzerwunsch): generell mehr Streuung (Kreis × 1,15, auch im Training – Training = Spiel) und im Match auf das Bull nochmals × 1,25 (Bull-Check sonst zu leicht)
 export const MATCH_CIRCLE = 1.15, BULL_CIRCLE = 1.25;
+// Version 265 (Nutzerwunsch „zu Beginn zu schwer“): der Aufschlag wächst mit der Fähigkeit hinein – 0 Punkte × 1,0, ab 30 Punkten voll × 1,15
+export const MATCH_CIRCLE_FULL = 30;
+export const matchCircle = sk => 1 + (MATCH_CIRCLE - 1) * clamp(sk / MATCH_CIRCLE_FULL, 0, 1);
 export function circleParams(attrs, m, i, target) {
   const dbl = isDoubleLabel(target) || target === '25';
   const sk = skillEq(dbl ? attrs.fin : attrs.sco), fk = skillEq(attrs.foc);
@@ -155,7 +158,7 @@ export function circleParams(attrs, m, i, target) {
   const k = attrs.angle != null ? stability(attrs.angle, dbl) * (1 + BLOCK_SIGMA * block) : 1;
   return {
     block,
-    radius: clamp(circleRadius(sk), CIRCLE_MIN, 36) * pf * k * MATCH_CIRCLE * (target === 'BULL' ? BULL_CIRCLE : 1),
+    radius: clamp(circleRadius(sk), CIRCLE_MIN, 36) * pf * k * matchCircle(sk) * (target === 'BULL' ? BULL_CIRCLE : 1),
     amp: lineParams(fk).amp,
     freq: lineParams(fk).freq * Math.sqrt(pf),
     pressure: pf > 1.05,

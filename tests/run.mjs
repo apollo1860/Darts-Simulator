@@ -3551,4 +3551,16 @@ test('New Star Darts v264: Spielmomente 3–4 Aufnahmen (schwach in Fokus+Mental
   const base = avg(1), bad = avg(1.12); assert.ok(bad < base - 15, `Ø ${base.toFixed(1)} → ${bad.toFixed(1)}`);
 });
 
+test('New Star Darts v265: kleinerer Anfangskreis, lokaler Start-Sponsor', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/career.js'), TM = await import('../js/throwModel.js'), T = await import('../js/skilltrain.js');
+  assert.equal(TM.matchCircle(0), 1); assert.ok(Math.abs(TM.matchCircle(15) - 1.075) < 1e-9); assert.ok(Math.abs(TM.matchCircle(40) - 1.15) < 1e-9);
+  assert.equal(T.trainAim(0, 20, 1).radius, TM.circleRadius(0));
+  const s = N.newNsdCareer({ first: 'L', last: 'S', nation: 'DE', age: 20, slot: 1, seed: 9 }), rng = new RNG({ s: 2 }), st0 = s.stars;
+  let c = null, k = 0; for (; k < 6 && !c; k++) { c = C.localSponsorWeek(s, rng); if (!c) s.date.week++; }
+  assert.ok(c && k >= 2 && k <= 5, `nach ${k} Wochen`); assert.ok(c.perWeek === 1 && c.weeksLeft >= 8 && c.weeksLeft <= 10);
+  assert.equal(s.nsdSponsors.active.length, 1); assert.ok(s.player.rel.sponsors > 0);
+  C.sponsorWeek(s, rng); assert.equal(s.stars, st0 + 1);
+  assert.equal(C.localSponsorWeek(s, rng), null, 'nur einmal');
+});
+
 console.log(`\n${n} Tests ok`);

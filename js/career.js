@@ -137,6 +137,26 @@ export function doRelAction(state, act) {
   careRel(state, act.key);   // Version 255: gepflegt → Vernachlässigung zurückgesetzt
   return addRel(p, act.key, act.gain);
 }
+// ---------- Version 265: Lokaler Start-Sponsor – früh in der Karriere (2–4 Wochen nach Start) einmalig 1 ★ pro Woche für 8–10 Wochen, ohne Manager ----------
+export const LOCAL_SPONSOR = { delay: [2, 4], weeks: [8, 10], perWeek: 1, maxLevel: 10 };
+export function localSponsorWeek(state, rng) {
+  const f = (state.flags ??= {}), p = state.player;
+  if (f.localSponsor) return null;
+  f.localSponsorAt ??= weekIndex(state) + rng.int(...LOCAL_SPONSOR.delay);
+  if (weekIndex(state) < f.localSponsorAt) return null;
+  f.localSponsor = true;
+  if ((p.star?.level ?? 1) > LOCAL_SPONSOR.maxLevel) return null;          // ältere Spielstände: kein Start-Sponsor mehr
+  const s = sp(state), used = new Set(s.active.map(c => c.branche));
+  if (normalContracts(state).length >= SPONSOR_MAX) return null;
+  const pick = SMALL_SPONSORS.find(x => x.branche === 'gastro' && !used.has('gastro')) ?? SMALL_SPONSORS.find(x => !used.has(x.branche));
+  if (!pick) return null;
+  const weeks = rng.int(...LOCAL_SPONSOR.weeks), c = { name: pick.name, branche: pick.branche, real: false, fame: 0, local: true, perWeek: LOCAL_SPONSOR.perWeek, win: 0, s180: 0, major: 0, weeksLeft: weeks };
+  s.active.push(c);
+  if (!((p.rel.sponsors ?? 0) > 0)) p.rel.sponsors = 40;
+  careRel(state, 'sponsors');
+  addNews(state, 'info', `🤝 Lokaler Sponsor: ${c.name}`, `Ein Betrieb aus der Heimat glaubt an dich und unterstützt dich mit ${c.perWeek} ★ pro Woche für ${weeks} Wochen – ganz ohne Manager.`);
+  return c;
+}
 // ---------- Version 257: Beziehung unter 25 → jede Woche Chance auf Trennung (Freundin), Kündigung (Manager) bzw. Ausstieg des schwächsten Sponsors ----------
 // linear: 25 → 0 %, 12,5 → 10 %, 0 → 20 % pro Woche
 export const LOW_REL = 25, LOW_REL_MAX = 0.2;
@@ -592,6 +612,7 @@ export function careerWeek(state, rng) {
   trainerOffers(state, rng);
   if (before && team(state).offersUntil !== before) addNews(state, 'info', '🏃 Neue Fitnesstrainer verfügbar', 'Drei neue Angebote im Team-Screen – Preise, Dauer und Erholung sind neu.');
   out.sponsor = sponsorWeek(state, rng).paid;
+  localSponsorWeek(state, rng);                                    // Version 265
   neglectWeek(state);                                              // Version 255
   lowRelWeek(state, rng);                                          // Version 257
   if (managerOf(state) && p.rel.manager > 0 && rng.chance(0.15)) addRel(p, 'manager', -1);   // will Erfolge sehen

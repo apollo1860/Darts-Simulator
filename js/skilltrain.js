@@ -4,7 +4,7 @@ import { TRAINABLE, SKILL_LEVELS, skillValue, syncAttrs, starPrice, drinkFactor,
 import { DRINKS, DARTS, DRINK_MAX } from '../data/gear.js';
 import { FLIGHT_NAMES, BARREL_NAMES, SHOP_WEEKS } from '../data/accessories.js';
 import { RNG } from './rng.js';
-import { circleRadius, lineParams, MATCH_CIRCLE } from './throwModel.js';
+import { circleRadius, lineParams, matchCircle } from './throwModel.js';
 import { addNews } from './news.js';
 import { checkoutRoute, BOGEY, labelValue, isDoubleLabel } from './board.js';
 
@@ -59,7 +59,7 @@ export function validFinish(labels, rem) {
 // Aim-Parameter für Scoring/Finishing-Training: exakt wie im Spiel (Version 89, Nutzerwunsch) – Kreisgröße aus der aktuellen Fähigkeit
 // (`circleRadius`), Linien aus dem Fokus (`lineParams`), kein Level-Zuschlag; die Schwierigkeit der Level liegt in der Aufgabe selbst.
 export function trainAim(skill, focus, L) {   // L: nur noch für die Aufrufer-Signatur
-  return { radius: Math.max(4, Math.min(36, circleRadius(skill))) * MATCH_CIRCLE, ...lineParams(focus) };   // Version 260: wie im Match × 1,15
+  return { radius: Math.max(4, Math.min(36, circleRadius(skill))) * matchCircle(skill), ...lineParams(focus) };   // Version 260/265: wie im Match (Aufschlag wächst mit der Fähigkeit)
 }
 
 // ---- Freischaltung ----
