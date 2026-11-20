@@ -758,7 +758,7 @@ test('New Star Darts: ★-Preisgeld, Energie, Star-Status, Note, Schlüsselmomen
   const pc2 = eventsInWeek(s, 2026, 7).find(e => e.cat === 'pc') ?? eventsInWeek(s, 2026, 8).find(e => e.cat === 'pc');
   if (pc2) {
     s.date.week = pc2.week; enterEvent(s, pc2.id);
-    const live = startManualMatch(s), m = live.m;
+    const live = startManualMatch(s), m = live.m; s.player.star.level = Math.max(s.player.star.level, ET.ROOKIE_UNTIL);   // Version 266: Matchdarts immer selbst erst ab Status 15
     m.turn = live.me; m.rem[live.me] = 32; m.legs[live.me] = m.format.legs - 1;
     assert.equal(ET.keyMoment(s), 'match');
     const ap = ET.aimParams(s, 'D16');
@@ -3561,6 +3561,21 @@ test('New Star Darts v265: kleinerer Anfangskreis, lokaler Start-Sponsor', async
   assert.equal(s.nsdSponsors.active.length, 1); assert.ok(s.player.rel.sponsors > 0);
   C.sponsorWeek(s, rng); assert.equal(s.stars, st0 + 1);
   assert.equal(C.localSponsorWeek(s, rng), null, 'nur einmal');
+});
+
+test('New Star Darts v266: Matchdarts für Anfänger nicht immer selbst', async () => {
+  const N = await import('../js/nsd.js');
+  const share = level => {
+    let md = 0, tot = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = N.newNsdCareer({ first: 'M', last: 'D', nation: 'DE', age: 20, slot: 1, seed }); s.player.assessed = true; s.player.star.level = level; s.date.week = 6; s.week = { played: false, eventId: null };
+      ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+      const live = ET.startManualMatch(s), m = live.m; m.turn = live.me; m.rem[live.me] = 32; m.legs[live.me] = m.format.legs - 1;
+      tot++; if (ET.keyMoment(s) === 'match') md++;
+    }
+    return md / tot;
+  };
+  const a = share(1), b = share(20); assert.equal(b, 1); assert.ok(a > 0.15 && a < 0.6, `Anfänger ${a}`);
 });
 
 console.log(`\n${n} Tests ok`);

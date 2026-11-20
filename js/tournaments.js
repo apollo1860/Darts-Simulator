@@ -568,6 +568,8 @@ export function keyMoment(state) {
   if (dinScene(state)) return 'din';                              // Version 144: Double-in – erste Aufnahme des Legs zu 75 % selbst (extra)
   if (nineAlive(state)) return wouldWinMatch(lm, live.me) && lm.rem[live.me] <= 170 ? 'match' : 'nine';   // 9-Darter: extra, zählt nicht mit
   if (bigFish(state)) return wouldWinMatch(lm, live.me) ? 'match' : 'fish';   // Version 129: Rest 170 – immer selbst, extra
+  const mr = lm.rem[live.me];   // Version 266: Matchdarts für Anfänger nicht immer selbst – dann wird die ganze Aufnahme simuliert
+  if (!state.activeEvent.teams && mr <= 170 && !BOGEY.has(mr) && wouldWinMatch(lm, live.me) && !rookieRoll(state, live, lm, 'md')) return null;
   let kind = pickMoment(state, live, lm) ?? (effortOf(live) === 1 || !rookieForce(state, live, lm) ? null : forcedMoment(live, lm));   // 1 ❤: keine erzwungene Szene je Leg; Version 262: Anfänger seltener
   if (kind === 'scoring' && needsIn(lm, live.me)) kind = 'din';   // noch nicht „drin“: die Szene heißt Double-in
   if (kind) live.sceneLeg = lm.legIdx;                            // dieses Leg hat (mindestens) eine eigene Spielszene
@@ -626,9 +628,17 @@ function forcedMoment(live, lm, me = live.me) {
   return kind;
 }
 // Version 262 (Nutzerwunsch): Anfänger haben weniger Spielszenen (Checken ist anfangs noch sehr schwer) – Check-/Break-/Scoring-Szenen und die
-// Mindest-Szene je Leg × 0,35 bei Status 1, linear bis × 1 ab Status 15. Matchdarts, Entscheidungsleg, 9-Darter, 170 und Double-in bleiben.
+// Mindest-Szene je Leg × 0,35 bei Status 1, linear bis × 1 ab Status 15. 9-Darter, 170 und Double-in bleiben (Version 266: Matchdarts/Entscheidungsleg ebenfalls gedämpft).
 export const ROOKIE_SCENES = 0.35, ROOKIE_UNTIL = 15;
 export const rookieScenes = lvl => Math.min(1, ROOKIE_SCENES + (1 - ROOKIE_SCENES) * (Math.max(1, lvl) - 1) / (ROOKIE_UNTIL - 1));
+// Version 266 (Nutzerwunsch): auch Matchdarts und Entscheidungsleg sind für Anfänger nicht immer eigene Szenen (gleiche Chance, einmal je Leg gewürfelt)
+function rookieRoll(state, live, lm, kind) {
+  const f = rookieScenes(state.player.star?.level ?? 1);
+  if (f >= 1) return true;
+  const key = `${kind}:${lm.legIdx}`;
+  if (live.rkKey?.[kind] !== key) { (live.rkKey ??= {})[kind] = key; (live.rkOn ??= {})[kind] = new RNG(state.rng).chance(f); }
+  return live.rkOn[kind];
+}
 function rookieForce(state, live, lm) {   // einmal je Leg gewürfelt (bleibt beim Neuladen)
   const f = rookieScenes(state.player.star?.level ?? 1);
   if (f >= 1) return true;
@@ -668,7 +678,7 @@ function pickMoment(state, live, lm) {
   const team = !!state.activeEvent?.teams;
   const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)] * (team ? 1 : rookieScenes(state.player.star?.level ?? 1));   // Version 262: Anfänger weniger
   if (fin && wouldWinMatch(lm, me)) return 'match';
-  if (isDecider(lm)) return 'decider';
+  if (isDecider(lm) && (team || rookieRoll(state, live, lm, 'dec'))) return 'decider';
   if (team) return fin ? (lm.legStarter !== me ? 'break' : 'finish') : 'scoring';   // Doppel: jede deiner Aufnahmen ist eine Szene (du wirfst nur jede zweite)
   if (fin && (lm.legStarter !== me || r > 60) && paced(state, lm, me, Math.min(1, eff))) return lm.legStarter !== me ? 'break' : 'finish';
   // ab und zu eine Scoring-Aufnahme mitten im Leg: lange Matches höchstens eine je Leg (35 %), kurze (First-to ≤ 6) bis zu zwei (je 55 %)
