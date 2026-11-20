@@ -13,7 +13,7 @@ export const nsd = true;
 // „2 kaputt · 1 marode“ (Immobilien heißen marode)
 const brokenLabel = p => { const b = brokenItems(p), h = b.filter(x => x.cat === 'home').length, o = b.length - h; return [o && `${o} kaputt`, h && `${h} marode`].filter(Boolean).join(' · '); };
 let tab = 0;
-const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p>💎 Lifestyle-Punkte · 😊 Zufriedenheit · 🛌 Energie-Erholung pro Woche.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt. Die Reparatur kostet 10–15 % des Kaufpreises; „Alles reparieren“ spart bei mehreren kaputten Produkten ca. 5 %. Immobilien werden dann marode. Solange etwas kaputt bzw. marode ist, zählt es nicht für Lifestyle und Erholung.</p>';
+const HELP = '<p>Alles wird einmalig gekauft und gehört dir für immer. Lifestyle steigert deine Zufriedenheit; die beste Immobilie gibt dir zusätzliche Energie-Erholung pro Woche. Die Preise sind fest und steigen nicht mit dem Star-Status.</p><p>💎 Lifestyle-Punkte · 😊 Zufriedenheit · 🛌 Energie-Erholung pro Woche.</p><p><b>Wartung:</b> Jedes Produkt geht etwa alle 12–16 Wochen kaputt – je höher dein Star-Status, desto häufiger. Die Reparatur kostet 10–15 % des Kaufpreises; „Alles reparieren“ spart bei mehreren kaputten Produkten ca. 5 %. Immobilien werden dann marode. Solange etwas kaputt bzw. marode ist, zählt es nicht für Lifestyle und Erholung.</p>';
 
 export function render(app) {
   const s = app.state, p = s.player, [cat, label] = LIFESTYLE_CATS[tab];

@@ -817,8 +817,8 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
   T.applyDrinkBonus(s, 'sco', rng); assert.equal(N.skillValue(p, 'sco'), sco0 + 1); assert.equal(p.buzz ?? 0, 0); assert.equal(p.attrs.men, A(1));
   assert.throws(() => T.drink(s, 'schnaps', rng));
   // Version 78: Getränke-Schlüssel – Bier Status 1 = 1 ★, Status 40 = 120 ★ (Schnaps ×3, Wodka ×5), danach +5 %/Stufe
-  assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 150);   // Version 106: Getränke × 1,25
-  assert.equal(T.drinkPrice({ price: 3 }, 40), 450); assert.equal(T.drinkPrice({ price: 5 }, 40), 750); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 1.25 * 120 ** (20 / 39)));
+  assert.equal(N.drinkFactor(1), 1); assert.equal(N.drinkFactor(40), 120); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 179);   // Version 106: Getränke × 1,25 · Version 252: × (1 + 0,5 % je Stufe)
+  assert.equal(T.drinkPrice({ price: 3 }, 40), 538); assert.equal(T.drinkPrice({ price: 5 }, 40), 896); assert.equal(T.drinkPrice({ price: 5 }, 21), Math.round(5 * 1.25 * 120 ** (20 / 39) * 1.1));
   let prev = 0; for (let l = 1; l <= 100; l++) { const f = N.drinkFactor(l); assert.ok(f > prev, `Faktor steigt (${l})`); prev = f; }
   assert.ok(Math.abs(N.drinkFactor(41) / N.drinkFactor(40) - 1.05) < 1e-9); assert.ok(N.drinkFactor(100) < 2500);
   // Version 81: höchstens 25 je Sorte gleichzeitig
@@ -827,7 +827,7 @@ test('New Star Darts: Training, Einstufung, Formverlust, Getränke, Darts', asyn
     const before = q.stars; assert.throws(() => T.buyDrink(q, 'beer')); assert.equal(q.stars, before, 'kein Geld abgebucht');
     T.drink(q, 'beer', new RNG(1)); assert.equal(q.player.drinks.beer, 24); T.buyDrink(q, 'beer'); assert.equal(q.player.drinks.beer, 25);
     const r = N.newNsdCareer({ first: 'D', last: 'K', nation: 'DE', age: 20, slot: 1, seed: 5 }); r.stars = 1e6; T.buyDrink(r, 'schnaps', 20); T.buyDrink(r, 'schnaps', 5); assert.equal(r.player.drinks.schnaps, 25); assert.throws(() => T.buyDrink(r, 'schnaps', 1)); }
-  p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 350);   // Version 106: Bier bei Status 40 = 150 ★ p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
+  p.star.level = 40; s.stars = 500; T.buyDrink(s, 'beer'); assert.equal(s.stars, 321);   // Version 106/252: Bier bei Status 40 = 179 ★ p.star.level = 21;   // wie vorher: Darts-Test läuft auf Status 21
   // Darts: Bonus solange ausgerüstet
   s.stars = 1000; T.buyDarts(s, 't80'); assert.equal(p.gear.id, 't80'); assert.equal(N.skillEffective(p, 'sco'), 4 + 2);   // Version 230: 3 + Weinschorle-Punkt, kein Rausch mehr
   T.soberUp(p); assert.equal(p.buzz, 0); assert.equal(p.attrs.sco, AS(6));
@@ -2367,7 +2367,7 @@ test('New Star Darts v105: kein Sprung der Sponsorengelder ab Status 11 (echte M
 
 test('New Star Darts v106: variable Preise × 1,25, Top-Manager bringt keinen großen Sponsorensprung mehr', async () => {
   const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js'), TM = await import('../data/team.js');
-  assert.equal(N.PRICE_MULT, 1.25); assert.equal(N.starPrice(10, 1), 13); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 150);
+  assert.equal(N.PRICE_MULT, 1.25); assert.equal(N.starPrice(10, 1), 13); assert.equal(T.drinkPrice({ price: 1 }, 1), 1); assert.equal(T.drinkPrice({ price: 1 }, 40), 179);
   assert.equal(TM.MANAGERS.find(m => m.id === 'm3').mult, 1.9);
 });
 
@@ -3394,6 +3394,14 @@ test('New Star Darts v251: weniger Interviews, je Interview 1–3 Fragen (meist 
   }
   assert.equal(got.W, 600); assert.ok(got.F > 300 && got.F < 420, `Finale ${got.F}`); assert.ok(got.SF > 160 && got.SF < 260, `Halbfinale ${got.SF}`);
   assert.ok(cnt[2] > cnt[1] && cnt[2] > cnt[3] && cnt[1] > 0 && cnt[3] > 0, JSON.stringify(cnt));
+});
+
+test('New Star Darts v252: Wartung mit steigendem Status häufiger', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js');
+  const s = N.newNsdCareer({ first: 'R', last: 'P', nation: 'DE', age: 25, slot: 1, seed: 2 });
+  assert.deepEqual(L.repairWeeks(s), [12, 16]);
+  s.player.star.level = 40; assert.deepEqual(L.repairWeeks(s), [7, 10]);
+  s.player.star.level = 90; assert.deepEqual(L.repairWeeks(s), [7, 9]);
 });
 
 console.log(`\n${n} Tests ok`);

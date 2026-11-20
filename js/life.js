@@ -41,7 +41,10 @@ export function buyItem(state, id) {
 // p.upkeep[id] = { due (absolute Woche), pct (Anteil am Preis, je Produkt fest), broken }. Kaputte Produkte zählen nicht für Lifestyle/Erholung.
 export const REPAIR_WEEKS = [12, 16], REPAIR_PCT = [10, 15];
 const absWeek = s => s.date.year * 52 + s.date.week;
-const newUpkeep = (state, rng) => ({ due: absWeek(state) + rng.int(REPAIR_WEEKS[0], REPAIR_WEEKS[1]), pct: rng.int(REPAIR_PCT[0], REPAIR_PCT[1]) / 100, broken: false });
+// Version 252: je höher der Star-Status, desto häufiger geht etwas kaputt (−1 % Wartungsabstand je Stufe, mind. 55 %: Status 40 ≈ 7–10 Wochen)
+export const upkeepFactor = (level = 1) => Math.max(0.55, 1 - 0.01 * (Math.max(1, level) - 1));
+export const repairWeeks = state => { const f = upkeepFactor(state.player?.star?.level ?? 1); return [Math.max(4, Math.round(REPAIR_WEEKS[0] * f)), Math.max(5, Math.round(REPAIR_WEEKS[1] * f))]; };
+const newUpkeep = (state, rng) => { const [a, b] = repairWeeks(state); return { due: absWeek(state) + rng.int(a, b), pct: rng.int(REPAIR_PCT[0], REPAIR_PCT[1]) / 100, broken: false }; };
 export const brokenItems = p => ownedItems(p).filter(x => p.upkeep?.[x.id]?.broken);
 // Immobilien heißen im kaputten Zustand „marode“ (Nutzerwunsch, Version 111)
 // Einzelne Immobilie: „sanieren“ statt „reparieren“ (Version 112; „Alles reparieren“ bleibt)
@@ -57,7 +60,7 @@ export function repairItem(state, id) {
   state.stars = Math.round((state.stars - cost) * 10) / 10;
   p.upkeep[id] = newUpkeep(state, new RNG(state.rng));
   p.lifestyle = lifestyleOf(p);
-  addNews(state, 'info', `🔧 ${fixWord(it, 'Part')}: ${it.name}`, `Kostete ${cost} ★ – ${it.cat === 'home' ? 'die Immobilie ist wieder in Schuss' : 'das Produkt funktioniert wieder'}. Die nächste Wartung steht in ${REPAIR_WEEKS[0]}–${REPAIR_WEEKS[1]} Wochen an.`);
+  addNews(state, 'info', `🔧 ${fixWord(it, 'Part')}: ${it.name}`, `Kostete ${cost} ★ – ${it.cat === 'home' ? 'die Immobilie ist wieder in Schuss' : 'das Produkt funktioniert wieder'}. Die nächste Wartung steht in ${repairWeeks(state).join('–')} Wochen an.`);
   return cost;
 }
 // Alles auf einmal reparieren: ab 2 kaputten Produkten ca. 5 % Rabatt auf die Summe (mind. 1 ★ gespart)
@@ -75,7 +78,7 @@ export function repairAll(state) {
   const rng = new RNG(state.rng);
   for (const it of list) p.upkeep[it.id] = newUpkeep(state, rng);
   p.lifestyle = lifestyleOf(p);
-  addNews(state, 'info', `🔧 Alles repariert (${list.length} Produkte)`, `${list.map(x => x.name).join(', ')} – ${cost} ★${saved ? ` statt ${sum} ★ (−${saved} ★ Sammelrabatt)` : ''}. Die nächste Wartung steht in ${REPAIR_WEEKS[0]}–${REPAIR_WEEKS[1]} Wochen an.`);
+  addNews(state, 'info', `🔧 Alles repariert (${list.length} Produkte)`, `${list.map(x => x.name).join(', ')} – ${cost} ★${saved ? ` statt ${sum} ★ (−${saved} ★ Sammelrabatt)` : ''}. Die nächste Wartung steht in ${repairWeeks(state).join('–')} Wochen an.`);
   return { count: list.length, cost, saved, sum };
 }
 // Wöchentlich: fällige Produkte gehen kaputt (alte Spielstände ohne Wartungsdaten bekommen einen Termin)

@@ -87,9 +87,12 @@ const ICONS = {
     defs: L('bee', [[0, '#ffe27a'], [0.5, '#f5b324'], [1, '#c97a00']]),
     body: `<path d="M11 14 H37 L34 45 H14 Z" fill="${u('bee')}" stroke="#a86400" stroke-width="1"/><path d="M9 15 C7 8 14 6 17 9 C19 4 28 4 30 9 C34 6 41 9 39 15 C37 18 11 18 9 15 Z" fill="#fffdf4" stroke="#d9cfae" stroke-width=".9"/>${hl('M15 20 H19 L17.5 41 H16 Z', 0.45)}`,
   })),
+  // Version 252: Schnaps = kleines Shotglas mit dunklem Kräuterlikör
   shot: mk('0 0 48 48', false, ({ L, u }) => ({
-    defs: L('sh', [[0, '#fff1c9'], [1, '#d89a2a']]),
-    body: `<path d="M11 9 H37 L33 44 H15 Z" fill="#eef7ff" fill-opacity=".85" stroke="#8aa4bb" stroke-width="1"/><path d="M13.2 22 H34.8 L33 44 H15 Z" fill="${u('sh')}"/>${hl('M14 11 H18 L16.5 41 H15.6 Z', 0.6)}`,
+    defs: L('sh', [[0, '#7a3a14'], [0.55, '#3a1606'], [1, '#160602']]),
+    body: `<g transform="translate(24 42) scale(1.22) translate(-24 -42)"><path d="M15 20 H33 L31 41 H17 Z" fill="#eef7ff" fill-opacity=".85" stroke="#8aa4bb" stroke-width="1"/>
+      <path d="M16.2 25 H31.8 L30.4 38.5 H17.6 Z" fill="${u('sh')}"/><ellipse cx="24" cy="25" rx="7.8" ry="1.1" fill="#9a5a2a" opacity=".8"/>
+      <path d="M17 38.5 H31 L30.8 41 H17.2 Z" fill="#cfe0ee" stroke="#8aa4bb" stroke-width=".8"/>${hl('M17 21.5 H19.6 L18.6 37 H17.9 Z', 0.6)}</g>`,
   })),
   // Version 229: Weinschorle – Weinglas mit heller, perlender Schorle
   wine: mk('0 0 48 48', false, ({ L, u }) => ({

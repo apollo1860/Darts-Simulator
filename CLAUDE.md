@@ -73,7 +73,7 @@ tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spiel
 - Nervosität (`nervesOf`): Top-8-Gegner, Anfänger (Status 1–5), große Bühne, Paulke-Interview; baut sich über Mental ab; zittrige Hand und schnelleres Zielkreuz im Liveticker.
 
 ## Sterne-Geld ★
-- 1 ★ = 1.000 £ der echten PDC-Preisgelder 2026 (`STAR_PRIZE_WIN`/`STAR_PRIZE_FIXED`); Auszahlung × `starFactor` (+5 %/Stufe), Ranglisten in Basis-★. Preise × `priceFactor` (+25 %/Stufe, × 1,25), Getränke über `drinkFactor` (Bier Status 40 = 120 ★), Lifestyle fest.
+- 1 ★ = 1.000 £ der echten PDC-Preisgelder 2026 (`STAR_PRIZE_WIN`/`STAR_PRIZE_FIXED`); Auszahlung × `starFactor` (+5 %/Stufe), Ranglisten in Basis-★. Preise × `priceFactor` (+25 %/Stufe, × 1,25), Getränke über `drinkFactor` × 1,25 × (1 + 0,5 % je Stufe) (`drinkPrice`, Bier Status 40 = 179 ★), Lifestyle fest; Wartung mit steigendem Status häufiger (`repairWeeks`: Status 1 12–16 Wochen, Status 40 7–10).
 
 ## Turniere
 - Kalender 2026 in data/tournaments.js; Floor (`FLOOR_CATS`/`isFloor`: PC, Qualifier, Nebentouren) vs. Bühne.

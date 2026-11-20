@@ -150,7 +150,9 @@ export const decayRisk = p => TRAINABLE.filter(t => (p.idle?.[t.key] ?? 0) >= de
 
 // ---- Getränke ----
 // Version 78: eigener Preisschlüssel `drinkFactor` (Bier Status 40 = 120 ★), ganze ★
-export const drinkPrice = (d, level) => Math.max(1, Math.round(d.price * drinkFactor(level) * DRINK_MULT));   // Version 106: × 1,25
+// Version 252: Getränke mit steigendem Star-Status zusätzlich teurer (+0,5 % je Stufe: Status 40 × 1,2, Status 100 × 1,5)
+export const DRINK_STATUS_STEP = 0.005;
+export const drinkPrice = (d, level = 1) => Math.max(1, Math.round(d.price * drinkFactor(level) * DRINK_MULT * (1 + DRINK_STATUS_STEP * (Math.max(1, level) - 1))));   // Version 106: × 1,25
 export function buyDrink(state, id, n = 1) {
   const d = DRINKS.find(x => x.id === id), cost = drinkPrice(d, state.player.star.level) * n;
   if ((state.player.drinks[id] ?? 0) + n > DRINK_MAX) throw new Error(`Höchstens ${DRINK_MAX} ${d.name} gleichzeitig`);   // Vorrat begrenzt (auch ältere Spielstände mit mehr: nur nicht weiter kaufen)
