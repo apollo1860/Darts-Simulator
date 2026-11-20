@@ -128,7 +128,8 @@ const skillEq = v => (v - 87.5) / (12.5 / 60);
 // erst gegen Ende stärker (konvex, Exponent 1,4) und bleibt am Ende größer: 17 mm bei 0, 15,1 bei 20, 13,6 bei 30, 11,9 bei 40, 10,0 bei 50, 8 bei 60
 // (vorher linear 17 − 0,2 × Fähigkeit: 15/13/11/9/7/5 – bei sauberem Linienstopp traf man mit 5 mm fast jedes T20, das ist unrealistisch genau).
 // Unter 0 (Nervosität, Energiemangel) wächst der Kreis wie bisher linear (+0,2 mm je Punkt).
-export const CIRCLE_MAX = 17, CIRCLE_MIN = 8, CIRCLE_CURVE = 1.4;
+// Version 267 (Nutzerwunsch): Startkreis kleiner, schrumpft dafür weniger – 12,6 mm bei 0 (im Match × 1,15 = 14,5) bis 8 mm bei 60 (× 1,15 = 9,2)
+export const CIRCLE_MAX = 12.6, CIRCLE_MIN = 8, CIRCLE_CURVE = 1.4;
 export const circleRadius = sk => (sk < 0 ? CIRCLE_MAX - 0.2 * sk : CIRCLE_MAX - (CIRCLE_MAX - CIRCLE_MIN) * Math.pow(Math.min(sk, 60) / 60, CIRCLE_CURVE));
 // Linien (Zielkreuz): Ausschlag und Grundtempo aus dem Fokus (Fähigkeit 0–60) – im Spiel UND im Training gleich (Version 89)
 export const lineParams = fk => ({ amp: clamp(40 - 0.25 * fk, 24, 50), freq: clamp(0.8 - 0.004 * fk, 0.55, 1.2) });
@@ -149,7 +150,7 @@ export function rampPhase(t, freq, step = RAMP_STEP, cap = RAMP_CAP) {
 export const MATCH_CIRCLE = 1.15, BULL_CIRCLE = 1.25;
 // Version 265 (Nutzerwunsch „zu Beginn zu schwer“): der Aufschlag wächst mit der Fähigkeit hinein – 0 Punkte × 1,0, ab 30 Punkten voll × 1,15
 export const MATCH_CIRCLE_FULL = 30;
-export const matchCircle = sk => 1 + (MATCH_CIRCLE - 1) * clamp(sk / MATCH_CIRCLE_FULL, 0, 1);
+export const matchCircle = () => MATCH_CIRCLE;   // Version 267: wieder konstant – die kleinere Startgröße steckt jetzt in CIRCLE_MAX
 export function circleParams(attrs, m, i, target) {
   const dbl = isDoubleLabel(target) || target === '25';
   const sk = skillEq(dbl ? attrs.fin : attrs.sco), fk = skillEq(attrs.foc);

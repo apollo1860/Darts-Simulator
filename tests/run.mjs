@@ -2023,10 +2023,9 @@ test('New Star Darts v80: World Cup – Team-Average und Einzel-Averages je Spie
 
 test('New Star Darts v82: Zielkreis schrumpft langsamer (konvex) und bleibt am Ende größer', async () => {
   const R = (await import('../js/throwModel.js')).circleRadius, T = await import('../js/skilltrain.js');
-  assert.equal(R(0), 17); assert.equal(R(60), 8); assert.equal(R(-5), 18); assert.equal(R(90), 8, 'über 60 nicht kleiner');
-  let prev = Infinity; for (let sk = 0; sk <= 60; sk++) { const r = R(sk); assert.ok(r < prev + 1e-12, `fällt (${sk})`); assert.ok(r >= 8 - 1e-9 && r <= 17 + 1e-9); prev = r; }
-  for (const sk of [10, 20, 30, 40, 50]) assert.ok(R(sk) > 17 - 0.2 * sk + 0.9, `größer als vorher bei ${sk}`);   // vorher linear 17 − 0,2 × Fähigkeit
-  assert.ok(Math.abs(R(30) - 13.6) < 0.1 && Math.abs(R(40) - 11.9) < 0.1 && Math.abs(R(50) - 10) < 0.1);
+  assert.equal(R(0), 12.6); assert.equal(R(60), 8); assert.equal(R(-5), 13.6); assert.equal(R(90), 8, 'über 60 nicht kleiner');   // Version 267: Start 12,6 statt 17
+  let prev = Infinity; for (let sk = 0; sk <= 60; sk++) { const r = R(sk); assert.ok(r < prev + 1e-12, `fällt (${sk})`); assert.ok(r >= 8 - 1e-9 && r <= 12.6 + 1e-9); prev = r; }
+  assert.ok(Math.abs(R(30) - 10.86) < 0.05 && Math.abs(R(45) - 9.53) < 0.05);
   // Training nutzt dieselbe Kurve – seit Version 89 ohne Level-Zuschlag (Test v89)
   assert.ok(Math.abs(T.trainAim(40, 40, 20).radius - R(40) * 1.15) < 1e-9); assert.ok(Math.abs(T.trainAim(40, 40, 1).radius - R(40) * 1.15) < 1e-9);   // Version 260: × 1,15
 });
@@ -3553,8 +3552,8 @@ test('New Star Darts v264: Spielmomente 3–4 Aufnahmen (schwach in Fokus+Mental
 
 test('New Star Darts v265: kleinerer Anfangskreis, lokaler Start-Sponsor', async () => {
   const N = await import('../js/nsd.js'), C = await import('../js/career.js'), TM = await import('../js/throwModel.js'), T = await import('../js/skilltrain.js');
-  assert.equal(TM.matchCircle(0), 1); assert.ok(Math.abs(TM.matchCircle(15) - 1.075) < 1e-9); assert.ok(Math.abs(TM.matchCircle(40) - 1.15) < 1e-9);
-  assert.equal(T.trainAim(0, 20, 1).radius, TM.circleRadius(0));
+  assert.equal(TM.matchCircle(0), 1.15); assert.equal(TM.matchCircle(40), 1.15);   // Version 267: wieder konstant
+  assert.ok(Math.abs(T.trainAim(0, 20, 1).radius - 14.49) < 0.01, 'Startkreis 14,5 mm');
   const s = N.newNsdCareer({ first: 'L', last: 'S', nation: 'DE', age: 20, slot: 1, seed: 9 }), rng = new RNG({ s: 2 }), st0 = s.stars;
   let c = null, k = 0; for (; k < 6 && !c; k++) { c = C.localSponsorWeek(s, rng); if (!c) s.date.week++; }
   assert.ok(c && k >= 2 && k <= 5, `nach ${k} Wochen`); assert.ok(c.perWeek === 1 && c.weeksLeft >= 8 && c.weeksLeft <= 10);
