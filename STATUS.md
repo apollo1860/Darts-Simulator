@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 271**: Anfänger-Dämpfung der Spielszenen (Check/Break/Scoring, Mindest-Szene, Matchdarts, Entscheidungsleg) richtet sich jetzt nach dem Mittelwert aus Scoring und Finishing (0–60, `rookieSkill`) statt nach dem Star-Status: × 0,35 bei 0, linear bis voll ab Mittelwert 25 (`ROOKIE_UNTIL`, Annahme). Beispiel: Mittel 10 → 61 %, 15 → 74 %, 20 → 87 %.
 - [x] **Version 270**: In der Ausfall-Woche durch schwere Rückenschmerzen (`state.week.blocked`, keine Turniere) ist jetzt auch kein Training möglich (`canTrain`); die Verletzungs-Meldung sagt das. Unfall-Woche (nur Turniersperre außer Majors) bleibt trainierbar.
 - [x] **Version 269**: Spielbericht zeigt zusätzlich den First-9-Average (Durchschnitt der ersten 3 Aufnahmen jedes Legs, `f9`; in Liveticker/matchState und Schnellsimulation/matchEngine erfasst). Zeile erscheint unter „Average“; ältere gespeicherte Spielberichte ohne Wert blenden sie aus.
 - [x] **Version 268**: Zielkreis-Kurve konkav (Exponent 0,5 statt 1,4): anfangs schnell kleiner, gegen Ende nur noch minimal. Effektiv (× 1,15): Fähigkeit 0 → 14,5 mm, 15 → 11,9, 30 → 10,8, 45 → 9,9, 60 → 9,2.

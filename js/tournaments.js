@@ -24,7 +24,7 @@ import { routeTarget, scriptedHit } from './decisions.js';
 import { trackTitle, recordChampion, recordPlaces } from './history.js';
 import { addRivalToField, isRival, rivalMeeting, rivalTitle, rivalCard } from './rival.js';
 import { applyInjury, injuryAim } from './injury.js';
-import { canSelfPlay, skillEffective, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, nerveEdge, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
+import { canSelfPlay, skillEffective, skillValue, starPrizeTable, starPayout, matchEnergy, energyMalus, energyKind, nervesOf, nerveShake, nerveSpeed, nerveEdge, addEnergy, starMatchDelta, addStarProgress, titleStarBonus, STAR_TITLE, STAR_WEIGHT, PL_LEAGUE_PAY,
   matchRating, addRel, addFans, fansAfterMatch, addMatchFans, relAfterMatch, titleFans, isFloor, starPrice } from './nsd.js';
 import { overall, attrsForAverage, ratingForAvgExact, targetAverage } from './player.js';
 import { checkAchievements, VAC_REGEN, VAC_REGEN_WEEKS } from './life.js';
@@ -629,18 +629,21 @@ function forcedMoment(live, lm, me = live.me) {
 }
 // Version 262 (Nutzerwunsch): Anfänger haben weniger Spielszenen (Checken ist anfangs noch sehr schwer) – Check-/Break-/Scoring-Szenen und die
 // Mindest-Szene je Leg × 0,35 bei Status 1, linear bis × 1 ab Status 15. 9-Darter, 170 und Double-in bleiben (Version 266: Matchdarts/Entscheidungsleg ebenfalls gedämpft).
-export const ROOKIE_SCENES = 0.35, ROOKIE_UNTIL = 15;
-export const rookieScenes = lvl => Math.min(1, ROOKIE_SCENES + (1 - ROOKIE_SCENES) * (Math.max(1, lvl) - 1) / (ROOKIE_UNTIL - 1));
+// Version 271 (Nutzerwunsch): Maßstab ist der Mittelwert aus Scoring und Finishing (0–60) statt des Star-Status – × 0,35 bei 0, voll ab 25
+export const ROOKIE_SCENES = 0.35, ROOKIE_UNTIL = 25;
+export const rookieScenes = sk => Math.min(1, ROOKIE_SCENES + (1 - ROOKIE_SCENES) * Math.max(0, sk) / ROOKIE_UNTIL);
+export const rookieSkill = p => (skillValue(p, 'sco') + skillValue(p, 'fin')) / 2;
+const rookieOf = state => rookieScenes(rookieSkill(state.player));
 // Version 266 (Nutzerwunsch): auch Matchdarts und Entscheidungsleg sind für Anfänger nicht immer eigene Szenen (gleiche Chance, einmal je Leg gewürfelt)
 function rookieRoll(state, live, lm, kind) {
-  const f = rookieScenes(state.player.star?.level ?? 1);
+  const f = rookieOf(state);
   if (f >= 1) return true;
   const key = `${kind}:${lm.legIdx}`;
   if (live.rkKey?.[kind] !== key) { (live.rkKey ??= {})[kind] = key; (live.rkOn ??= {})[kind] = new RNG(state.rng).chance(f); }
   return live.rkOn[kind];
 }
 function rookieForce(state, live, lm) {   // einmal je Leg gewürfelt (bleibt beim Neuladen)
-  const f = rookieScenes(state.player.star?.level ?? 1);
+  const f = rookieOf(state);
   if (f >= 1) return true;
   if (live.rfLeg !== lm.legIdx) { live.rfLeg = lm.legIdx; live.rfOn = new RNG(state.rng).chance(f); }
   return live.rfOn;
@@ -676,7 +679,7 @@ export function effortEnergyFactor(live, legsTotal) {
 // Spielszene (≈ 2,9 je Leg statt ≈ 1,5; Einzel Best of 11 ≈ 2,7). Matchdarts/Entscheidungsleg wie immer zuerst.
 function pickMoment(state, live, lm) {
   const team = !!state.activeEvent?.teams;
-  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)] * (team ? 1 : rookieScenes(state.player.star?.level ?? 1));   // Version 262: Anfänger weniger
+  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)] * (team ? 1 : rookieOf(state));   // Version 262: Anfänger weniger
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm) && (team || rookieRoll(state, live, lm, 'dec'))) return 'decider';
   if (team) return fin ? (lm.legStarter !== me ? 'break' : 'finish') : 'scoring';   // Doppel: jede deiner Aufnahmen ist eine Szene (du wirfst nur jede zweite)
