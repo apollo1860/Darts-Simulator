@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 270**: In der Ausfall-Woche durch schwere Rückenschmerzen (`state.week.blocked`, keine Turniere) ist jetzt auch kein Training möglich (`canTrain`); die Verletzungs-Meldung sagt das. Unfall-Woche (nur Turniersperre außer Majors) bleibt trainierbar.
 - [x] **Version 269**: Spielbericht zeigt zusätzlich den First-9-Average (Durchschnitt der ersten 3 Aufnahmen jedes Legs, `f9`; in Liveticker/matchState und Schnellsimulation/matchEngine erfasst). Zeile erscheint unter „Average“; ältere gespeicherte Spielberichte ohne Wert blenden sie aus.
 - [x] **Version 268**: Zielkreis-Kurve konkav (Exponent 0,5 statt 1,4): anfangs schnell kleiner, gegen Ende nur noch minimal. Effektiv (× 1,15): Fähigkeit 0 → 14,5 mm, 15 → 11,9, 30 → 10,8, 45 → 9,9, 60 → 9,2.
 - [x] **Version 267**: Zielkreis: kleiner starten, dafür weniger schrumpfen – Grundkurve 12,6 mm bei Fähigkeit 0 bis 8 mm bei 60 (vorher 17 → 8), Aufschlag × 1,15 wieder konstant (`matchCircle`). Effektiv im Match/Training: Fähigkeit 0 → 14,5 mm (vorher 17), 15 → 13,7 (16,9), 30 → 12,5 (15,6), 45 → 11,0 (12,6), 60 → 9,2 (gleich). Bull weiterhin × 1,25 zusätzlich.

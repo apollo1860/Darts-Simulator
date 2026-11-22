@@ -42,7 +42,7 @@ export function injuryWeek(state, rng, energyBefore = state.player.energy) {
   p.energy = Math.max(0, Math.round((p.energy ?? 100) - INJ_ENERGY));
   const j = INJURIES[kind];
   if (severe) return { kind, weeks, severe, title: `${j.icon} Schwere Rückenschmerzen – Ausfall!`,
-    text: `Du kannst dich kaum bewegen: Diese Woche kannst du kein Turnier melden oder spielen. Du verlierst sofort ${INJ_ENERGY} % Energie, auch nächste Woche streust du noch stärker und erholst dich kaum.` };
+    text: `Du kannst dich kaum bewegen: Diese Woche kannst du kein Turnier melden oder spielen und auch nicht trainieren. Du verlierst sofort ${INJ_ENERGY} % Energie, auch nächste Woche streust du noch stärker und erholst dich kaum.` };
   return { kind, weeks, title: `${j.icon} Verletzt: ${j.label}`,
     text: `Du verlierst sofort ${INJ_ENERGY} % Energie. ${weeks === 1 ? 'Diese Woche' : 'Zwei Wochen lang'} streust du stärker, das Zielkreuz ist unruhiger, und du erholst dich kaum.` };
 }

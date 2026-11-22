@@ -3590,4 +3590,13 @@ test('New Star Darts v269: First-9-Average in Simulation und Liveticker', async 
   const res = MS.matchResult(lm); assert.ok(res.stats[0].f9 > 40 && res.stats[0].f9 < 140 && res.stats[1].f9 > 40, JSON.stringify(res.stats.map(x => x.f9)));
 });
 
+test('New Star Darts v270: Ausfall-Woche durch Verletzung – kein Training', async () => {
+  const N = await import('../js/nsd.js'), T = await import('../js/skilltrain.js');
+  const s = N.newNsdCareer({ first: 'A', last: 'W', nation: 'DE', age: 25, slot: 1, seed: 4 }); s.player.assessed = true; s.week = { played: false, eventId: null }; s.player.energy = 100;
+  assert.ok(T.canTrain(s, 'sco', 1).ok);
+  s.week.blocked = { id: 'injury', label: 'Schwere Rückenschmerzen', icon: '🦴' };
+  const c = T.canTrain(s, 'sco', 1); assert.ok(!c.ok && /kein Training/.test(c.reason));
+  s.week = { played: false, eventId: null }; assert.ok(T.canTrain(s, 'sco', 1).ok, 'nächste Woche wieder');
+});
+
 console.log(`\n${n} Tests ok`);
