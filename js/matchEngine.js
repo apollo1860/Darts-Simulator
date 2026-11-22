@@ -155,6 +155,7 @@ function simLeg(starter, prof, st, rng, ctx) {
     if (v.in) inn[t] = true;
     s.darts += v.darts; legDarts[t] += v.darts;
     if (!v.bust) { s.points += v.pts; rem[t] -= v.pts; addScore(s, v.pts); }
+    if (visits[t] <= 3) { s.f9p = (s.f9p ?? 0) + (v.bust ? 0 : v.pts); s.f9d = (s.f9d ?? 0) + v.darts; }   // Version 269: First-9 (erste 3 Aufnahmen je Leg)
     if (ms) addMember(ms, s, snap);
     if (v.finished) {
       s.legsWon++;
@@ -207,6 +208,7 @@ export function finalizeStats(s) {
   return {
     ...s,
     avg: s.darts ? (s.points / s.darts) * 3 : 0,
+    f9: s.f9d ? (s.f9p / s.f9d) * 3 : 0,
     coPct: s.coAtt ? s.coHit / s.coAtt : 0,
     dinPct: s.dinAtt ? (s.dinHit ?? 0) / s.dinAtt : 0,   // Double-in (World Grand Prix)
   };

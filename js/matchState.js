@@ -99,6 +99,7 @@ function endVisit(m, ev, pts) {
   const t = m.turn, s = m.stats[t], ms = curMember(m, t);
   s.points += pts;
   s.darts += m.visit.darts.length;
+  if (m.legVisits[t].length < 3) { s.f9p = (s.f9p ?? 0) + pts; s.f9d = (s.f9d ?? 0) + m.visit.darts.length; }   // Version 269: First-9 (erste 3 Aufnahmen je Leg)
   if (!ev.bust) addScoreBand(s, pts);
   if (!ev.bust && BOGEY.has(m.rem[t])) s.bogey = (s.bogey ?? 0) + 1;
   if (ms) {
@@ -147,7 +148,7 @@ export function matchResult(m) {
     score: m.format.sets ? [...m.sets] : [...m.legs],
     legsTotal: [m.stats[0].legsWon, m.stats[1].legsWon],
     sets: m.format.sets ? [...m.sets] : null,
-    stats: m.stats.map(s => ({ ...s, avg: s.darts ? s.points / s.darts * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0, dinPct: s.dinAtt ? (s.dinHit ?? 0) / s.dinAtt : 0 })),
+    stats: m.stats.map(s => ({ ...s, avg: s.darts ? s.points / s.darts * 3 : 0, f9: s.f9d ? s.f9p / s.f9d * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0, dinPct: s.dinAtt ? (s.dinHit ?? 0) / s.dinAtt : 0 })),
     members: m.team?.some(n => n > 1) ? [0, 1].map(t => ((m.team[t] ?? 1) > 1
       ? Array.from({ length: m.team[t] }, (_, i) => { const s = m.mstats?.[t]?.[i] ?? newStats(); return { ...s, avg: s.darts ? s.points / s.darts * 3 : 0, coPct: s.coAtt ? s.coHit / s.coAtt : 0 }; })
       : null)) : null,                                   // nur World Cup: [Seite][Mitglied]

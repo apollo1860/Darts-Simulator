@@ -3578,4 +3578,16 @@ test('New Star Darts v266: Matchdarts für Anfänger nicht immer selbst', async 
   const a = share(1), b = share(20); assert.equal(b, 1); assert.ok(a > 0.15 && a < 0.6, `Anfänger ${a}`);
 });
 
+test('New Star Darts v269: First-9-Average in Simulation und Liveticker', async () => {
+  const N = await import('../js/nsd.js'), ME = await import('../js/matchEngine.js'), MS = await import('../js/matchState.js');
+  const a = { sco: 95, fin: 92, men: 90, foc: 90, cal: 90, exp: 0 };
+  let f9 = 0, avg = 0; for (let i = 0; i < 30; i++) { const r = ME.simulateMatch(a, a, { legs: 6 }, new RNG({ s: i + 1 })); f9 += r.stats[0].f9; avg += r.stats[0].avg; }
+  assert.ok(f9 / 30 > avg / 30, `First 9 ${f9 / 30} > Ø ${avg / 30}`);
+  const s = N.newNsdCareer({ first: 'F', last: 'N', nation: 'DE', age: 20, slot: 1, seed: 3 }); s.player.assessed = true; s.date.week = 6; s.week = { played: false, eventId: null };
+  ET.enterEvent(s, eventsInWeek(s, 2026, 6).find(e => e.cat === 'pc').id);
+  const live = ET.startManualMatch(s), lm = live.m;
+  for (let k = 0; k < 4000 && !lm.done; k++) { s.player.energy = 100; ET.liveAiVisit(s); }
+  const res = MS.matchResult(lm); assert.ok(res.stats[0].f9 > 40 && res.stats[0].f9 < 140 && res.stats[1].f9 > 40, JSON.stringify(res.stats.map(x => x.f9)));
+});
+
 console.log(`\n${n} Tests ok`);

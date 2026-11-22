@@ -30,6 +30,7 @@ export function render(app, params = {}) {
       <table class="nsd-table nsd-stats compact">
         <tr><th>${flag(p.nation)} Du</th><th></th><th class="nm">${flag(getPlayer(s, lm.opp)?.nation)} ${esc(surname(nameOf(s, lm.opp)))}</th></tr>
         ${row(team ? 'Team-Ø' : 'Average', fmtNum(a.avg, 2), fmtNum(b.avg, 2))}${singles}
+        ${a.f9 || b.f9 ? row('First 9', a.f9 ? fmtNum(a.f9, 2) : '–', b.f9 ? fmtNum(b.f9, 2) : '–') : ''}
         ${row('180er', a.s180, b.s180)}
         ${row('140+', a.s140, b.s140)}
         ${row('100+', a.s100, b.s100)}
