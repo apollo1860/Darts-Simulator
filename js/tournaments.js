@@ -291,7 +291,7 @@ function seededField(state, ev, withPlayer, rng, sub = 0, ctx = {}) {
   return ids;
 }
 
-function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {
+export function newInstance(state, ev, sub, withPlayer, rng, ctx = {}) {   // Version 273: exportiert (Missionen)
   const field = seededField(state, ev, withPlayer, rng, sub, ctx);
   const fk = fmtKey(ev, sub);
   const slots = ev.fmt === 'wmq' ? wmTchqSlots(state) : ev.fmt === 'gsq' ? gsQualSlots(state) : ev.slots;          // Qualifier mit n Plätzen → n Sektionen

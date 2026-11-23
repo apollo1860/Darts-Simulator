@@ -1,6 +1,8 @@
 // Hauptscreen (Status): Star-Status, Energie, Alter, Sterne-Geld, Fähigkeiten/Zufriedenheit/Lifestyle, Tour-Status, Shop, Getränke, Darts
 import { esc } from '../../../util.js';
 import { injuryOf } from '../../../injury.js';
+import { missionById, missionProgress } from '../../../missions.js';
+import { modal } from '../../components.js';
 import { skillsAvg, SKILL_MAX, starPct, starNeed } from '../../../nsd.js';
 import { starMeter, frame, header, meter, starIcon, heartIcon, coin, bar, bindHead, arrowIcon, formDots } from '../frame.js';
 import { icon as nicon } from '../icons.js';
@@ -20,6 +22,7 @@ export function render(app) {
       ${starMeter(app.state, { starIcon, starPct, starNeed })}
       ${meter({ icon: heartIcon(), label: 'Energie', pct: e, tone: fit ? 'green' : 'red' })}
     </div>
+    ${s.mission?.status === 'active' && !s.mission.free ? `<button class="nsd-dark nsd-alert nsd-mis-bar" id="s-mission">🎯 ${esc(missionById(s.mission.id)?.name ?? 'Mission')} · ${esc(missionProgress(s))}</button>` : ''}
     ${s.lifeEvent ? '<button class="nsd-dark nsd-alert" data-go="lifeevent">📬 Ein Ereignis wartet auf dich!</button>' : ''}
     ${s.dilemma ? '<button class="nsd-dark nsd-alert" data-go="dilemma">⚖️ Eine Entscheidung wartet auf dich!</button>' : ''}
     ${s.interview && !s.activeEvent ? `<button class="nsd-dark nsd-alert" data-go="interview">🎤 ${s.interview.kind === 'paulke' ? 'Elmar Paulke wartet auf dich!' : 'Ein Interview wartet auf dich!'}</button>` : ''}
@@ -62,6 +65,10 @@ export function render(app) {
 export function mount(root, app) {
   bindHead(root, app, HELP);
   root.querySelector('#s-shop').onclick = () => app.go('accessories');   // Zubehör; Lifestyle nur über Leben
+  root.querySelector('#s-mission')?.addEventListener('click', () => {   // Version 273: Missionsziel und Fortschritt
+    const m = missionById(app.state.mission.id);
+    modal({ title: `${m.icon} ${esc(m.name)}`, body: `<p>${esc(m.story)}</p><p><b>Ziel:</b> ${esc(m.goal)}</p><p><b>Stand:</b> ${esc(missionProgress(app.state))}</p>`, actions: [{ label: 'OK', cls: 'btn-primary' }] });
+  });
   root.querySelector('#s-drinks').onclick = () => app.go('drinks');
   root.querySelector('#s-darts').onclick = () => app.go('darts');
   // Spielen: laufendes Turnier → Turnier, sonst Wochenansicht (Melden / Weiter)

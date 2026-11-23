@@ -9,7 +9,7 @@ export function render() {
     body: `${titleBand('Freies Training')}${darkBar('Ohne Karriere – nur zum Üben', 'sm')}
       <div class="nsd-seg nsd-prac-skills">${TRAINABLE.map(t => `<button class="nsd-btn ${pick.key === t.key ? 'on' : ''}" data-k="${t.key}"><span class="ic">${t.icon}</span><span class="lb">${t.label}</span></button>`).join('')}</div>
       <div class="nsd-lvls">${Array.from({ length: SKILL_LEVELS }, (_, i) => `<button class="nsd-lvl ${pick.level === i + 1 ? 'next' : ''}" data-l="${i + 1}"><b>${i + 1}</b></button>`).join('')}</div>`,
-    bottom: bar([{ go: 'title', icon: arrowIcon(true), label: 'Zurück' }, null, { id: 'pr-go', icon: arrowIcon(), label: 'Los', wide: true }]),
+    bottom: bar([{ go: 'missions', icon: arrowIcon(true), label: 'Zurück' }, null, { id: 'pr-go', icon: arrowIcon(), label: 'Los', wide: true }]),
   });
 }
 export function mount(root, app) {

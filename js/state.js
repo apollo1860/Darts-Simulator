@@ -85,6 +85,10 @@ export function loadGame(slot) {
 export function deleteSlot(slot) { try { store()?.removeItem(KEY(slot)); } catch { /* egal */ } }
 
 // Kurzinfo je Slot fürs Menü
+// Version 273: abgeschlossene Missionen (geräteweit, unabhängig vom Spielstand)
+const MKEY = 'newStarDarts.missions';
+export function missionsDone() { try { return JSON.parse(store()?.getItem(MKEY) ?? '{}') ?? {}; } catch { return {}; } }
+export function markMissionDone(id) { const d = missionsDone(); if (d[id]) return; d[id] = Date.now(); try { store()?.setItem(MKEY, JSON.stringify(d)); } catch { /* voll */ } }
 export function listSlots() {
   return SLOTS.map(slot => {
     const s = loadGame(slot);

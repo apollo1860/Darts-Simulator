@@ -26,6 +26,10 @@ import * as trainlevels from './ui/nsd/screens/trainlevels.js';
 import * as minigame from './ui/nsd/screens/minigame.js';
 import * as placement from './ui/nsd/screens/placement.js';
 import * as practice from './ui/nsd/screens/practice.js';
+import * as missions from './ui/nsd/screens/missions.js';
+import * as missionstart from './ui/nsd/screens/missionstart.js';
+import * as missionend from './ui/nsd/screens/missionend.js';
+import { missionCheck } from './missions.js';
 import * as drinks from './ui/nsd/screens/drinks.js';
 import * as darts from './ui/nsd/screens/darts.js';
 import * as lifestyle from './ui/nsd/screens/lifestyle.js';
@@ -48,9 +52,9 @@ import * as editor from './ui/nsd/screens/editor.js';
 import * as accessories from './ui/nsd/screens/accessories.js';
 
 const SCREENS = { title, menu: title, slots, options, welcome, newprofile, intro, hub: status, skills, life, league,
-  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, drinks, drinkbonus, walkon, darts, lifestyle, lifeevent, dilemma,
+  week: tourweek, event: tourevent, live, matchstats, news: newsfeed, trainlevels, minigame, placement, practice, missions, missionstart, missionend, drinks, drinkbonus, walkon, darts, lifestyle, lifeevent, dilemma,
   achievements, goals, weekly, season, interview, calendar: schedule, tour: titles, stats: nstats, careerEnd: nend, team: nteam, sponsors: nsponsors, editor, accessories };
-const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile', 'practice', 'minigame'];
+const NO_STATE = ['title', 'menu', 'slots', 'options', 'welcome', 'newprofile', 'practice', 'minigame', 'missions', 'missionstart'];
 // Container je Screen: NSD-Screens randlos, alte Screens im bisherigen Layout
 const wrap = (scr, html, style = '') => {
   document.body.classList.toggle('nsd-on', !!scr.nsd);
@@ -67,6 +71,10 @@ const app = {
     if (!scr) return console.error('Unbekannter Screen', name);
     if (!app.state && !NO_STATE.includes(name)) name = 'title';
     if (app.state?.shopping && name !== 'lifestyle') { endShopping(app.state); app.save(); }   // Version 213: Shoppingtour endet beim Verlassen des Shops
+    // Version 273: Missionen – nach jeder Aktion Ziel prüfen; Ergebnis einmalig zeigen (nicht mitten im Match/Spielbericht)
+    const mi = app.state?.mission;
+    if (mi?.status === 'active' && !mi.free && missionCheck(app.state)) app.save();
+    if (mi && mi.status !== 'active' && !mi.seen && !mi.free && !['live', 'matchstats', 'interview', 'missionend'].includes(name)) name = 'missionend';
     SCREENS[app.screen]?.unmount?.();
     app.screen = name; app.params = params;
     root.innerHTML = wrap(SCREENS[name], SCREENS[name].render(app, params));

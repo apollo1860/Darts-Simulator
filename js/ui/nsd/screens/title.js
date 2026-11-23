@@ -1,4 +1,4 @@
-// Titelbildschirm: Logo, Dartscheibe, Menü (Spielen · Trainieren · Optionen)
+// Titelbildschirm: Logo, Dartscheibe, Menü (Spielen · Missionen · Optionen; Version 273: Missionen statt Trainieren)
 import { frame, starIcon } from '../frame.js';
 import { boardSvg } from '../../boardSvg.js';
 import { APP_VERSION } from '../../../nsd.js';
@@ -17,7 +17,7 @@ export function render() {
       </div>
       <div class="nsd-menu">
         <button class="nsd-btn row" data-go="slots"><span class="ic">${starIcon()}</span><span class="lb">Spielen</span></button>
-        <button class="nsd-btn row" id="t-train"><span class="ic">${nicon('skill')}</span><span class="lb">Trainieren</span></button>
+        <button class="nsd-btn row" data-go="missions"><span class="ic">${nicon('skill')}</span><span class="lb">Missionen</span></button>
         <button class="nsd-btn row" data-go="options"><span class="ic">${nicon('gear')}</span><span class="lb">Optionen</span></button>
       </div>
       <svg class="nsd-board" viewBox="-200 -200 400 400">${boardSvg()}</svg>
@@ -25,6 +25,4 @@ export function render() {
     </div>`,
   });
 }
-export function mount(root, app) {
-  root.querySelector('#t-train').onclick = () => app.go('practice');
-}
+export function mount() {}

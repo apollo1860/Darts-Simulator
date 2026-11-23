@@ -798,3 +798,22 @@ span.nsd-emo { display: inline-block !important; position: static !important; te
 .nsd-walk-hit:active { background: #ffe9a8; }
 .nsd-walk-info { padding: 14px; text-align: center; color: #444; }
 .nsd-fitcol { display: flex; flex-direction: column; align-items: center; gap: 3px; line-height: 1.1; white-space: nowrap; }
+
+/* Version 273: Missionen */
+.nsd-missions { display: flex; flex-direction: column; gap: 7px; padding: 8px 10px; }
+.nsd-mis { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; border-radius: 9px; border: 2px solid rgba(255,255,255,.2);
+  background: linear-gradient(#3b3f47, #23262c); color: #fff; font: inherit; cursor: pointer; }
+.nsd-mis:active { filter: brightness(1.2); }
+.nsd-mis .ic { font-size: 1.9rem; flex: none; }
+.nsd-mis .tx { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.nsd-mis .tx b { font-size: 1.15rem; }
+.nsd-mis .tx small { font-size: .78rem; opacity: .82; line-height: 1.25; }
+.nsd-mis .ok { flex: none; width: 30px; }
+.nsd-mis .ok svg { width: 28px; height: 28px; }
+.nsd-mis-cont { min-height: 58px; }
+.nsd-mis-cont .lb { display: flex; flex-direction: column; }
+.nsd-mis-cont .lb small { font-size: .78rem; font-weight: 600; opacity: .85; }
+.nsd-mis-story { font-size: 1rem; line-height: 1.35; margin: 8px 10px; }
+.nsd-mis-goal { font-size: 1.05rem; font-weight: 700; line-height: 1.3; margin: 6px 10px; }
+.nsd-mis-goal small { font-weight: 600; opacity: .8; font-size: .82rem; }
+.nsd-mis-bar { font-size: .95rem; }

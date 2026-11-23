@@ -268,7 +268,8 @@ export function sponsorWeek(state, rng) {
   if (s.offer && --s.offer.weeks <= 0) s.offer = null;
   // Ohne Manager keine Sponsoren; Kneipen-Kumpel selten und klein, Profi-Manager oft und groß. Angebote kommen auch bei voller Sponsorenliste
   // (dann muss für den Neuen einer gekündigt werden), aber nie aus einer Branche, in der du schon einen Vertrag hast.
-  const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) * mgrOfferChance(p.rel.manager ?? 50) : 0;   // Version 258: Manager-Beziehung
+  const sc = state.flags?.scandal?.year === state.date.year ? state.flags.scandal.factor : 1;   // Version 273: Mission Pleitegeier – nach dem Skandal kaum Angebote
+  const m = managerOf(state), chance = m ? m.offer * (1 + 0.005 * (p.rel.fans ?? 0)) * mgrOfferChance(p.rel.manager ?? 50) * sc : 0;   // Version 258: Manager-Beziehung
   const blocked = weekIndex(state) < (s.blockUntil ?? 0);                    // Sponsoren-Sperre nach einem Skandal
   const sp0 = !s.offer && !blocked && rng.chance(chance) ? pickSponsor(p.star.level, new Set(normalContracts(state).map(c => c.branche)), rng, !!m?.luxury) : null;
   if (sp0) {

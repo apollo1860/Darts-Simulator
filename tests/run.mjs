@@ -3616,4 +3616,32 @@ test('New Star Darts v272: WM ohne Qualifikation verfolgen (Zuschauer)', async (
   assert.ok(!ET.canSpectate(s, wm), 'nur einmal');
 });
 
+test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async () => {
+  const M = await import('../js/missions.js'), R = await import('../js/rankings.js'), MJ = await import('../js/majors.js'), N = await import('../js/nsd.js'), C = await import('../js/career.js');
+  assert.equal(M.MISSIONS.length, 7); assert.equal(new Set(M.MISSIONS.map(m => m.name)).size, 7);
+  const f = { first: 'Mia', last: 'Mission', nation: 'AT' };
+  // Comeback-König: Saison vorab simuliert, WM-Finale 0:5 Sätze / 0:2 Legs
+  let s = M.startMission('comeback', f, 5); const lm = s.activeEvent.live.m, me = s.activeEvent.live.me;
+  assert.deepEqual([s.date.year, s.date.week], [2026, 51]); assert.equal(s.slot, M.MISSION_SLOT); assert.equal(s.player.name, 'Mia Mission');
+  assert.ok(s.activeEvent.rounds.at(-1).matches[0].a === 'P' || s.activeEvent.rounds.at(-1).matches[0].b === 'P', 'im Finale');
+  assert.deepEqual([lm.sets[me], lm.sets[1 - me], lm.legs[me], lm.legs[1 - me]], [0, 5, 0, 2]); assert.deepEqual(s.msQueue, [], 'keine Meilenstein-Flut');
+  ET.simulateRest(s); assert.ok(['won', 'lost'].includes(M.missionCheck(s))); assert.equal(s.mission.status, s.activeEvent.place === 'W' ? 'won' : 'lost');
+  // Play-off-Jagd: nach Spieltag 8 Letzter
+  s = M.startMission('playoff', f, 5); const pl = s.pl[2026];
+  assert.equal(pl.nights, 8); assert.equal(MJ.plTable(s).at(-1).id, 'P'); assert.equal(M.missionCheck(s), null);
+  // Letzte Patrone: letztes Kartenjahr, schwach, unzufrieden
+  s = M.startMission('patrone', f, 5);
+  assert.deepEqual([s.date.year, s.player.cardUntil, s.player.tour], [2027, 2027, 'tour']); assert.ok(N.skillsAvg(s.player) <= 4 && s.player.satisfaction <= 10);   // inkl. Mental
+  s.ended = true; assert.equal(M.missionCheck(s), 'lost');
+  // Rückkehr: ohne Karte, Challenge Tour offen
+  s = M.startMission('rueckkehr', f, 5); assert.equal(s.player.tour, 'none'); assert.ok(s.openTour);
+  const ct = eventsInWeek(s, 2026, 11).find(e => e.cat === 'challenge'); s.date.week = 11; assert.ok(ET.eventStatus(s, ct).playable, 'Challenge Tour spielbar');
+  // Phönix / Pleitegeier / Thronfolger: realer Ranglistenplatz unter eigenem Namen
+  s = M.startMission('phoenix', f, 5); const r1 = R.rankOf(s, 'pdc', 'P'); assert.ok(r1 >= 26 && r1 <= 34, `Phönix Rang ${r1}`); assert.equal(s.player.nation, 'AT');
+  s = M.startMission('pleite', f, 5); assert.equal(s.stars, 0); assert.ok(!s.team?.manager && !s.nsdSponsors.active.length && s.nsdSponsors.blockUntil > C.weekIndex(s));
+  s.date.year = 2027; s.stars = M.PLEITE.goal; assert.equal(M.missionCheck(s), 'won');
+  s = M.startMission('thron', f, 5); assert.equal(R.rankOf(s, 'pdc', 'P'), 2); assert.equal(s.player.name, 'Mia Mission');
+  s.date.year = 2027; assert.equal(M.missionCheck(s), 'lost', 'nicht Nummer 1');
+});
+
 console.log(`\n${n} Tests ok`);

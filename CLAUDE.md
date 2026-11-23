@@ -23,6 +23,7 @@ js/state.js             Neue Welt/Karriere (newCareer = Basis), Speicher-Slots, 
 js/nsd.js               Spielermodell: Fähigkeiten, Star-Status, Energie, Note, Fans, ★-Preise, Nervosität, reale Spieler, Editor
 js/skilltrain.js        Training/Minispiele, Einstufung, Formverlust + Altersabbau, Getränke, Darts-/Zubehör-Shop
 js/career.js            Manager, Fitnesstrainer, Sponsoren, Interviews, Dilemmas, Saisonziele, Saisonbericht, Auszeichnungen
+js/missions.js          Missionen (Aufbau/Ziel/Fortschritt je Mission, Slot 'M', missionCheck)
 js/life.js              Lifestyle-Shop, Wartung, Zufriedenheit, Erholung, Ereignis-Karten, Partner/Hochzeit, Meilensteine
 js/injury.js            Verletzungen (Rücken/Kopf/Zahn, schwere Rückenschmerzen = Ausfall-Woche)
 js/season.js            nextWeek(): Hintergrundturniere, Jahreswechsel (Tourcards, Entwicklung, Rücktritte), News
@@ -42,9 +43,12 @@ data/                   players, secondary (Nebentouren), tournaments (Kalender/
                         achievements, team, walkons.txt (Walk-on-Songs), talk/talkmore/talkloss (Interviews), dilemmas, moments, sponsorsreal, controversial, names, nations, regions, prizemoney
 tests/run.mjs           Regressionstests (Node) · tests/nsdCareer.mjs Bot spielt N Saisons (`node tests/nsdCareer.mjs 6 1 0.6`) · weitere Kalibrierskripte
 ```
-- Router: Screen-Module mit `export const nsd = true`; Screens u. a. `title`, `slots`, `newprofile`, `intro`, `placement`, `hub` (Status), `skills`, `trainlevels`, `minigame`, `life`, `lifestyle`, `lifeevent`, `dilemma`, `league`, `calendar`, `tour` (Titelträger), `stats`, `week`, `event` (Lobby), `live`, `matchstats`, `interview`, `weekly`, `season`, `goals`, `team`, `sponsors`, `accessories`, `drinks`, `drinkbonus`, `walkon`, `darts`, `achievements`, `news`, `editor`, `careerEnd`.
+- Router: Screen-Module mit `export const nsd = true`; Screens u. a. `title`, `slots`, `missions`, `missionstart`, `missionend`, `newprofile`, `intro`, `placement`, `hub` (Status), `skills`, `trainlevels`, `minigame`, `life`, `lifestyle`, `lifeevent`, `dilemma`, `league`, `calendar`, `tour` (Titelträger), `stats`, `week`, `event` (Lobby), `live`, `matchstats`, `interview`, `weekly`, `season`, `goals`, `team`, `sponsors`, `accessories`, `drinks`, `drinkbonus`, `walkon`, `darts`, `achievements`, `news`, `editor`, `careerEnd`.
 - Speicher: `localStorage['newStarDarts.slot.N']`, Auto-Save nach jeder Woche/jedem Turnier. **Spielstand klein halten** (`pruneSave`): Preisgeld nur 3 Jahre, Titelträger und Felder (`state.qual`) nur Vorjahr + aktuelles Jahr, Platzierungen aller Spieler (`state.placements`, Ranglisten-Pop-up) aktuelles Jahr + Vorjahr.
 - Buttons Weiter/✔/Zurück immer über `arrowIcon()`/`checkIcon()` (SVG), nie Emoji. **Icons generell eigene SVGs statt Emojis** (Nutzerwunsch): `icon(name)` aus `js/ui/nsd/icons.js` (in Screens als `nicon` importiert; neue Icons dort im Stil der NSS-Vorlage ergänzen: realistische Clip-Art, weicher Glanz, dünne farbverwandte Konturen). Emojis in Texten/Daten werden automatisch über `js/ui/nsd/emoji.js` (`EMOJI`-Zuordnung, MutationObserver) zu Icons – neue Emojis dort zuordnen (Lifestyle-Emojis ohne Icon → kleine Shop-Grafik). Fans = jubelnde Silhouetten (`fans`), kein Schal. **Flaggen bleiben Emojis.**
+
+## Missionen (Titelmenü statt „Trainieren“)
+- `js/missions.js`: Comeback-König, Play-off-Jagd, Letzte Patrone, Rückkehr des Champions, Phönix, Pleitegeier, Thronfolger – je `setup` (teils vorab simulierte Saison `simulateUntil`, reale Ranglistenplätze über `realByRank` unter eigenem Namen), `check` ('won'/'lost'), `progress`. Prüfung nach jeder Navigation (main.js `app.go`), Ergebnis-Screen `missionend`; laufende Mission im Slot `M`, Karriere-Missionen nach Erfolg als normale Karriere weiterspielbar (`mission.free`); erledigte Missionen in `localStorage['newStarDarts.missions']`. Freies Training als Eintrag der Missionsliste.
 
 ## Start & Welt
 - Saison 2026, KW 3 (nach der Q-School), 8 ★ (`START_STARS`), Alter 16–60. Eigener Spieler startet mit 2-Jahres-Tourcard, nominell einer der Schwächsten. **Immer genau 128 Holder**: ohne vorhandene KI-Karte verliert Stephen Rosney seine (`keep128`); nach jeder Q-School höchstens 128 (Tageskarten nur bei freien Plätzen, Überschuss → `trimTo128`).
