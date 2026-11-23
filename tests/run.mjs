@@ -3628,6 +3628,9 @@ test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async
   assert.ok(lm.rem[me] >= 77 && lm.rem[me] <= 82 && lm.rem[1 - me] >= 100 && lm.rem[1 - me] <= 105 && lm.turn === me, `Rest ${lm.rem}`);   // Version 274
   { const fm = s.activeEvent.rounds.at(-1).matches[0], o = getPlayer(s, fm.a === 'P' ? fm.b : fm.a), sk = N.realStartSkills(o.avg); assert.equal(N.skillValue(s.player, 'sco'), sk.sco, 'gleich stark wie der Gegner'); }
   assert.equal(s.activeEvent.sceneMult, 2); assert.ok(ET.wmClutch(s, lm), 'doppelt so viele Szenen');
+  { const st = lm.stats, o = st[1 - me], m2 = st[me], a = x => x.points / x.darts * 3;   // Version 276: vorab gespielte Legs zählen in die Statistik
+    assert.ok(o.legsWon === 17 && m2.legsWon <= 10 && lm.legIdx === 17 + m2.legsWon, `Legs ${o.legsWon}/${m2.legsWon}/${lm.legIdx}`);
+    assert.ok(a(o) > 80 && a(o) < 120 && a(m2) > 75 && a(m2) < 115 && o.coHit === 17 && o.coAtt >= 17 && o.f9d > 0, `Ø ${a(o)} / ${a(m2)}`); }
   ET.simulateRest(s); assert.ok(['won', 'lost'].includes(M.missionCheck(s))); assert.equal(s.mission.status, s.activeEvent.place === 'W' ? 'won' : 'lost');
   // Play-off-Jagd: nach Spieltag 8 Letzter
   s = M.startMission('playoff', f, 5); const pl = s.pl[2026];

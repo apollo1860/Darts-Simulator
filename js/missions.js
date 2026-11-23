@@ -65,6 +65,30 @@ const finish = (s, def, form) => {
   return s;
 };
 
+// Version 276: bereits gespielte Legs (Comeback-König) mit glaubwürdiger Statistik – zählt ganz normal in die Match-Statistik
+const band = (st, sc) => { if (sc === 180) st.s180++; else if (sc >= 140) st.s140++; else if (sc >= 100) st.s100++; };
+function visitScore(rng, avg, rem, win) {
+  let sc = rng.chance(Math.max(0, avg - 60) / 650) ? 180 : Math.round(Math.max(0, Math.min(177, rng.normal(avg + 11 + (avg - 85) * 0.2, 24))));
+  if (rem <= 170) sc = Math.min(sc, rem - 2 * rng.int(8, 20));     // Ansage auf ein Doppel
+  return Math.max(0, Math.min(sc, rem - 2));
+}
+export function fakeLeg(rng, sts, avgs, w, starter) {
+  const rem = [501, 501], vis = [0, 0], darts = [0, 0];
+  for (let t = starter, tries = 0; ; t = 1 - t) {
+    const st = sts[t]; let sc, d = 3;
+    if (rem[t] <= 100 && rem[t] > 1) {
+      if (t === w && (tries >= 2 || rng.chance((rem[t] <= 40 ? 0.72 : 0.55) + (avgs[t] - 85) * 0.012))) {   // Checkout
+        d = rng.int(1, 3); sc = rem[t]; st.coAtt += rng.int(1, d); st.coHit++; st.hiFinish = Math.max(st.hiFinish, sc);
+      } else if (rem[t] <= 50 || t === w) { if (t === w) tries++; st.coAtt += rng.int(1, 2); sc = rem[t] > 40 ? rem[t] - 2 * rng.int(8, 20) : 0; sc = Math.max(0, sc); }
+      else sc = Math.max(0, rem[t] - 2 * rng.int(8, 20));
+    } else sc = visitScore(rng, avgs[t], rem[t], t === w);
+    if (vis[t] < 3) { st.f9p = (st.f9p ?? 0) + sc; st.f9d = (st.f9d ?? 0) + d; }
+    band(st, sc); rem[t] -= sc; vis[t]++; darts[t] += d; st.points += sc; st.darts += d;
+    if (rem[t] === 0) break;
+  }
+  const sw = sts[w]; sw.legsWon++; if (!sw.bestLeg || darts[w] < sw.bestLeg) sw.bestLeg = darts[w];
+}
+
 // ---------- Missionen ----------
 export const MISSIONS = [
   {
@@ -92,6 +116,14 @@ export const MISSIONS = [
       setSkills(p, sk); setStar(p, Math.max(1, sk.men)); inst.sceneMult = 2;
       const live = startManualMatch(s), lm = live.m, me = live.me;
       lm.sets[me] = 0; lm.sets[1 - me] = 5; lm.legs[me] = 0; lm.legs[1 - me] = 2;
+      // Version 276: die 5 verlorenen Sätze + 2 Legs mit echter Statistik (du knapp schwächer), zählt in den End-Average
+      const oa = getPlayer(s, oppId)?.avg ?? 98, avgs = []; avgs[1 - me] = oa; avgs[me] = oa - rng.int(3, 7);
+      let legNo = 0;
+      for (let set = 0; set <= 5; set++) {
+        const mine = set < 5 ? rng.int(0, 2) : 0, order = rng.shuffle([...Array(mine).fill(me), 1 - me, 1 - me]);
+        if (set < 5) order.push(1 - me);                            // letztes Leg des Satzes gewinnt der Gegner
+        for (const w of order) fakeLeg(rng, lm.stats, avgs, w, legNo++ % 2);
+      }
       // Leg läuft schon: Gegner steht bei 100–105, du bei 77–82 (noch kein Dart aufs Doppel) – du bist am Wurf
       const rem = [0, 0]; rem[me] = rng.int(77, 82); rem[1 - me] = rng.int(100, 105);
       for (const i of [0, 1]) {
@@ -100,8 +132,9 @@ export const MISSIONS = [
         let r = 501; for (const x of v) { r -= x.score; x.rem = r; }
         lm.legVisits[i] = v; lm.legDarts[i] = 12; lm.legPoints[i] = 501 - rem[i]; lm.rem[i] = rem[i];
         lm.stats[i].points += 501 - rem[i]; lm.stats[i].darts += 12;
+        for (const [k, x] of v.entries()) { band(lm.stats[i], x.score); if (k < 3) { lm.stats[i].f9p = (lm.stats[i].f9p ?? 0) + x.score; lm.stats[i].f9d = (lm.stats[i].f9d ?? 0) + 3; } }
       }
-      lm.legIdx = 17; lm.legStarter = 1 - me; lm.turn = me; lm.visit = { darts: [], start: lm.rem[me] };
+      lm.legIdx = legNo; lm.legStarter = 1 - me; lm.turn = me; lm.visit = { darts: [], start: lm.rem[me] };
       return finish(s, this, form);
     },
     check(s) {
