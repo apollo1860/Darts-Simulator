@@ -3632,6 +3632,8 @@ test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async
     assert.ok(o.legsWon === 17 && m2.legsWon <= 10 && lm.legIdx === 17 + m2.legsWon, `Legs ${o.legsWon}/${m2.legsWon}/${lm.legIdx}`);
     assert.ok(a(o) > 80 && a(o) < 120 && a(m2) > 75 && a(m2) < 115 && o.coHit === 17 && o.coAtt >= 17 && o.f9d > 0, `Ø ${a(o)} / ${a(m2)}`); }
   ET.simulateRest(s); assert.ok(['won', 'lost'].includes(M.missionCheck(s))); assert.equal(s.mission.status, s.activeEvent.place === 'W' ? 'won' : 'lost');
+  { const L = await import('../js/life.js'), n = s.news.length, lvl = s.player.star.level; s.mstats = { ...(s.mstats ?? {}), weeksNo1: 99 };   // Version 277: in Missionen keine Meilenstein-Mitteilungen
+    assert.deepEqual(L.checkAchievements(s), []); assert.deepEqual(s.msQueue ?? [], []); assert.equal(s.news.length, n); assert.equal(s.player.star.level, lvl); }
   // Play-off-Jagd: nach Spieltag 8 Letzter
   s = M.startMission('playoff', f, 5); const pl = s.pl[2026];
   assert.equal(pl.nights, 8); assert.equal(MJ.plTable(s).at(-1).id, 'P'); assert.equal(M.missionCheck(s), null);

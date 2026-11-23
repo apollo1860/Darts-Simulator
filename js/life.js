@@ -288,6 +288,7 @@ export function checkAchievements(state) {
   state.achievements ??= {};
   for (const a of ACHIEVEMENTS) {
     if (state.achievements[a.id] || !a.check(ctx)) continue;
+    if (state.mission && !state.mission.free) { state.achievements[a.id] = { year: state.date.year, week: state.date.week, mission: true }; continue; }   // Version 277: in Missionen still (keine Einblendung/News/Star-Punkte)
     const pts = msStarPoints(a);                                // kein Geld – nur ein kleines Plus beim Star-Status
     state.achievements[a.id] = { year: state.date.year, week: state.date.week };
     addStarProgress(state, pts);
