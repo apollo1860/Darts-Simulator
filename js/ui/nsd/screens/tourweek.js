@@ -3,7 +3,7 @@ import { esc } from '../../../util.js';
 import { flag } from '../../../../data/nations.js';
 import { CATEGORIES } from '../../../../data/tournaments.js';
 import { eventsInWeek, shownTo } from '../../../calendar.js';
-import { eventStatus, enterEvent } from '../../../tournaments.js';
+import { eventStatus, enterEvent, canSpectate, spectateEvent } from '../../../tournaments.js';
 import { nextWeek } from '../../../season.js';
 import { STAR_PRIZE_WIN, starPayout } from '../../../nsd.js';
 import { frame, header, titleBand, darkBar, bar, coin, bindHead, arrowIcon } from '../frame.js';
@@ -19,7 +19,7 @@ export function render(app) {
   const evs = eventsInWeek(s, year, week).filter(e => shownTo(s, e));
   const rows = evs.map(ev => {
     const st = eventStatus(s, ev), win = starPayout(STAR_PRIZE_WIN[fmtKey(ev)] ?? 0, lvl);
-    return `<div class="nsd-ev ${st.playable ? '' : 'off'}">
+    return `<div class="nsd-ev ${st.playable || canSpectate(s, ev) ? '' : 'off'}">
       <div class="nsd-ev-main">
         <div class="nsd-ev-cat">${esc(CATEGORIES[ev.cat]?.label ?? ev.cat)}${ev.count > 1 ? ` · ${ev.count} Turniere` : ''}</div>
         <div class="nsd-ev-name">${esc(ev.name)}</div>
@@ -27,6 +27,7 @@ export function render(app) {
         ${win ? `<div class="nsd-ev-sub">Sieg ${coin(win)}</div>` : ''}
       </div>
       ${st.playable ? `<button class="nsd-btn" data-enter="${ev.id}"><span class="lb">Melden</span></button>`
+        : canSpectate(s, ev) ? `<div class="nsd-ev-why">Nicht qualifiziert<button class="nsd-btn sm" data-watch="${ev.id}"><span class="lb">Zuschauen</span></button></div>`
         : `<div class="nsd-ev-why">${esc(st.reason)}</div>`}
     </div>`;
   }).join('');
@@ -54,6 +55,10 @@ export function mount(root, app) {
     // Development Tour: ein Wochenende hat mehrere Turniere – du wählst, wie viele du spielst (der Rest läuft ohne dich)
     modal({ title: esc(ev.name), body: `<p>Wie viele der ${ev.count} Turniere dieses Wochenendes spielst du? Jedes Turnier kostet Energie, der Rest läuft ohne dich.</p>`,
       actions: [...Array.from({ length: ev.count }, (_, i) => ({ label: `${i + 1} Turnier${i ? 'e' : ''}`, cls: i === ev.count - 1 ? 'btn-primary' : '', onClick: () => go(i + 1) })), { label: 'Abbrechen', cls: 'btn-ghost' }] });
+  });
+  root.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => {   // Version 272: WM ohne Qualifikation verfolgen
+    if (s.interview) return app.go('interview');
+    try { spectateEvent(s, b.dataset.watch); app.save(); app.go('event'); } catch (e) { toast(e.message, 'error'); }
   });
   root.querySelector('#w-next').onclick = async () => {
     if (s.activeEvent) return app.go('event');

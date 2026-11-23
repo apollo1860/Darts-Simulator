@@ -296,6 +296,7 @@ body.nsd-on .toast { font-family: var(--nsd-font); font-weight: 700; }
 .nsd-ev .nsd-btn { min-height: 56px; padding: 0 16px; }
 .nsd-ev .nsd-btn .lb { font-size: 1.15rem; }
 .nsd-ev-why { font-size: .85rem; font-weight: 700; color: #ffd6d6; max-width: 110px; text-align: right; }
+.nsd-ev-why [data-watch] { display: block; margin: 6px 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 1rem; }   /* Version 272: WM zuschauen */
 .nsd-coin .nsd-star.sm, .nsd-star.sm { width: 22px; height: 22px; }
 
 .nsd-vs { display: grid; grid-template-columns: 1fr 56px 1fr; align-items: center; gap: 6px; padding: 14px 10px; text-shadow: var(--nsd-shadow); }

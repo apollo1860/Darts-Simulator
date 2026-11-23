@@ -3600,4 +3600,20 @@ test('New Star Darts v270: Ausfall-Woche durch Verletzung – kein Training', as
   s.week = { played: false, eventId: null }; assert.ok(T.canTrain(s, 'sco', 1).ok, 'nächste Woche wieder');
 });
 
+test('New Star Darts v272: WM ohne Qualifikation verfolgen (Zuschauer)', async () => {
+  const N = await import('../js/nsd.js'), C = await import('../js/calendar.js');
+  const s = N.newNsdCareer({ first: 'Z', last: 'S', nation: 'DE', age: 20, slot: 1, seed: 5 }); s.player.assessed = true;
+  s.date.week = 51; s.week = { played: false, eventId: null };
+  const wm = C.eventsInWeek(s, 2026, 51).find(e => e.id === 'wm'); assert.ok(wm && !ET.eventStatus(s, wm).playable, 'nicht qualifiziert');
+  assert.ok(ET.canSpectate(s, wm));
+  const inst = ET.spectateEvent(s, 'wm'); assert.ok(inst.spectator && !inst.withPlayer && !ET.playerMatch(inst));
+  assert.ok(!inst.rounds.flatMap(r => r.matches).some(m => m.a === 'P' || m.b === 'P'), 'du spielst nicht mit');
+  const r0 = inst.current; ET.simulateRoundAI(s); ET.nextRound(s); assert.equal(inst.current, r0 + 1, 'eine Runde weiter');
+  ET.simulateRest(s); assert.ok(inst.done && inst.survivors[0]);
+  ET.closeEvent(s); assert.equal(s.activeEvent, null);
+  assert.ok(s.news.some(x => x.title.includes('Weltmeisterschaft') && x.title.includes('gewinnt')));
+  const ai = ET.simulateWeekAI(s); assert.ok(!ai.some(i => i.eventId === 'wm'), 'nicht doppelt im Hintergrund');
+  assert.ok(!ET.canSpectate(s, wm), 'nur einmal');
+});
+
 console.log(`\n${n} Tests ok`);

@@ -359,6 +359,17 @@ export function enterEvent(state, eventId, opts = {}) {
   return state.activeEvent;
 }
 
+// Version 272 (Nutzerwunsch): WM auch ohne Qualifikation verfolgen – Feld ohne dich, Runde für Runde durchklicken (Zuschauer-Instanz)
+export const SPECTATE_EVENTS = ['wm'];
+export const canSpectate = (state, ev) => !!ev && SPECTATE_EVENTS.includes(ev.id) && !!ev.startsThisWeek && !state.activeEvent && !state.ended
+  && !eventStatus(state, ev).playable && state.week.eventId !== ev.id && state.week.spectate !== ev.id && !autoPlayer(state, ev);
+export function spectateEvent(state, eventId) {
+  const ev = findEvent(state, eventId);
+  if (!canSpectate(state, ev)) throw new Error('Zuschauen ist hier nicht möglich');
+  state.week = { ...state.week, spectate: ev.id };
+  state.activeEvent = { ...newInstance(state, ev, 0, false, new RNG(state.rng)), spectator: true };
+  return state.activeEvent;
+}
 // Nächstes Turnier im Block (Tag 2, Turnier 2 …)
 export function nextSub(state) {
   const inst = state.activeEvent;
@@ -1289,7 +1300,7 @@ export function runAITournament(state, ev, sub, ctx = {}) {
 export function simulateWeekAI(state) {
   const out = [];
   for (const ev of eventsInWeek(state, state.date.year, state.date.week)) {
-    if (!AI_CATS.includes(ev.cat) || !ev.startsThisWeek || ev.id === state.week.eventId || state.week.extras?.includes(ev.id)) continue;
+    if (!AI_CATS.includes(ev.cat) || !ev.startsThisWeek || ev.id === state.week.eventId || ev.id === state.week.spectate || state.week.extras?.includes(ev.id)) continue;   // spectate: Version 272
     let auto = MAJOR_CATS.includes(ev.cat) && autoPlayer(state, ev), walkover = false;
     if (auto && state.week.blocked) {                  // Version 163: Ausfall-Woche – PL: Freilos für den Gegner, World Cup: Nachrücker
       auto = false;

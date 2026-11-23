@@ -136,6 +136,15 @@ export function render(app) {
   const pm = playerMatch(inst), e = Math.round(p.energy ?? 100);
   const energy = meter({ icon: heartIcon(), label: `Energie ${e} %`, pct: e, tone: canSelfPlay(p) ? 'green' : 'red' });
   const head = `${header(p.name)}${titleBand(esc(inst.name))}`;
+  if (inst.done && inst.spectator) {                       // Version 272: Zuschauer – Sieger und Finale
+    const fin = inst.rounds.at(-1)?.matches?.[0], w = inst.survivors?.[0], ru = fin && (fin.a === w ? fin.b : fin.a);
+    const sc = fin?.score ? (fin.a === w ? fin.score : [...fin.score].reverse()).join(':') : '';
+    return frame({
+      body: `${head}${darkBar(`🏆 ${esc(nameOf(s, w))} gewinnt`, 'sm')}
+        <div class="nsd-card" style="font-size:1.3rem">${ru ? `Finale: ${flag(nationOf(s, w))} ${esc(nameOf(s, w))} – ${flag(nationOf(s, ru))} ${esc(nameOf(s, ru))}${sc ? ` ${sc}` : ''}` : ''}</div>${drawView(s, inst)}`,
+      bottom: bar([null, null, { id: 'e-close', icon: checkIcon(), wide: true }]),
+    });
+  }
   if (inst.done) {
     const win = inst.place === 'W';
     return frame({
@@ -165,6 +174,11 @@ export function render(app) {
   }
   const lm = inst.lastMatch, tree = fixedTree(inst);
   // Version 202: ausgeschieden – Folgerunden Runde für Runde verfolgen (Turnierbaum) oder direkt beenden (Sieger kommt als News)
+  if (inst.spectator) return frame({                     // Version 272: Zuschauer – Runde für Runde durchklicken
+    body: `${head}${darkBar('Zuschauer', 'sm')}
+      <div class="nsd-card" style="font-size:1.1rem">Du bist nicht qualifiziert – verfolge das Turnier Runde für Runde.</div>${drawView(s, inst)}`,
+    bottom: bar([{ go: 'hub', icon: nicon('home'), label: 'Start' }, tree ? { id: 'e-round', icon: '▶', label: 'Nächste Runde' } : null, { id: 'e-rest', icon: '⏩', label: 'Turnier beenden', wide: true }]),
+  });
   return frame({
     body: `${head}${darkBar('Ausgeschieden', 'sm red')}
       <div class="nsd-card" style="font-size:1.3rem">${lm ? `${esc(lm.round)}: ${lm.score.join(':')} gegen ${esc(nameOf(s, lm.opp))}` : ''}</div>${drawView(s, inst)}${myPath(s, inst)}`,
