@@ -3632,6 +3632,8 @@ test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async
   // Play-off-Jagd: nach Spieltag 8 Letzter
   s = M.startMission('playoff', f, 5); const pl = s.pl[2026];
   assert.equal(pl.nights, 8); assert.equal(MJ.plTable(s).at(-1).id, 'P'); assert.equal(M.missionCheck(s), null);
+  assert.deepEqual(s.mission.scenes, { cats: ['pl'], mult: 2 }); assert.equal(ET.sceneMultOf(s), 1, 'außerhalb der PL normal');   // Version 275
+  { const ev = eventsInWeek(s, 2026, 14).find(e => e.cat === 'pl'); ET.enterEvent(s, ev.id); assert.equal(ET.sceneMultOf(s), 2, 'PL-Abend doppelt'); s.activeEvent = null; }
   // Letzte Patrone: letztes Kartenjahr, schwach, unzufrieden
   s = M.startMission('patrone', f, 5);
   assert.deepEqual([s.date.year, s.player.cardUntil, s.player.tour], [2027, 2027, 'tour']); assert.ok(N.skillsAvg(s.player) <= 4 && s.player.satisfaction <= 10);   // inkl. Mental

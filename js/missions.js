@@ -115,7 +115,7 @@ export const MISSIONS = [
   {
     id: 'playoff', name: 'Play-off-Jagd', kind: 'Turnier', icon: '🎤',
     story: 'Premier League, Halbzeit. Nach acht Spieltagen bist du Tabellenletzter – die Fans spotten schon, du seist nur wegen deines Namens eingeladen worden. Acht Abende bleiben.',
-    goal: 'Erreiche nach Spieltag 16 einen Play-off-Platz (Top 4 der Premier-League-Tabelle).',
+    goal: 'Erreiche nach Spieltag 16 einen Play-off-Platz (Top 4 der Premier-League-Tabelle). Melde dich für jeden Spieltag an – an den PL-Abenden gibt es doppelt so viele Spielszenen.',
     setup(form, seed) {
       const n = nameOf(form), s = newNsdCareer({ ...n, age: 29, seed }), p = s.player;
       setSkills(p, 40); setStar(p, 35); p.rel.fans = 55; p.satisfaction = 45; s.stars = 300;
@@ -125,7 +125,8 @@ export const MISSIONS = [
       const t = plTable(s).filter(x => x.id !== 'P'), min = Math.min(...t.map(x => pl.points[x.id]));
       pl.points.P = Math.max(0, min - 2); pl.nw.P = 0; pl.mw.P = Math.min(pl.mw.P ?? 0, Math.min(...t.map(x => pl.mw[x.id] ?? 0)));
       pl.legs.P = Math.min(pl.legs.P ?? 0, Math.min(...t.map(x => pl.legs[x.id] ?? 0)));
-      return finish(s, this, form);
+      finish(s, this, form); s.mission.scenes = { cats: ['pl'], mult: 2 };   // Version 275: an PL-Abenden doppelt so viele Spielszenen
+      return s;
     },
     check(s) {
       const pl = s.pl?.[NSD_START.year];
