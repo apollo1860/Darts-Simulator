@@ -1,6 +1,7 @@
 # STATUS – New Star Darts (ehem. Darts Career)
 
 ## Umbau zu New Star Darts (Etappen, Spezifikation in CLAUDE.md)
+- [x] **Version 274**: Comeback-König angepasst: Du bist genau so stark wie dein Finalgegner (Fähigkeiten/Mental über `realStartSkills` aus seinem Average), doppelt so viele Spielszenen (`inst.sceneMult = 2`: alle Szenenchancen × 2 und jedes Leg wie die knappe WM-Schlussphase; gemessen 1,03 → 1,90 Szenen je Leg), und das sechste Satz-Leg läuft schon: Gegner bei 100–105 Rest, du bei 77–82 (noch kein Dart aufs Doppel), du bist am Wurf.
 - [x] **Version 273**: **Missionen** statt „Trainieren“ im Titelmenü (Nutzerwunsch, Vorbild Football-Manager-Challenges). `js/missions.js` (DOM-frei): je Mission Hintergrundgeschichte, Ziel, eigener Spielstand-Aufbau (`setup`), Erfolg/Scheitern (`check`), Fortschritt (`progress`); Prüfung nach jeder Navigation (main.js), Ergebnis einmalig im Screen `missionend`. Laufende Mission im eigenen Slot `M` (taucht nicht in der Slot-Liste auf); Karriere-Missionen nach Erfolg „Weiterspielen“ in einem normalen Slot (mission.free). Erledigte Missionen geräteweit (`newStarDarts.missions`, Haken in der Liste). Freies Training jetzt als Eintrag in der Missionsliste. Missionen:
   - **Comeback-König** (Match): Saison 2026 vorab simuliert, du stehst (gesetzt) im WM-Finale, Live-Match startet bei 0:5 Sätzen / 0:2 Legs.
   - **Play-off-Jagd** (Turnier): du ersetzt Platz 8 der PL-Einladungen, Spieltage 1–8 laufen automatisch, danach Tabellenletzter → nach Spieltag 16 Top 4.

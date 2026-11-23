@@ -690,7 +690,7 @@ export function effortEnergyFactor(live, legsTotal) {
 // Spielszene (≈ 2,9 je Leg statt ≈ 1,5; Einzel Best of 11 ≈ 2,7). Matchdarts/Entscheidungsleg wie immer zuerst.
 function pickMoment(state, live, lm) {
   const team = !!state.activeEvent?.teams;
-  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)] * (team ? 1 : rookieOf(state));   // Version 262: Anfänger weniger
+  const me = live.me, r = lm.rem[me], fin = r <= 170 && !BOGEY.has(r), eff = EFFORT_SCENES[effortOf(live)] * (team ? 1 : rookieOf(state)) * (state.activeEvent?.sceneMult ?? 1);   // Version 274: sceneMult (Missionen)   // Version 262: Anfänger weniger
   if (fin && wouldWinMatch(lm, me)) return 'match';
   if (isDecider(lm) && (team || rookieRoll(state, live, lm, 'dec'))) return 'decider';
   if (team) return fin ? (lm.legStarter !== me ? 'break' : 'finish') : 'scoring';   // Doppel: jede deiner Aufnahmen ist eine Szene (du wirfst nur jede zweite)
@@ -722,7 +722,7 @@ export const lateMatch = lm => wouldWinMatch(lm, 0) || wouldWinMatch(lm, 1) || i
 // Version 240 (Nutzerwunsch): WM – knappe Schlussphase (höchstens 1 Satz Unterschied, einer nur noch 1 Satz vom Sieg entfernt) → mehr Szenen:
 // jedes Leg ist ein Board-Leg, bis zu 2 Board-Momente und 2 Scoring-Aufnahmen je Leg (wie in kurzen Matches)
 export const WM_CLUTCH_MOMENTS = 2;
-export const wmClutch = (state, lm) => state.activeEvent?.fmt === 'wm' && (lm.format.sets ?? 0) > 1
+export const wmClutch = (state, lm) => (state.activeEvent?.sceneMult ?? 1) >= 2 || state.activeEvent?.fmt === 'wm' && (lm.format.sets ?? 0) > 1   // Version 274: Mission (sceneMult) wie knappe WM-Schlussphase
   && Math.abs(lm.sets[0] - lm.sets[1]) <= 1 && Math.max(lm.sets[0], lm.sets[1]) >= lm.format.sets - 1;
 function paced(state, lm, me, chance = 1) {
   const live = state.activeEvent.live, pace = boardPace(lm), key = `${lm.legIdx}:${lm.legVisits?.[me]?.length ?? 0}`;

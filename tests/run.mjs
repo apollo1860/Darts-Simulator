@@ -3625,6 +3625,9 @@ test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async
   assert.deepEqual([s.date.year, s.date.week], [2026, 51]); assert.equal(s.slot, M.MISSION_SLOT); assert.equal(s.player.name, 'Mia Mission');
   assert.ok(s.activeEvent.rounds.at(-1).matches[0].a === 'P' || s.activeEvent.rounds.at(-1).matches[0].b === 'P', 'im Finale');
   assert.deepEqual([lm.sets[me], lm.sets[1 - me], lm.legs[me], lm.legs[1 - me]], [0, 5, 0, 2]); assert.deepEqual(s.msQueue, [], 'keine Meilenstein-Flut');
+  assert.ok(lm.rem[me] >= 77 && lm.rem[me] <= 82 && lm.rem[1 - me] >= 100 && lm.rem[1 - me] <= 105 && lm.turn === me, `Rest ${lm.rem}`);   // Version 274
+  { const fm = s.activeEvent.rounds.at(-1).matches[0], o = getPlayer(s, fm.a === 'P' ? fm.b : fm.a), sk = N.realStartSkills(o.avg); assert.equal(N.skillValue(s.player, 'sco'), sk.sco, 'gleich stark wie der Gegner'); }
+  assert.equal(s.activeEvent.sceneMult, 2); assert.ok(ET.wmClutch(s, lm), 'doppelt so viele Szenen');
   ET.simulateRest(s); assert.ok(['won', 'lost'].includes(M.missionCheck(s))); assert.equal(s.mission.status, s.activeEvent.place === 'W' ? 'won' : 'lost');
   // Play-off-Jagd: nach Spieltag 8 Letzter
   s = M.startMission('playoff', f, 5); const pl = s.pl[2026];

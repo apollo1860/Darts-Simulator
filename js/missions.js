@@ -1,13 +1,14 @@
 // New Star Darts (DOM-frei, Version 273): Missionen – feste Ausgangslagen mit Hintergrundgeschichte und klarem Ziel (statt freier Karriere).
 // Jede Mission baut ihren Spielstand selbst (teils mit vorab simulierter Saison), `missionCheck` prüft nach jeder Navigation Erfolg/Scheitern.
 // Laufende Mission liegt im eigenen Slot 'M'; Karriere-Missionen lassen sich nach Erfolg als normale Karriere weiterspielen.
-import { newNsdCareer, newRealCareer, realPlayers, syncAttrs, TRAINABLE, SKILL_LEVELS, NSD_START, DROP_FOR_PLAYER } from './nsd.js';
+import { newNsdCareer, newRealCareer, realPlayers, realStartSkills, syncAttrs, TRAINABLE, SKILL_LEVELS, NSD_START, DROP_FOR_PLAYER } from './nsd.js';
 import { nextWeek } from './season.js';
 import { eventsInWeek, shownTo, findEvent } from './calendar.js';
 import { eventStatus, enterEvent, simulateRest, nextSub, closeEvent, newInstance, simulateRoundAI, nextRound, startManualMatch, playerMatch } from './tournaments.js';
 import { orderOfMerit, rankOf } from './rankings.js';
 import { plState, plTable } from './majors.js';
 import { weekIndex } from './career.js';
+import { getPlayer } from './world.js';
 import { addNews } from './news.js';
 import { achievementCtx } from './life.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
@@ -68,7 +69,7 @@ const finish = (s, def, form) => {
 export const MISSIONS = [
   {
     id: 'comeback', name: 'Comeback-König', kind: 'Match', icon: '👑',
-    story: 'WM-Finale im Ally Pally. Die Nerven haben dich im Stich gelassen – 0:5 in Sätzen, im sechsten Satz liegst du 0:2 in Legs zurück. Die Halle ist still, die Buchmacher haben dich abgeschrieben.',
+    story: 'WM-Finale im Ally Pally gegen einen gleich starken Gegner. Die Nerven haben dich im Stich gelassen – 0:5 in Sätzen, im sechsten Satz liegst du 0:2 in Legs zurück. Er steht bei gut 100 Rest, du bei knapp 80 – und du bist am Wurf. Die Halle ist still, die Buchmacher haben dich abgeschrieben.',
     goal: 'Gewinne das WM-Finale trotz 0:5-Satz- und 0:2-Leg-Rückstand.',
     setup(form, seed) {
       const n = nameOf(form), s = newNsdCareer({ ...n, age: 30, seed }), p = s.player;
@@ -86,8 +87,21 @@ export const MISSIONS = [
         if (pm && !pm.winner) { const to = f.sets ?? f.legs, l = rng.int(0, to - 1); pm.winner = 'P'; pm.score = pm.a === 'P' ? [to, l] : [l, to]; }
         simulateRoundAI(s); nextRound(s);
       }
+      // Version 274: du bist genau so stark wie dein Finalgegner; doppelt so viele Spielszenen
+      const fm = inst.rounds.at(-1).matches[0], oppId = fm.a === 'P' ? fm.b : fm.a, sk = realStartSkills(getPlayer(s, oppId)?.avg ?? 98);
+      setSkills(p, sk); setStar(p, Math.max(1, sk.men)); inst.sceneMult = 2;
       const live = startManualMatch(s), lm = live.m, me = live.me;
       lm.sets[me] = 0; lm.sets[1 - me] = 5; lm.legs[me] = 0; lm.legs[1 - me] = 2;
+      // Leg läuft schon: Gegner steht bei 100–105, du bei 77–82 (noch kein Dart aufs Doppel) – du bist am Wurf
+      const rem = [0, 0]; rem[me] = rng.int(77, 82); rem[1 - me] = rng.int(100, 105);
+      for (const i of [0, 1]) {
+        let left = 501 - rem[i]; const v = [];
+        for (let k = 0; k < 4; k++) { const sc = k === 3 ? left : Math.min(180, Math.max(26, Math.round(left / (4 - k) + rng.int(-25, 25)))); v.push({ score: sc, bust: false, rem: 501 - (501 - left) - sc }); left -= sc; }
+        let r = 501; for (const x of v) { r -= x.score; x.rem = r; }
+        lm.legVisits[i] = v; lm.legDarts[i] = 12; lm.legPoints[i] = 501 - rem[i]; lm.rem[i] = rem[i];
+        lm.stats[i].points += 501 - rem[i]; lm.stats[i].darts += 12;
+      }
+      lm.legIdx = 17; lm.legStarter = 1 - me; lm.turn = me; lm.visit = { darts: [], start: lm.rem[me] };
       return finish(s, this, form);
     },
     check(s) {
