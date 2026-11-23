@@ -12,7 +12,9 @@ import { getPlayer } from './world.js';
 import { addNews } from './news.js';
 import { achievementCtx } from './life.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
-import { RNG } from './rng.js';
+import { RNG, hashSeed } from './rng.js';
+import { randomName } from '../data/names.js';
+import { clampAngle, ANGLE_DEFAULT } from './obstruction.js';
 
 export const MISSION_SLOT = 'M';
 const fill = v => Array.from({ length: SKILL_LEVELS }, (_, i) => Math.max(0, Math.min(3, v - 3 * i)));
@@ -20,7 +22,23 @@ export function setSkills(p, v) { for (const t of TRAINABLE) p.skills[t.key] = f
 const setStar = (p, lvl) => { p.star = { level: lvl, xp: 0 }; p.starSeen = { level: lvl, xp: 0 }; syncAttrs(p); };
 const clearPopups = s => { s.interview = null; s.lifeEvent = null; s.dilemma = null; s.articles = []; };
 const before = (s, y, w) => s.date.year < y || (s.date.year === y && s.date.week < w);
-const nameOf = form => ({ first: (form.first || 'Max').trim(), last: (form.last || 'Mustermann').trim(), nation: form.nation || 'DE' });
+// Version 278: auch als realer Spieler (Name/Nation des Profis; die Ausgangslage der Mission bleibt) und mit eigenem Einsteckwinkel
+const realOf = form => (form.real ? realPlayers().find(r => r.name === form.real) ?? null : null);
+const nameOf = form => {
+  const r = realOf(form); if (r) { const [first, ...rest] = r.name.split(' '); return { first, last: rest.join(' '), nation: r.nation, woman: !!r.woman }; }
+  return { first: (form.first || 'Max').trim(), last: (form.last || 'Mustermann').trim(), nation: form.nation || 'DE' };
+};
+// Den KI-Doppelgänger des gewählten Profis umbenennen (fiktiver Name, Daten/Platz bleiben) – kein zweiter Spieler mit deinem Namen
+function claimIdentity(s, form) {
+  const n = nameOf(form), p = s.player, name = `${n.first} ${n.last}`;
+  Object.assign(p, { name, first: n.first, last: n.last, nation: n.nation, angle: Math.round(clampAngle(form.angle ?? p.angle ?? ANGLE_DEFAULT)) });
+  if (n.woman) p.woman = true; else delete p.woman;
+  if (!realOf(form)) return s;
+  const used = new Set(Object.values(s.world.players).map(x => x.name)), rng = new RNG(hashSeed('mission-real', name));
+  for (const x of Object.values(s.world.players)) if (x.name === name && x.id !== 'P') x.name = randomName(rng, x.nation, used, !!x.woman);
+  return s;
+}
+const base = (form, opts) => claimIdentity(newNsdCareer({ ...nameOf(form), ...opts }), form);
 
 // Eine Woche automatisch spielen (für vorab simulierte Saisons): passende Turniere melden und komplett simulieren
 function autoWeek(s, cats) {
@@ -50,13 +68,12 @@ function realByRank(form, seed, pick) {
   const oom = orderOfMerit(tmp, 'pdc').filter(x => x.p.id !== 'P' && names.has(x.p.name));
   const hit = pick(oom, tmp) ?? oom[1];
   const s = newRealCareer({ name: hit.p.name, seed });
-  const n = nameOf(form), p = s.player;
-  Object.assign(p, { name: `${n.first} ${n.last}`, first: n.first, last: n.last, nation: n.nation, real: null });
+  s.player.real = null; claimIdentity(s, form);
   s.news = [];
   return s;
 }
 const finish = (s, def, form) => {
-  Object.assign(s, { slot: MISSION_SLOT, mission: { id: def.id, status: 'active', started: { ...s.date }, form: nameOf(form) } });
+  Object.assign(s, { slot: MISSION_SLOT, mission: { id: def.id, status: 'active', started: { ...s.date }, form: { ...nameOf(form), real: form.real ?? null, angle: s.player.angle } } });
   s.player.assessed = true; clearPopups(s); s.news = (s.news ?? []).slice(0, 5);
   const ctx = achievementCtx(s); s.achievements ??= {};                  // Startwerte zählen nicht als frische Meilensteine (keine Einblendungen)
   for (const a of ACHIEVEMENTS) if (!s.achievements[a.id] && a.check(ctx)) s.achievements[a.id] = { year: s.date.year, week: s.date.week, mission: true };
@@ -96,7 +113,7 @@ export const MISSIONS = [
     story: 'WM-Finale im Ally Pally gegen einen gleich starken Gegner. Die Nerven haben dich im Stich gelassen – 0:5 in Sätzen, im sechsten Satz liegst du 0:2 in Legs zurück. Er steht bei gut 100 Rest, du bei knapp 80 – und du bist am Wurf. Die Halle ist still, die Buchmacher haben dich abgeschrieben.',
     goal: 'Gewinne das WM-Finale trotz 0:5-Satz- und 0:2-Leg-Rückstand.',
     setup(form, seed) {
-      const n = nameOf(form), s = newNsdCareer({ ...n, age: 30, seed }), p = s.player;
+      const s = base(form, { age: 30, seed }), p = s.player;
       setSkills(p, 45); setStar(p, 45); p.rel.fans = 70; p.satisfaction = 60; s.stars = 400;
       simulateUntil(s, NSD_START.year, 51);                         // eine Saison ist vorab gelaufen
       const wm = findEvent(s, 'wm'), inst = newInstance(s, wm, 0, false, new RNG(s.rng));
@@ -150,7 +167,7 @@ export const MISSIONS = [
     story: 'Premier League, Halbzeit. Nach acht Spieltagen bist du Tabellenletzter – die Fans spotten schon, du seist nur wegen deines Namens eingeladen worden. Acht Abende bleiben.',
     goal: 'Erreiche nach Spieltag 16 einen Play-off-Platz (Top 4 der Premier-League-Tabelle). Melde dich für jeden Spieltag an – an den PL-Abenden gibt es doppelt so viele Spielszenen.',
     setup(form, seed) {
-      const n = nameOf(form), s = newNsdCareer({ ...n, age: 29, seed }), p = s.player;
+      const s = base(form, { age: 29, seed }), p = s.player;
       setSkills(p, 40); setStar(p, 35); p.rel.fans = 55; p.satisfaction = 45; s.stars = 300;
       const pl = plState(s), out = pl.players[7];
       pl.players[7] = 'P'; for (const k of ['points', 'legs', 'nw', 'mw']) { delete pl[k][out]; pl[k].P = 0; }
@@ -178,7 +195,7 @@ export const MISSIONS = [
     story: 'Dein letztes Tourcard-Jahr. Die Form ist weg, das Selbstvertrauen auch, und in der Rangliste bist du weit abgeschlagen. Wenn du die Karte jetzt nicht rettest, war es das mit dem Profidarts.',
     goal: 'Sichere dir die Tourcard über das Jahr 2027 hinaus – über die Top 64 der Order of Merit oder notfalls über die Q-School.',
     setup(form, seed) {
-      const n = nameOf(form), s = newNsdCareer({ ...n, age: 31, seed }), p = s.player;
+      const s = base(form, { age: 31, seed }), p = s.player;
       setSkills(p, 8); setStar(p, 6);
       simulateUntil(s, NSD_START.year + 1, 3, ['pc']);              // Saison 2026 ist gelaufen (nur Players Championships)
       p.cardUntil = NSD_START.year + 1;                             // letztes Kartenjahr
@@ -198,7 +215,7 @@ export const MISSIONS = [
     story: 'Zweimal Weltmeister, dann der Absturz: Verletzungen, Frust, Rücktritt. Drei Jahre später juckt es wieder. Bei der Q-School hast du die Karte knapp verpasst – also Challenge Tour, mit rostigem Arm, aber mit dem Kopf eines Champions.',
     goal: 'Gewinne bis Ende 2028 einen Major-Titel und beende 2028 in den Top 16 der Order of Merit.',
     setup(form, seed) {
-      const n = nameOf(form), s = newNsdCareer({ ...n, age: 38, seed }), p = s.player, y = NSD_START.year;
+      const s = base(form, { age: 38, seed }), p = s.player, y = NSD_START.year;
       setSkills(p, 22); setStar(p, 30); p.rel.fans = 50; p.satisfaction = 40; s.stars = 60; p.exp = 10;
       Object.assign(p, { tour: 'none', cardUntil: null, cardVia: null, qschoolYear: y }); s.openTour = true;   // Q-School 2026 knapp verpasst → Challenge Tour offen   // ohne Karte: Challenge Tour / Q-School
       const r = Object.values(s.world.players).find(x => x.name === DROP_FOR_PLAYER);

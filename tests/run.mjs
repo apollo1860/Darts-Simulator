@@ -3634,6 +3634,10 @@ test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async
   ET.simulateRest(s); assert.ok(['won', 'lost'].includes(M.missionCheck(s))); assert.equal(s.mission.status, s.activeEvent.place === 'W' ? 'won' : 'lost');
   { const L = await import('../js/life.js'), n = s.news.length, lvl = s.player.star.level; s.mstats = { ...(s.mstats ?? {}), weeksNo1: 99 };   // Version 277: in Missionen keine Meilenstein-Mitteilungen
     assert.deepEqual(L.checkAchievements(s), []); assert.deepEqual(s.msQueue ?? [], []); assert.equal(s.news.length, n); assert.equal(s.player.star.level, lvl); }
+  { const t = M.startMission('thron', { real: 'Luke Littler', angle: -25 }, 5);   // Version 278: realer Spieler + Einsteckwinkel
+    assert.equal(t.player.name, 'Luke Littler'); assert.equal(t.player.angle, -25); assert.equal(R.rankOf(t, 'pdc', 'P'), 2);
+    assert.ok(!Object.values(t.world.players).some(x => x.name === 'Luke Littler'), 'kein KI-Doppelgänger');
+    const w = M.startMission('pleite', { real: 'Beau Greaves', angle: 30 }, 5); assert.ok(w.player.woman && w.player.angle === 30 && !Object.values(w.world.players).some(x => x.name === 'Beau Greaves')); }
   // Play-off-Jagd: nach Spieltag 8 Letzter
   s = M.startMission('playoff', f, 5); const pl = s.pl[2026];
   assert.equal(pl.nights, 8); assert.equal(MJ.plTable(s).at(-1).id, 'P'); assert.equal(M.missionCheck(s), null);
