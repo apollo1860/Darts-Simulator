@@ -3479,7 +3479,7 @@ test('New Star Darts v261: Nervosität → Treffer häufiger am Rand des Zielkre
   assert.equal(N.nerveEdge(0), 0); assert.equal(N.nerveEdge(1), 1.2); assert.equal(N.nerveEdge(10), 3);
   const outer = edge => { const rng = new RNG({ s: 5 }); let o = 0; for (let i = 0; i < 4000; i++) { const p = TM.landInCircle(0, 0, 10, rng, edge); assert.ok(Math.hypot(p.x, p.y) <= 10 + 1e-9); if (Math.hypot(p.x, p.y) > 7) o++; } return o / 4000; };
   const calm = outer(0), nervous = outer(3);
-  assert.ok(Math.abs(calm - 0.51) < 0.04, `ruhig ${calm}`); assert.ok(nervous > calm + 0.15, `nervös ${nervous}`);
+  assert.ok(Math.abs(calm - 0.30) < 0.04, `ruhig ${calm}`);   // Version 280: zur Mitte gebündelt assert.ok(nervous > calm + 0.15, `nervös ${nervous}`);
 });
 
 test('New Star Darts v262: Anfänger haben weniger Spielszenen', async () => {

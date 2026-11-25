@@ -166,10 +166,11 @@ export function circleParams(attrs, m, i, target) {
     pressure: pf > 1.05,
   };
 }
-// Gleichverteilter Punkt im Kreis
-// Version 261: edge > 0 (Nervosität) verschiebt die Treffer zum Rand – Abstand r × u^(1/(2+edge)); edge 0 = gleichverteilt (u^(1/2))
+// Treffpunkt im Kreis – Version 280: zur Mitte gebündelt (Abstand gleichverteilt über den Radius: innere Hälfte 50 %, äußerstes Viertel 25 %)
+// Version 261: edge > 0 (Nervosität) verschiebt die Treffer zum Rand – Abstand r × u^(1/(LAND_Q+edge))
+export const LAND_Q = 1;
 export function landInCircle(x, y, r, rng, edge = 0) {
-  const a = rng.next() * 2 * Math.PI, d = r * Math.pow(rng.next(), 1 / (2 + Math.max(0, edge)));
+  const a = rng.next() * 2 * Math.PI, d = r * Math.pow(rng.next(), 1 / (LAND_Q + Math.max(0, edge)));
   return { x: x + Math.cos(a) * d, y: y + Math.sin(a) * d };
 }
 
