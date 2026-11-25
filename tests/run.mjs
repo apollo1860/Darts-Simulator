@@ -3630,7 +3630,7 @@ test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async
   assert.equal(s.activeEvent.sceneMult, 2); assert.ok(ET.wmClutch(s, lm), 'doppelt so viele Szenen');
   { const st = lm.stats, o = st[1 - me], m2 = st[me], a = x => x.points / x.darts * 3;   // Version 276: vorab gespielte Legs zählen in die Statistik
     assert.ok(o.legsWon === 17 && m2.legsWon <= 10 && lm.legIdx === 17 + m2.legsWon, `Legs ${o.legsWon}/${m2.legsWon}/${lm.legIdx}`);
-    assert.ok(a(o) > 80 && a(o) < 120 && a(m2) > 75 && a(m2) < 115 && o.coHit === 17 && o.coAtt >= 17 && o.f9d > 0, `Ø ${a(o)} / ${a(m2)}`); }
+    assert.ok(a(o) > 96 && a(o) < 106 && a(m2) > 74 && a(m2) < 85 && o.coHit === 17 && o.coAtt >= 17 && o.f9d > 0, `Ø ${a(o)} / ${a(m2)}`); }
   ET.simulateRest(s); assert.ok(['won', 'lost'].includes(M.missionCheck(s))); assert.equal(s.mission.status, s.activeEvent.place === 'W' ? 'won' : 'lost');
   { const L = await import('../js/life.js'), n = s.news.length, lvl = s.player.star.level; s.mstats = { ...(s.mstats ?? {}), weeksNo1: 99 };   // Version 277: in Missionen keine Meilenstein-Mitteilungen
     assert.deepEqual(L.checkAchievements(s), []); assert.deepEqual(s.msQueue ?? [], []); assert.equal(s.news.length, n); assert.equal(s.player.star.level, lvl); }
