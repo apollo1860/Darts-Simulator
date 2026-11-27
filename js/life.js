@@ -1,6 +1,7 @@
 // New Star Darts (DOM-frei): Leben – Lifestyle-Shop, Zufriedenheit, Beziehungen (Freundin), Lebens-Ereignisse (Karten), Erfolge
 import { LIFESTYLE } from '../data/lifestyle.js';
-import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M, lendableCars, borrowers, ACCIDENTS_HOME, ACCIDENTS_VEHICLE, VEHICLE_KIND, ownedVehicles, accidentSkills } from '../data/lifeevents.js';
+import { LIFE_EVENTS, PARTNER_NAMES, PARTNER_NAMES_M, lendableCars, borrowers, ACCIDENTS_HOME, ACCIDENTS_VEHICLE, VEHICLE_KIND, ownedVehicles, accidentSkills, OLD_FRIENDS } from '../data/lifeevents.js';
+import { BARREL_NAMES } from '../data/accessories.js';
 import { removePoint } from './skilltrain.js';
 import { MANAGERS } from '../data/team.js';
 import { INJ_REGEN } from './injury.js';
@@ -117,7 +118,7 @@ export const eventById = id => LIFE_EVENTS.find(e => e.id === id);
 export function rollLifeEvent(state, rng) {
   const p = state.player;
   if (state.lifeEvent || !rng.chance(LIFE_EVENT_CHANCE)) return null;
-  const pool = LIFE_EVENTS.filter(e => (!e.if || e.if(p, state)) && e.id !== state.lastLifeEvent && (e.id !== 'shopping' || canShop(state)));
+  const pool = LIFE_EVENTS.filter(e => !e.special && (!e.if || e.if(p, state)) && e.id !== state.lastLifeEvent && (e.id !== 'shopping' || canShop(state)));
   const ev = rng.pick(pool);
   const names = p.woman ? PARTNER_NAMES_M : PARTNER_NAMES;
   state.lifeEvent = { id: ev.id, name: ev.id === 'meet' ? rng.pick(names) : null, lover: ev.id === 'affair' ? rng.pick(names.filter(n => n !== p.partnerName)) : null };
@@ -127,6 +128,27 @@ export function rollLifeEvent(state, rng) {
     Object.assign(state.lifeEvent, { acc: texts.indexOf(rng.pick(texts)), car: car?.id ?? null, skill: rng.pick(accidentSkills(p)), n: rng.int(1, 2) });
   }
   if (ev.id === 'borrow') { state.lifeEvent.who = rng.pick(borrowers(p, state)); state.lifeEvent.car = rng.pick(lendableCars(p)).id; }
+  return state.lifeEvent;
+}
+// ---- Version 281: Darts vom alten Kumpel (Formkrise) ----
+// Krisenwert = Niederlagen in Folge + 0,5 × Niederlagen der letzten 6 Wochen (state.slump, tournaments.js recordH2H).
+// Ab Wert 3 wöchentlich 6 % je Punkt darüber + 6 % (max. 35 %), sonst selten (1 %); höchstens alle 10 Wochen, nicht solange sie noch wirken.
+// Boost für alle Fähigkeiten: 4 + 2 je Krisenpunkt über 3 (max. 12), 3–5 Matches – gratis (zum Vergleich Shop-Flights 3–25).
+export const SLUMP_WEEKS = 6, FRIEND_COOLDOWN = 10, FRIEND_MAX = 12;
+export function slumpScore(state) {
+  const sl = state.slump; if (!sl) return 0;
+  const recent = (sl.losses ?? []).filter(w => absWeek(state) - w < SLUMP_WEEKS).length;
+  return (sl.streak ?? 0) + 0.5 * recent;
+}
+export const friendDartsChance = sc => (sc >= 3 ? Math.min(0.35, 0.06 * (sc - 2)) : 0.01);
+export function rollFriendDarts(state, rng) {
+  const p = state.player;
+  if (state.lifeEvent || (p.boosts ?? []).some(b => b.friend) || absWeek(state) - (p.friendDartsWeek ?? -99) < FRIEND_COOLDOWN) return null;
+  const sc = slumpScore(state);
+  if (!rng.chance(friendDartsChance(sc))) return null;
+  const bonus = Math.min(FRIEND_MAX, 4 + 2 * Math.max(0, Math.floor(sc) - 3));
+  p.friendDartsWeek = absWeek(state);
+  state.lifeEvent = { id: 'olddarts', friend: rng.pick(OLD_FRIENDS), darts: `${rng.pick(BARREL_NAMES.first)} ${rng.pick(BARREL_NAMES.second)}`, bonus, matches: rng.int(3, 5) };
   return state.lifeEvent;
 }
 // Version 134: Wer leiht sich das Fahrzeug? (Freundin/Freund mit Namen, Manager mit Rolle)
@@ -143,7 +165,7 @@ export function lifeEventView(state) {
   if (!ev) return null;
   const p = { ...state.player, partnerName: le.name ?? state.player.partnerName, lover: le.lover, ...borrowCtx(state, le) };
   const paid = ev.opts.find(o => o.stars < 0), price = paid ? starPrice(-paid.stars, state.player.star.level) : 0;   // Preis im Text = Preis im Knopf
-  return { icon: ev.icon, text: fill(ev.text.replace('{accident}', accidentText(le)), p).replaceAll('{preis}', price), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
+  return { icon: ev.icon, text: fill(ev.text.replace('{accident}', accidentText(le)).replace('{friend}', le.friend ?? 'Kalle').replace('{darts}', le.darts ? `„${le.darts}“-Darts` : 'Darts'), p).replaceAll('{preis}', price), opts: ev.opts.map((o, i) => ({ i, label: fill(o.label, p), cost: o.stars < 0 ? starPrice(-o.stars, state.player.star.level) : 0,
     energy: o.energy < 0 ? -o.energy : 0, tired: o.energy < 0 && (state.player.energy ?? 0) < -o.energy })) };
 }
 function accidentText(le) {
@@ -184,6 +206,12 @@ export function applyEffects(state, e) {
     let k = 0; if (t) for (let i = 0; i < (le.n ?? 1); i++) if (removePoint(p, t.key)) k++;
     if (k) { syncAttrs(p); out.push(`${t.label} −${k} (jetzt ${skillValue(p, t.key)})`); }
     if (state.week && !state.activeEvent) { state.week.accident = true; out.push('Diese Woche keine Turniere'); }   // Version 217 (Majors bleiben stillschweigend spielbar)
+  }
+  if (e.friendDarts) {                                 // Version 281: gratis Darts vom Kumpel – Boost für die nächsten Matches
+    const le = state.lifeEvent ?? {}, v = le.bonus ?? 4, n = le.matches ?? 3;
+    (p.boosts ??= []).push({ id: `F${absWeek(state)}`, name: `${le.darts ?? 'Alte'}-Darts von ${le.friend ?? 'Kalle'}`, icon: '🎯', type: 'Darts vom Kumpel', price: 0, friend: true,
+      bonus: Object.fromEntries(TRAINABLE.map(t => [t.key, v])), left: n });
+    syncAttrs(p); out.push(`Alle Fähigkeiten +${v} für ${n} Matches`);
   }
   if (e.idle) { for (const t of TRAINABLE) p.idle[t.key] = 0; p.warned = {}; out.push('Trainingsrückstand weg'); }
   if (e.single) breakUp(state, false);
@@ -258,6 +286,7 @@ export function lifeWeek(state, rng) {
   if (p.partnerName && p.partnerSince == null) p.partnerSince = absWeek(state);   // ältere Spielstände: Beziehung zählt ab jetzt
   if (p.rel.partner > 0 && !(p.married && absWeek(state) % 2)) { addRel(p, 'partner', -1); if (p.rel.partner <= 0) breakUp(state); }   // verheiratet: nur jede 2. Woche −1
   upkeepWeek(state, rng);
+  rollFriendDarts(state, rng);                                  // Version 281: vor der normalen Ereignis-Karte
   if (p.vacRegen > 0) p.vacRegen--;   // Version 242: Urlaubs-Erholung läuft ab
   const s = p.satisfaction ?? 50;
   p.satisfaction = Math.round(clamp(s + (satisfactionTarget(p) - s) * 0.08, 0, 100) * 10) / 10;   // langsam

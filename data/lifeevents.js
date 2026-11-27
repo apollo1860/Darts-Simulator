@@ -35,7 +35,11 @@ export const VEHICLE_KIND = { kleinwagen: 'car', van: 'car', sportwagen: 'car', 
 export const ownedVehicles = p => LIFESTYLE.filter(x => x.cat === 'vehicle' && p.owned?.includes(x.id));
 export const accidentSkills = p => ['sco', 'fin'].filter(k => (p.skills?.[k] ?? []).some(v => v > 0));
 
+// Version 281: alter Darts-Kumpel leiht dir seine besseren Darts (nur bei Formkrise, siehe life.js rollFriendDarts) – nicht im Zufallspool
+export const OLD_FRIENDS = ['Kalle', 'Rudi', 'Manni', 'Heinz', 'Olaf', 'Bernd', 'Uwe', 'Jürgen', 'Klaus', 'Dieter', 'Gerd', 'Hotte'];
 export const LIFE_EVENTS = [
+  { id: 'olddarts', special: true, icon: '🎯', text: 'Dein alter Darts-Kumpel {friend} hat gehört, dass es gerade gar nicht läuft. Er drückt dir seine kaum benutzten {darts} in die Hand: „Die haben mir damals Glück gebracht – nimm sie, keine Widerrede!“',
+    opts: [{ label: 'Annehmen', friendDarts: true, out: 'Die alten Darts liegen erstaunlich gut in der Hand.' }] },
   { id: 'party', icon: '🎉', text: 'Deine Kumpels schmeißen eine Party und wollen dich unbedingt dabeihaben.',
     opts: [{ label: 'Hingehen', energy: -60, sat: 8, fans: 1, out: 'Lange Nacht, gute Laune.' },
       { label: 'Absagen', sat: -3, out: 'Die Jungs sind etwas enttäuscht.' }] },

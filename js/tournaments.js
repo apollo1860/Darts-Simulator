@@ -915,6 +915,8 @@ export const FORM_LEN = 5;
 export function recordH2H(state, inst, oppId, won, my, opp, avg) {
   (state.form ??= []).unshift({ w: won ? 1 : 0, a: Math.round((avg ?? 0) * 10) / 10 });
   state.form.length = Math.min(state.form.length, FORM_LEN);
+  const sl = (state.slump ??= { streak: 0, losses: [] }), wk = state.date.year * 52 + state.date.week;   // Version 281: Formkrise (Darts vom Kumpel)
+  if (won) sl.streak = 0; else { sl.streak++; sl.losses = [...sl.losses.filter(w => wk - w < 6), wk].slice(-30); }
   if (inst.teams || !oppId || String(oppId).startsWith('W:')) return;   // World Cup: keine Einzel-Bilanz
   const h = ((state.h2h ??= {})[oppId] ??= { w: 0, l: 0 });
   if (won) h.w++; else h.l++;

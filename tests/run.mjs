@@ -3658,4 +3658,25 @@ test('New Star Darts v273: Missionen – Aufbau, Ziele, Erfolg/Scheitern', async
   s.date.year = 2027; assert.equal(M.missionCheck(s), 'lost', 'nicht Nummer 1');
 });
 
+test('New Star Darts v281: Darts vom alten Kumpel bei Formkrise', async () => {
+  const N = await import('../js/nsd.js'), L = await import('../js/life.js'), S = await import('../js/skilltrain.js');
+  const s = N.newNsdCareer({ first: 'Benny', last: 'Buchse', nation: 'DE', age: 18, slot: 1, seed: 21 }), p = s.player, inst = { name: 'PC 1' };
+  assert.equal(L.slumpScore(s), 0); assert.equal(L.friendDartsChance(0), 0.01);
+  for (let i = 0; i < 5; i++) ET.recordH2H(s, inst, 'X1', false, 2, 6, 80);
+  assert.equal(s.slump.streak, 5); assert.equal(L.slumpScore(s), 7.5); assert.ok(L.friendDartsChance(7.5) > 0.3);
+  ET.recordH2H(s, inst, 'X1', true, 6, 2, 90); assert.equal(s.slump.streak, 0); assert.equal(L.slumpScore(s), 2.5, 'Niederlagen der letzten Wochen zählen weiter');
+  for (let i = 0; i < 5; i++) ET.recordH2H(s, inst, 'X1', false, 2, 6, 80);
+  let le = null; for (let k = 0; k < 50 && !le; k++) le = L.rollFriendDarts(s, new RNG({ s: k }));
+  assert.ok(le && le.id === 'olddarts' && le.bonus === 12 && le.matches >= 3 && le.matches <= 5, JSON.stringify(le));   // härteste Krise → stärkste (gedeckelt)
+  const v = L.lifeEventView(s); assert.equal(v.opts.length, 1, 'nur Annehmen'); assert.ok(v.text.includes(le.friend) && !v.text.includes('{'));
+  const r = L.resolveLifeEvent(s, 0, new RNG({ s: 1 }));
+  assert.ok(r.changes.some(c => c.includes('+12'))); assert.equal(N.boostBonus(p, 'fin'), 12); assert.equal((p.boosts ?? []).find(b => b.friend).left, le.matches);
+  assert.equal(L.rollFriendDarts(s, new RNG({ s: 2 })), null, 'nicht solange sie wirken');
+  for (let i = 0; i < le.matches; i++) S.useBoosts(p); assert.equal(N.boostBonus(p, 'fin'), 0, 'nach ein paar Matches weg');
+  assert.equal(L.rollFriendDarts(s, new RNG({ s: 3 })), null, 'Abklingzeit 10 Wochen');
+  // milde Krise → schwächere Darts
+  const t = N.newNsdCareer({ first: 'A', last: 'B', nation: 'DE', seed: 4 }); for (let i = 0; i < 3; i++) ET.recordH2H(t, inst, 'X1', false, 2, 6, 80);
+  let l2 = null; for (let k = 0; k < 200 && !l2; k++) l2 = L.rollFriendDarts(t, new RNG({ s: k })); assert.equal(l2.bonus, 6);   // 3 + 1,5 = 4,5 → 4 + 2 × 1
+});
+
 console.log(`\n${n} Tests ok`);
