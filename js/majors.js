@@ -127,7 +127,7 @@ export function wcNations(state) {
   const { score, cands } = wcPool(state), p = state.player, strength = {};
   const str = n => (strength[n] ??= cands(n).map(score).sort((a, b) => b - a).slice(0, 2).reduce((a, v) => a + v, 0));
   const meIn = cands(p.nation).some(x => x.id === 'P');
-  let chosen = [...new Set([...playersOfTier(state, 'tour').filter(x => !x.woman).map(x => x.nation), ...(meIn ? [p.nation] : [])])].sort((a, b) => str(b) - str(a));
+  let chosen = [...new Set([...playersOfTier(state, 'tour').map(x => x.nation), ...(meIn ? [p.nation] : [])])].sort((a, b) => str(b) - str(a));
   if (chosen.length > WC_SIZE) chosen = [...(meIn ? [p.nation] : []), ...chosen.filter(n => !(meIn && n === p.nation))].slice(0, WC_SIZE);
   const rank = n => (WC_NATIONS.includes(n) ? 1e6 : 0) + str(n), pool = Object.keys(NATIONS).filter(n => !chosen.includes(n)).sort((a, b) => rank(b) - rank(a));
   for (const [c, quota] of WC_QUOTA) for (const n of pool) {
@@ -153,7 +153,7 @@ const wcPool = (state, withP = true) => {
   const p = state.player, rankP = idsOf(orderOfMerit(state, 'pdc'));
   const score = x => { const r = rankP.indexOf(x.id); return r >= 0 ? 1000 - r : overall(x.attrs); };
   const cands = nat => [...playersOfTier(state, 'tour', 'challenge', 'dev', 'secondary', 'ddv', 'local', 'amateur'), ...(withP && (p.tour === 'tour' || p.qschoolYear === state.date.year) ? [p] : [])]
-    .filter(x => x.nation === nat && !x.woman && !x.rival);   // Version 283: Rivale spielt nicht für deine Nation
+    .filter(x => x.nation === nat && !x.rival);   // Version 283: Rivale spielt nicht für deine Nation · Version 284: auch Spielerinnen (nach Stärke)
   return { score, cands };
 };
 function wcTeam(nat, two, score) {

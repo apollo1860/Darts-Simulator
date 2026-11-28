@@ -3687,6 +3687,8 @@ test('New Star Darts v283: World Cup – alle Tourcard-Nationen, weltweit aufgef
   for (const c of ['AF', 'SAM', 'NAM', 'OC', 'AS']) assert.ok(nats.some(n => MJ.contOf(n) === c), `Kontinent ${c}`);
   const me = teams.P; assert.ok(me && me.nation === 'LU', 'eigene Nation dabei');
   const mate = getPlayer(s, me.members.find(id => id !== 'P')); assert.ok(mate.tier === 'amateur' && mate.avg <= 72, `schwacher erfundener Partner ${mate.avg}`);
+  const w = N.newNsdCareer({ first: 'Lea', last: 'Lux', nation: 'LU', seed: 3 }); w.player.woman = true;   // Version 284: Spielerinnen dürfen mitspielen
+  assert.ok(MJ.wcTeams(w).P, 'Spielerin im eigenen Nationalteam');
 });
 
 console.log(`\n${n} Tests ok`);
