@@ -57,7 +57,7 @@ export function mount(root, app) {
   if (all) all.onclick = async () => {
     const { list, sum, saved, cost } = repairAllInfo(s.player);
     if (!await confirmDialog('Alles reparieren?', `${list.length} Produkte für ${cost} ★ statt ${sum} ★ (${saved} ★ Sammelrabatt).`, 'Reparieren')) return;
-    try { repairAll(s); app.save(); toast(`🔧 ${list.length} Produkte repariert (−${saved} ★)`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
+    try { repairAll(s); app.save(); toast(`🔧 ${list.length} Produkte repariert: −${cost} ★${saved ? ` (${saved} ★ gespart)` : ""}`); app.refresh(); } catch (e) { toast(e.message, 'error'); }
   };
   root.querySelectorAll('[data-fix]').forEach(b => b.onclick = async () => {
     const it = LIFESTYLE.find(x => x.id === b.dataset.fix), cost = repairCost(s.player, it);
