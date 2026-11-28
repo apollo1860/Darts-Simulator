@@ -256,6 +256,15 @@ export function migrate(s) {
     if (!a.awards) a.awards = (s.news ?? []).filter(n => n.title?.startsWith('🏅 Auszeichnung: ')).map(n => ({ year: n.year, label: n.title.slice('🏅 Auszeichnung: '.length) }));
     (s.flags ??= {}).v215awards = true;
   }
+  if (s.mode === 'nsd' && !s.flags?.v285) {   // Version 285: laufende Spielstände an Version 281/283/284 anpassen
+    if (!s.slump) {                             // Formkrise (Darts vom Kumpel) aus der Formkurve vorbelegen: Niederlagen in Folge
+      let k = 0; for (const f of s.form ?? []) { if (f.w) break; k++; }
+      const wk = s.date.year * 52 + s.date.week; s.slump = { streak: k, losses: Array(k).fill(wk) };
+    }
+    const q = s.qual?.[s.date.year], played = s.activeEvent?.eventId === 'wcod' || (s.results ?? []).some(r => r.eventId === 'wcod' && r.year === s.date.year);
+    if (q && (s.date.week < 24 || (s.date.week === 24 && !played))) { delete q.wcTeams; delete q.wcod; }   // World Cup dieses Jahres neu zusammenstellen (alle Tourcard-Nationen, weltweit, mit Spielerinnen)
+    (s.flags ??= {}).v285 = true;
+  }
   if (s.mode === 'nsd' && !s.flags?.v209cards) { if (s.date.year === 2026) keep128(s); (s.flags ??= {}).v209cards = true; }   // Version 209: 129 → 128 Holder (Rosney ohne Karte)
   return s;
 }

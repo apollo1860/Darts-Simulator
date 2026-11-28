@@ -3691,4 +3691,14 @@ test('New Star Darts v283: World Cup – alle Tourcard-Nationen, weltweit aufgef
   assert.ok(MJ.wcTeams(w).P, 'Spielerin im eigenen Nationalteam');
 });
 
+test('New Star Darts v285: alte Spielstände – Formkrise aus Formkurve, World Cup neu zusammengestellt', async () => {
+  const N = await import('../js/nsd.js'), MJ = await import('../js/majors.js');
+  const s = N.newNsdCareer({ first: 'Alt', last: 'Stand', nation: 'LU', seed: 3 });
+  MJ.wcTeams(s); s.qual[2026].wcTeams = { alt: true }; delete s.slump; s.form = [{ w: 0 }, { w: 0 }, { w: 0 }, { w: 1 }]; delete s.flags.v285;
+  migrate(s);
+  assert.equal(s.slump.streak, 3); assert.ok(!s.qual[2026].wcTeams, 'Teams werden neu gebildet'); assert.ok(MJ.wcTeams(s).P, 'jetzt mit eigener Nation');
+  const t = N.newNsdCareer({ first: 'Alt', last: 'Stand', nation: 'DE', seed: 3 }); t.date.week = 30; ((t.qual ??= {})[2026] ??= {}).wcTeams = { alt: true }; delete t.flags.v285; migrate(t);
+  assert.deepEqual(t.qual[2026].wcTeams, { alt: true }, 'nach dem World Cup bleibt alles');
+});
+
 console.log(`\n${n} Tests ok`);
