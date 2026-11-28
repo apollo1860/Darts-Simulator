@@ -3679,4 +3679,14 @@ test('New Star Darts v281: Darts vom alten Kumpel bei Formkrise', async () => {
   let l2 = null; for (let k = 0; k < 200 && !l2; k++) l2 = L.rollFriendDarts(t, new RNG({ s: k })); assert.equal(l2.bonus, 6);   // 3 + 1,5 = 4,5 → 4 + 2 × 1
 });
 
+test('New Star Darts v283: World Cup – alle Tourcard-Nationen, weltweit aufgefüllt, exotische Nation mit erfundenem Partner', async () => {
+  const N = await import('../js/nsd.js'), MJ = await import('../js/majors.js');
+  const s = N.newNsdCareer({ first: 'Lux', last: 'Emburg', nation: 'LU', seed: 3 }), nats = MJ.wcNations(s), teams = MJ.wcTeams(s);
+  assert.equal(nats.length, 40); assert.equal(new Set(nats).size, 40); assert.equal(Object.keys(teams).length, 40);
+  for (const h of playersOfTier(s, 'tour').filter(x => !x.woman)) assert.ok(nats.includes(h.nation), `Holder-Nation ${h.nation}`);
+  for (const c of ['AF', 'SAM', 'NAM', 'OC', 'AS']) assert.ok(nats.some(n => MJ.contOf(n) === c), `Kontinent ${c}`);
+  const me = teams.P; assert.ok(me && me.nation === 'LU', 'eigene Nation dabei');
+  const mate = getPlayer(s, me.members.find(id => id !== 'P')); assert.ok(mate.tier === 'amateur' && mate.avg <= 72, `schwacher erfundener Partner ${mate.avg}`);
+});
+
 console.log(`\n${n} Tests ok`);

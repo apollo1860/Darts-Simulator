@@ -4,7 +4,7 @@ import { orderOfMerit, moneyOf } from './rankings.js';
 import { playersOfTier, getPlayer, secondaryOrder, addAmateurs } from './world.js';
 import { overall, targetAverage } from './player.js';
 import { RNG, hashSeed } from './rng.js';
-import { nationName } from '../data/nations.js';
+import { nationName, NATIONS } from '../data/nations.js';
 import { WM_QUALIFIERS } from '../data/tournaments.js';
 import { OOM_2025 } from '../data/players.js';
 import { clamp } from './util.js';
@@ -108,18 +108,40 @@ function ukOpenField(state, rng) {
   return [...holders, ...ct, ...dev, ...take(rng.shuffle(ams().map(p => p.id)), need, used)];
 }
 
-// ---- World Cup (KW 24): 40 Nationen à 2 Spieler (Europa 25, Asien 9, Nordamerika 2, Ozeanien 2, Afrika 1, Südamerika 1) ----
+// ---- World Cup (KW 24): 40 Nationen à 2 Spieler (Vorlage/Auffüll-Vorrang: echte Liste unten, Quoten Europa 25, Asien 9, Nordamerika 2, Ozeanien 2, Afrika 1, Südamerika 1) ----
 // Je Nation die 2 Besten aus allen Pools (Holder nach PDC-Rang, sonst Spielstärke); fehlen Spieler → schwache fiktive Amateure.
 export const WC_NATIONS = [
   'ENG', 'NL', 'WAL', 'SCO', 'NIR', 'IRL', 'DE', 'BE', 'AT', 'CH', 'PL', 'CZ', 'HU', 'LV', 'LT', 'EE', 'SE', 'DK', 'NO', 'FI', 'FR', 'ES', 'PT', 'IT', 'HR',
   'JP', 'PH', 'CN', 'HK', 'IN', 'SG', 'MY', 'TH', 'BH',
   'US', 'CA', 'AU', 'NZ', 'ZA', 'AR',
 ];
+// Version 283: erst alle Nationen mit Tourcard-Holder (inkl. dir), dann weltweit auffüllen – zuerst je Kontinent bis zur Quote
+// (Afrika, Südamerika, Nordamerika, Ozeanien, Asien, Europa), danach nach Stärke; bekannte World-Cup-Nationen haben Vorrang.
+// Nationen ohne (genug) Spieler bekommen sehr schwache erfundene Amateure (Ø 58–72).
+export const WC_SIZE = 40;
+const CONT = { AF: ['ZA', 'KE', 'NG', 'UG', 'ZW', 'NA', 'BW', 'EG', 'MA', 'TN', 'DZ'], SAM: ['AR', 'BR', 'CL', 'CO', 'GY'], NAM: ['US', 'CA', 'MX', 'BS', 'TT', 'JM', 'CR'],
+  OC: ['AU', 'NZ'], AS: ['JP', 'PH', 'CN', 'HK', 'IN', 'SG', 'MY', 'TH', 'BH', 'SA', 'MO', 'TW', 'MN', 'BN', 'LB'] };
+export const contOf = n => Object.keys(CONT).find(c => CONT[c].includes(n)) ?? 'EU';
+const WC_QUOTA = [['AF', 1], ['SAM', 1], ['NAM', 2], ['OC', 2], ['AS', 9], ['EU', 25]];
+export function wcNations(state) {
+  const { score, cands } = wcPool(state), p = state.player, strength = {};
+  const str = n => (strength[n] ??= cands(n).map(score).sort((a, b) => b - a).slice(0, 2).reduce((a, v) => a + v, 0));
+  const meIn = cands(p.nation).some(x => x.id === 'P');
+  let chosen = [...new Set([...playersOfTier(state, 'tour').filter(x => !x.woman).map(x => x.nation), ...(meIn ? [p.nation] : [])])].sort((a, b) => str(b) - str(a));
+  if (chosen.length > WC_SIZE) chosen = [...(meIn ? [p.nation] : []), ...chosen.filter(n => !(meIn && n === p.nation))].slice(0, WC_SIZE);
+  const rank = n => (WC_NATIONS.includes(n) ? 1e6 : 0) + str(n), pool = Object.keys(NATIONS).filter(n => !chosen.includes(n)).sort((a, b) => rank(b) - rank(a));
+  for (const [c, quota] of WC_QUOTA) for (const n of pool) {
+    if (chosen.length >= WC_SIZE || chosen.filter(x => contOf(x) === c).length >= quota) break;
+    if (contOf(n) === c && !chosen.includes(n)) chosen.push(n);
+  }
+  for (const n of pool) { if (chosen.length >= WC_SIZE) break; if (!chosen.includes(n)) chosen.push(n); }
+  return chosen;
+}
 export function wcTeams(state) {
   const q = qualOf(state);
   if (q.wcTeams) return q.wcTeams;
   const { score, cands } = wcPool(state), teams = {};
-  for (const nat of WC_NATIONS) {
+  for (const nat of wcNations(state)) {
     let list = cands(nat);
     if (list.length < 2) { addAmateurs(state, nat, 2 - list.length); list = cands(nat); }
     const t = wcTeam(nat, list.sort((a, b) => score(b) - score(a)).slice(0, 2), score);
@@ -131,7 +153,7 @@ const wcPool = (state, withP = true) => {
   const p = state.player, rankP = idsOf(orderOfMerit(state, 'pdc'));
   const score = x => { const r = rankP.indexOf(x.id); return r >= 0 ? 1000 - r : overall(x.attrs); };
   const cands = nat => [...playersOfTier(state, 'tour', 'challenge', 'dev', 'secondary', 'ddv', 'local', 'amateur'), ...(withP && (p.tour === 'tour' || p.qschoolYear === state.date.year) ? [p] : [])]
-    .filter(x => x.nation === nat && !x.woman);
+    .filter(x => x.nation === nat && !x.woman && !x.rival);   // Version 283: Rivale spielt nicht für deine Nation
   return { score, cands };
 };
 function wcTeam(nat, two, score) {
